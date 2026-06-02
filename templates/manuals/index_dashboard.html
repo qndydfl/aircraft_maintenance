@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+    <div>
+        <h2 class="mb-1">
+            Index Dashboard
+        </h2>
+
+        <p class="text-muted mb-0">
+            기종별 ZIP/PDF 인덱싱 현황입니다.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+
+        <a href="{% url 'manual_index_log_list' %}"
+            class="btn btn-outline-dark">
+            Index Logs
+        </a>
+
+        <a href="{% url 'home' %}"
+            class="btn btn-outline-secondary">
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+
+        <div class="card shadow-sm border-primary">
+
+            <div class="card-body">
+
+                <div class="text-muted small">
+                    ZIP Packages
+                </div>
+
+                <h3 class="mb-0">
+                    {{ total_package_count }}
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow-sm border-success">
+
+            <div class="card-body">
+
+                <div class="text-muted small">
+                    Chapters
+                </div>
+
+                <h3 class="mb-0 text-success">
+                    {{ total_chapter_count }}
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow-sm border-info">
+
+            <div class="card-body">
+
+                <div class="text-muted small">
+                    Indexed Pages
+                </div>
+
+                <h3 class="mb-0 text-info">
+                    {{ total_index_page_count }}
+                </h3>
+
+                <div class="small text-muted">
+                    ZIP {{ total_package_page_count }}
+                    /
+                    PDF {{ total_pdf_page_count }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow-sm border-danger">
+
+            <div class="card-body">
+
+                <div class="text-muted small">
+                    Logs
+                </div>
+
+                <h3 class="mb-0">
+                    <span class="text-success">
+                        {{ total_success_count }}
+                    </span>
+                    /
+                    <span class="text-danger">
+                        {{ total_failed_count }}
+                    </span>
+                </h3>
+
+                <div class="small text-muted">
+                    Success / Failed
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% for row in dashboard_rows %}
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+        <strong>
+            {{ row.aircraft.name }}
+        </strong>
+
+        <a href="{% url 'aircraft_manual_detail' row.aircraft.pk %}"
+            class="btn btn-sm btn-outline-primary">
+            Open Manuals
+        </a>
+
+    </div>
+
+    <div class="card-body">
+
+        <!-- ZIP Packages -->
+
+        <h5 class="mb-3">
+            ZIP Packages
+        </h5>
+
+        <div class="table-responsive mb-4">
+
+            <table class="table table-sm table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Manual</th>
+                        <th>Status</th>
+                        <th>Chapters</th>
+                        <th>Indexed Pages</th>
+                        <th style="width:160px;">
+                            Action
+                        </th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for package in row.packages %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ package.manual_type }}
+                            </strong>
+                        </td>
+
+                        <td>
+
+                            {% if package.processed %}
+                                <span class="badge bg-success">
+                                    PROCESSED
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    NOT PROCESSED
+                                </span>
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ package.chapter_count }}
+                        </td>
+
+                        <td>
+                            {{ package.page_count }}
+                        </td>
+
+                        <td>
+
+                            <form method="post"
+                                action="{% url 'manual_package_reindex' package.id %}">
+
+                                {% csrf_token %}
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-info w-100">
+                                    Re-index ZIP
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5"
+                            class="text-center text-muted">
+
+                            ZIP Package 없음
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PDF Manuals -->
+
+        <h5 class="mb-3">
+            PDF Manuals
+        </h5>
+
+        <div class="table-responsive">
+
+            <table class="table table-sm table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Manual</th>
+                        <th>Status</th>
+                        <th>Indexed Pages</th>
+                        <th style="width:160px;">
+                            Action
+                        </th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for pdf in row.pdfs %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ pdf.manual_type }}
+                            </strong>
+                        </td>
+
+                        <td>
+
+                            {% if pdf.indexed %}
+                                <span class="badge bg-success">
+                                    INDEXED
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    NOT INDEXED
+                                </span>
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ pdf.page_count }}
+                        </td>
+
+                        <td>
+
+                            <form method="post"
+                                action="{% url 'manual_file_reindex' pdf.id %}">
+
+                                {% csrf_token %}
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-info w-100">
+                                    Re-index PDF
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="4"
+                            class="text-center text-muted">
+
+                            PDF Manual 없음
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="mb-3">
+            Recent Index Logs
+        </h5>
+
+        <div class="table-responsive">
+
+            <table class="table table-sm table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Manual</th>
+                        <th>Target</th>
+                        <th>Status</th>
+                        <th>Chapter</th>
+                        <th>Page</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for log in row.recent_logs %}
+
+                    <tr>
+                        <td>
+                            {{ log.created_at|date:"Y-m-d H:i" }}
+                        </td>
+
+                        <td>
+                            {{ log.manual_type|default:"-" }}
+                        </td>
+
+                        <td>
+                            {{ log.get_target_type_display }}
+                        </td>
+
+                        <td>
+                            {% if log.status == "SUCCESS" %}
+                                <span class="badge bg-success">
+                                    SUCCESS
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    FAILED
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ log.chapter_count }}
+                        </td>
+
+                        <td>
+                            {{ log.page_count }}
+                        </td>
+
+                        <td>
+                            <a href="{% url 'manual_index_log_detail' log.pk %}"
+                            class="btn btn-sm btn-outline-primary">
+                                Detail
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+                        <td colspan="7"
+                            class="text-center text-muted">
+                            최근 인덱싱 로그가 없습니다.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-warning">
+
+    등록된 Boeing 기종이 없습니다.
+
+</div>
+
+{% endfor %}
+
+{% endblock %}

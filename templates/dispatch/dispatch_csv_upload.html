@@ -1,0 +1,52 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Dispatch CSV Upload</h2>
+
+        <p class="text-muted mb-0">
+            EICAS / Fault Code / MEL / FIM / AMM 데이터를 CSV로 업로드합니다.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'dispatch_auto_search' %}"
+        class="btn btn-outline-secondary"
+    >
+        Back
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label"> Dispatch CSV File </label>
+
+                <input
+                    type="file"
+                    name="csv_file"
+                    class="form-control"
+                    accept=".csv"
+                    required
+                />
+            </div>
+
+            <button type="submit" class="btn btn-danger">Upload CSV</button>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+<h5>CSV 예시</h5>
+
+<pre class="bg-light p-3 border rounded">
+aircraft,eicas_message,fault_code,mel_number,fim_chapter,amm_chapter,description,note
+B747,PACK 1 OFF,,21-51-01,21-51-00,21-51-01,Pack 1 off condition,MEL 확인 후 FIM 수행
+B777,HYD PRESS SYS L,,29-11-01,29-11-00,29-11-00,Left hydraulic pressure low,Status message 확인
+</pre>
+
+{% endblock %}

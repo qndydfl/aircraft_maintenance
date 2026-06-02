@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="mb-1">
+            Aircraft Manage
+        </h2>
+
+        <p class="text-muted mb-0">
+            Boeing 기종과 Airbus 링크를 관리합니다.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="{% url 'aircraft_create' %}"
+            class="btn btn-primary">
+            Add Aircraft
+        </a>
+
+        <a href="{% url 'home' %}"
+            class="btn btn-outline-secondary">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Maker</th>
+                        <th>Name</th>
+                        <th>Airbus URL</th>
+                        <th style="width: 180px;">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for aircraft in aircrafts %}
+
+                        <tr>
+                            <td>
+                                {{ aircraft.get_maker_display }}
+                            </td>
+
+                            <td>
+                                {{ aircraft.name }}
+                            </td>
+
+                            <td>
+                                {% if aircraft.airbus_url %}
+                                    <a href="{{ aircraft.airbus_url }}"
+                                        target="_blank">
+                                        Open Link
+                                    </a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <div class="d-flex gap-2">
+
+                                    <a href="{% url 'aircraft_update' aircraft.pk %}"
+                                        class="btn btn-sm btn-warning">
+                                        Edit
+                                    </a>
+
+                                    <a href="{% url 'aircraft_delete' aircraft.pk %}"
+                                        class="btn btn-sm btn-danger">
+                                        Delete
+                                    </a>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="4"
+                                class="text-center text-muted">
+                                등록된 기종이 없습니다.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

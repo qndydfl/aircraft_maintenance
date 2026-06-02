@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="mb-1">
+            Index Log Detail
+        </h2>
+
+        <p class="text-muted mb-0">
+            인덱싱 상세 결과
+        </p>
+    </div>
+
+    <a href="{% url 'manual_index_log_list' %}"
+        class="btn btn-outline-secondary">
+        Back
+    </a>
+
+</div>
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <p>
+            <strong>Date:</strong>
+            {{ log.created_at|date:"Y-m-d H:i:s" }}
+        </p>
+
+        <p>
+            <strong>Target:</strong>
+            {{ log.get_target_type_display }}
+        </p>
+
+        <p>
+            <strong>Aircraft:</strong>
+            {{ log.aircraft.name|default:"-" }}
+        </p>
+
+        <p>
+            <strong>Manual Type:</strong>
+            {{ log.manual_type|default:"-" }}
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            {% if log.status == "SUCCESS" %}
+                <span class="badge bg-success">SUCCESS</span>
+            {% else %}
+                <span class="badge bg-danger">FAILED</span>
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Chapter Count:</strong>
+            {{ log.chapter_count }}
+        </p>
+
+        <p>
+            <strong>Page Count:</strong>
+            {{ log.page_count }}
+        </p>
+
+        <hr>
+
+        <h5>Message</h5>
+
+        <pre class="bg-light border rounded p-3">{{ log.message }}</pre>
+
+    </div>
+
+</div>
+
+{% endblock %}

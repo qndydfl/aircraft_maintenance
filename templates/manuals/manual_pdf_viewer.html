@@ -1,0 +1,215 @@
+{% extends 'base.html' %} {% load static %} {% block css %}
+<link rel="stylesheet" href="{% static 'css/manual_pdf_viewer.css' %}" />
+{% endblock css %} {% block js %}
+<script>
+    window.PDF_VIEWER_CONFIG = {
+        pdfUrl: "{{ pdf_url }}",
+        initialPage: parseInt("{{ page_number|default:'1' }}", 10),
+        searchQuery: "{{ query|escapejs }}".trim().toLowerCase(),
+        viewerType: "{{ viewer_type }}",
+        matchingPages: {{ matching_pages_json|default:"[]"|safe }},
+        viewMode: "{{ view_mode|default:'single' }}",
+        workerSrc:
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
+    };
+</script>
+
+<script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+></script>
+<script defer src="{% static 'js/manual_pdf_viewer.js' %}"></script>
+{% endblock js %} {% block nav %}{% endblock nav %} {% block content %}
+
+<div
+    class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"
+>
+    <div>
+        <h4 class="mb-1">{{ viewer_title }}</h4>
+        <p class="text-muted mb-0">
+            {{ viewer_subtitle|default:"PDF Viewer" }}
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="{{ pdf_url }}" target="_blank" class="btn btn-outline-primary">
+            Open Original
+        </a>
+
+        <a href="{{ back_url }}" class="btn btn-outline-secondary"> Back </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        {% if merge_error %}
+        <div class="alert alert-warning">{{ merge_error }}</div>
+        {% else %}
+        <div
+            class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"
+        >
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <button id="prev-page" class="btn btn-sm btn-outline-secondary">
+                    Previous
+                </button>
+
+                <span>
+                    Page
+                    <input
+                        id="page-number"
+                        type="number"
+                        value="{{ page_number }}"
+                        min="1"
+                        class="form-control d-inline-block"
+                        style="width: 90px"
+                    />
+                    /
+                    <span id="page-count">-</span>
+                </span>
+
+                <button id="next-page" class="btn btn-sm btn-outline-secondary">
+                    Next
+                </button>
+
+                <button id="zoom-out" class="btn btn-sm btn-outline-secondary">
+                    -
+                </button>
+                <span id="zoom-level" class="badge bg-light text-dark"
+                    >100%</span
+                >
+                <button id="zoom-in" class="btn btn-sm btn-outline-secondary">
+                    +
+                </button>
+                <button id="fit-width" class="btn btn-sm btn-outline-secondary">
+                    Fit Width
+                </button>
+                <button id="fit-page" class="btn btn-sm btn-outline-secondary">
+                    Fit Page
+                </button>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <button id="toggle-outline" class="btn btn-sm btn-outline-dark">
+                    Contents
+                </button>
+
+                {% if query %}
+                <div class="badge bg-warning text-dark">
+                    Highlight: {{ query }}
+                </div>
+                {% endif %} 
+
+                {% if query and match_count %}
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+
+                        {% if prev_match_url %}
+                            <a href="{{ prev_match_url }}"
+                            class="btn btn-sm btn-outline-secondary">
+                                ◀ Previous Match
+                            </a>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                ◀ Previous Match
+                            </button>
+                        {% endif %}
+
+                        <span class="badge bg-primary">
+                            {{ current_match_index }} / {{ match_count }}
+                        </span>
+
+                        {% if next_match_url %}
+                            <a href="{{ next_match_url }}"
+                            class="btn btn-sm btn-outline-secondary">
+                                Next Match ▶
+                            </a>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                Next Match ▶
+                            </button>
+                        {% endif %}
+
+                    </div>
+                {% elif query %}
+                    <span class="badge bg-secondary">
+                        No match
+                    </span>
+                {% endif %}
+
+            </div>
+
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <input id="viewer-search-input"
+                    type="text"
+                    value="{{ query }}"
+                    class="form-control form-control-sm"
+                    style="width: 220px;"
+                    placeholder="Find in PDF">
+
+                <button id="viewer-search-btn"
+                        type="button"
+                        class="btn btn-sm btn-primary">
+                    Find
+                </button>
+
+                <button id="viewer-search-prev"
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary">
+                    ◀
+                </button>
+
+                <span id="viewer-search-count"
+                    class="badge bg-primary">
+                    0 / 0
+                </span>
+
+                <button id="viewer-search-next"
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary">
+                    ▶
+                </button>
+            </div>
+
+        </div>
+
+        <div id="manual-pdf-layout" class="manual-pdf-layout">
+            <aside id="outline-panel" class="outline-panel">
+                <div class="outline-title">PDF Contents</div>
+
+                <div id="outline-container">
+                    {% if viewer_type == "chapter" and package_chapters %}
+                    <ul class="outline-list">
+                        {% for item in package_chapters %}
+                        <li class="outline-item">
+                            <a
+                                class="outline-link"
+                                href="{% url 'manual_chapter_pdf_viewer' item.pk %}?page=1{% if query %}&q={{ query|urlencode }}{% endif %}"
+                            >
+                                <span class="outline-icon">▱</span>
+                                <span>
+                                    {{ item.task }} {% if item.subtask %} / {{ item.subtask }} {% endif %} - {{ item.title|default:"" }}
+                                </span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="outline-empty">Loading contents...</div>
+                    {% endif %}
+                </div>
+            </aside>
+
+            <div
+                class="border rounded bg-light text-center p-2 pdf-viewer-scroll"
+            >
+                <div id="single-page-viewer" class="pdf-viewer-wrap">
+                    <canvas id="pdf-canvas"></canvas>
+                    <div id="text-layer"></div>
+                </div>
+
+                <div id="multi-page-viewer" class="multi-page-viewer d-none"></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

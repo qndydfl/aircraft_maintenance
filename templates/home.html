@@ -1,0 +1,330 @@
+{% extends 'base.html' %} {% block content %}
+
+<div
+    class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
+>
+    <div>
+        <h2 class="page-title mb-1">Aircraft Manual Portal</h2>
+
+        <p class="text-muted mb-0">
+            Boeing PDF/ZIP manuals and Airbus manual links
+        </p>
+    </div>
+
+    <div class="d-flex gap-2 page-actions">
+        {% if user.is_staff %}
+        <a href="{% url 'aircraft_manage' %}" class="btn btn-outline-primary">
+            Aircraft Manage
+        </a>
+
+        <a
+            href="{% url 'manual_index_log_list' %}"
+            class="btn btn-outline-dark"
+        >
+            Index Logs
+        </a>
+
+        <a
+            href="{% url 'manual_index_dashboard' %}"
+            class="btn btn-outline-info"
+        >
+            Index Dashboard
+        </a>
+
+        {% endif %}
+
+        <a href="{% url 'manual_search' %}" class="btn btn-outline-success">
+            Manual Search
+        </a>
+
+        <a href="{% url 'dispatch_auto_search' %}" class="btn btn-danger">
+            Dispatch
+        </a>
+    </div>
+</div>
+
+{% if user.is_staff and recent_failed_logs %}
+
+<div class="alert alert-danger shadow-sm">
+    <div
+        class="d-flex justify-content-between align-items-center flex-wrap gap-2"
+    >
+        <div>
+            <strong> 최근 인덱싱 실패 로그가 있습니다. </strong>
+
+            <div class="small">ZIP/PDF 재인덱싱 상태를 확인하세요.</div>
+        </div>
+
+        <a
+            href="{% url 'manual_index_log_list' %}?status=FAILED"
+            class="btn btn-sm btn-light"
+        >
+            View Failed Logs
+        </a>
+    </div>
+
+    <hr />
+
+    <ul class="mb-0">
+        {% for log in recent_failed_logs %}
+
+        <li>
+            {{ log.created_at|date:"Y-m-d H:i" }} / {{ log.aircraft.name|default:"-" }} / {{ log.manual_type|default:"-" }} / {{ log.message|truncatechars:80 }}
+        </li>
+
+        {% endfor %}
+    </ul>
+</div>
+
+{% endif %} {% if user.is_staff %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-body">
+                <div class="text-muted small">Index Success</div>
+
+                <h3 class="mb-0 text-success">{{ index_success_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <div class="text-muted small">Index Failed</div>
+
+                <h3 class="mb-0 text-danger">{{ index_failed_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-dark">
+            <div class="card-body">
+                <div class="text-muted small">Recent Logs</div>
+
+                <h3 class="mb-0">{{ recent_index_logs|length }}</h3>
+
+                <a href="{% url 'manual_index_log_list' %}" class="small">
+                    View Logs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %} {% if user.is_staff and recent_index_logs %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">Recent Index Logs</div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Aircraft</th>
+                        <th>Manual</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for log in recent_index_logs %}
+
+                    <tr>
+                        <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+
+                        <td>{{ log.aircraft.name|default:"-" }}</td>
+
+                        <td>{{ log.manual_type|default:"-" }}</td>
+
+                        <td>
+                            {% if log.status == "SUCCESS" %}
+                            <span class="badge bg-success"> SUCCESS </span>
+                            {% else %}
+                            <span class="badge bg-danger"> FAILED </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+<div class="mb-4">
+    <h4 class="section-title mb-3">Boeing Manuals</h4>
+
+    <div class="row g-4">
+        {% for aircraft in boeing_aircrafts %}
+
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card portal-card h-100 shadow-sm">
+                <div class="card-body">
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-3"
+                    >
+                        <h5 class="card-title fw-bold mb-0">
+                            {{ aircraft.name }}
+                        </h5>
+
+                        {% if aircraft.is_complete %}
+                        <span class="badge bg-success"> COMPLETE </span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">
+                            INCOMPLETE
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <span
+                            class="badge {% if aircraft.has_amm %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            AMM
+                        </span>
+
+                        <span
+                            class="badge {% if aircraft.has_fim %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            FIM
+                        </span>
+
+                        <span
+                            class="badge {% if aircraft.has_ipc %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            IPC
+                        </span>
+
+                        <span
+                            class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            MEL
+                        </span>
+
+                        <span
+                            class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            CDL
+                        </span>
+                    </div>
+
+                    <p class="text-muted small">
+                        회색 badge는 미등록 매뉴얼입니다.
+                    </p>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-muted"> 등록률 </span>
+
+                            <span class="fw-bold">
+                                {{ aircraft.manual_registered_count }} / {{ aircraft.manual_total_count }} files
+                            </span>
+                        </div>
+
+                        <div class="progress" style="height: 8px">
+                            <div
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: {{ aircraft.manual_completion_percent }}%;"
+                            ></div>
+                        </div>
+
+                        {% if not aircraft.is_complete %}
+                        <div class="small text-danger mt-2">
+                            Missing: {{ aircraft.missing_manual_count }} file(s)
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <a
+                        href="{% url 'aircraft_manual_detail' aircraft.pk %}"
+                        class="btn btn-primary w-100"
+                    >
+                        Open Manuals
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% empty %}
+
+        <div class="col-12">
+            <div class="alert alert-warning">
+                등록된 Boeing 기종이 없습니다.
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+
+<hr class="my-5" />
+
+<div class="mb-4">
+    <h4 class="section-title mb-3">Airbus Manuals</h4>
+
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card portal-card h-100 shadow-sm border-info">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">Airbus</h5>
+
+                    <div class="mb-3">
+                        <span class="badge bg-info text-dark manual-badge"
+                            >LINK</span
+                        >
+                        <span class="badge bg-info text-dark manual-badge"
+                            >AMM</span
+                        >
+                        <span class="badge bg-info text-dark manual-badge"
+                            >IPC</span
+                        >
+                        <span class="badge bg-info text-dark manual-badge"
+                            >MEL</span
+                        >
+                    </div>
+
+                    <p class="text-muted small">
+                        Airbus manuals are opened through registered external
+                        links.
+                    </p>
+
+                    <a
+                        href="{% url 'airbus_link_list' %}"
+                        class="btn btn-info w-100"
+                    >
+                        Open Airbus Manuals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm dispatch-box mt-5 mb-5">
+    <div
+        class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3"
+    >
+        <div>
+            <h5 class="fw-bold mb-1">Dispatch Search</h5>
+
+            <p class="text-muted mb-0">
+                Search EICAS Message, Fault Code, MEL, FIM, and AMM references.
+            </p>
+        </div>
+
+        <a href="{% url 'dispatch_auto_search' %}" class="btn btn-danger">
+            Go Dispatch
+        </a>
+    </div>
+</div>
+
+{% endblock %}

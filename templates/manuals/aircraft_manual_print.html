@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <title>{{ aircraft.name }} Manual Print</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #000;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .info {
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .no-print {
+            margin-bottom: 16px;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button onclick="window.print()">Print</button>
+    <button onclick="window.close()">Close</button>
+</div>
+
+<h1>{{ aircraft.name }} Manual List</h1>
+
+<div class="info">
+    <strong>Aircraft:</strong>
+    {{ aircraft.name }}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Manual Type</th>
+            <th>File</th>
+            <th>Description</th>
+            <th>Uploaded At</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for manual in aircraft.get_ordered_manuals %}
+            <tr>
+                <td>{{ manual.manual_type }}</td>
+                <td>{{ manual.file.name }}</td>
+                <td>{{ manual.description|default:"-" }}</td>
+                <td>{{ manual.uploaded_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">
+                    등록된 매뉴얼 파일이 없습니다.
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>
+
+</body>
+</html>

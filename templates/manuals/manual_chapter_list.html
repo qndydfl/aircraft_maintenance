@@ -1,0 +1,206 @@
+{% extends 'base.html' %} {% load static %} {% block css %}
+<link rel="stylesheet" href="{% static 'css/manual_chapter_list.css' %}" />
+{% endblock css %} {% block content %}
+
+<div
+    class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
+>
+    <div>
+        <h2 class="mb-1">
+            {{ package.aircraft.name }} {{ package.manual_type }} Chapters
+        </h2>
+
+        <p class="text-muted mb-0">
+            ZIP index.html에서 추출된 chapter 목록입니다. 각 항목은 개별 PDF
+            viewer로 열립니다.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
+        class="btn btn-outline-secondary"
+    >
+        Back
+    </a>
+</div>
+
+<form method="get" class="mb-3">
+    <div class="input-group">
+        <input
+            type="text"
+            name="q"
+            value="{{ q }}"
+            class="form-control"
+            placeholder="Task, Subtask, Title, PDF 내용 검색"
+        />
+
+        <button type="submit" class="btn btn-primary">Search</button>
+
+        {% if q %}
+        <a href="?" class="btn btn-outline-secondary"> Clear </a>
+        {% endif %}
+    </div>
+</form>
+
+{% if q %}
+<div class="alert alert-info py-2">검색어: <strong>{{ q }}</strong></div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">Chapter Contents</h5>
+
+        <div class="chapter-bookmark-list">
+            {% for chapter in chapter_bookmarks %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}{% if q %}?q={{ q|urlencode }}{% endif %}"
+                target="_blank"
+                class="chapter-bookmark-item"
+            >
+                <span class="chapter-bookmark-icon"> ▱ </span>
+
+                <span>
+                    <strong>{{ chapter.task }}</strong>
+
+                    {% if chapter.subtask %} / {{ chapter.subtask }} {% endif %}
+
+                    <br />
+
+                    <small class="text-muted">
+                        {{ chapter.title|default:"-" }}
+                    </small>
+                </span>
+            </a>
+            {% empty %}
+            <div class="text-muted p-3">표시할 Chapter가 없습니다.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if q and matching_chapters %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">관련 Chapter</h5>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 140px">Task</th>
+                        <th style="width: 120px">Subtask</th>
+                        <th>Title</th>
+                        <th style="width: 120px">Pages</th>
+                        <th style="width: 120px">PDF</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for chapter in matching_chapters %}
+                    <tr>
+                        <td class="fw-bold">{{ chapter.chapter__task }}</td>
+
+                        <td>{{ chapter.chapter__subtask|default:"-" }}</td>
+
+                        <td>{{ chapter.chapter__title|default:"-" }}</td>
+
+                        <td>{{ chapter.match_count }} page(s)</td>
+
+                        <td>
+                            <a
+                                href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}"
+                                target="_blank"
+                                class="btn btn-sm btn-primary"
+                            >
+                                Open Chapter
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %} {% comment %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="mb-3">Chapter Table</h5>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 140px">Task</th>
+                        <th style="width: 120px">Subtask</th>
+                        <th>Title</th>
+                        <th style="width: 180px">PDF</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for chapter in chapters %}
+                    <tr>
+                        <td class="fw-bold">{{ chapter.task }}</td>
+
+                        <td>{{ chapter.subtask|default:"-" }}</td>
+
+                        <td>{{ chapter.title|default:"-" }}</td>
+
+                        <td>
+                            <a
+                                href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}{% if q %}?q={{ q|urlencode }}{% endif %}"
+                                target="_blank"
+                                class="btn btn-sm btn-primary"
+                            >
+                                Open PDF
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            {% if q %} 검색 결과가 없습니다. {% else %} 저장된
+                            Chapter가 없습니다. {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a
+                class="page-link"
+                href="?q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}"
+            >
+                Previous
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">
+                {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a
+                class="page-link"
+                href="?q={{ q|urlencode }}&page={{ page_obj.next_page_number }}"
+            >
+                Next
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %} {% endcomment %} {% endblock %}

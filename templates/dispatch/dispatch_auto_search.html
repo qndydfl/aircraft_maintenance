@@ -1,0 +1,635 @@
+{% extends 'base.html' %}
+{% load manual_extras %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+    <div>
+        <h2 class="mb-1">Dispatch Auto Search</h2>
+        <p class="text-muted mb-0">
+            PDF 인덱스에서 MEL / FIM / AMM / IPC / CDL 후보를 자동 검색합니다.
+        </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        {% if user.is_staff %}
+            <a href="{% url 'dispatch_create' %}?aircraft={{ selected_aircraft }}&eicas_message={{ query|urlencode }}"
+                class="btn btn-primary">
+                Add Dispatch
+            </a>
+
+            <a href="{% url 'dispatch_csv_upload' %}"
+                class="btn btn-outline-danger">
+                CSV Upload
+            </a>
+        {% endif %}
+
+        <a href="{% url 'dispatch_csv_download' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
+            class="btn btn-outline-success">
+            CSV Download
+        </a>
+
+        <a href="{% url 'dispatch_print' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
+            target="_blank"
+            class="btn btn-outline-dark">
+            Print
+        </a>
+
+        <a href="{% url 'home' %}"
+            class="btn btn-outline-secondary">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <form method="get">
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">Aircraft</label>
+
+                    <select name="aircraft" class="form-select">
+                        <option value="">기종 선택</option>
+
+                        {% for aircraft in aircrafts %}
+                            <option value="{{ aircraft.id }}"
+                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ aircraft.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Search Type</label>
+
+                    <select name="search_type" class="form-select">
+                        <option value="keyword" {% if search_type == "keyword" %}selected{% endif %}>
+                            Keyword
+                        </option>
+                        <option value="eicas" {% if search_type == "eicas" %}selected{% endif %}>
+                            EICAS Message
+                        </option>
+                        <option value="status" {% if search_type == "status" %}selected{% endif %}>
+                            Status Message
+                        </option>
+                        <option value="fault" {% if search_type == "fault" %}selected{% endif %}>
+                            Fault Code
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+
+                    <input type="text"
+                        name="q"
+                        value="{{ query }}"
+                        class="form-control"
+                        placeholder="예: AUTOBRAKE, AUTOBRAKE*, *AUTOBRAKE*">
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Auto Search
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+        {% if saved_dispatch_results %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        {% if status_mode %}
+                            Status Reference Summary
+                        {% else %}
+                            Saved Dispatch References
+                        {% endif %}
+                    </h5>
+
+                    {% if status_mode %}
+                        <div class="alert alert-info py-2">
+                            Status message 기준으로 MEL / FIM / AMM chapter reference를 한 번에 보여줍니다.
+                        </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>EICAS</th>
+                                    <th>Status</th>
+                                    <th>Fault</th>
+                                    <th>MEL</th>
+                                    <th>FIM</th>
+                                    <th>AMM</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in saved_dispatch_results %}
+                                <tr>
+                                    <td>{{ item.eicas_message|default:"-" }}</td>
+                                    <td>{{ item.status_message|default:"-" }}</td>
+                                    <td>{{ item.fault_code|default:"-" }}</td>
+                                    <td>
+                                        <div>{{ item.mel_number|default:"-" }}</div>
+                                        {% if item.mel_page %}
+                                            <div class="text-muted small">Page {{ item.mel_page.page_number }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ item.fim_chapter|default:"-" }}</div>
+                                        {% if item.fim_page %}
+                                            <div class="text-muted small">Page {{ item.fim_page.page_number }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ item.amm_chapter|default:"-" }}</div>
+                                        {% if item.amm_page %}
+                                            <div class="text-muted small">Page {{ item.amm_page.page_number }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'dispatch_detail' item.pk %}"
+                                        class="btn btn-sm btn-outline-primary">
+                                            Open
+                                        </a>
+
+                                        {% if status_mode %}
+                                            {% if item.mel_page %}
+                                                <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
+                                                    target="_blank"
+                                                    class="btn btn-sm btn-outline-danger ms-1">
+                                                    MEL
+                                                </a>
+                                            {% endif %}
+
+                                            {% if item.fim_page %}
+                                                <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}"
+                                                    target="_blank"
+                                                    class="btn btn-sm btn-outline-primary ms-1">
+                                                    FIM
+                                                </a>
+                                            {% endif %}
+
+                                            {% if item.amm_page %}
+                                                <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}"
+                                                    target="_blank"
+                                                    class="btn btn-sm btn-outline-success ms-1">
+                                                    AMM
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% if status_mode and not selected_aircraft %}
+<div class="alert alert-secondary py-2">
+    기종을 선택하지 않아서 전체 Boeing 항공기 기준으로 검색합니다.
+</div>
+{% endif %}
+
+{% if query %}
+
+<form method="get" action="{% url 'dispatch_create' %}">
+
+    {% csrf_token %}
+    <input type="hidden" name="search_type" value="{{ search_type }}">
+    <input type="hidden" name="search_text" value="{{ query }}">
+
+    <div class="row g-4">
+
+        <!-- MEL -->
+        <div class="col-lg-6">
+            <h4 class="section-title mb-3">MEL Candidates</h4>
+
+            {% with page=mel_page_data.item %}
+                {% if page %}
+                    <div class="card shadow-sm mb-3 border-danger">
+                        <div class="card-body">
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    name="mel_page_id"
+                                    value="{{ page.id }}"
+                                    id="mel_{{ page.id }}">
+
+                                <label class="form-check-label" for="mel_{{ page.id }}">
+                                    Select MEL Candidate
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <strong>MEL Page {{ page.page_number }}</strong>
+                                    <div class="text-muted small">
+                                        Score: {{ page.recommend_score }}
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-danger">
+                                    Open MEL Page
+                                </a>
+                            </div>
+
+                            <div class="bg-light border rounded p-2 small mt-2">
+                                {{ page.snippet|highlight_query:query }}
+                            </div>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                                {% if mel_page_data.has_previous %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.previous_page }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
+                                        Previous
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Previous
+                                    </button>
+                                {% endif %}
+
+                                <span class="badge bg-danger">
+                                    {{ mel_page_data.current }} / {{ mel_page_data.total }}
+                                </span>
+
+                                {% if mel_page_data.has_next %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.next_page }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
+                                        Next
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Next
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">MEL 후보가 없습니다.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- FIM -->
+        <div class="col-lg-6">
+            <h4 class="section-title mb-3">FIM Candidates</h4>
+
+            {% with page=fim_page_data.item %}
+                {% if page %}
+                    <div class="card shadow-sm mb-3 border-primary">
+                        <div class="card-body">
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    name="fim_page_id"
+                                    value="{{ page.id }}"
+                                    id="fim_{{ page.id }}">
+
+                                <label class="form-check-label" for="fim_{{ page.id }}">
+                                    Select FIM Candidate
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <strong>
+                                        {{ page.chapter.task }} / Page {{ page.page_number }}
+                                    </strong>
+                                    <div class="text-muted small">
+                                        Score: {{ page.recommend_score }}
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-primary">
+                                    Open FIM Page
+                                </a>
+                            </div>
+
+                            <p class="small mb-1 mt-2">
+                                {{ page.chapter.title|default:"-" }}
+                            </p>
+
+                            <div class="bg-light border rounded p-2 small">
+                                {{ page.snippet|highlight_query:query }}
+                            </div>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                                {% if fim_page_data.has_previous %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.previous_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
+                                        Previous
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Previous
+                                    </button>
+                                {% endif %}
+
+                                <span class="badge bg-primary">
+                                    {{ fim_page_data.current }} / {{ fim_page_data.total }}
+                                </span>
+
+                                {% if fim_page_data.has_next %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.next_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
+                                        Next
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Next
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">FIM 후보가 없습니다.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- AMM -->
+        <div class="col-lg-6">
+            <h4 class="section-title mb-3">AMM Candidates</h4>
+
+            {% with page=amm_page_data.item %}
+                {% if page %}
+                    <div class="card shadow-sm mb-3 border-success">
+                        <div class="card-body">
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    name="amm_page_id"
+                                    value="{{ page.id }}"
+                                    id="amm_{{ page.id }}">
+
+                                <label class="form-check-label" for="amm_{{ page.id }}">
+                                    Select AMM Candidate
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <strong>
+                                        {{ page.chapter.task }} / Page {{ page.page_number }}
+                                    </strong>
+                                    <div class="text-muted small">
+                                        Score: {{ page.recommend_score }}
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-success">
+                                    Open AMM Page
+                                </a>
+                            </div>
+
+                            <p class="small mb-1 mt-2">
+                                {{ page.chapter.title|default:"-" }}
+                            </p>
+
+                            <div class="bg-light border rounded p-2 small">
+                                {{ page.snippet|highlight_query:query }}
+                            </div>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                                {% if amm_page_data.has_previous %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.previous_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
+                                        Previous
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Previous
+                                    </button>
+                                {% endif %}
+
+                                <span class="badge bg-success">
+                                    {{ amm_page_data.current }} / {{ amm_page_data.total }}
+                                </span>
+
+                                {% if amm_page_data.has_next %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.next_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
+                                        Next
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Next
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">AMM 후보가 없습니다.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- IPC -->
+        <div class="col-lg-6">
+            <h4 class="section-title mb-3">IPC Candidates</h4>
+
+            {% with page=ipc_page_data.item %}
+                {% if page %}
+                    <div class="card shadow-sm mb-3 border-info">
+                        <div class="card-body">
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    name="ipc_page_id"
+                                    value="{{ page.id }}"
+                                    id="ipc_{{ page.id }}">
+
+                                <label class="form-check-label" for="ipc_{{ page.id }}">
+                                    Select IPC Candidate
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <strong>
+                                        {{ page.chapter.task }} / Page {{ page.page_number }}
+                                    </strong>
+                                    <div class="text-muted small">
+                                        Score: {{ page.recommend_score }}
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-outline-info">
+                                    Open IPC Page
+                                </a>
+                            </div>
+
+                            <p class="small mb-1 mt-2">
+                                {{ page.chapter.title|default:"-" }}
+                            </p>
+
+                            <div class="bg-light border rounded p-2 small">
+                                {{ page.snippet|highlight_query:query }}
+                            </div>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                                {% if ipc_page_data.has_previous %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.previous_page }}&cdl_page={{ cdl_page_data.current }}">
+                                        Previous
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Previous
+                                    </button>
+                                {% endif %}
+
+                                <span class="badge bg-info text-dark">
+                                    {{ ipc_page_data.current }} / {{ ipc_page_data.total }}
+                                </span>
+
+                                {% if ipc_page_data.has_next %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.next_page }}&cdl_page={{ cdl_page_data.current }}">
+                                        Next
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Next
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">IPC 후보가 없습니다.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- CDL -->
+        <div class="col-lg-6">
+            <h4 class="section-title mb-3">CDL Candidates</h4>
+
+            {% with page=cdl_page_data.item %}
+                {% if page %}
+                    <div class="card shadow-sm mb-3 border-warning">
+                        <div class="card-body">
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    name="cdl_page_id"
+                                    value="{{ page.id }}"
+                                    id="cdl_{{ page.id }}">
+
+                                <label class="form-check-label" for="cdl_{{ page.id }}">
+                                    Select CDL Candidate
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <strong>CDL Page {{ page.page_number }}</strong>
+                                    <div class="text-muted small">
+                                        Score: {{ page.recommend_score }}
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-outline-warning">
+                                    Open CDL Page
+                                </a>
+                            </div>
+
+                            <div class="bg-light border rounded p-2 small mt-2">
+                                {{ page.snippet|highlight_query:query }}
+                            </div>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                                {% if cdl_page_data.has_previous %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.previous_page }}">
+                                        Previous
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Previous
+                                    </button>
+                                {% endif %}
+
+                                <span class="badge bg-warning text-dark">
+                                    {{ cdl_page_data.current }} / {{ cdl_page_data.total }}
+                                </span>
+
+                                {% if cdl_page_data.has_next %}
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.next_page }}">
+                                        Next
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Next
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">CDL 후보가 없습니다.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex justify-content-end">
+        {% if user.is_staff %}            
+            <button type="submit" class="btn btn-primary">
+                선택한 후보로 Dispatch 추가
+            </button>
+        {% endif %}
+    </div>
+
+</form>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Dispatch Detail Print</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #000;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        th {
+            width: 180px;
+            background: #eee;
+            text-align: left;
+        }
+
+        .no-print {
+            margin-bottom: 16px;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button onclick="window.print()">Print</button>
+    <button onclick="window.close()">Close</button>
+</div>
+
+<h1>Dispatch Detail</h1>
+
+<div class="section">
+    <div class="section-title">
+        Aircraft / Fault Information
+    </div>
+
+    <table>
+        <tr>
+            <th>Aircraft</th>
+            <td>{{ dispatch.aircraft.name }}</td>
+        </tr>
+
+        <tr>
+            <th>EICAS Message</th>
+            <td>{{ dispatch.eicas_message|default:"-" }}</td>
+        </tr>
+
+        <tr>
+            <th>Fault Code</th>
+            <td>{{ dispatch.fault_code|default:"-" }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title">
+        Manual Reference
+    </div>
+
+    <table>
+        <tr>
+            <th>MEL Number</th>
+            <td>{{ dispatch.mel_number|default:"-" }}</td>
+        </tr>
+
+        <tr>
+            <th>FIM Chapter</th>
+            <td>{{ dispatch.fim_chapter|default:"-" }}</td>
+        </tr>
+
+        <tr>
+            <th>AMM Chapter</th>
+            <td>{{ dispatch.amm_chapter|default:"-" }}</td>
+        </tr>
+    </table>
+</div>
+
+{% if dispatch.description %}
+    <div class="section">
+        <div class="section-title">
+            Description
+        </div>
+
+        <div>
+            {{ dispatch.description|linebreaks }}
+        </div>
+    </div>
+{% endif %}
+
+{% if dispatch.note %}
+    <div class="section">
+        <div class="section-title">
+            Note
+        </div>
+
+        <div>
+            {{ dispatch.note|linebreaks }}
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>
+
+</body>
+</html>

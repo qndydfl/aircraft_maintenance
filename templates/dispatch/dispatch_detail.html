@@ -1,0 +1,205 @@
+{% extends 'base.html' %} {% block content %}
+
+<div
+    class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
+>
+    <div>
+        <h2 class="mb-1">Dispatch Detail</h2>
+
+        <p class="text-muted mb-0">
+            EICAS Message / Fault Code / MEL / FIM / AMM Reference
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a
+            href="{% url 'dispatch_detail_print' dispatch.pk %}"
+            target="_blank"
+            class="btn btn-outline-dark"
+        >
+            Print
+        </a>
+
+        <a
+            href="{% url 'dispatch_auto_search' %}"
+            class="btn btn-outline-secondary"
+        >
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white">Fault Information</div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong>Aircraft</strong>
+                <div>{{ dispatch.aircraft.name }}</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong>EICAS Message</strong>
+                <div>{{ dispatch.eicas_message|default:"-" }}</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong>Fault Code</strong>
+                <div>{{ dispatch.fault_code|default:"-" }}</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong>Created</strong>
+                <div>{{ dispatch.created_at|date:"Y-m-d H:i" }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">Manual References</div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <strong>MEL Number</strong>
+                <div class="mt-1">{{ dispatch.mel_number|default:"-" }}</div>
+
+                {% if dispatch.mel_search_keyword %}
+                <div class="text-muted small mt-1">
+                    Keyword: {{ dispatch.mel_search_keyword }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <strong>FIM Chapter</strong>
+                <div class="mt-1">{{ dispatch.fim_chapter|default:"-" }}</div>
+
+                {% if dispatch.fim_search_keyword %}
+                <div class="text-muted small mt-1">
+                    Keyword: {{ dispatch.fim_search_keyword }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <strong>AMM Chapter</strong>
+                <div class="mt-1">{{ dispatch.amm_chapter|default:"-" }}</div>
+
+                {% if dispatch.amm_search_keyword %}
+                <div class="text-muted small mt-1">
+                    Keyword: {{ dispatch.amm_search_keyword }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="d-flex flex-wrap gap-2">
+            {% if dispatch.mel_manual_file_id and dispatch.mel_page_number %}
+            <a
+                href="{% url 'manual_file_pdf_viewer' dispatch.mel_manual_file_id %}?page={{ dispatch.mel_page_number }}&q={{ dispatch.mel_search_keyword|default:dispatch.mel_number }}"
+                target="_blank"
+                class="btn btn-danger"
+            >
+                Open Saved MEL Page
+            </a>
+            {% elif mel_page %}
+            <a
+                href="{% url 'manual_file_pdf_viewer' mel_page.manual_file.pk %}?page={{ mel_page.page_number }}&q={{ mel_query }}"
+                target="_blank"
+                class="btn btn-outline-danger"
+            >
+                Open MEL Page
+            </a>
+            {% elif mel_file %}
+            <a
+                href="{% url 'manual_file_pdf_viewer' mel_file.pk %}?q={{ mel_query }}"
+                target="_blank"
+                class="btn btn-outline-danger"
+            >
+                Open MEL PDF
+            </a>
+            {% endif %} {% if dispatch.fim_chapter_id and dispatch.fim_page_number %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' dispatch.fim_chapter_id %}?page={{ dispatch.fim_page_number }}&q={{ dispatch.fim_search_keyword|default:dispatch.fim_chapter }}"
+                target="_blank"
+                class="btn btn-primary"
+            >
+                Open Saved FIM Page
+            </a>
+            {% elif fim_page %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' fim_page.chapter.pk %}?page={{ fim_page.page_number }}&q={{ fim_query }}"
+                target="_blank"
+                class="btn btn-outline-primary"
+            >
+                Open FIM Page
+            </a>
+            {% elif dispatch.fim_chapter %}
+            <a
+                href="{% url 'manual_search' %}?aircraft={{ dispatch.aircraft.id }}&manual_type=FIM&q={{ fim_query }}"
+                class="btn btn-outline-primary"
+            >
+                Search FIM
+            </a>
+            {% endif %} {% if dispatch.amm_chapter_id and dispatch.amm_page_number %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' dispatch.amm_chapter_id %}?page={{ dispatch.amm_page_number }}&q={{ dispatch.amm_search_keyword|default:dispatch.amm_chapter }}"
+                target="_blank"
+                class="btn btn-success"
+            >
+                Open Saved AMM Page
+            </a>
+            {% elif amm_page %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' amm_page.chapter.pk %}?page={{ amm_page.page_number }}&q={{ amm_query }}"
+                target="_blank"
+                class="btn btn-outline-success"
+            >
+                Open AMM Page
+            </a>
+            {% elif dispatch.amm_chapter %}
+            <a
+                href="{% url 'manual_search' %}?aircraft={{ dispatch.aircraft.id }}&manual_type=AMM&q={{ amm_query }}"
+                class="btn btn-outline-success"
+            >
+                Search AMM
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if dispatch.description %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white">Description</div>
+
+    <div class="card-body">{{ dispatch.description|linebreaks }}</div>
+</div>
+
+{% endif %} {% if dispatch.note %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-warning">Note</div>
+
+    <div class="card-body">{{ dispatch.note|linebreaks }}</div>
+</div>
+
+{% endif %} {% if user.is_staff %}
+
+<div class="d-flex gap-2">
+    <a href="{% url 'dispatch_update' dispatch.pk %}" class="btn btn-warning">
+        Edit
+    </a>
+
+    <a href="{% url 'dispatch_delete' dispatch.pk %}" class="btn btn-danger">
+        Delete
+    </a>
+</div>
+
+{% endif %} {% endblock %}

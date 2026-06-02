@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+    <div>
+        <h2 class="mb-1">
+            {% if manual %}
+                Edit Manual File
+            {% else %}
+                Add Manual File
+            {% endif %}
+        </h2>
+
+        <p class="text-muted mb-0">
+            AMM / FIM / IPC는 ZIP, MEL / CDL은 PDF 파일로 업로드합니다.
+        </p>
+    </div>
+
+    <a href="{{ back_url }}"
+        class="btn btn-outline-secondary">
+        Back
+    </a>
+
+</div>
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <form method="post"
+            enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Aircraft
+                </label>
+
+                {{ form.aircraft }}
+
+                {% if form.aircraft.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.aircraft.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Manual Type
+                </label>
+
+                {{ form.manual_type }}
+
+                {% if form.manual_type.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.manual_type.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    File
+                </label>
+
+                {{ form.file }}
+
+                <div class="form-text mt-2">
+                    <strong>업로드 규칙</strong><br>
+                    AMM / FIM / IPC → ZIP 파일만 가능<br>
+                    MEL / CDL → PDF 파일만 가능
+                </div>
+
+                {% if form.file.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.file.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Description
+                </label>
+
+                {{ form.description }}
+
+                {% if form.description.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.description.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    Save
+                </button>
+
+                <a href="{{ back_url }}"
+                    class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

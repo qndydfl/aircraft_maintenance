@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card shadow-sm border-danger">
+
+    <div class="card-header bg-danger text-white">
+        Delete Dispatch
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            정말 삭제하시겠습니까?
+        </p>
+
+        <p class="fw-bold">
+            {{ dispatch.aircraft.name }} /
+            {{ dispatch.eicas_message|default:dispatch.fault_code }}
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit"
+                    class="btn btn-danger">
+                Delete
+            </button>
+
+            <a href="{% url 'dispatch_detail' dispatch.pk %}"
+                class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

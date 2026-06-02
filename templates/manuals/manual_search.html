@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load manual_extras %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+    <div>
+        <h2 class="mb-1">
+            Manual Search
+        </h2>
+
+        <p class="text-muted mb-0">
+            ZIP 매뉴얼에서 추출된 PDF 텍스트를 검색합니다.
+        </p>
+    </div>
+
+    <a href="{% url 'home' %}"
+        class="btn btn-outline-secondary">
+        Back
+    </a>
+
+</div>
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <form method="get">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Aircraft
+                    </label>
+
+                    <select name="aircraft"
+                            class="form-select">
+
+                        <option value="">
+                            전체 기종
+                        </option>
+
+                        {% for aircraft in aircrafts %}
+                            <option value="{{ aircraft.id }}"
+                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ aircraft.name }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        Manual
+                    </label>
+
+                    <select name="manual_type"
+                            class="form-select">
+
+                        <option value="">
+                            전체
+                        </option>
+
+                        {% for type in manual_types %}
+                            <option value="{{ type }}"
+                                {% if selected_manual_type == type %}
+                                    selected
+                                {% endif %}>
+                                {{ type }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-5">
+
+                    <label class="form-label">
+                        Search
+                    </label>
+
+                    <input type="text"
+                        name="q"
+                        value="{{ query }}"
+                        class="form-control"
+                        placeholder="예: PACK VALVE, 21-51-01, REMOVAL">
+
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+
+                    <button type="submit"
+                            class="btn btn-primary w-100">
+                        Search
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% if query %}
+
+    <div class="mb-3">
+        <strong>ZIP Manual Results:</strong>
+        {{ package_pages|length }}
+        /
+        <strong>PDF Manual Results:</strong>
+        {{ file_pages|length }}
+    </div>
+
+    {% for page in package_pages %}
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+
+                    <div>
+                        <h5 class="mb-1">
+                            {{ page.chapter.package.aircraft.name }}
+                            /
+                            {{ page.chapter.package.manual_type }}
+                        </h5>
+
+                        <div class="text-muted small">
+                            Task:
+                            {{ page.chapter.task }}
+                            |
+                            Subtask:
+                            {{ page.chapter.subtask|default:"-" }}
+                            |
+                            Page:
+                            {{ page.page_number }}
+                            |
+                            Score:
+                            {{ page.score }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+
+                        <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query }}"
+                            target="_blank"
+                            class="btn btn-sm btn-primary">
+                            Open Page
+                        </a>
+
+                        <a href="{% url 'dispatch_auto_search' %}?aircraft={{ page.chapter.package.aircraft.id }}&q={{ page.chapter.task }}"
+                            class="btn btn-sm btn-outline-danger">
+                            Find Dispatch
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <p class="mb-1">
+                    <strong>Title:</strong>
+                    {{ page.chapter.title|default:"-" }}
+                </p>
+
+                <div class="bg-light border rounded p-2 small">
+                    {{ page.snippet|highlight_query:query }}
+                </div>
+
+            </div>
+        </div>
+
+    {% endfor %}
+
+    {% for page in file_pages %}
+
+        <div class="card shadow-sm mb-3 border-danger">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+
+                    <div>
+                        <h5 class="mb-1">
+                            {{ page.manual_file.aircraft.name }}
+                            /
+                            {{ page.manual_file.manual_type }}
+                        </h5>
+
+                        <div class="text-muted small">
+                            PDF Manual Page:
+                            {{ page.page_number }}
+                            |
+                            Score:
+                            {{ page.score }}
+                        </div>
+                    </div>
+
+                    <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query }}"
+                        target="_blank"
+                        class="btn btn-sm btn-danger">
+                        Open PDF Page
+                    </a>
+
+                </div>
+
+                <p class="mb-1">
+                    <strong>Description:</strong>
+                    {{ page.manual_file.description|default:"-" }}
+                </p>
+
+                <div class="bg-light border rounded p-2 small">
+                    {{ page.snippet|highlight_query:query }}
+                </div>
+
+            </div>
+        </div>
+
+    {% endfor %}
+
+    {% if not package_pages and not file_pages %}
+        <div class="alert alert-warning">
+            검색 결과가 없습니다.
+        </div>
+    {% endif %}
+
+{% else %}
+
+    <div class="alert alert-info">
+        검색어를 입력하세요.
+    </div>
+
+{% endif %}
+
+{% if is_paginated %}
+
+    <nav class="mt-4">
+
+        <ul class="pagination justify-content-center">
+
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?aircraft={{ selected_aircraft }}&manual_type={{ selected_manual_type }}&q={{ query }}&page={{ page_obj.previous_page_number }}">
+                        Previous
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?aircraft={{ selected_aircraft }}&manual_type={{ selected_manual_type }}&q={{ query }}&page={{ page_obj.next_page_number }}">
+                        Next
+                    </a>
+                </li>
+            {% endif %}
+
+        </ul>
+
+    </nav>
+
+{% endif %}
+
+{% endblock %}

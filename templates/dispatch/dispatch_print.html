@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Dispatch Print</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .info {
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 6px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .no-print {
+            margin-bottom: 16px;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button onclick="window.print()">
+        Print
+    </button>
+
+    <button onclick="window.close()">
+        Close
+    </button>
+</div>
+
+<h1>Dispatch Search Result</h1>
+
+<div class="info">
+    <div>
+        <strong>Search:</strong>
+        {{ query|default:"-" }}
+    </div>
+
+    <div>
+        <strong>Total:</strong>
+        {{ results|length }}
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Aircraft</th>
+            <th>EICAS Message</th>
+            <th>Fault Code</th>
+            <th>MEL</th>
+            <th>FIM</th>
+            <th>AMM</th>
+            <th>Description / Note</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for item in results %}
+            <tr>
+                <td>{{ item.aircraft.name }}</td>
+                <td>{{ item.eicas_message|default:"-" }}</td>
+                <td>{{ item.fault_code|default:"-" }}</td>
+                <td>{{ item.mel_number|default:"-" }}</td>
+                <td>{{ item.fim_chapter|default:"-" }}</td>
+                <td>{{ item.amm_chapter|default:"-" }}</td>
+                <td>
+                    {% if item.description %}
+                        <strong>Description:</strong>
+                        {{ item.description }}
+                        <br>
+                    {% endif %}
+
+                    {% if item.note %}
+                        <strong>Note:</strong>
+                        {{ item.note }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">
+                    검색 결과가 없습니다.
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>
+
+</body>
+</html>

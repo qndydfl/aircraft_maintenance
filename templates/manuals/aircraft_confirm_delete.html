@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card shadow-sm border-danger">
+
+    <div class="card-header bg-danger text-white">
+        Delete Aircraft
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            정말 삭제하시겠습니까?
+        </p>
+
+        <p class="fw-bold">
+            {{ aircraft.get_maker_display }} /
+            {{ aircraft.name }}
+        </p>
+
+        <div class="alert alert-warning">
+            이 기종을 삭제하면 연결된 매뉴얼 파일과 Dispatch 데이터도 함께 삭제됩니다.
+        </div>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit"
+                    class="btn btn-danger">
+                Delete
+            </button>
+
+            <a href="{% url 'aircraft_manage' %}"
+                class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

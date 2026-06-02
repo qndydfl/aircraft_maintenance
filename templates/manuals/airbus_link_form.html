@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    {% if link %}
+        Edit Airbus Link
+    {% else %}
+        Add Airbus Link
+    {% endif %}
+</h2>
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                {{ form.title }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Manual Type</label>
+                {{ form.manual_type }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">URL</label>
+                {{ form.url }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <button type="submit"
+                    class="btn btn-info">
+                Save
+            </button>
+
+            <a href="{% url 'airbus_link_list' %}"
+                class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

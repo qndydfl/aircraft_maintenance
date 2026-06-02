@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="mb-1">Airbus Manuals</h2>
+        <p class="text-muted mb-0">
+            Airbus manual links
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        {% if user.is_staff %}
+            <a href="{% url 'airbus_link_create' %}"
+                class="btn btn-info">
+                Add Link
+            </a>
+        {% endif %}
+
+        <a href="{% url 'home' %}"
+            class="btn btn-outline-secondary">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    {% for link in links %}
+
+        <div class="col-md-4 col-sm-6">
+
+            <div class="card portal-card h-100 shadow-sm">
+
+                <div class="card-body">
+
+                    <span class="badge bg-info mb-2">
+                        {{ link.manual_type }}
+                    </span>
+
+                    <h5 class="card-title">
+                        {{ link.title }}
+                    </h5>
+
+                    {% if link.description %}
+                        <p class="text-muted">
+                            {{ link.description }}
+                        </p>
+                    {% endif %}
+
+                    <a href="{{ link.url }}"
+                        target="_blank"
+                        class="btn btn-info w-100 mb-2">
+                        Open Link
+                    </a>
+
+                    {% if user.is_staff %}
+                        <div class="d-flex gap-2">
+
+                            <a href="{% url 'airbus_link_update' link.pk %}"
+                                class="btn btn-sm btn-warning w-50">
+                                Edit
+                            </a>
+
+                            <a href="{% url 'airbus_link_delete' link.pk %}"
+                                class="btn btn-sm btn-danger w-50">
+                                Delete
+                            </a>
+
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="col-12">
+            <div class="alert alert-warning">
+                등록된 Airbus 링크가 없습니다.
+            </div>
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}
