@@ -29,50 +29,12 @@
         <a
             href="{% url 'aircraft_manual_print' aircraft.pk %}"
             target="_blank"
-            class="btn btn-outline-dark"
+            class="btn btn-outline-warning"
         >
             Print
         </a>
 
         <a href="{% url 'home' %}" class="btn btn-outline-secondary"> Back </a>
-    </div>
-</div>
-
-<div class="mb-3">
-    {% if aircraft.is_complete %}
-
-    <div class="alert alert-success">
-        <strong>COMPLETE</strong>
-        모든 매뉴얼이 등록되었습니다.
-    </div>
-
-    {% else %}
-
-    <div class="alert alert-warning">
-        <strong>INCOMPLETE</strong>
-        일부 매뉴얼이 등록되지 않았습니다.
-    </div>
-
-    {% endif %}
-</div>
-
-<div class="mb-4">
-    <div class="d-flex justify-content-between mb-1">
-        <span class="fw-bold"> 등록률 </span>
-
-        <span>
-            {{ aircraft.manual_registered_count }} / {{ aircraft.manual_total_count }} files ({{ aircraft.manual_completion_percent }}%)
-        </span>
-    </div>
-
-    <div class="progress">
-        <div
-            class="progress-bar"
-            role="progressbar"
-            style="width: {{ aircraft.manual_completion_percent }}%;"
-        >
-            {{ aircraft.manual_completion_percent }}%
-        </div>
     </div>
 </div>
 
@@ -86,7 +48,18 @@
             <div class="card-body">
                 <h5 class="card-title fw-bold">{{ item.type }}</h5>
 
-                {% if item.file or item.package %} {% if item.package %}
+                {% if item.file or item.package %} 
+                {% if item.package %} {% if item.package.revision_no %}
+                <p class="small mb-1">
+                    <strong>Revision No:</strong>
+                    {{ item.package.revision_no }}
+                </p>
+                {% endif %} {% if item.package.revision_date_text %}
+                <p class="small mb-2">
+                    <strong>Revision Date:</strong>
+                    {{ item.package.revision_date_text }}
+                </p>
+                {% endif %}
 
                 <p class="text-muted small">
                     Uploaded: {{ item.package.uploaded_at|date:"Y-m-d H:i" }}
@@ -133,10 +106,10 @@
                     </a>
 
                     <a
-                        href="{% url 'manual_chapter_list' item.package.pk %}"
-                        class="btn btn-sm btn-outline-primary w-50"
+                        href="{% url 'manual_package_delete' item.package.pk %}"
+                        class="btn btn-sm btn-danger w-50"
                     >
-                        Chapters
+                        Delete
                     </a>
                 </div>
 
@@ -155,7 +128,17 @@
                     </button>
                 </form>
 
-                {% endif %} {% elif item.file %}
+                {% endif %} {% elif item.file %} {% if item.file.revision_no %}
+                <p class="small mb-1">
+                    <strong>Revision No:</strong>
+                    {{ item.file.revision_no }}
+                </p>
+                {% endif %} {% if item.file.revision_date_text %}
+                <p class="small mb-2">
+                    <strong>Revision Date:</strong>
+                    {{ item.file.revision_date_text }}
+                </p>
+                {% endif %}
 
                 <p class="text-muted small">
                     Uploaded: {{ item.file.uploaded_at|date:"Y-m-d H:i" }}
@@ -184,13 +167,12 @@
                         Open
                     </a>
                     {% elif item.file.manual_type == "AMM" or item.file.manual_type == "FIM" or item.file.manual_type == "IPC" %}
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary w-50"
-                        disabled
+                    <a
+                        href="{% url 'manual_file_delete' item.file.pk %}"
+                        class="btn btn-outline-danger w-50"
                     >
-                        Chapters Only
-                    </button>
+                        Delete
+                    </a>
                     {% else %}
                     <a
                         href="{% url 'manual_detail' item.file.pk %}"
@@ -216,7 +198,7 @@
                         href="{% url 'manual_file_update' item.file.pk %}"
                         class="btn btn-sm btn-warning w-50"
                     >
-                        Edit
+                        Re-upload
                     </a>
 
                     <a
@@ -242,7 +224,22 @@
                     </button>
                 </form>
 
-                {% endif %} {% endif %} {% else %}
+                {% if item.file.manual_type == "MEL" %}
+                <form
+                    method="post"
+                    action="{% url 'extract_mel_dispatch_items' item.file.pk %}"
+                    class="mt-2"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger w-100"
+                    >
+                        Extract MEL Items
+                    </button>
+                </form>
+                {% endif %} {% endif %} {% endif %} {% else %}
 
                 <p class="text-muted">등록된 파일이 없습니다.</p>
 

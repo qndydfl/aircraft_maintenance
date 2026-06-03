@@ -21,7 +21,6 @@ from .models import (
     ManualChapter,
     ManualPDFPage,
     ManualFilePDFPage,
-    ManualIndexLog,
 )
 from .forms import ManualFileForm, AircraftForm, AirbusManualLinkForm, ManualPackageForm
 
@@ -31,7 +30,6 @@ from .services import (
     index_pdf_pages_for_manual_file,
     process_manual_package_safely,
     index_pdf_pages_for_manual_file_safely,
-    create_index_log,
     parse_search_query,
     get_match_navigation,
     calculate_package_score,
@@ -44,6 +42,7 @@ from .services import (
 from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min
 from django.shortcuts import redirect, get_object_or_404
+from dispatch.services import extract_mel_dispatch_items_from_pdf
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -61,24 +60,6 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context["boeing_aircrafts"] = Aircraft.objects.filter(maker="BOEING")
 
         context["airbus_aircraft"] = Aircraft.objects.filter(maker="AIRBUS").first()
-
-        context["recent_failed_logs"] = (
-            ManualIndexLog.objects.filter(status="FAILED")
-            .select_related("aircraft")
-            .order_by("-created_at")[:5]
-        )
-
-        context["index_success_count"] = ManualIndexLog.objects.filter(
-            status="SUCCESS"
-        ).count()
-
-        context["index_failed_count"] = ManualIndexLog.objects.filter(
-            status="FAILED"
-        ).count()
-
-        context["recent_index_logs"] = ManualIndexLog.objects.select_related(
-            "aircraft"
-        ).order_by("-created_at")[:5]
 
         return context
 
@@ -177,6 +158,37 @@ class ManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
     model = ManualFile
     template_name = "manuals/manual_file_confirm_delete.html"
     context_object_name = "manual"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+        )
+
+
+class ManualPackageDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
+    model = ManualPackage
+    template_name = "manuals/manual_package_confirm_delete.html"
+    context_object_name = "package"
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        zip_path = self.object.zip_file.path if self.object.zip_file else None
+        merged_pdf_path = (
+            self.object.merged_pdf.path if self.object.merged_pdf else None
+        )
+        extracted_path = self.object.extracted_path
+
+        if zip_path and os.path.exists(zip_path):
+            os.remove(zip_path)
+
+        if merged_pdf_path and os.path.exists(merged_pdf_path):
+            os.remove(merged_pdf_path)
+
+        if extracted_path and os.path.exists(extracted_path):
+            shutil.rmtree(extracted_path, ignore_errors=True)
+
+        return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy(
@@ -330,13 +342,9 @@ class ManualChapterListView(ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        self.package = ManualPackage.objects.get(
-            pk=self.kwargs["package_pk"]
-        )
+        self.package = ManualPackage.objects.get(pk=self.kwargs["package_pk"])
 
-        return ManualChapter.objects.filter(
-            package=self.package
-        ).order_by(
+        return ManualChapter.objects.filter(package=self.package).order_by(
             "task",
             "subtask",
         )
@@ -390,16 +398,14 @@ class ManualChapterListView(ListView):
                 )
 
             context["chapter_bookmarks"] = (
-                ManualChapter.objects
-                .filter(package=self.package)
+                ManualChapter.objects.filter(package=self.package)
                 .filter(chapter_filter | Q(pages__text__iregex=text_regex))
                 .distinct()
                 .order_by("task", "subtask")
             )
 
             context["matching_chapters"] = (
-                ManualPDFPage.objects
-                .filter(chapter__package=self.package)
+                ManualPDFPage.objects.filter(chapter__package=self.package)
                 .filter(page_filter)
                 .values(
                     "chapter_id",
@@ -545,6 +551,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 from django.urls import reverse
 from django.db.models import Q
 
+
 class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
     model = ManualChapter
     template_name = "manuals/manual_pdf_viewer.html"
@@ -593,11 +600,8 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                 page_filter = Q(text__iregex=text_regex)
 
             matches = list(
-                ManualPDFPage.objects
-                .select_related("chapter")
-                .filter(
-                    chapter__package=chapter.package
-                )
+                ManualPDFPage.objects.select_related("chapter")
+                .filter(chapter__package=chapter.package)
                 .filter(page_filter)
                 .order_by(
                     "chapter__task",
@@ -748,8 +752,7 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                 page_filter = Q(text__iregex=text_regex)
 
             matching_pages = (
-                ManualFilePDFPage.objects
-                .filter(manual_file=manual)
+                ManualFilePDFPage.objects.filter(manual_file=manual)
                 .filter(page_filter)
                 .order_by("page_number")
                 .values_list("page_number", flat=True)
@@ -758,9 +761,7 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         else:
             matching_pages = []
 
-        context.update(
-            get_match_navigation(matching_pages, page_number)
-        )
+        context.update(get_match_navigation(matching_pages, page_number))
 
         matching_pages_list = list(matching_pages)
 
@@ -877,16 +878,6 @@ class ManualPackageReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
         try:
             result = process_manual_package_safely(package)
 
-            create_index_log(
-                target_type="PACKAGE",
-                aircraft=package.aircraft,
-                manual_type=package.manual_type,
-                status="SUCCESS",
-                message="ZIP 재인덱싱 완료",
-                chapter_count=result["chapter_count"],
-                page_count=result["page_count"],
-            )
-
             messages.success(
                 request,
                 f"{package.manual_type} 재인덱싱 완료: Chapter {result['chapter_count']}개, PDF Page {result['page_count']}개",
@@ -895,14 +886,6 @@ class ManualPackageReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
             _ensure_merged_package_pdf(package)
 
         except Exception as error:
-            create_index_log(
-                target_type="PACKAGE",
-                aircraft=package.aircraft,
-                manual_type=package.manual_type,
-                status="FAILED",
-                message=str(error),
-            )
-
             messages.error(request, f"재인덱싱 실패: {error}")
 
         return redirect("aircraft_manual_detail", pk=package.aircraft.pk)
@@ -921,157 +904,14 @@ class ManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
         try:
             page_count = index_pdf_pages_for_manual_file_safely(manual)
 
-            create_index_log(
-                target_type="PDF",
-                aircraft=manual.aircraft,
-                manual_type=manual.manual_type,
-                status="SUCCESS",
-                message="PDF 재인덱싱 완료",
-                page_count=page_count,
-            )
-
             messages.success(
                 request, f"{manual.manual_type} PDF Page {page_count}개 재인덱싱 완료"
             )
 
         except Exception as error:
-            create_index_log(
-                target_type="PDF",
-                aircraft=manual.aircraft,
-                manual_type=manual.manual_type,
-                status="FAILED",
-                message=str(error),
-            )
             messages.error(request, f"재인덱싱 실패: {error}")
 
         return redirect("aircraft_manual_detail", pk=manual.aircraft.pk)
-
-
-class ManualIndexLogListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
-    model = ManualIndexLog
-    template_name = "manuals/index_log_list.html"
-    context_object_name = "logs"
-    paginate_by = 30
-
-    def get_queryset(self):
-        queryset = ManualIndexLog.objects.select_related("aircraft")
-
-        target_type = self.request.GET.get("target_type", "")
-        status = self.request.GET.get("status", "")
-        aircraft_id = self.request.GET.get("aircraft", "")
-        manual_type = self.request.GET.get("manual_type", "")
-
-        if target_type:
-            queryset = queryset.filter(target_type=target_type)
-
-        if status:
-            queryset = queryset.filter(status=status)
-
-        if aircraft_id:
-            queryset = queryset.filter(aircraft_id=aircraft_id)
-
-        if manual_type:
-            queryset = queryset.filter(manual_type=manual_type)
-
-        return queryset.order_by("-created_at")
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context["aircrafts"] = Aircraft.objects.filter(maker="BOEING")
-
-        context["manual_types"] = [
-            "AMM",
-            "FIM",
-            "IPC",
-            "MEL",
-            "CDL",
-        ]
-
-        context["selected_target_type"] = self.request.GET.get("target_type", "")
-        context["selected_status"] = self.request.GET.get("status", "")
-        context["selected_aircraft"] = self.request.GET.get("aircraft", "")
-        context["selected_manual_type"] = self.request.GET.get("manual_type", "")
-
-        return context
-
-
-class ManualIndexLogDetailView(LoginRequiredMixin, StaffRequiredMixin, DetailView):
-    model = ManualIndexLog
-    template_name = "manuals/index_log_detail.html"
-    context_object_name = "log"
-
-
-class ManualIndexDashboardView(LoginRequiredMixin, StaffRequiredMixin, TemplateView):
-    template_name = "manuals/index_dashboard.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        aircrafts = Aircraft.objects.filter(maker="BOEING").prefetch_related(
-            "manual_packages",
-            "manuals",
-        )
-
-        dashboard_rows = []
-
-        for aircraft in aircrafts:
-            row = {
-                "aircraft": aircraft,
-                "packages": [],
-                "pdfs": [],
-                "recent_logs": ManualIndexLog.objects.filter(
-                    aircraft=aircraft
-                ).order_by("-created_at")[:5],
-            }
-
-            for package in aircraft.manual_packages.all():
-                row["packages"].append(
-                    {
-                        "id": package.id,
-                        "manual_type": package.manual_type,
-                        "processed": package.processed,
-                        "chapter_count": package.chapter_count(),
-                        "page_count": package.page_count(),
-                    }
-                )
-
-            for manual in aircraft.manuals.all():
-                if manual.manual_type in ["MEL", "CDL"]:
-                    row["pdfs"].append(
-                        {
-                            "id": manual.id,
-                            "manual_type": manual.manual_type,
-                            "indexed": manual.is_indexed_pdf(),
-                            "page_count": manual.indexed_page_count(),
-                        }
-                    )
-
-            dashboard_rows.append(row)
-
-        context["dashboard_rows"] = dashboard_rows
-
-        context["total_package_count"] = ManualPackage.objects.count()
-
-        context["total_chapter_count"] = ManualChapter.objects.count()
-
-        context["total_package_page_count"] = ManualPDFPage.objects.count()
-
-        context["total_pdf_page_count"] = ManualFilePDFPage.objects.count()
-
-        context["total_index_page_count"] = (
-            context["total_package_page_count"] + context["total_pdf_page_count"]
-        )
-
-        context["total_success_count"] = ManualIndexLog.objects.filter(
-            status="SUCCESS"
-        ).count()
-
-        context["total_failed_count"] = ManualIndexLog.objects.filter(
-            status="FAILED"
-        ).count()
-
-        return context
 
 
 class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -1100,3 +940,24 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
             return redirect("aircraft_manual_detail", pk=package.aircraft.pk)
 
         return redirect("manual_chapter_list", package_pk=package.pk)
+
+
+class ExtractMelDispatchItemsView(LoginRequiredMixin, StaffRequiredMixin, View):
+    def post(self, request, pk):
+        manual = get_object_or_404(ManualFile, pk=pk)
+
+        if manual.manual_type != "MEL":
+            messages.error(request, "MEL 파일만 추출할 수 있습니다.")
+            return redirect(
+                "aircraft_manual_detail",
+                pk=manual.aircraft.pk,
+            )
+
+        count = extract_mel_dispatch_items_from_pdf(manual)
+
+        messages.success(request, f"MEL Dispatch Item {count}개를 추출했습니다.")
+
+        return redirect(
+            "aircraft_manual_detail",
+            pk=manual.aircraft.pk,
+        )

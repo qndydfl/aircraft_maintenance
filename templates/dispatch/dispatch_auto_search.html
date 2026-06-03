@@ -2,6 +2,17 @@
 {% load manual_extras %}
 
 {% block content %}
+<style>
+    .mel-condition {
+    white-space: normal !important;
+    word-break: keep-all;
+    overflow: visible !important;
+    display: table-cell !important;
+    max-height: none !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+}
+</style>
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
 
@@ -72,13 +83,10 @@
 
                     <select name="search_type" class="form-select">
                         <option value="keyword" {% if search_type == "keyword" %}selected{% endif %}>
-                            Keyword
+                            ALL
                         </option>
-                        <option value="eicas" {% if search_type == "eicas" %}selected{% endif %}>
-                            EICAS Message
-                        </option>
-                        <option value="status" {% if search_type == "status" %}selected{% endif %}>
-                            Status Message
+                        <option value="message" {% if search_type == "message" %}selected{% endif %}>
+                            Message
                         </option>
                         <option value="fault" {% if search_type == "fault" %}selected{% endif %}>
                             Fault Code
@@ -109,16 +117,16 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <h5 class="mb-3">
-                        {% if status_mode %}
-                            Status Reference Summary
+                        {% if message_mode %}
+                            Message Reference Summary
                         {% else %}
                             Saved Dispatch References
                         {% endif %}
                     </h5>
 
-                    {% if status_mode %}
+                    {% if message_mode %}
                         <div class="alert alert-info py-2">
-                            Status message 기준으로 MEL / FIM / AMM chapter reference를 한 번에 보여줍니다.
+                            Message 기준으로 MEL / FIM / AMM chapter reference를 한 번에 보여줍니다.
                         </div>
                     {% endif %}
 
@@ -165,7 +173,7 @@
                                             Open
                                         </a>
 
-                                        {% if status_mode %}
+                                        {% if message_mode %}
                                             {% if item.mel_page %}
                                                 <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
                                                     target="_blank"
@@ -204,13 +212,68 @@
     </div>
 </div>
 
-{% if status_mode and not selected_aircraft %}
+{% if message_mode and not selected_aircraft %}
 <div class="alert alert-secondary py-2">
     기종을 선택하지 않아서 전체 Boeing 항공기 기준으로 검색합니다.
 </div>
 {% endif %}
 
-{% if query %}
+{% if query and search_type == "message" and not mel_dispatch_rows and not saved_dispatch_results %}
+<div class="alert alert-warning">
+    Message 검색 결과가 없습니다. MEL Dispatch Item 또는 저장된 Dispatch Reference 데이터가 있는지 확인하세요.
+</div>
+{% endif %}
+
+{% if mel_dispatch_rows %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <h5 class="mb-3">MEL Dispatch Results</h5>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Message</th>
+                        <th style="width: 60px;">L</th>
+                        <th>Condition</th>
+                        <th style="width: 120px;">MEL Item</th>
+                        <th style="width: 80px;">A/D/C</th>
+                        <th style="width: 100px;">PDF</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in mel_dispatch_rows %}
+                    <tr>
+                        <td class="fw-bold">{{ row.message }}</td>
+                        <td>{{ row.level|default:"-" }}</td>
+                        <td class="mel-condition">{{ row.condition|default:"-" }}</td>
+                        <td>{{ row.mel_item|default:"-" }}</td>
+                        <td>{{ row.adc|default:"-" }}</td>
+                        <td>
+                            {% if row.manual_file and row.page_number %}
+                            <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}"
+                                target="_blank"
+                                class="btn btn-sm btn-outline-danger">
+                                Open
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+{% if query and search_type != "message" %}
 
 <form method="get" action="{% url 'dispatch_create' %}">
 
@@ -247,6 +310,11 @@
                                     <div class="text-muted small">
                                         Score: {{ page.recommend_score }}
                                     </div>
+                                    {% if page.revision_label %}
+                                        <div class="text-muted small">
+                                            {{ page.revision_label }}
+                                        </div>
+                                    {% endif %}
                                 </div>
 
                                 <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
@@ -296,6 +364,7 @@
             {% endwith %}
         </div>
 
+        {% if search_type != "message" %}
         <!-- FIM -->
         <div class="col-lg-6">
             <h4 class="section-title mb-3">FIM Candidates</h4>
@@ -380,6 +449,7 @@
 
         <!-- AMM -->
         <div class="col-lg-6">
+
             <h4 class="section-title mb-3">AMM Candidates</h4>
 
             {% with page=amm_page_data.item %}
@@ -543,7 +613,7 @@
         </div>
 
         <!-- CDL -->
-        <div class="col-lg-6">
+        {% comment %} <div class="col-lg-6">
             <h4 class="section-title mb-3">CDL Candidates</h4>
 
             {% with page=cdl_page_data.item %}
@@ -616,17 +686,18 @@
                     <div class="alert alert-warning">CDL 후보가 없습니다.</div>
                 {% endif %}
             {% endwith %}
-        </div>
+        </div> {% endcomment %}
+        {% endif %}
 
     </div>
 
-    <div class="mt-4 d-flex justify-content-end">
+    {% comment %} <div class="mt-4 d-flex justify-content-end">
         {% if user.is_staff %}            
             <button type="submit" class="btn btn-primary">
                 선택한 후보로 Dispatch 추가
             </button>
         {% endif %}
-    </div>
+    </div> {% endcomment %}
 
 </form>
 

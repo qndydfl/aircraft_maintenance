@@ -1,12 +1,11 @@
-import os, re, zipfile, fitz, shutil, uuid
+import os, re, zipfile, fitz, shutil, uuid, pdfplumber
 
 from django.conf import settings
 from bs4 import BeautifulSoup
-from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage, ManualIndexLog
+from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage
 from django.db import transaction
 from django.core.files import File
 from pypdf import PdfReader, PdfWriter
-
 
 
 def safe_extract_zip(zip_file_path, extract_to):
@@ -57,6 +56,8 @@ def process_manual_package(package):
             "extracted_path",
         ]
     )
+
+    save_package_revision_info(package, index_html_path)
 
     chapter_count = parse_index_html(package=package, index_html_path=index_html_path)
 
@@ -265,6 +266,8 @@ def process_manual_package_safely(package):
                 ]
             )
 
+            save_package_revision_info(package, index_html_path)
+
             chapter_count = parse_index_html(
                 package=package, index_html_path=index_html_path
             )
@@ -340,26 +343,6 @@ def index_pdf_pages_for_manual_file_safely(manual_file):
     return len(new_pages)
 
 
-def create_index_log(
-    target_type,
-    aircraft,
-    manual_type,
-    status,
-    message="",
-    chapter_count=0,
-    page_count=0,
-):
-    ManualIndexLog.objects.create(
-        target_type=target_type,
-        aircraft=aircraft,
-        manual_type=manual_type,
-        status=status,
-        message=message,
-        chapter_count=chapter_count,
-        page_count=page_count,
-    )
-
-
 def calculate_package_score(page, query):
     score = 0
     words = query.lower().split()
@@ -412,11 +395,7 @@ def parse_search_query(query):
 
     trimmed = query.strip()
 
-    if (
-        trimmed.startswith("*")
-        and trimmed.endswith("*")
-        and len(trimmed) > 2
-    ):
+    if trimmed.startswith("*") and trimmed.endswith("*") and len(trimmed) > 2:
         return trimmed[1:-1].strip(), "contains"
 
     if trimmed.endswith("*") and len(trimmed) > 1:
@@ -505,10 +484,7 @@ def merge_package_chapter_pdfs(package):
 
         bookmark_title = " / ".join(title_parts)
 
-        writer.add_outline_item(
-            title=bookmark_title,
-            page_number=page_offset
-        )
+        writer.add_outline_item(title=bookmark_title, page_number=page_offset)
 
         page_offset += len(reader.pages)
 
@@ -561,3 +537,78 @@ def build_manual_text_regex(search_value, match_mode):
         return rf"\b{escaped}[A-Za-z0-9/_-]*"
 
     return rf"\b{escaped}\b"
+
+
+def extract_package_revision_info(package_dir):
+    revision_no = ""
+    revision_date = ""
+
+    index_path = os.path.join(package_dir, "index.html")
+
+    if not os.path.exists(index_path):
+        return revision_no, revision_date
+
+    with open(index_path, "r", encoding="utf-8", errors="ignore") as f:
+        html = f.read()
+
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text(" ", strip=True)
+
+    match = re.search(
+        r"\bRev(?:ision)?\.?\s*(?:No\.?)?\s*:?\s*(\d+)\s*[-–]\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
+        text,
+        re.IGNORECASE,
+    )
+
+    if match:
+        revision_no = match.group(1).strip()
+        revision_date = match.group(2).strip()
+
+    return revision_no, revision_date
+
+
+def save_package_revision_info(package, index_html_path):
+    package_dir = os.path.dirname(index_html_path)
+    revision_no, revision_date = extract_package_revision_info(package_dir)
+
+    package.revision_no = revision_no
+    package.revision_date_text = revision_date
+    package.save(
+        update_fields=[
+            "revision_no",
+            "revision_date_text",
+        ]
+    )
+
+    return revision_no, revision_date
+
+
+def extract_pdf_revision_info(pdf_path):
+    revision_no = ""
+    revision_date = ""
+
+    with pdfplumber.open(pdf_path) as pdf:
+        if not pdf.pages:
+            return revision_no, revision_date
+
+        text = pdf.pages[0].extract_text() or ""
+
+    rev_match = re.search(
+        r"Rev\.?\s*No\.?\s*:?\s*([0-9A-Za-z\-]+)",
+        text,
+        re.IGNORECASE,
+    )
+
+    date_match = re.search(
+        r"Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
+        text,
+        re.IGNORECASE,
+    )
+
+    if rev_match:
+        revision_no = rev_match.group(1).strip()
+
+    if date_match:
+        revision_date = date_match.group(1).strip()
+
+    return revision_no, revision_date

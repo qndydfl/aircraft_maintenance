@@ -204,6 +204,12 @@
                             Score:
                             {{ page.score }}
                         </div>
+
+                        {% if page.revision_label %}
+                            <div class="text-muted small">
+                                {{ page.revision_label }}
+                            </div>
+                        {% endif %}
                     </div>
 
                     <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query }}"

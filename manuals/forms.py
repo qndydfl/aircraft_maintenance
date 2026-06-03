@@ -16,6 +16,7 @@ class ManualFileForm(forms.ModelForm):
             "manual_type",
             "file",
             "description",
+            "revision_no",
         ]
 
         widgets = {
@@ -30,6 +31,9 @@ class ManualFileForm(forms.ModelForm):
             ),
             "description": forms.Textarea(
                 attrs={"class": "form-control", "rows": 4}
+            ),
+            "revision_no": forms.TextInput(
+                attrs={"class": "form-control"}
             ),
         }
 
@@ -138,6 +142,7 @@ class ManualPackageForm(forms.ModelForm):
             "aircraft",
             "manual_type",
             "zip_file",
+            "revision_no",
         ]
 
         widgets = {
@@ -152,6 +157,9 @@ class ManualPackageForm(forms.ModelForm):
                     "class": "form-control",
                     "accept": ".zip",
                 }
+            ),
+            "revision_no": forms.TextInput(
+                attrs={"class": "form-control"}
             ),
         }
 

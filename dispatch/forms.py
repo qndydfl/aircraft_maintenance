@@ -4,7 +4,8 @@ from .models import DispatchReference
 
 class DispatchCSVUploadForm(forms.Form):
     csv_file = forms.FileField(
-        label="Dispatch CSV File"
+        label="Dispatch CSV File",
+        help_text="DispatchReference 컬럼과 message/condition/mel_item 컬럼을 함께 업로드할 수 있습니다.",
     )
 
 
@@ -35,43 +36,20 @@ class DispatchReferenceForm(forms.ModelForm):
             "amm_task_ref",
             "fim_task_ref",
             "mel_ref",
-
         ]
 
         widgets = {
-            "aircraft": forms.Select(
-                attrs={"class": "form-select"}
-            ),
-            "eicas_message": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "fault_code": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "mel_number": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "fim_chapter": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "amm_chapter": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 4}
-            ),
-            "note": forms.Textarea(
-                attrs={"class": "form-control", "rows": 4}
-            ),
-            "amm_search_keyword": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "fim_search_keyword": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "mel_search_keyword": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
+            "aircraft": forms.Select(attrs={"class": "form-select"}),
+            "eicas_message": forms.TextInput(attrs={"class": "form-control"}),
+            "fault_code": forms.TextInput(attrs={"class": "form-control"}),
+            "mel_number": forms.TextInput(attrs={"class": "form-control"}),
+            "fim_chapter": forms.TextInput(attrs={"class": "form-control"}),
+            "amm_chapter": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "note": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "amm_search_keyword": forms.TextInput(attrs={"class": "form-control"}),
+            "fim_search_keyword": forms.TextInput(attrs={"class": "form-control"}),
+            "mel_search_keyword": forms.TextInput(attrs={"class": "form-control"}),
             "mel_page_number": forms.HiddenInput(),
             "fim_page_number": forms.HiddenInput(),
             "amm_page_number": forms.HiddenInput(),

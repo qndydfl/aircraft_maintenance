@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import DispatchReference
+from .models import DispatchReference, MelDispatchItem
 from manuals.models import Aircraft, ManualPDFPage, ManualFilePDFPage
 
 import csv, re, io
@@ -150,12 +150,27 @@ class DispatchCSVUploadView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         io_string = io.StringIO(decoded_file)
         reader = csv.DictReader(io_string)
 
-        created_count = 0
-        updated_count = 0
+        reference_created_count = 0
+        reference_updated_count = 0
+        mel_created_count = 0
+        mel_updated_count = 0
         skipped_count = 0
 
+        def clean_value(row, key):
+            return (row.get(key, "") or "").strip()
+
+        def clean_int_value(value):
+            value = (value or "").strip()
+            if not value:
+                return None
+            try:
+                return int(value)
+            except ValueError:
+                return None
+
         for row in reader:
-            aircraft_name = row.get("aircraft", "").strip()
+            aircraft_name = clean_value(row, "aircraft")
+            row_handled = False
 
             aircraft = Aircraft.objects.filter(
                 name__iexact=aircraft_name, maker="BOEING"
@@ -165,34 +180,85 @@ class DispatchCSVUploadView(LoginRequiredMixin, UserPassesTestMixin, FormView):
                 skipped_count += 1
                 continue
 
-            eicas_message = row.get("eicas_message", "").strip()
-            fault_code = row.get("fault_code", "").strip()
+            eicas_message = clean_value(row, "eicas_message")
+            fault_code = clean_value(row, "fault_code")
 
             if not eicas_message and not fault_code:
-                skipped_count += 1
-                continue
-
-            obj, created = DispatchReference.objects.update_or_create(
-                aircraft=aircraft,
-                eicas_message=eicas_message,
-                fault_code=fault_code,
-                defaults={
-                    "mel_number": row.get("mel_number", "").strip(),
-                    "fim_chapter": row.get("fim_chapter", "").strip(),
-                    "amm_chapter": row.get("amm_chapter", "").strip(),
-                    "description": row.get("description", "").strip(),
-                    "note": row.get("note", "").strip(),
-                },
-            )
-
-            if created:
-                created_count += 1
+                pass
             else:
-                updated_count += 1
+                _, created = DispatchReference.objects.update_or_create(
+                    aircraft=aircraft,
+                    eicas_message=eicas_message,
+                    fault_code=fault_code,
+                    defaults={
+                        "status_message": clean_value(row, "status_message"),
+                        "mel_number": clean_value(row, "mel_number"),
+                        "fim_chapter": clean_value(row, "fim_chapter"),
+                        "amm_chapter": clean_value(row, "amm_chapter"),
+                        "mel_search_keyword": clean_value(row, "mel_search_keyword"),
+                        "fim_search_keyword": clean_value(row, "fim_search_keyword"),
+                        "amm_search_keyword": clean_value(row, "amm_search_keyword"),
+                        "mel_ref": clean_value(row, "mel_ref"),
+                        "fim_task_ref": clean_value(row, "fim_task_ref"),
+                        "amm_task_ref": clean_value(row, "amm_task_ref"),
+                        "description": clean_value(row, "description"),
+                        "note": clean_value(row, "note"),
+                        "mel_page_number": clean_int_value(row.get("mel_page_number")),
+                        "fim_page_number": clean_int_value(row.get("fim_page_number")),
+                        "amm_page_number": clean_int_value(row.get("amm_page_number")),
+                        "mel_manual_file_id": clean_int_value(
+                            row.get("mel_manual_file_id")
+                        ),
+                        "fim_chapter_id": clean_int_value(row.get("fim_chapter_id")),
+                        "amm_chapter_id": clean_int_value(row.get("amm_chapter_id")),
+                    },
+                )
+
+                if created:
+                    reference_created_count += 1
+                else:
+                    reference_updated_count += 1
+                row_handled = True
+
+            message = clean_value(row, "message")
+            level = clean_value(row, "level")
+            condition = clean_value(row, "condition")
+            mel_item = clean_value(row, "mel_item")
+            adc = clean_value(row, "adc")
+            page_number = clean_int_value(row.get("page_number"))
+
+            if message:
+                manual_file_id = clean_int_value(row.get("manual_file_id"))
+
+                _, created = MelDispatchItem.objects.update_or_create(
+                    aircraft=aircraft,
+                    manual_file_id=manual_file_id,
+                    message=message,
+                    mel_item=mel_item,
+                    page_number=page_number,
+                    defaults={
+                        "level": level,
+                        "condition": condition,
+                        "adc": adc,
+                    },
+                )
+
+                if created:
+                    mel_created_count += 1
+                else:
+                    mel_updated_count += 1
+                row_handled = True
+
+            if not row_handled:
+                skipped_count += 1
 
         messages.success(
             self.request,
-            f"신규 {created_count}개, 업데이트 {updated_count}개, 건너뜀 {skipped_count}개",
+            (
+                f"Dispatch Reference 신규 {reference_created_count}개, 업데이트 {reference_updated_count}개, "
+                f"MEL Dispatch Item 신규 {mel_created_count}개, 업데이트 {mel_updated_count}개, "
+                f"건너뜀 {skipped_count}개"
+            ),
         )
 
         return super().form_valid(form)
@@ -457,10 +523,8 @@ class DispatchCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
             initial["aircraft"] = aircraft_id
 
         if search_text:
-            if search_type == "eicas":
+            if search_type == "message":
                 initial["eicas_message"] = search_text
-            elif search_type == "status":
-                initial["status_message"] = search_text
             elif search_type == "fault":
                 initial["fault_code"] = search_text
             else:
@@ -705,7 +769,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         context["selected_aircraft"] = aircraft_id
         context["query"] = query
         context["search_type"] = search_type
-        context["status_mode"] = search_type == "status"
+        context["message_mode"] = search_type == "message"
 
         context["saved_dispatch_results"] = []
 
@@ -732,25 +796,28 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         if aircraft_id and not aircraft_qs.exists():
             return context
 
+        context["mel_dispatch_rows"] = []
+
+        mel_dispatch_rows = MelDispatchItem.objects.filter(
+            aircraft__in=aircraft_qs
+        ).filter(
+            Q(message__icontains=query)
+            | Q(condition__icontains=query)
+            | Q(mel_item__icontains=query)
+        )[
+            :100
+        ]
+
+        context["mel_dispatch_rows"] = mel_dispatch_rows
+
         saved_refs = DispatchReference.objects.filter(
             aircraft__in=aircraft_qs
         ).select_related("aircraft")
 
-        if search_type == "eicas":
-            saved_refs = saved_refs.filter(eicas_message__icontains=query)
-
-        elif search_type == "status":
-            saved_refs = saved_refs.filter(status_message__icontains=query)
-
-            if not saved_refs.exists():
-                saved_refs = DispatchReference.objects.filter(
-                    aircraft__in=aircraft_qs
-                ).filter(
-                    Q(eicas_message__icontains=query)
-                    | Q(fault_code__icontains=query)
-                    | Q(description__icontains=query)
-                    | Q(note__icontains=query)
-                )
+        if search_type == "message":
+            saved_refs = saved_refs.filter(
+                Q(eicas_message__icontains=query) | Q(status_message__icontains=query)
+            )
 
         elif search_type == "fault":
             saved_refs = saved_refs.filter(fault_code__icontains=query)
@@ -782,6 +849,9 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
             item.mel_page = resolve_saved_file_page(item)
 
         context["saved_dispatch_results"] = saved_dispatch_results
+
+        if search_type == "message":
+            return context
 
         search_value, match_mode = parse_manual_search_query(query)
 

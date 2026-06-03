@@ -28,10 +28,9 @@ from .views import (
     ManualPackagePDFView,
     ManualPackagePDFViewerView,
     ManualFileReindexView,
-    ManualIndexLogListView,
-    ManualIndexLogDetailView,
-    ManualIndexDashboardView,
     ManualPackageReuploadView,
+    ManualPackageDeleteView,
+    ExtractMelDispatchItemsView,
 )
 
 urlpatterns = [
@@ -121,6 +120,11 @@ urlpatterns = [
         name="manual_package_reindex",
     ),
     path(
+        "manual-packages/<int:pk>/delete/",
+        ManualPackageDeleteView.as_view(),
+        name="manual_package_delete",
+    ),
+    path(
         "manual-packages/<int:pk>/open/",
         ManualPackageOpenView.as_view(),
         name="manual_package_open",
@@ -141,21 +145,6 @@ urlpatterns = [
         name="manual_file_reindex",
     ),
     path(
-        "manual-index-logs/",
-        ManualIndexLogListView.as_view(),
-        name="manual_index_log_list",
-    ),
-    path(
-        "manual-index-logs/<int:pk>/",
-        ManualIndexLogDetailView.as_view(),
-        name="manual_index_log_detail",
-    ),
-    path(
-        "manual-index-dashboard/",
-        ManualIndexDashboardView.as_view(),
-        name="manual_index_dashboard",
-    ),
-    path(
         "manual-packages/<int:package_pk>/viewer/",
         ManualPackagePDFViewerView.as_view(),
         name="manual_package_pdf_viewer",
@@ -165,5 +154,9 @@ urlpatterns = [
         ManualPackageReuploadView.as_view(),
         name="manual_package_reupload",
     ),
-
+    path(
+        "manual-files/<int:pk>/extract-mel-items/",
+        ExtractMelDispatchItemsView.as_view(),
+        name="extract_mel_dispatch_items",
+    ),
 ]

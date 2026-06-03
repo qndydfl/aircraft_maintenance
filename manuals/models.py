@@ -100,26 +100,6 @@ class Aircraft(models.Model):
 
         return status_list
 
-    def manual_registered_count(self):
-        return self.manuals.count()
-
-    def manual_total_count(self):
-        return 5
-
-    def manual_completion_percent(self):
-        total = self.manual_total_count()
-
-        if total == 0:
-            return 0
-
-        return int(self.manual_registered_count() / total * 100)
-
-    def is_complete(self):
-        return self.manual_registered_count() == self.manual_total_count()
-
-    def missing_manual_count(self):
-        return self.manual_total_count() - self.manual_registered_count()
-
     def get_package_by_type(self, manual_type):
         return self.manual_packages.filter(manual_type=manual_type).first()
 
@@ -144,6 +124,10 @@ class ManualFile(models.Model):
     description = models.TextField(blank=True)
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    revision_no = models.CharField(max_length=50, blank=True, default="")
+
+    revision_date_text = models.CharField(max_length=100, blank=True, default="")
 
     class Meta:
         ordering = ["aircraft", "manual_type"]
@@ -220,6 +204,10 @@ class ManualPackage(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     processed = models.BooleanField(default=False)
+
+    revision_no = models.CharField(max_length=50, blank=True, default="")
+
+    revision_date_text = models.CharField(max_length=100, blank=True, default="")
 
     class Meta:
         ordering = ["aircraft", "manual_type"]
@@ -371,39 +359,3 @@ class ManualFilePDFPage(models.Model):
 
     def __str__(self):
         return f"{self.manual_file} - Page {self.page_number}"
-
-
-class ManualIndexLog(models.Model):
-    TARGET_TYPE_CHOICES = [
-        ("PACKAGE", "ZIP Package"),
-        ("PDF", "PDF File"),
-    ]
-
-    STATUS_CHOICES = [
-        ("SUCCESS", "Success"),
-        ("FAILED", "Failed"),
-    ]
-
-    target_type = models.CharField(max_length=20, choices=TARGET_TYPE_CHOICES)
-
-    aircraft = models.ForeignKey(
-        Aircraft, on_delete=models.CASCADE, null=True, blank=True
-    )
-
-    manual_type = models.CharField(max_length=10, blank=True)
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-
-    message = models.TextField(blank=True)
-
-    chapter_count = models.PositiveIntegerField(default=0)
-
-    page_count = models.PositiveIntegerField(default=0)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"{self.target_type} / {self.manual_type} / {self.status}"

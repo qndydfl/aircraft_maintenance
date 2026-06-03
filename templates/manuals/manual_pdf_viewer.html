@@ -1,6 +1,11 @@
-{% extends 'base.html' %} {% load static %} {% block css %}
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block css %}
 <link rel="stylesheet" href="{% static 'css/manual_pdf_viewer.css' %}" />
-{% endblock css %} {% block js %}
+{% endblock css %} 
+
+{% block js %}
 <script>
     window.PDF_VIEWER_CONFIG = {
         pdfUrl: "{{ pdf_url }}",
@@ -19,7 +24,11 @@
     src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ></script>
 <script defer src="{% static 'js/manual_pdf_viewer.js' %}"></script>
-{% endblock js %} {% block nav %}{% endblock nav %} {% block content %}
+{% endblock js %} 
+
+{% block nav %}{% endblock nav %} 
+
+{% block content %}
 
 <div
     class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"

@@ -1,13 +1,12 @@
 from django.contrib import admin
 from .models import (
-    Aircraft, 
-    ManualFile, 
-    AirbusManualLink, 
-    ManualPackage, 
-    ManualPDFPage, 
+    Aircraft,
+    ManualFile,
+    AirbusManualLink,
+    ManualPackage,
+    ManualPDFPage,
     ManualChapter,
     ManualFilePDFPage,
-    ManualIndexLog,
 )
 
 
@@ -19,19 +18,19 @@ class ManualFileInline(admin.TabularInline):
 @admin.register(Aircraft)
 class AircraftAdmin(admin.ModelAdmin):
     list_display = [
-        'maker',
-        'name',
-        'airbus_url',
-        'created_at',
+        "maker",
+        "name",
+        "airbus_url",
+        "created_at",
     ]
 
     list_filter = [
-        'maker',
+        "maker",
     ]
 
     search_fields = [
-        'name',
-        'maker',
+        "name",
+        "maker",
     ]
 
     inlines = [
@@ -42,21 +41,21 @@ class AircraftAdmin(admin.ModelAdmin):
 @admin.register(ManualFile)
 class ManualFileAdmin(admin.ModelAdmin):
     list_display = [
-        'aircraft',
-        'manual_type',
-        'file',
-        'uploaded_at',
+        "aircraft",
+        "manual_type",
+        "file",
+        "uploaded_at",
     ]
 
     list_filter = [
-        'manual_type',
-        'aircraft__maker',
-        'aircraft',
+        "manual_type",
+        "aircraft__maker",
+        "aircraft",
     ]
 
     search_fields = [
-        'aircraft__name',
-        'manual_type',
+        "aircraft__name",
+        "manual_type",
     ]
 
 
@@ -145,30 +144,4 @@ class ManualFilePDFPageAdmin(admin.ModelAdmin):
         "manual_file__aircraft__name",
         "manual_file__manual_type",
         "text",
-    ]
-
-
-@admin.register(ManualIndexLog)
-class ManualIndexLogAdmin(admin.ModelAdmin):
-    list_display = [
-        "target_type",
-        "aircraft",
-        "manual_type",
-        "status",
-        "chapter_count",
-        "page_count",
-        "created_at",
-    ]
-
-    list_filter = [
-        "target_type",
-        "status",
-        "aircraft",
-        "manual_type",
-    ]
-
-    search_fields = [
-        "aircraft__name",
-        "manual_type",
-        "message",
     ]

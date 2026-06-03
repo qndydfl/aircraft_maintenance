@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('manuals', '0007_manualindexlog'),
+        ("manuals", "0006_manualfilepdfpage"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='manualpackage',
-            name='merged_pdf',
-            field=models.FileField(blank=True, null=True, upload_to='merged_manuals/'),
+            model_name="manualpackage",
+            name="merged_pdf",
+            field=models.FileField(blank=True, null=True, upload_to="merged_manuals/"),
         ),
     ]

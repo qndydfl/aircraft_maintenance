@@ -1,9 +1,118 @@
-import re
+import re, fitz, pdfplumber
 from django.db.models import Q
 
-from .models import DispatchKeywordDictionary
-from manuals.models import ManualPDFPage
-from manuals.models import ManualFilePDFPage
+from .models import DispatchKeywordDictionary, MelDispatchItem
+from manuals.models import ManualPDFPage, ManualFilePDFPage
+
+
+def _extract_revision_info_from_text(text):
+    revision_no = ""
+    revision_date_text = ""
+
+    if not text:
+        return revision_no, revision_date_text
+
+    rev_match = re.search(
+        r"Rev\.?(?:\s*No\.?)?\s*:?([0-9A-Za-z\-]+)",
+        text,
+        re.IGNORECASE,
+    )
+
+    date_match = re.search(
+        r"Date\s*:?([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
+        text,
+        re.IGNORECASE,
+    )
+
+    if rev_match:
+        revision_no = rev_match.group(1).strip()
+
+    if date_match:
+        revision_date_text = date_match.group(1).strip()
+
+    return revision_no, revision_date_text
+
+
+def extract_manual_file_revision_info(manual_file):
+    revision_no = manual_file.revision_no or ""
+    revision_date_text = manual_file.revision_date_text or ""
+
+    if revision_no or revision_date_text:
+        return revision_no, revision_date_text
+
+    first_page = manual_file.pdf_pages.filter(page_number=1).only("text").first()
+
+    if first_page and first_page.text:
+        revision_no, revision_date_text = _extract_revision_info_from_text(
+            first_page.text
+        )
+
+    if not revision_no and not revision_date_text and manual_file.file:
+        try:
+            with pdfplumber.open(manual_file.file.path) as pdf:
+                if pdf.pages:
+                    revision_no, revision_date_text = _extract_revision_info_from_text(
+                        pdf.pages[0].extract_text() or ""
+                    )
+        except Exception:
+            return revision_no, revision_date_text
+
+    return revision_no, revision_date_text
+
+
+def _extract_revision_info_from_text(text):
+    revision_no = ""
+    revision_date_text = ""
+
+    if not text:
+        return revision_no, revision_date_text
+
+    rev_match = re.search(
+        r"Rev\.?(?:\s*No\.?)?\s*:?[\s]*([0-9A-Za-z\-]+)",
+        text,
+        re.IGNORECASE,
+    )
+
+    date_match = re.search(
+        r"Date\s*:?[\s]*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
+        text,
+        re.IGNORECASE,
+    )
+
+    if rev_match:
+        revision_no = rev_match.group(1).strip()
+
+    if date_match:
+        revision_date_text = date_match.group(1).strip()
+
+    return revision_no, revision_date_text
+
+
+def extract_manual_file_revision_info(manual_file):
+    revision_no = manual_file.revision_no or ""
+    revision_date_text = manual_file.revision_date_text or ""
+
+    if revision_no or revision_date_text:
+        return revision_no, revision_date_text
+
+    first_page = manual_file.pdf_pages.filter(page_number=1).only("text").first()
+
+    if first_page and first_page.text:
+        revision_no, revision_date_text = _extract_revision_info_from_text(
+            first_page.text
+        )
+
+    if not revision_no and not revision_date_text and manual_file.file:
+        try:
+            with pdfplumber.open(manual_file.file.path) as pdf:
+                if pdf.pages:
+                    revision_no, revision_date_text = _extract_revision_info_from_text(
+                        pdf.pages[0].extract_text() or ""
+                    )
+        except Exception:
+            return revision_no, revision_date_text
+
+    return revision_no, revision_date_text
 
 
 def parse_search_query(query):
@@ -31,33 +140,25 @@ def parse_dispatch_search_query(query):
         return {
             "query": trimmed[1:-1].strip(),
             "mode": "exact_phrase",
-            "keywords": [trimmed[1:-1].strip()]
+            "keywords": [trimmed[1:-1].strip()],
         }
 
     if trimmed.startswith("*") and trimmed.endswith("*") and len(trimmed) > 2:
-        keywords = [
-            word.strip()
-            for word in trimmed[1:-1].split()
-            if word.strip()
-        ]
+        keywords = [word.strip() for word in trimmed[1:-1].split() if word.strip()]
         return {
             "query": trimmed[1:-1].strip(),
             "mode": "contains_words",
-            "keywords": keywords
+            "keywords": keywords,
         }
 
     if trimmed.endswith("*") and len(trimmed) > 1:
         return {
             "query": trimmed[:-1].strip(),
             "mode": "startswith",
-            "keywords": [trimmed[:-1].strip()]
+            "keywords": [trimmed[:-1].strip()],
         }
 
-    return {
-        "query": trimmed,
-        "mode": "exact",
-        "keywords": [trimmed]
-    }
+    return {"query": trimmed, "mode": "exact", "keywords": [trimmed]}
 
 
 def expand_dispatch_query(query):
@@ -69,10 +170,7 @@ def expand_dispatch_query(query):
     if mode == "exact":
         base_words = [parsed_query.upper()]
     else:
-        base_words = [
-            word.upper()
-            for word in parsed_query.split()
-        ]
+        base_words = [word.upper() for word in parsed_query.split()]
 
     expanded = set(base_words)
 
@@ -122,10 +220,7 @@ def text_matches_query(text, parsed):
         return query_upper in text_upper
 
     if parsed["mode"] == "contains_words":
-        return all(
-            word.upper() in text_upper
-            for word in parsed["keywords"]
-        )
+        return all(word.upper() in text_upper for word in parsed["keywords"])
 
     return False
 
@@ -145,31 +240,45 @@ def recommend_package_pages(aircraft, manual_type, query, limit=10):
     results = []
 
     for page in queryset[:1000]:
-        combined_text = " ".join([
-            page.chapter.task or "",
-            page.chapter.subtask or "",
-            page.chapter.title or "",
-            page.text or "",
-        ])
+        combined_text = " ".join(
+            [
+                page.chapter.task or "",
+                page.chapter.subtask or "",
+                page.chapter.title or "",
+                page.text or "",
+            ]
+        )
 
         if not text_matches_query(combined_text, parsed):
             continue
 
         page.recommend_score = calculate_recommendation_score(
-            combined_text,
-            parsed["keywords"]
+            combined_text, parsed["keywords"]
         )
 
-        page.snippet = page.get_snippet(
-            parsed["query"]
+        page.snippet = page.get_snippet(parsed["query"])
+
+        revision_no, revision_date_text = extract_manual_file_revision_info(
+            page.manual_file
         )
+        page.revision_no = revision_no
+        page.revision_date_text = revision_date_text
+        page.revision_label = ""
+
+        if revision_no or revision_date_text:
+            revision_parts = []
+
+            if revision_no:
+                revision_parts.append(f"Rev. No : {revision_no}")
+
+            if revision_date_text:
+                revision_parts.append(f"Date : {revision_date_text}")
+
+            page.revision_label = " / ".join(revision_parts)
 
         results.append(page)
 
-    results.sort(
-        key=lambda item: item.recommend_score,
-        reverse=True
-    )
+    results.sort(key=lambda item: item.recommend_score, reverse=True)
 
     return results[:limit]
 
@@ -188,29 +297,25 @@ def recommend_file_pages(aircraft, manual_type, query, limit=10):
     results = []
 
     for page in queryset[:1000]:
-        combined_text = " ".join([
-            page.manual_file.description or "",
-            page.text or "",
-        ])
+        combined_text = " ".join(
+            [
+                page.manual_file.description or "",
+                page.text or "",
+            ]
+        )
 
         if not text_matches_query(combined_text, parsed):
             continue
 
         page.recommend_score = calculate_recommendation_score(
-            combined_text,
-            parsed["keywords"]
+            combined_text, parsed["keywords"]
         )
 
-        page.snippet = page.get_snippet(
-            parsed["query"]
-        )
+        page.snippet = page.get_snippet(parsed["query"])
 
         results.append(page)
 
-    results.sort(
-        key=lambda item: item.recommend_score,
-        reverse=True
-    )
+    results.sort(key=lambda item: item.recommend_score, reverse=True)
 
     return results[:limit]
 
@@ -471,3 +576,216 @@ def build_manual_text_regex(search_value, match_mode):
         return rf"\b{escaped}[A-Za-z0-9/_-]*"
 
     return rf"\b{escaped}\b"
+
+
+def clean_cell(value):
+    return " ".join((value or "").split())
+
+
+def normalize_dash(value):
+    value = clean_cell(value)
+    return "" if value in ["-", "—", "–"] else value
+
+
+def clean_noise_text(value):
+    value = clean_cell(value)
+
+    noise_patterns = [
+        r"^\s*n\s+",
+        r"\bn U\b",
+        r"\bcA A\b",
+        r"^l l\s+",
+        r"^n o\s*",
+        r"^o\s+",
+    ]
+
+    for pattern in noise_patterns:
+        value = re.sub(pattern, "", value, flags=re.IGNORECASE).strip()
+
+    return value
+
+
+def clean_message(value):
+    value = clean_noise_text(value)
+
+    value = re.sub(r"^[a-zA-Z]\s+(?=[A-Z]{2,})", "", value)
+
+    return value.strip()
+
+
+def extract_level(value):
+    value = clean_cell(value).upper()
+    levels = re.findall(r"[AS]", value)
+    return "".join(levels)
+
+
+def extract_mel_item(value):
+    value = clean_cell(value)
+    match = re.search(r"\d{2}-\d{2}-\d{2}(?:-\d{2})?[A-Z]?", value)
+    return match.group(0) if match else ""
+
+
+def extract_adc(value):
+    value = normalize_dash(value).upper()
+
+    if value in ["CD", "RTG", "A", "D", "C"]:
+        return value
+
+    return ""
+
+
+def clean_condition(value):
+    value = clean_noise_text(value)
+
+    noise_patterns = [
+        r"^l\s+l\s+",
+        r"^n\s+o\s*",
+        r"^o\s+",
+        r"^cA\s+A\s+",
+        r"\bn\s+U\b",
+        r"\bp\s+o\s+",
+        r"^r\s+t\s+",
+        r"^r\s",
+        r"^l\s",
+        r"^e\s",
+        r"^l\s+o\s+",
+        r"^l\s+l\s+o\s+",
+    ]
+
+    for pattern in noise_patterns:
+        value = re.sub(pattern, "", value, flags=re.IGNORECASE).strip()
+
+    # 앞뒤 단독 문자 제거
+    value = re.sub(r"^[a-zA-Z]\s+", "", value)
+    value = re.sub(r"\s+[a-zA-Z]$", "", value)
+
+    # 뒤에 붙은 단독 소문자 제거
+    value = re.sub(r"\s+[a-z]$", "", value).strip()
+
+    return value
+
+
+def extract_mel_dispatch_items_from_pdf(manual_file):
+
+    if not manual_file.file:
+        return 0
+
+    count = 0
+
+    MelDispatchItem.objects.filter(
+        aircraft=manual_file.aircraft,
+        manual_file=manual_file,
+    ).delete()
+
+    with pdfplumber.open(manual_file.file.path) as pdf:
+
+        for page_index, page in enumerate(pdf.pages):
+
+            page_number = page_index + 1
+            tables = page.extract_tables()
+
+            for table in tables:
+
+                if not table:
+                    continue
+
+                current_message = ""
+                current_level = ""
+                current_condition = ""
+                current_mel_item = ""
+                current_adc = ""
+
+                for row in table:
+
+                    if not row:
+                        continue
+
+                    raw_message = row[0] or ""
+
+                    message_line_count = len(
+                        [line for line in raw_message.splitlines() if line.strip()]
+                    )
+
+                    row = [clean_cell(cell) for cell in row]
+
+                    if len(row) < 5:
+                        continue
+
+                    message = clean_message(row[0])
+                    level = extract_level(row[1])
+                    condition = clean_condition(row[2])
+                    mel_item = extract_mel_item(row[3])
+                    adc = extract_adc(row[4])
+
+                    if level in ["A", "S"] and message_line_count >= 2:
+                        level = level + level
+
+                    if (
+                        message == "Message"
+                        or level == "L"
+                        or condition == "Condition"
+                        or mel_item == "MEL Item"
+                        or adc == "A/D/C"
+                    ):
+                        continue
+
+                    if message:
+                        current_message = message
+                    else:
+                        message = current_message
+
+                    if level:
+                        current_level = level
+                    else:
+                        level = current_level
+
+                    for cell in row[2:]:
+                        found_mel = extract_mel_item(cell)
+                        if found_mel:
+                            mel_item = found_mel
+                            break
+
+                    for cell in row[2:]:
+                        found_adc = extract_adc(cell)
+                        if found_adc:
+                            adc = found_adc
+                            break
+
+                    condition = normalize_dash(condition)
+
+                    if condition:
+                        current_condition = condition
+                    else:
+                        condition = current_condition
+
+                    if mel_item:
+                        current_mel_item = mel_item
+                    else:
+                        mel_item = current_mel_item
+
+                    if adc:
+                        current_adc = adc
+                    else:
+                        adc = current_adc
+
+                    if not message:
+                        continue
+
+                    if not condition and not mel_item and not adc:
+                        continue
+
+                    obj, created = MelDispatchItem.objects.get_or_create(
+                        aircraft=manual_file.aircraft,
+                        manual_file=manual_file,
+                        message=message,
+                        level=level,
+                        condition=condition,
+                        mel_item=mel_item,
+                        adc=adc,
+                        page_number=page_number,
+                    )
+
+                    if created:
+                        count += 1
+
+    return count

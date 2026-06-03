@@ -1,0 +1,28 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class="card shadow-sm border-danger">
+    <div class="card-header bg-danger text-white">Delete Manual Package</div>
+
+    <div class="card-body">
+        <p>정말 삭제하시겠습니까?</p>
+
+        <p class="fw-bold">
+            {{ package.aircraft.name }} / {{ package.manual_type }}
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-danger">Delete</button>
+
+            <a
+                href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
+                class="btn btn-outline-secondary"
+            >
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
