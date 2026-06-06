@@ -1,0 +1,154 @@
+.manual-pdf-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 12px;
+}
+
+.manual-pdf-layout.outline-hidden {
+    grid-template-columns: 1fr;
+}
+
+.manual-pdf-layout.outline-hidden .outline-panel {
+    display: none;
+}
+
+.outline-panel {
+    max-height: 80vh;
+    overflow: auto;
+    background: #4a4a4a;
+    color: #f5f5f5;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.outline-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.outline-list,
+.outline-list ul {
+    list-style: none;
+    padding-left: 14px;
+    margin: 0;
+}
+
+.outline-item {
+    margin: 4px 0;
+}
+
+.outline-link {
+    color: #ffffff;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.35;
+}
+
+.outline-toggle {
+    background: none;
+    border: none;
+    color: #bbbbbb;
+    padding: 0;
+    cursor: pointer;
+    line-height: 1.35;
+}
+
+.outline-toggle:hover {
+    color: #ffd966;
+}
+
+.outline-children {
+    display: none;
+}
+
+.outline-link:hover {
+    color: #ffd966;
+    text-decoration: underline;
+}
+
+.outline-icon {
+    color: #bbbbbb;
+    flex-shrink: 0;
+}
+
+.outline-empty {
+    color: #ddd;
+    font-size: 13px;
+}
+
+.pdf-viewer-scroll {
+    overflow: auto;
+    max-height: 80vh;
+}
+
+.pdf-viewer-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+#pdf-canvas {
+    position: relative;
+    z-index: 1;
+}
+
+#text-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    opacity: 0.25;
+    line-height: 1;
+}
+
+#text-layer span {
+    position: absolute;
+    white-space: pre;
+    transform-origin: 0% 0%;
+    color: transparent;
+}
+
+.highlight-text {
+    background: yellow;
+    color: transparent;
+    border-radius: 2px;
+}
+
+@media (max-width: 991px) {
+    .manual-pdf-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .outline-panel {
+        max-height: 260px;
+    }
+}
+
+.multi-page-viewer {
+    text-align: center;
+}
+
+.match-page-box {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 24px;
+}
+
+.match-page-label {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    padding: 6px 10px;
+    border-radius: 6px;
+    z-index: 5;
+}
+
+.dynamic-text-layer span {
+    position: absolute;
+    white-space: pre;
+    transform-origin: 0% 0%;
+    color: transparent;
+}
