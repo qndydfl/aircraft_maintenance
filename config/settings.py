@@ -31,20 +31,20 @@ DEFAULT_SECRET_KEY = "django-insecure-local-dev-key"
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
 
-# if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
-#     raise ImproperlyConfigured(
-#         "DJANGO_SECRET_KEY must be set to a secure value when DJANGO_DEBUG is false."
-#     )
+if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be set to a secure value when DJANGO_DEBUG is false."
+    )
 
-ALLOWED_HOSTS = [
-    "13.125.173.214",
-    "localhost",
-    "127.0.0.1",
-]
+# ALLOWED_HOSTS = [
+#     "13.125.173.214",
+#     "localhost",
+#     "127.0.0.1",
+# ]
 
-DEBUG = False  # 배포 시에는 DEBUG를 False로 설정해야 합니다.
+# DEBUG = False  # 배포 시에는 DEBUG를 False로 설정해야 합니다.
 
 
 
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "accounts",
     "manuals",
     "dispatch",
+    "storages",
 ]
 
 MIDDLEWARE = [

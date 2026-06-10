@@ -17,25 +17,10 @@ class ManualFileInline(admin.TabularInline):
 
 @admin.register(Aircraft)
 class AircraftAdmin(admin.ModelAdmin):
-    list_display = [
-        "maker",
-        "name",
-        "airbus_url",
-        "created_at",
-    ]
-
-    list_filter = [
-        "maker",
-    ]
-
-    search_fields = [
-        "name",
-        "maker",
-    ]
-
-    inlines = [
-        ManualFileInline,
-    ]
+    list_display = ("maker", "name")
+    list_filter = ("maker",)
+    search_fields = ("name",)
+    ordering = ("maker", "name")
 
 
 @admin.register(ManualFile)
@@ -61,22 +46,22 @@ class ManualFileAdmin(admin.ModelAdmin):
 
 @admin.register(AirbusManualLink)
 class AirbusManualLinkAdmin(admin.ModelAdmin):
-    list_display = [
+    list_display = (
+        "aircraft",
         "manual_type",
         "title",
         "url",
-        "created_at",
-    ]
-
-    list_filter = [
+    )
+    list_filter = (
+        "aircraft",
         "manual_type",
-    ]
-
-    search_fields = [
+    )
+    search_fields = (
+        "aircraft__name",
+        "manual_type",
         "title",
         "url",
-        "description",
-    ]
+    )
 
 
 @admin.register(ManualPackage)

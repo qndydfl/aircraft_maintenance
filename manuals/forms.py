@@ -3,7 +3,7 @@ import os
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import ManualFile, Aircraft, AirbusManualLink, ManualPackage
+from .models import ManualFile, Aircraft, ManualPackage
 
 
 class ManualFileForm(forms.ModelForm):
@@ -17,24 +17,16 @@ class ManualFileForm(forms.ModelForm):
             "file",
             "description",
             "revision_no",
+            "revision_date_text",
         ]
 
         widgets = {
-            "aircraft": forms.Select(
-                attrs={"class": "form-select"}
-            ),
-            "manual_type": forms.Select(
-                attrs={"class": "form-select"}
-            ),
-            "file": forms.ClearableFileInput(
-                attrs={"class": "form-control"}
-            ),
-            "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 4}
-            ),
-            "revision_no": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
+            "aircraft": forms.Select(attrs={"class": "form-select"}),
+            "manual_type": forms.Select(attrs={"class": "form-select"}),
+            "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "revision_no": forms.TextInput(attrs={"class": "form-control"}),
+            "revision_date_text": forms.TextInput(attrs={"class": "form-control"}),
         }
 
     def clean(self):
@@ -46,14 +38,11 @@ class ManualFileForm(forms.ModelForm):
 
         if aircraft and manual_type:
             queryset = ManualFile.objects.filter(
-                aircraft=aircraft,
-                manual_type=manual_type
+                aircraft=aircraft, manual_type=manual_type
             )
 
             if self.instance.pk:
-                queryset = queryset.exclude(
-                    pk=self.instance.pk
-                )
+                queryset = queryset.exclude(pk=self.instance.pk)
 
             if queryset.exists():
                 raise ValidationError(
@@ -69,17 +58,13 @@ class ManualFileForm(forms.ModelForm):
         pdf_manuals = ["MEL", "CDL"]
 
         if manual_type in zip_manuals and ext != ".zip":
-            raise ValidationError(
-                "AMM / FIM / IPC는 ZIP 파일만 업로드할 수 있습니다."
-            )
+            raise ValidationError("AMM / FIM / IPC는 ZIP 파일만 업로드할 수 있습니다.")
 
         if manual_type in pdf_manuals and ext != ".pdf":
-            raise ValidationError(
-                "MEL / CDL은 PDF 파일만 업로드할 수 있습니다."
-            )
+            raise ValidationError("MEL / CDL은 PDF 파일만 업로드할 수 있습니다.")
 
         return cleaned_data
-    
+
 
 class AircraftForm(forms.ModelForm):
 
@@ -93,43 +78,9 @@ class AircraftForm(forms.ModelForm):
         ]
 
         widgets = {
-            "maker": forms.Select(
-                attrs={"class": "form-select"}
-            ),
-            "name": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "airbus_url": forms.URLInput(
-                attrs={"class": "form-control"}
-            ),
-        }
-
-
-class AirbusManualLinkForm(forms.ModelForm):
-
-    class Meta:
-        model = AirbusManualLink
-
-        fields = [
-            "title",
-            "manual_type",
-            "url",
-            "description",
-        ]
-
-        widgets = {
-            "title": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "manual_type": forms.Select(
-                attrs={"class": "form-select"}
-            ),
-            "url": forms.URLInput(
-                attrs={"class": "form-control"}
-            ),
-            "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3}
-            ),
+            "maker": forms.Select(attrs={"class": "form-select"}),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "airbus_url": forms.URLInput(attrs={"class": "form-control"}),
         }
 
 
@@ -146,21 +97,15 @@ class ManualPackageForm(forms.ModelForm):
         ]
 
         widgets = {
-            "aircraft": forms.Select(
-                attrs={"class": "form-select"}
-            ),
-            "manual_type": forms.Select(
-                attrs={"class": "form-select"}
-            ),
+            "aircraft": forms.Select(attrs={"class": "form-select"}),
+            "manual_type": forms.Select(attrs={"class": "form-select"}),
             "zip_file": forms.ClearableFileInput(
                 attrs={
                     "class": "form-control",
                     "accept": ".zip",
                 }
             ),
-            "revision_no": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
+            "revision_no": forms.TextInput(attrs={"class": "form-control"}),
         }
 
     def clean_zip_file(self):

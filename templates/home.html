@@ -86,7 +86,16 @@
                         href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                         class="btn btn-primary w-100"
                     >
-                        Open Manuals
+                        Open PDF Manuals
+                    </a>
+
+                    <a
+                        href="https://www.myboeingfleet.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-info w-100 mt-2"
+                    >
+                        Open MyboeingFleet Manuals
                     </a>
                 </div>
             </div>
@@ -110,40 +119,60 @@
     <h4 class="section-title mb-3">Airbus Manuals</h4>
 
     <div class="row g-4">
-        <div class="col-lg-4 col-md-6">
+        {% for aircraft in airbus_aircrafts %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
             <div class="card portal-card h-100 shadow-sm border-info">
                 <div class="card-body">
-                    <h5 class="card-title fw-bold">Airbus</h5>
+                    <h5 class="card-title fw-bold">{{ aircraft.name }}</h5>
 
                     <div class="mb-3">
                         <span class="badge bg-info text-dark manual-badge"
                             >LINK</span
                         >
-                        <span class="badge bg-info text-dark manual-badge"
-                            >AMM</span
+
+                        <span
+                            class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge"
                         >
-                        <span class="badge bg-info text-dark manual-badge"
-                            >IPC</span
+                            MEL
+                        </span>
+
+                        <span
+                            class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
                         >
-                        <span class="badge bg-info text-dark manual-badge"
-                            >MEL</span
-                        >
+                            CDL
+                        </span>
                     </div>
 
                     <p class="text-muted small">
-                        Airbus manuals are opened through registered external
-                        links.
+                        AMM / IPC는 외부 링크, MEL / CDL은 PDF 업로드
+                        방식입니다.
                     </p>
 
                     <a
-                        href="{% url 'airbus_link_list' %}"
-                        class="btn btn-info w-100"
+                        href="{% url 'aircraft_manual_detail' aircraft.pk %}"
+                        class="btn btn-primary w-100"
                     >
-                        Open Airbus Manuals
+                        Open Airbus MEL / CDL PDFs
+                    </a>
+
+                    <a
+                        href="https://w3.airbus.com/H380/world/airbusworld/forms/airbus.fcc?TYPE=33554433&REALMOID=06-2c93f4bb-1103-4238-98fa-62ca07aab930&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-t%2fTX88CtTFIPqQ15ugBfOME66PQGCWGuAAOSByMZUiVIJPozo431pS4LE4YuSGzU&TARGET=-SM-HTTPS%3a%2f%2fw3%2eairbus%2ecom%2fU980%2fU980_redirect_world%2ehtml%3fresumePath%3d-%2Fidp-%2FANSL9oFTBl-%2FresumeSAML20-%2Fidp-%2FSSO%2eping-%3FpfLoginRedirect-%3Dtrue"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-info w-100 mt-2"
+                    >
+                        Open Airbus World Manuals
                     </a>
                 </div>
             </div>
         </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning">
+                등록된 Airbus 기종이 없습니다.
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 

@@ -16,13 +16,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import (
     Aircraft,
     ManualFile,
-    AirbusManualLink,
     ManualPackage,
     ManualChapter,
     ManualPDFPage,
     ManualFilePDFPage,
 )
-from .forms import ManualFileForm, AircraftForm, AirbusManualLinkForm, ManualPackageForm
+from .forms import ManualFileForm, AircraftForm, ManualPackageForm
 
 from django.contrib import messages
 from .services import (
@@ -57,9 +56,13 @@ class HomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["boeing_aircrafts"] = Aircraft.objects.filter(maker="BOEING")
+        context["boeing_aircrafts"] = Aircraft.objects.filter(maker="BOEING").order_by(
+            "name"
+        )
 
-        context["airbus_aircraft"] = Aircraft.objects.filter(maker="AIRBUS").first()
+        context["airbus_aircrafts"] = Aircraft.objects.filter(maker="AIRBUS").order_by(
+            "name"
+        )
 
         return context
 
@@ -70,7 +73,7 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "aircraft"
 
     def get_queryset(self):
-        return Aircraft.objects.filter(maker="BOEING").prefetch_related(
+        return Aircraft.objects.order_by("name").prefetch_related(
             "manuals",
             "manual_packages",
             "manual_packages__chapters",
@@ -201,6 +204,9 @@ class AircraftManageListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
     template_name = "manuals/aircraft_manage_list.html"
     context_object_name = "aircrafts"
 
+    def get_queryset(self):
+        return Aircraft.objects.all().order_by("maker", "name")
+
 
 class AircraftCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
     model = Aircraft
@@ -224,41 +230,13 @@ class AircraftDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
     success_url = reverse_lazy("aircraft_manage")
 
 
-class AirbusManualLinkListView(LoginRequiredMixin, ListView):
-    model = AirbusManualLink
-    template_name = "manuals/airbus_link_list.html"
-    context_object_name = "links"
-
-
-class AirbusManualLinkCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
-    model = AirbusManualLink
-    form_class = AirbusManualLinkForm
-    template_name = "manuals/airbus_link_form.html"
-    success_url = reverse_lazy("airbus_link_list")
-
-
-class AirbusManualLinkUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
-    model = AirbusManualLink
-    form_class = AirbusManualLinkForm
-    template_name = "manuals/airbus_link_form.html"
-    context_object_name = "link"
-    success_url = reverse_lazy("airbus_link_list")
-
-
-class AirbusManualLinkDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
-    model = AirbusManualLink
-    template_name = "manuals/airbus_link_confirm_delete.html"
-    context_object_name = "link"
-    success_url = reverse_lazy("airbus_link_list")
-
-
 class AircraftManualPrintView(LoginRequiredMixin, DetailView):
     model = Aircraft
     template_name = "manuals/aircraft_manual_print.html"
     context_object_name = "aircraft"
 
     def get_queryset(self):
-        return Aircraft.objects.filter(maker="BOEING").prefetch_related("manuals")
+        return Aircraft.objects.prefetch_related("manuals")
 
 
 class ManualFileDetailView(LoginRequiredMixin, DetailView):
@@ -731,7 +709,7 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
 
         context["viewer_title"] = f"{manual.aircraft.name} / {manual.manual_type}"
         context["viewer_subtitle"] = manual.description or "PDF Viewer"
-        context["pdf_url"] = manual.file.url
+        context["pdf_url"] = reverse("manual_file_pdf", kwargs={"pk": manual.pk})
 
         context["back_url"] = reverse(
             "aircraft_manual_detail",
@@ -776,6 +754,22 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         context["view_mode"] = self.request.GET.get("mode", "single")
 
         return context
+
+
+class ManualFilePDFView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        manual = get_object_or_404(
+            ManualFile.objects.select_related("aircraft"), pk=kwargs["pk"]
+        )
+
+        file_name = (manual.file.name or "").lower()
+        if not file_name.endswith(".pdf"):
+            raise Http404("PDF file is not available")
+
+        if not manual.file:
+            raise Http404("PDF file is not available")
+
+        return FileResponse(manual.file.open("rb"), content_type="application/pdf")
 
 
 class ManualPackagePDFView(LoginRequiredMixin, View):
@@ -923,8 +917,17 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     def test_func(self):
         return self.request.user.is_staff
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["back_url"] = reverse_lazy(
+            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+        )
+        return context
+
     def form_valid(self, form):
         package = form.save()
+        package.processed = False
+        package.save(update_fields=["processed"])
 
         try:
             result = process_manual_package_safely(package)
@@ -939,7 +942,7 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
             messages.error(self.request, f"재업로드 실패: {error}")
             return redirect("aircraft_manual_detail", pk=package.aircraft.pk)
 
-        return redirect("manual_chapter_list", package_pk=package.pk)
+        return redirect("aircraft_manual_detail", pk=package.aircraft.pk)
 
 
 class ExtractMelDispatchItemsView(LoginRequiredMixin, StaffRequiredMixin, View):

@@ -190,6 +190,85 @@ def index_pdf_pages_for_package(package):
     return total_pages
 
 
+def extract_pdf_revision_info(pdf_path):
+    revision_no = ""
+    revision_date = ""
+
+    revision_patterns = [
+        r"Revision\s*No\.?\s*:?\s*([0-9][0-9A-Za-z\-]*)",
+        r"Rev\.?\s*No\.?\s*:?\s*([0-9][0-9A-Za-z\-]*)",
+    ]
+
+    date_patterns = [
+        r"Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
+        r"Issue\s*Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+    ]
+
+    with pdfplumber.open(pdf_path) as pdf:
+        if not pdf.pages:
+            return revision_no, revision_date
+
+        # Scan early pages because CDL cover pages often omit explicit revision labels.
+        for page in pdf.pages[:8]:
+            text = page.extract_text() or ""
+
+            if not revision_no:
+                for pattern in revision_patterns:
+                    rev_match = re.search(pattern, text, re.IGNORECASE)
+
+                    if rev_match:
+                        revision_no = rev_match.group(1).strip()
+                        break
+
+            if not revision_date:
+                for pattern in date_patterns:
+                    date_match = re.search(pattern, text, re.IGNORECASE)
+
+                    if date_match:
+                        revision_date = date_match.group(1).strip()
+                        break
+
+            if revision_no and revision_date:
+                break
+
+    if not revision_no:
+        file_name = os.path.basename(pdf_path)
+        file_name_match = re.search(
+            r"(?:^|[_\-])R(\d{1,3})(?=[_\-.]|$)", file_name, re.IGNORECASE
+        )
+
+        if file_name_match:
+            revision_no = file_name_match.group(1).strip()
+
+    return revision_no, revision_date
+
+
+def save_manual_file_revision_info(manual_file):
+    if manual_file.manual_type not in ["MEL", "CDL"]:
+        return "", ""
+
+    if not manual_file.file:
+        return "", ""
+
+    pdf_path = manual_file.file.path
+
+    if not os.path.exists(pdf_path):
+        return "", ""
+
+    revision_no, revision_date = extract_pdf_revision_info(pdf_path)
+
+    manual_file.revision_no = revision_no
+    manual_file.revision_date_text = revision_date
+    manual_file.save(
+        update_fields=[
+            "revision_no",
+            "revision_date_text",
+        ]
+    )
+
+    return revision_no, revision_date
+
+
 def index_pdf_pages_for_manual_file(manual_file):
     if manual_file.manual_type not in ["MEL", "CDL"]:
         return 0
@@ -201,6 +280,9 @@ def index_pdf_pages_for_manual_file(manual_file):
 
     if not os.path.exists(pdf_path):
         return 0
+
+    # Revision 저장
+    save_manual_file_revision_info(manual_file)
 
     ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
 
@@ -215,7 +297,9 @@ def index_pdf_pages_for_manual_file(manual_file):
             text = page.get_text("text")
 
             ManualFilePDFPage.objects.create(
-                manual_file=manual_file, page_number=page_index + 1, text=text
+                manual_file=manual_file,
+                page_number=page_index + 1,
+                text=text,
             )
 
             created_count += 1
@@ -224,6 +308,48 @@ def index_pdf_pages_for_manual_file(manual_file):
         document.close()
 
     return created_count
+
+
+def index_pdf_pages_for_manual_file_safely(manual_file):
+    if manual_file.manual_type not in ["MEL", "CDL"]:
+        return 0
+
+    if not manual_file.file:
+        return 0
+
+    pdf_path = manual_file.file.path
+
+    if not os.path.exists(pdf_path):
+        return 0
+
+    # Keep revision metadata in sync when users click Re-index PDF.
+    save_manual_file_revision_info(manual_file)
+
+    new_pages = []
+
+    document = fitz.open(pdf_path)
+
+    try:
+        for page_index in range(document.page_count):
+            page = document.load_page(page_index)
+
+            text = page.get_text("text")
+
+            new_pages.append(
+                ManualFilePDFPage(
+                    manual_file=manual_file, page_number=page_index + 1, text=text
+                )
+            )
+
+    finally:
+        document.close()
+
+    with transaction.atomic():
+        ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
+
+        ManualFilePDFPage.objects.bulk_create(new_pages)
+
+    return len(new_pages)
 
 
 def process_manual_package_safely(package):
@@ -302,45 +428,6 @@ def process_manual_package_safely(package):
         shutil.rmtree(temp_extract_to, ignore_errors=True)
 
         raise
-
-
-def index_pdf_pages_for_manual_file_safely(manual_file):
-    if manual_file.manual_type not in ["MEL", "CDL"]:
-        return 0
-
-    if not manual_file.file:
-        return 0
-
-    pdf_path = manual_file.file.path
-
-    if not os.path.exists(pdf_path):
-        return 0
-
-    new_pages = []
-
-    document = fitz.open(pdf_path)
-
-    try:
-        for page_index in range(document.page_count):
-            page = document.load_page(page_index)
-
-            text = page.get_text("text")
-
-            new_pages.append(
-                ManualFilePDFPage(
-                    manual_file=manual_file, page_number=page_index + 1, text=text
-                )
-            )
-
-    finally:
-        document.close()
-
-    with transaction.atomic():
-        ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
-
-        ManualFilePDFPage.objects.bulk_create(new_pages)
-
-    return len(new_pages)
 
 
 def calculate_package_score(page, query):
@@ -579,36 +666,5 @@ def save_package_revision_info(package, index_html_path):
             "revision_date_text",
         ]
     )
-
-    return revision_no, revision_date
-
-
-def extract_pdf_revision_info(pdf_path):
-    revision_no = ""
-    revision_date = ""
-
-    with pdfplumber.open(pdf_path) as pdf:
-        if not pdf.pages:
-            return revision_no, revision_date
-
-        text = pdf.pages[0].extract_text() or ""
-
-    rev_match = re.search(
-        r"Rev\.?\s*No\.?\s*:?\s*([0-9A-Za-z\-]+)",
-        text,
-        re.IGNORECASE,
-    )
-
-    date_match = re.search(
-        r"Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
-        text,
-        re.IGNORECASE,
-    )
-
-    if rev_match:
-        revision_no = rev_match.group(1).strip()
-
-    if date_match:
-        revision_date = date_match.group(1).strip()
 
     return revision_no, revision_date

@@ -23,9 +23,9 @@ class Aircraft(models.Model):
         ("AIRBUS", "Airbus"),
     ]
 
-    maker = models.CharField(max_length=20, choices=MAKER_CHOICES)
-
     name = models.CharField(max_length=50)
+
+    maker = models.CharField(max_length=20, choices=MAKER_CHOICES, default="BOEING")
 
     airbus_url = models.URLField(blank=True, null=True)
 
@@ -79,26 +79,26 @@ class Aircraft(models.Model):
         return self.manuals.filter(manual_type=manual_type).first()
 
     def get_manual_status_list(self):
-        manual_types = [
-            "AMM",
-            "FIM",
-            "IPC",
-            "MEL",
-            "CDL",
-        ]
 
-        status_list = []
+        manual_types = ["AMM", "FIM", "IPC", "MEL", "CDL"]
+
+        result = []
 
         for manual_type in manual_types:
-            status_list.append(
+
+            package = self.manual_packages.filter(manual_type=manual_type).first()
+
+            file = self.manuals.filter(manual_type=manual_type).first()
+
+            result.append(
                 {
                     "type": manual_type,
-                    "file": self.get_manual_by_type(manual_type),
-                    "package": self.get_package_by_type(manual_type),
+                    "package": package,
+                    "file": file,
                 }
             )
 
-        return status_list
+        return result
 
     def get_package_by_type(self, manual_type):
         return self.manual_packages.filter(manual_type=manual_type).first()
@@ -158,28 +158,27 @@ class AirbusManualLink(models.Model):
         ("AMM", "AMM"),
         ("FIM", "FIM"),
         ("IPC", "IPC"),
-        ("MEL", "MEL"),
-        ("CDL", "CDL"),
         ("OTHER", "OTHER"),
     ]
 
-    title = models.CharField(max_length=100)
-
-    manual_type = models.CharField(
-        max_length=10, choices=MANUAL_TYPE_CHOICES, default="OTHER"
+    aircraft = models.ForeignKey(
+        Aircraft,
+        on_delete=models.CASCADE,
+        related_name="airbus_links",
     )
-
+    manual_type = models.CharField(
+        max_length=10,
+        choices=MANUAL_TYPE_CHOICES,
+    )
+    title = models.CharField(max_length=100, blank=True)
     url = models.URLField()
-
     description = models.TextField(blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-
     class Meta:
-        ordering = ["manual_type", "title"]
+        unique_together = ("aircraft", "manual_type")
 
     def __str__(self):
-        return f"{self.manual_type} - {self.title}"
+        return f"{self.aircraft.name} {self.manual_type}"
 
 
 class ManualPackage(models.Model):
