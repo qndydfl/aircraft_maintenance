@@ -157,3 +157,28 @@ LOGOUT_REDIRECT_URL = "login"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+AWS_ACCOUNT_ID = os.environ.get("CLOUDFLARE_R2_ACCOUNT_ID")
+AWS_ACCESS_KEY_ID = os.environ.get("CLOUDFLARE_R2_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("CLOUDFLARE_R2_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("CLOUDFLARE_R2_BUCKET_NAME")
+
+AWS_S3_ENDPOINT_URL = f"https://{os.environ.get('CLOUDFLARE_R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
+AWS_S3_REGION_NAME = "auto"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+
+USE_R2 = os.getenv("USE_R2", "False") == "True"
+
+if USE_R2:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }

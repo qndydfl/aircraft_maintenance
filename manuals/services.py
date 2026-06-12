@@ -1,4 +1,4 @@
-import os, re, zipfile, fitz, shutil, uuid, pdfplumber
+import os, re, zipfile, fitz, shutil, uuid, pdfplumber, tempfile
 
 from django.conf import settings
 from bs4 import BeautifulSoup
@@ -6,6 +6,30 @@ from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage
 from django.db import transaction
 from django.core.files import File
 from pypdf import PdfReader, PdfWriter
+
+
+def storage_file_to_temp_file(django_file, suffix=""):
+    temp_file = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+
+    try:
+        django_file.open("rb")
+
+        for chunk in django_file.chunks():
+            temp_file.write(chunk)
+
+        django_file.close()
+        temp_file.flush()
+        temp_file.close()
+
+        return temp_file.name
+
+    except Exception:
+        temp_file.close()
+
+        if os.path.exists(temp_file.name):
+            os.remove(temp_file.name)
+
+        raise
 
 
 def safe_extract_zip(zip_file_path, extract_to):
@@ -32,9 +56,51 @@ def find_index_html(extract_to):
     return None
 
 
-def process_manual_package(package):
-    zip_file_path = package.zip_file.path
+# def process_manual_package(package):
+#     zip_file_path = package.zip_file.path
 
+#     extract_to = os.path.join(
+#         settings.MEDIA_ROOT,
+#         "extracted_manuals",
+#         str(package.aircraft.id),
+#         package.manual_type.lower(),
+#         str(package.id),
+#     )
+
+#     safe_extract_zip(zip_file_path=zip_file_path, extract_to=extract_to)
+
+#     index_html_path = find_index_html(extract_to)
+
+#     if not index_html_path:
+#         raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
+
+#     package.extracted_path = extract_to
+#     package.save(
+#         update_fields=[
+#             "extracted_path",
+#         ]
+#     )
+
+#     save_package_revision_info(package, index_html_path)
+
+#     chapter_count = parse_index_html(package=package, index_html_path=index_html_path)
+
+#     page_count = index_pdf_pages_for_package(package=package)
+
+#     package.processed = True
+#     package.save(
+#         update_fields=[
+#             "processed",
+#         ]
+#     )
+
+#     return {
+#         "index_html_path": index_html_path,
+#         "chapter_count": chapter_count,
+#         "page_count": page_count,
+#     }
+
+def process_manual_package(package):
     extract_to = os.path.join(
         settings.MEDIA_ROOT,
         "extracted_manuals",
@@ -43,7 +109,26 @@ def process_manual_package(package):
         str(package.id),
     )
 
-    safe_extract_zip(zip_file_path=zip_file_path, extract_to=extract_to)
+    os.makedirs(extract_to, exist_ok=True)
+
+    temp_zip_path = storage_file_to_temp_file(package.zip_file, suffix=".zip")
+
+    try:
+        safe_extract_zip(
+            zip_file_path=temp_zip_path,
+            extract_to=extract_to,
+        )
+    finally:
+        if os.path.exists(temp_zip_path):
+            os.remove(temp_zip_path)
+
+        package.zip_file.close()
+        temp_zip_path.flush()
+
+        safe_extract_zip(
+            zip_file_path=temp_zip_path,
+            extract_to=extract_to,
+        )
 
     index_html_path = find_index_html(extract_to)
 
@@ -51,24 +136,19 @@ def process_manual_package(package):
         raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
 
     package.extracted_path = extract_to
-    package.save(
-        update_fields=[
-            "extracted_path",
-        ]
-    )
+    package.save(update_fields=["extracted_path"])
 
     save_package_revision_info(package, index_html_path)
 
-    chapter_count = parse_index_html(package=package, index_html_path=index_html_path)
+    chapter_count = parse_index_html(
+        package=package,
+        index_html_path=index_html_path,
+    )
 
     page_count = index_pdf_pages_for_package(package=package)
 
     package.processed = True
-    package.save(
-        update_fields=[
-            "processed",
-        ]
-    )
+    package.save(update_fields=["processed"])
 
     return {
         "index_html_path": index_html_path,
@@ -250,23 +330,28 @@ def save_manual_file_revision_info(manual_file):
     if not manual_file.file:
         return "", ""
 
-    pdf_path = manual_file.file.path
-
-    if not os.path.exists(pdf_path):
-        return "", ""
-
-    revision_no, revision_date = extract_pdf_revision_info(pdf_path)
-
-    manual_file.revision_no = revision_no
-    manual_file.revision_date_text = revision_date
-    manual_file.save(
-        update_fields=[
-            "revision_no",
-            "revision_date_text",
-        ]
+    temp_pdf_path = storage_file_to_temp_file(
+        manual_file.file,
+        suffix=".pdf",
     )
 
-    return revision_no, revision_date
+    try:
+        revision_no, revision_date = extract_pdf_revision_info(temp_pdf_path)
+
+        manual_file.revision_no = revision_no
+        manual_file.revision_date_text = revision_date
+        manual_file.save(
+            update_fields=[
+                "revision_no",
+                "revision_date_text",
+            ]
+        )
+
+        return revision_no, revision_date
+
+    finally:
+        if os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
 
 
 def index_pdf_pages_for_manual_file(manual_file):
@@ -276,38 +361,50 @@ def index_pdf_pages_for_manual_file(manual_file):
     if not manual_file.file:
         return 0
 
-    pdf_path = manual_file.file.path
-
-    if not os.path.exists(pdf_path):
-        return 0
-
-    # Revision 저장
-    save_manual_file_revision_info(manual_file)
-
-    ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
-
-    created_count = 0
-
-    document = fitz.open(pdf_path)
+    temp_pdf_path = storage_file_to_temp_file(
+        manual_file.file,
+        suffix=".pdf",
+    )
 
     try:
-        for page_index in range(document.page_count):
-            page = document.load_page(page_index)
+        revision_no, revision_date = extract_pdf_revision_info(temp_pdf_path)
 
-            text = page.get_text("text")
+        manual_file.revision_no = revision_no
+        manual_file.revision_date_text = revision_date
+        manual_file.save(
+            update_fields=[
+                "revision_no",
+                "revision_date_text",
+            ]
+        )
 
-            ManualFilePDFPage.objects.create(
-                manual_file=manual_file,
-                page_number=page_index + 1,
-                text=text,
-            )
+        ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
 
-            created_count += 1
+        created_count = 0
+
+        document = fitz.open(temp_pdf_path)
+
+        try:
+            for page_index in range(document.page_count):
+                page = document.load_page(page_index)
+                text = page.get_text("text")
+
+                ManualFilePDFPage.objects.create(
+                    manual_file=manual_file,
+                    page_number=page_index + 1,
+                    text=text,
+                )
+
+                created_count += 1
+
+        finally:
+            document.close()
+
+        return created_count
 
     finally:
-        document.close()
-
-    return created_count
+        if os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
 
 
 def index_pdf_pages_for_manual_file_safely(manual_file):
@@ -317,44 +414,132 @@ def index_pdf_pages_for_manual_file_safely(manual_file):
     if not manual_file.file:
         return 0
 
-    pdf_path = manual_file.file.path
-
-    if not os.path.exists(pdf_path):
-        return 0
-
-    # Keep revision metadata in sync when users click Re-index PDF.
-    save_manual_file_revision_info(manual_file)
-
-    new_pages = []
-
-    document = fitz.open(pdf_path)
+    temp_pdf_path = storage_file_to_temp_file(
+        manual_file.file,
+        suffix=".pdf",
+    )
 
     try:
-        for page_index in range(document.page_count):
-            page = document.load_page(page_index)
+        revision_no, revision_date = extract_pdf_revision_info(temp_pdf_path)
 
-            text = page.get_text("text")
+        manual_file.revision_no = revision_no
+        manual_file.revision_date_text = revision_date
+        manual_file.save(
+            update_fields=[
+                "revision_no",
+                "revision_date_text",
+            ]
+        )
 
-            new_pages.append(
-                ManualFilePDFPage(
-                    manual_file=manual_file, page_number=page_index + 1, text=text
+        new_pages = []
+
+        document = fitz.open(temp_pdf_path)
+
+        try:
+            for page_index in range(document.page_count):
+                page = document.load_page(page_index)
+                text = page.get_text("text")
+
+                new_pages.append(
+                    ManualFilePDFPage(
+                        manual_file=manual_file,
+                        page_number=page_index + 1,
+                        text=text,
+                    )
                 )
-            )
+
+        finally:
+            document.close()
+
+        with transaction.atomic():
+            ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
+            ManualFilePDFPage.objects.bulk_create(new_pages)
+
+        return len(new_pages)
 
     finally:
-        document.close()
+        if os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
 
-    with transaction.atomic():
-        ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
 
-        ManualFilePDFPage.objects.bulk_create(new_pages)
+# def process_manual_package_safely(package):
+#     zip_file_path = package.zip_file.path
 
-    return len(new_pages)
+#     final_extract_to = os.path.join(
+#         settings.MEDIA_ROOT,
+#         "extracted_manuals",
+#         str(package.aircraft.id),
+#         package.manual_type.lower(),
+#         str(package.id),
+#     )
 
+#     temp_extract_to = os.path.join(
+#         settings.MEDIA_ROOT,
+#         "temp_extracted_manuals",
+#         str(uuid.uuid4()),
+#     )
+
+#     old_extracted_path = package.extracted_path
+
+#     try:
+#         safe_extract_zip(zip_file_path=zip_file_path, extract_to=temp_extract_to)
+
+#         index_html_path = find_index_html(temp_extract_to)
+
+#         if not index_html_path:
+#             raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
+
+#         with transaction.atomic():
+
+#             ManualChapter.objects.filter(package=package).delete()
+
+#             package.extracted_path = temp_extract_to
+#             package.processed = False
+#             package.save(
+#                 update_fields=[
+#                     "extracted_path",
+#                     "processed",
+#                 ]
+#             )
+
+#             save_package_revision_info(package, index_html_path)
+
+#             chapter_count = parse_index_html(
+#                 package=package, index_html_path=index_html_path
+#             )
+
+#             page_count = index_pdf_pages_for_package(package=package)
+
+#             if os.path.exists(final_extract_to):
+#                 shutil.rmtree(final_extract_to, ignore_errors=True)
+
+#             os.makedirs(os.path.dirname(final_extract_to), exist_ok=True)
+
+#             shutil.move(temp_extract_to, final_extract_to)
+
+#             package.extracted_path = final_extract_to
+#             package.processed = True
+#             package.save(
+#                 update_fields=[
+#                     "extracted_path",
+#                     "processed",
+#                 ]
+#             )
+
+#         if old_extracted_path and old_extracted_path != final_extract_to:
+#             shutil.rmtree(old_extracted_path, ignore_errors=True)
+
+#         return {
+#             "chapter_count": chapter_count,
+#             "page_count": page_count,
+#         }
+
+#     except Exception:
+#         shutil.rmtree(temp_extract_to, ignore_errors=True)
+
+#         raise
 
 def process_manual_package_safely(package):
-    zip_file_path = package.zip_file.path
-
     final_extract_to = os.path.join(
         settings.MEDIA_ROOT,
         "extracted_manuals",
@@ -372,7 +557,21 @@ def process_manual_package_safely(package):
     old_extracted_path = package.extracted_path
 
     try:
-        safe_extract_zip(zip_file_path=zip_file_path, extract_to=temp_extract_to)
+        os.makedirs(temp_extract_to, exist_ok=True)
+
+        with tempfile.NamedTemporaryFile(suffix=".zip", delete=True) as temp_zip:
+            package.zip_file.open("rb")
+
+            for chunk in package.zip_file.chunks():
+                temp_zip.write(chunk)
+
+            package.zip_file.close()
+            temp_zip.flush()
+
+            safe_extract_zip(
+                zip_file_path=temp_zip.name,
+                extract_to=temp_extract_to,
+            )
 
         index_html_path = find_index_html(temp_extract_to)
 
@@ -380,22 +579,17 @@ def process_manual_package_safely(package):
             raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
 
         with transaction.atomic():
-
             ManualChapter.objects.filter(package=package).delete()
 
             package.extracted_path = temp_extract_to
             package.processed = False
-            package.save(
-                update_fields=[
-                    "extracted_path",
-                    "processed",
-                ]
-            )
+            package.save(update_fields=["extracted_path", "processed"])
 
             save_package_revision_info(package, index_html_path)
 
             chapter_count = parse_index_html(
-                package=package, index_html_path=index_html_path
+                package=package,
+                index_html_path=index_html_path,
             )
 
             page_count = index_pdf_pages_for_package(package=package)
@@ -404,17 +598,11 @@ def process_manual_package_safely(package):
                 shutil.rmtree(final_extract_to, ignore_errors=True)
 
             os.makedirs(os.path.dirname(final_extract_to), exist_ok=True)
-
             shutil.move(temp_extract_to, final_extract_to)
 
             package.extracted_path = final_extract_to
             package.processed = True
-            package.save(
-                update_fields=[
-                    "extracted_path",
-                    "processed",
-                ]
-            )
+            package.save(update_fields=["extracted_path", "processed"])
 
         if old_extracted_path and old_extracted_path != final_extract_to:
             shutil.rmtree(old_extracted_path, ignore_errors=True)
@@ -426,7 +614,6 @@ def process_manual_package_safely(package):
 
     except Exception:
         shutil.rmtree(temp_extract_to, ignore_errors=True)
-
         raise
 
 

@@ -1,179 +1,220 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %}
 
-<div
-    class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
->
+{% block title %}
+Manual Portal
+{% endblock title %}
+
+{% block content %}
+
+<div class="home-hero mb-4">
     <div>
-        <h2 class="page-title mb-1">Aircraft Manual Portal</h2>
+        <p class="home-eyebrow mb-1">
+            Aircraft Manual Portal
+        </p>
 
-        <p class="text-muted mb-0">
-            Boeing PDF/ZIP manuals and Airbus manual links
+        <h2 class="page-title mb-2">
+            Manual Portal
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            Boeing PDF / ZIP manuals and Airbus manual links
         </p>
     </div>
 
-    <div class="d-flex gap-2 page-actions">
+    <div class="home-actions">
         {% if user.is_staff %}
-        <a href="{% url 'aircraft_manage' %}" class="btn btn-outline-primary">
-            Aircraft Manage
-        </a>
-
+            <a href="{% url 'aircraft_manage' %}"
+                class="btn btn-outline-primary app-action-btn">
+                Aircraft Manage
+            </a>
         {% endif %}
 
-        <a href="{% url 'manual_search' %}" class="btn btn-outline-success">
+        <a href="{% url 'manual_search' %}"
+            class="btn btn-outline-success app-action-btn">
             Manual Search
         </a>
 
-        <a href="{% url 'dispatch_auto_search' %}" class="btn btn-danger">
+        <a href="{% url 'dispatch_auto_search' %}"
+            class="btn btn-danger app-action-btn">
             Dispatch
         </a>
     </div>
 </div>
 
-<div class="mb-4">
-    <h4 class="section-title mb-3">Boeing Manuals</h4>
+<section class="manual-section mb-5">
+    <div class="section-header">
+        <div>
+            <h4 class="section-title mb-1">
+                Boeing Manuals
+            </h4>
 
-    <div class="row g-4">
+            <p class="section-description mb-0">
+                AMM / FIM / IPC는 ZIP, MEL / CDL은 PDF 방식입니다.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
         {% for aircraft in boeing_aircrafts %}
 
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <div class="card portal-card h-100 shadow-sm">
-                <div class="card-body">
-                    <div
-                        class="d-flex justify-content-between align-items-center mb-3"
-                    >
-                        <h5 class="card-title fw-bold mb-0">
-                            {{ aircraft.name }}
-                        </h5>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card portal-card h-100 shadow-sm boeing-card">
+                    <div class="card-body">
+
+                        <div class="aircraft-card-header">
+                            <div>
+                                <p class="aircraft-maker mb-1">
+                                    BOEING
+                                </p>
+
+                                <h5 class="aircraft-title mb-0">
+                                    {{ aircraft.name }}
+                                </h5>
+                            </div>
+
+                            <span class="aircraft-type-pill">
+                                PDF
+                            </span>
+                        </div>
+
+                        <div class="manual-badge-wrap">
+                            <span class="badge {% if aircraft.has_amm %}bg-primary{% else %}bg-secondary{% endif %} manual-badge">
+                                AMM
+                            </span>
+
+                            <span class="badge {% if aircraft.has_fim %}bg-primary{% else %}bg-secondary{% endif %} manual-badge">
+                                FIM
+                            </span>
+
+                            <span class="badge {% if aircraft.has_ipc %}bg-primary{% else %}bg-secondary{% endif %} manual-badge">
+                                IPC
+                            </span>
+
+                            <span class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge">
+                                MEL
+                            </span>
+
+                            <span class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge">
+                                CDL
+                            </span>
+                        </div>
+
+                        <p class="manual-card-note">
+                            회색 badge는 미등록 매뉴얼입니다.
+                        </p>
+
+                        <div class="card-button-group">
+                            <a href="{% url 'aircraft_manual_detail' aircraft.pk %}"
+                                class="btn btn-primary w-100 app-card-btn">
+                                Open PDF Manuals
+                            </a>
+
+                            <a href="https://www.myboeingfleet.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-info w-100 app-card-btn">
+                                Open MyBoeingFleet
+                            </a>
+                        </div>
+
                     </div>
-
-                    <div class="mb-3">
-                        <span
-                            class="badge {% if aircraft.has_amm %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            AMM
-                        </span>
-
-                        <span
-                            class="badge {% if aircraft.has_fim %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            FIM
-                        </span>
-
-                        <span
-                            class="badge {% if aircraft.has_ipc %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            IPC
-                        </span>
-
-                        <span
-                            class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            MEL
-                        </span>
-
-                        <span
-                            class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            CDL
-                        </span>
-                    </div>
-
-                    <p class="text-muted small">
-                        회색 badge는 미등록 매뉴얼입니다.
-                    </p>
-
-                    <a
-                        href="{% url 'aircraft_manual_detail' aircraft.pk %}"
-                        class="btn btn-primary w-100"
-                    >
-                        Open PDF Manuals
-                    </a>
-
-                    <a
-                        href="https://www.myboeingfleet.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="btn btn-info w-100 mt-2"
-                    >
-                        Open MyboeingFleet Manuals
-                    </a>
                 </div>
             </div>
-        </div>
 
         {% empty %}
 
-        <div class="col-12">
-            <div class="alert alert-warning">
-                등록된 Boeing 기종이 없습니다.
+            <div class="col-12">
+                <div class="alert alert-warning app-alert">
+                    등록된 Boeing 기종이 없습니다.
+                </div>
             </div>
-        </div>
 
         {% endfor %}
     </div>
-</div>
+</section>
 
-<hr class="my-5" />
+<section class="manual-section mb-4">
+    <div class="section-header">
+        <div>
+            <h4 class="section-title mb-1">
+                Airbus Manuals
+            </h4>
 
-<div class="mb-4">
-    <h4 class="section-title mb-3">Airbus Manuals</h4>
+            <p class="section-description mb-0">
+                AMM / IPC는 Airbus World, MEL / CDL은 PDF 업로드 방식입니다.
+            </p>
+        </div>
+    </div>
 
-    <div class="row g-4">
+    <div class="row g-3 g-md-4">
         {% for aircraft in airbus_aircrafts %}
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <div class="card portal-card h-100 shadow-sm border-info">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">{{ aircraft.name }}</h5>
 
-                    <div class="mb-3">
-                        <span class="badge bg-info text-dark manual-badge"
-                            >LINK</span
-                        >
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card portal-card h-100 shadow-sm airbus-card">
+                    <div class="card-body">
 
-                        <span
-                            class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            MEL
-                        </span>
+                        <div class="aircraft-card-header">
+                            <div>
+                                <p class="aircraft-maker airbus-maker mb-1">
+                                    AIRBUS
+                                </p>
 
-                        <span
-                            class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            CDL
-                        </span>
+                                <h5 class="aircraft-title mb-0">
+                                    {{ aircraft.name }}
+                                </h5>
+                            </div>
+
+                            <span class="aircraft-type-pill airbus-pill">
+                                LINK
+                            </span>
+                        </div>
+
+                        <div class="manual-badge-wrap">
+                            <span class="badge bg-info text-dark manual-badge">
+                                LINK
+                            </span>
+
+                            <span class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge">
+                                MEL
+                            </span>
+
+                            <span class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge">
+                                CDL
+                            </span>
+                        </div>
+
+                        <p class="manual-card-note">
+                            AMM / IPC는 외부 링크, MEL / CDL은 PDF 업로드 방식입니다.
+                        </p>
+
+                        <div class="card-button-group">
+                            <a href="{% url 'aircraft_manual_detail' aircraft.pk %}"
+                                class="btn btn-primary w-100 app-card-btn">
+                                Open MEL / CDL PDFs
+                            </a>
+
+                            <a href="https://w3.airbus.com/H380/world/airbusworld/forms/airbus.fcc?TYPE=33554433&REALMOID=06-2c93f4bb-1103-4238-98fa-62ca07aab930&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-t%2fTX88CtTFIPqQ15ugBfOME66PQGCWGuAAOSByMZUiVIJPozo431pS4LE4YuSGzU&TARGET=-SM-HTTPS%3a%2f%2fw3%2eairbus%2ecom%2fU980%2fU980_redirect_world%2ehtml%3fresumePath%3d-%2Fidp-%2FANSL9oFTBl-%2FresumeSAML20-%2Fidp-%2FSSO%2eping-%3FpfLoginRedirect-%3Dtrue"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-info w-100 app-card-btn">
+                                Open Airbus World
+                            </a>
+                        </div>
+
                     </div>
-
-                    <p class="text-muted small">
-                        AMM / IPC는 외부 링크, MEL / CDL은 PDF 업로드
-                        방식입니다.
-                    </p>
-
-                    <a
-                        href="{% url 'aircraft_manual_detail' aircraft.pk %}"
-                        class="btn btn-primary w-100"
-                    >
-                        Open Airbus MEL / CDL PDFs
-                    </a>
-
-                    <a
-                        href="https://w3.airbus.com/H380/world/airbusworld/forms/airbus.fcc?TYPE=33554433&REALMOID=06-2c93f4bb-1103-4238-98fa-62ca07aab930&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-t%2fTX88CtTFIPqQ15ugBfOME66PQGCWGuAAOSByMZUiVIJPozo431pS4LE4YuSGzU&TARGET=-SM-HTTPS%3a%2f%2fw3%2eairbus%2ecom%2fU980%2fU980_redirect_world%2ehtml%3fresumePath%3d-%2Fidp-%2FANSL9oFTBl-%2FresumeSAML20-%2Fidp-%2FSSO%2eping-%3FpfLoginRedirect-%3Dtrue"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="btn btn-info w-100 mt-2"
-                    >
-                        Open Airbus World Manuals
-                    </a>
                 </div>
             </div>
-        </div>
+
         {% empty %}
-        <div class="col-12">
-            <div class="alert alert-warning">
-                등록된 Airbus 기종이 없습니다.
+
+            <div class="col-12">
+                <div class="alert alert-warning app-alert">
+                    등록된 Airbus 기종이 없습니다.
+                </div>
             </div>
-        </div>
+
         {% endfor %}
     </div>
-</div>
+</section>
 
-{% endblock %}
+{% endblock content %}

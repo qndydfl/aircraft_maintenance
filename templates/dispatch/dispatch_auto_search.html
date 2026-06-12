@@ -1,237 +1,249 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load manual_extras %}
 
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/dispatch_auto_search.css' %}">
+{% endblock css %}
+
 {% block content %}
-<style>
-    .mel-condition {
-    white-space: normal !important;
-    word-break: keep-all;
-    overflow: visible !important;
-    display: table-cell !important;
-    max-height: none !important;
-    -webkit-line-clamp: unset !important;
-    -webkit-box-orient: unset !important;
-}
-</style>
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-
+<div class="detail-hero mb-4">
     <div>
-        <h2 class="mb-1">Dispatch Auto Search</h2>
-        <p class="text-muted mb-0">
+        <p class="home-eyebrow mb-1">DISPATCH</p>
+        <h2 class="page-title mb-2">Dispatch Auto Search</h2>
+        <p class="text-muted mb-0 home-subtitle">
             PDF 인덱스에서 MEL / FIM / AMM / IPC / CDL 후보를 자동 검색합니다.
         </p>
     </div>
 
-    <div class="d-flex flex-wrap gap-2">
+    <div class="home-actions dispatch-actions">
         {% if user.is_staff %}
             <a href="{% url 'dispatch_create' %}?aircraft={{ selected_aircraft }}&eicas_message={{ query|urlencode }}"
-                class="btn btn-primary">
+                class="btn btn-primary app-action-btn">
                 Add Dispatch
             </a>
 
             <a href="{% url 'dispatch_csv_upload' %}"
-                class="btn btn-outline-danger">
+                class="btn btn-outline-danger app-action-btn">
                 CSV Upload
             </a>
         {% endif %}
 
         <a href="{% url 'dispatch_csv_download' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
-            class="btn btn-outline-success">
+            class="btn btn-outline-success app-action-btn">
             CSV Download
         </a>
 
         <a href="{% url 'dispatch_print' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
             target="_blank"
-            class="btn btn-outline-dark">
+            class="btn btn-outline-dark app-action-btn">
             Print
         </a>
 
         <a href="{% url 'home' %}"
-            class="btn btn-outline-secondary">
+            class="btn btn-outline-secondary app-action-btn">
             Back
         </a>
     </div>
-
 </div>
 
-<div class="card shadow-sm mb-4">
+<div class="card portal-card shadow-sm mb-4">
     <div class="card-body">
-
         <form method="get">
             <div class="row g-3">
-
-                <div class="col-md-3">
+                <div class="col-12 col-md-3">
                     <label class="form-label">Aircraft</label>
-
-                    <select name="aircraft" class="form-select">
+                    <select name="aircraft" class="form-select app-form-control">
                         <option value="">기종 선택</option>
-
                         {% for aircraft in aircrafts %}
                             <option value="{{ aircraft.id }}"
-                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}
-                                    selected
-                                {% endif %}>
+                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}selected{% endif %}>
                                 {{ aircraft.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-12 col-md-3">
                     <label class="form-label">Search Type</label>
-
-                    <select name="search_type" class="form-select">
-                        <option value="keyword" {% if search_type == "keyword" %}selected{% endif %}>
-                            ALL
-                        </option>
-                        <option value="message" {% if search_type == "message" %}selected{% endif %}>
-                            Message
-                        </option>
-                        <option value="fault" {% if search_type == "fault" %}selected{% endif %}>
-                            Fault Code
-                        </option>
+                    <select name="search_type" class="form-select app-form-control">
+                        <option value="keyword" {% if search_type == "keyword" %}selected{% endif %}>ALL</option>
+                        <option value="message" {% if search_type == "message" %}selected{% endif %}>Message</option>
+                        <option value="fault" {% if search_type == "fault" %}selected{% endif %}>Fault Code</option>
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <label class="form-label">Search</label>
-
                     <input type="text"
                         name="q"
                         value="{{ query }}"
-                        class="form-control"
+                        class="form-control app-form-control"
                         placeholder="예: AUTOBRAKE, AUTOBRAKE*, *AUTOBRAKE*">
                 </div>
 
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-12 col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 app-card-btn">
                         Auto Search
                     </button>
                 </div>
-
             </div>
         </form>
-
-        {% if saved_dispatch_results %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="mb-3">
-                        {% if message_mode %}
-                            Message Reference Summary
-                        {% else %}
-                            Saved Dispatch References
-                        {% endif %}
-                    </h5>
-
-                    {% if message_mode %}
-                        <div class="alert alert-info py-2">
-                            Message 기준으로 MEL / FIM / AMM chapter reference를 한 번에 보여줍니다.
-                        </div>
-                    {% endif %}
-
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>EICAS</th>
-                                    <th>Status</th>
-                                    <th>Fault</th>
-                                    <th>MEL</th>
-                                    <th>FIM</th>
-                                    <th>AMM</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in saved_dispatch_results %}
-                                <tr>
-                                    <td>{{ item.eicas_message|default:"-" }}</td>
-                                    <td>{{ item.status_message|default:"-" }}</td>
-                                    <td>{{ item.fault_code|default:"-" }}</td>
-                                    <td>
-                                        <div>{{ item.mel_number|default:"-" }}</div>
-                                        {% if item.mel_page %}
-                                            <div class="text-muted small">Page {{ item.mel_page.page_number }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div>{{ item.fim_chapter|default:"-" }}</div>
-                                        {% if item.fim_page %}
-                                            <div class="text-muted small">Page {{ item.fim_page.page_number }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div>{{ item.amm_chapter|default:"-" }}</div>
-                                        {% if item.amm_page %}
-                                            <div class="text-muted small">Page {{ item.amm_page.page_number }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'dispatch_detail' item.pk %}"
-                                        class="btn btn-sm btn-outline-primary">
-                                            Open
-                                        </a>
-
-                                        {% if message_mode %}
-                                            {% if item.mel_page %}
-                                                <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
-                                                    target="_blank"
-                                                    class="btn btn-sm btn-outline-danger ms-1">
-                                                    MEL
-                                                </a>
-                                            {% endif %}
-
-                                            {% if item.fim_page %}
-                                                <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}"
-                                                    target="_blank"
-                                                    class="btn btn-sm btn-outline-primary ms-1">
-                                                    FIM
-                                                </a>
-                                            {% endif %}
-
-                                            {% if item.amm_page %}
-                                                <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}"
-                                                    target="_blank"
-                                                    class="btn btn-sm btn-outline-success ms-1">
-                                                    AMM
-                                                </a>
-                                            {% endif %}
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-        {% endif %}
-
     </div>
 </div>
 
 {% if message_mode and not selected_aircraft %}
-<div class="alert alert-secondary py-2">
+<div class="alert alert-secondary app-alert py-2">
     기종을 선택하지 않아서 전체 Boeing 항공기 기준으로 검색합니다.
 </div>
 {% endif %}
 
 {% if query and search_type == "message" and not mel_dispatch_rows and not saved_dispatch_results %}
-<div class="alert alert-warning">
+<div class="alert alert-warning app-alert">
     Message 검색 결과가 없습니다. MEL Dispatch Item 또는 저장된 Dispatch Reference 데이터가 있는지 확인하세요.
 </div>
 {% endif %}
 
-{% if mel_dispatch_rows %}
-<div class="card shadow-sm mb-4">
+{% if saved_dispatch_results %}
+<div class="card portal-card shadow-sm mb-4">
     <div class="card-body">
+        <h5 class="fw-bold mb-2">
+            {% if message_mode %}
+                Message Reference Summary
+            {% else %}
+                Saved Dispatch References
+            {% endif %}
+        </h5>
 
-        <h5 class="mb-3">MEL Dispatch Results</h5>
+        {% if message_mode %}
+            <div class="alert alert-info app-alert py-2">
+                Message 기준으로 MEL / FIM / AMM chapter reference를 한 번에 보여줍니다.
+            </div>
+        {% endif %}
 
-        <div class="table-responsive">
-            <table class="table table-sm table-bordered align-middle">
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>EICAS</th>
+                        <th>Status</th>
+                        <th>Fault</th>
+                        <th>MEL</th>
+                        <th>FIM</th>
+                        <th>AMM</th>
+                        <th style="width: 180px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in saved_dispatch_results %}
+                    <tr>
+                        <td>{{ item.eicas_message|default:"-" }}</td>
+                        <td>{{ item.status_message|default:"-" }}</td>
+                        <td>{{ item.fault_code|default:"-" }}</td>
+                        <td>
+                            <div>{{ item.mel_number|default:"-" }}</div>
+                            {% if item.mel_page %}
+                                <div class="text-muted small">Page {{ item.mel_page.page_number }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ item.fim_chapter|default:"-" }}</div>
+                            {% if item.fim_page %}
+                                <div class="text-muted small">Page {{ item.fim_page.page_number }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ item.amm_chapter|default:"-" }}</div>
+                            {% if item.amm_page %}
+                                <div class="text-muted small">Page {{ item.amm_page.page_number }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <a href="{% url 'dispatch_detail' item.pk %}" class="btn btn-sm btn-outline-primary">Open</a>
+
+                                {% if message_mode %}
+                                    {% if item.mel_page %}
+                                        <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-danger">MEL</a>
+                                    {% endif %}
+
+                                    {% if item.fim_page %}
+                                        <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-primary">FIM</a>
+                                    {% endif %}
+
+                                    {% if item.amm_page %}
+                                        <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-success">AMM</a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dispatch-ref-list d-md-none">
+            {% for item in saved_dispatch_results %}
+            <div class="dispatch-ref-card">
+                <h6 class="dispatch-card-title mb-2">
+                    {{ item.eicas_message|default:item.status_message|default:item.fault_code|default:"Dispatch Reference" }}
+                </h6>
+
+                <div class="dispatch-mini-grid">
+                    <div><span>EICAS</span><strong>{{ item.eicas_message|default:"-" }}</strong></div>
+                    <div><span>Status</span><strong>{{ item.status_message|default:"-" }}</strong></div>
+                    <div><span>Fault</span><strong>{{ item.fault_code|default:"-" }}</strong></div>
+                    <div><span>MEL</span><strong>{{ item.mel_number|default:"-" }}</strong></div>
+                    <div><span>FIM</span><strong>{{ item.fim_chapter|default:"-" }}</strong></div>
+                    <div><span>AMM</span><strong>{{ item.amm_chapter|default:"-" }}</strong></div>
+                </div>
+
+                <div class="dispatch-card-actions">
+                    <a href="{% url 'dispatch_detail' item.pk %}" class="btn btn-outline-primary app-card-btn">Open</a>
+
+                    {% if message_mode %}
+                        {% if item.mel_page %}
+                            <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
+                                target="_blank"
+                                class="btn btn-outline-danger app-card-btn">MEL</a>
+                        {% endif %}
+
+                        {% if item.fim_page %}
+                            <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}"
+                                target="_blank"
+                                class="btn btn-outline-primary app-card-btn">FIM</a>
+                        {% endif %}
+
+                        {% if item.amm_page %}
+                            <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}"
+                                target="_blank"
+                                class="btn btn-outline-success app-card-btn">AMM</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+{% if mel_dispatch_rows %}
+<div class="card portal-card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">MEL Dispatch Results</h5>
+
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-sm table-bordered align-middle mb-0">
                 <thead>
                     <tr>
                         <th>Message</th>
@@ -242,7 +254,6 @@
                         <th style="width: 100px;">PDF</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     {% for row in mel_dispatch_rows %}
                     <tr>
@@ -253,20 +264,44 @@
                         <td>{{ row.adc|default:"-" }}</td>
                         <td>
                             {% if row.manual_file and row.page_number %}
-                            <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}"
-                                target="_blank"
-                                class="btn btn-sm btn-outline-danger">
-                                Open
-                            </a>
+                                <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-outline-danger">Open</a>
                             {% else %}
-                            -
+                                -
                             {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
-
             </table>
+        </div>
+
+        <div class="mel-result-list d-md-none">
+            {% for row in mel_dispatch_rows %}
+            <div class="mel-result-card">
+                <h6 class="dispatch-card-title mb-2">{{ row.message }}</h6>
+
+                <div class="dispatch-mini-grid">
+                    <div><span>L</span><strong>{{ row.level|default:"-" }}</strong></div>
+                    <div><span>MEL</span><strong>{{ row.mel_item|default:"-" }}</strong></div>
+                    <div><span>A/D/C</span><strong>{{ row.adc|default:"-" }}</strong></div>
+                </div>
+
+                <div class="mel-condition-box">
+                    <span>Condition</span>
+                    <p>{{ row.condition|default:"-" }}</p>
+                </div>
+
+                {% if row.manual_file and row.page_number %}
+                    <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}"
+                        target="_blank"
+                        class="btn btn-outline-danger w-100 app-card-btn">
+                        Open PDF
+                    </a>
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
 
     </div>
@@ -274,433 +309,234 @@
 {% endif %}
 
 {% if query and search_type != "message" %}
-
 <form method="get" action="{% url 'dispatch_create' %}">
-
     {% csrf_token %}
     <input type="hidden" name="search_type" value="{{ search_type }}">
     <input type="hidden" name="search_text" value="{{ query }}">
 
     <div class="row g-4">
 
-        <!-- MEL -->
-        <div class="col-lg-6">
+        <div class="col-12 col-lg-6">
             <h4 class="section-title mb-3">MEL Candidates</h4>
-
             {% with page=mel_page_data.item %}
                 {% if page %}
-                    <div class="card shadow-sm mb-3 border-danger">
+                    <div class="card portal-card candidate-card candidate-mel shadow-sm mb-3">
                         <div class="card-body">
-
                             <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                    type="radio"
-                                    name="mel_page_id"
-                                    value="{{ page.id }}"
-                                    id="mel_{{ page.id }}">
-
-                                <label class="form-check-label" for="mel_{{ page.id }}">
-                                    Select MEL Candidate
-                                </label>
+                                <input class="form-check-input" type="radio" name="mel_page_id" value="{{ page.id }}" id="mel_{{ page.id }}">
+                                <label class="form-check-label" for="mel_{{ page.id }}">Select MEL Candidate</label>
                             </div>
 
-                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                            <div class="candidate-top">
                                 <div>
                                     <strong>MEL Page {{ page.page_number }}</strong>
-                                    <div class="text-muted small">
-                                        Score: {{ page.recommend_score }}
-                                    </div>
+                                    <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                     {% if page.revision_label %}
-                                        <div class="text-muted small">
-                                            {{ page.revision_label }}
-                                        </div>
+                                        <div class="text-muted small">{{ page.revision_label }}</div>
                                     {% endif %}
                                 </div>
 
                                 <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
                                     target="_blank"
-                                    class="btn btn-sm btn-danger">
+                                    class="btn btn-danger app-card-btn">
                                     Open MEL Page
                                 </a>
                             </div>
 
-                            <div class="bg-light border rounded p-2 small mt-2">
+                            <div class="candidate-snippet">
                                 {{ page.snippet|highlight_query:query }}
                             </div>
 
-                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                            <div class="candidate-pager">
                                 {% if mel_page_data.has_previous %}
-                                    <a class="btn btn-sm btn-outline-secondary"
+                                    <a class="btn btn-outline-secondary app-card-btn"
                                         href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.previous_page }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
                                         Previous
                                     </a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Previous
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Previous</button>
                                 {% endif %}
 
-                                <span class="badge bg-danger">
-                                    {{ mel_page_data.current }} / {{ mel_page_data.total }}
-                                </span>
+                                <span class="badge bg-danger">{{ mel_page_data.current }} / {{ mel_page_data.total }}</span>
 
                                 {% if mel_page_data.has_next %}
-                                    <a class="btn btn-sm btn-outline-secondary"
+                                    <a class="btn btn-outline-secondary app-card-btn"
                                         href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.next_page }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
                                         Next
                                     </a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Next
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Next</button>
                                 {% endif %}
                             </div>
-
                         </div>
                     </div>
                 {% else %}
-                    <div class="alert alert-warning">MEL 후보가 없습니다.</div>
+                    <div class="alert alert-warning app-alert">MEL 후보가 없습니다.</div>
                 {% endif %}
             {% endwith %}
         </div>
 
         {% if search_type != "message" %}
-        <!-- FIM -->
-        <div class="col-lg-6">
-            <h4 class="section-title mb-3">FIM Candidates</h4>
 
+        <div class="col-12 col-lg-6">
+            <h4 class="section-title mb-3">FIM Candidates</h4>
             {% with page=fim_page_data.item %}
                 {% if page %}
-                    <div class="card shadow-sm mb-3 border-primary">
+                    <div class="card portal-card candidate-card candidate-fim shadow-sm mb-3">
                         <div class="card-body">
-
                             <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                    type="radio"
-                                    name="fim_page_id"
-                                    value="{{ page.id }}"
-                                    id="fim_{{ page.id }}">
-
-                                <label class="form-check-label" for="fim_{{ page.id }}">
-                                    Select FIM Candidate
-                                </label>
+                                <input class="form-check-input" type="radio" name="fim_page_id" value="{{ page.id }}" id="fim_{{ page.id }}">
+                                <label class="form-check-label" for="fim_{{ page.id }}">Select FIM Candidate</label>
                             </div>
 
-                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                            <div class="candidate-top">
                                 <div>
-                                    <strong>
-                                        {{ page.chapter.task }} / Page {{ page.page_number }}
-                                    </strong>
-                                    <div class="text-muted small">
-                                        Score: {{ page.recommend_score }}
-                                    </div>
+                                    <strong>{{ page.chapter.task }} / Page {{ page.page_number }}</strong>
+                                    <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                 </div>
 
                                 <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
                                     target="_blank"
-                                    class="btn btn-sm btn-primary">
+                                    class="btn btn-primary app-card-btn">
                                     Open FIM Page
                                 </a>
                             </div>
 
-                            <p class="small mb-1 mt-2">
-                                {{ page.chapter.title|default:"-" }}
-                            </p>
+                            <p class="small mb-2 mt-2">{{ page.chapter.title|default:"-" }}</p>
+                            <div class="candidate-snippet">{{ page.snippet|highlight_query:query }}</div>
 
-                            <div class="bg-light border rounded p-2 small">
-                                {{ page.snippet|highlight_query:query }}
-                            </div>
-
-                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                            <div class="candidate-pager">
                                 {% if fim_page_data.has_previous %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.previous_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                        Previous
-                                    </a>
+                                    <a class="btn btn-outline-secondary app-card-btn"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.previous_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">Previous</a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Previous
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Previous</button>
                                 {% endif %}
 
-                                <span class="badge bg-primary">
-                                    {{ fim_page_data.current }} / {{ fim_page_data.total }}
-                                </span>
+                                <span class="badge bg-primary">{{ fim_page_data.current }} / {{ fim_page_data.total }}</span>
 
                                 {% if fim_page_data.has_next %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.next_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                        Next
-                                    </a>
+                                    <a class="btn btn-outline-secondary app-card-btn"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.next_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">Next</a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Next
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Next</button>
                                 {% endif %}
                             </div>
-
                         </div>
                     </div>
                 {% else %}
-                    <div class="alert alert-warning">FIM 후보가 없습니다.</div>
+                    <div class="alert alert-warning app-alert">FIM 후보가 없습니다.</div>
                 {% endif %}
             {% endwith %}
         </div>
 
-        <!-- AMM -->
-        <div class="col-lg-6">
-
+        <div class="col-12 col-lg-6">
             <h4 class="section-title mb-3">AMM Candidates</h4>
-
             {% with page=amm_page_data.item %}
                 {% if page %}
-                    <div class="card shadow-sm mb-3 border-success">
+                    <div class="card portal-card candidate-card candidate-amm shadow-sm mb-3">
                         <div class="card-body">
-
                             <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                    type="radio"
-                                    name="amm_page_id"
-                                    value="{{ page.id }}"
-                                    id="amm_{{ page.id }}">
-
-                                <label class="form-check-label" for="amm_{{ page.id }}">
-                                    Select AMM Candidate
-                                </label>
+                                <input class="form-check-input" type="radio" name="amm_page_id" value="{{ page.id }}" id="amm_{{ page.id }}">
+                                <label class="form-check-label" for="amm_{{ page.id }}">Select AMM Candidate</label>
                             </div>
 
-                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                            <div class="candidate-top">
                                 <div>
-                                    <strong>
-                                        {{ page.chapter.task }} / Page {{ page.page_number }}
-                                    </strong>
-                                    <div class="text-muted small">
-                                        Score: {{ page.recommend_score }}
-                                    </div>
+                                    <strong>{{ page.chapter.task }} / Page {{ page.page_number }}</strong>
+                                    <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                 </div>
 
                                 <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
                                     target="_blank"
-                                    class="btn btn-sm btn-success">
+                                    class="btn btn-success app-card-btn">
                                     Open AMM Page
                                 </a>
                             </div>
 
-                            <p class="small mb-1 mt-2">
-                                {{ page.chapter.title|default:"-" }}
-                            </p>
+                            <p class="small mb-2 mt-2">{{ page.chapter.title|default:"-" }}</p>
+                            <div class="candidate-snippet">{{ page.snippet|highlight_query:query }}</div>
 
-                            <div class="bg-light border rounded p-2 small">
-                                {{ page.snippet|highlight_query:query }}
-                            </div>
-
-                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                            <div class="candidate-pager">
                                 {% if amm_page_data.has_previous %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.previous_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                        Previous
-                                    </a>
+                                    <a class="btn btn-outline-secondary app-card-btn"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.previous_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">Previous</a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Previous
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Previous</button>
                                 {% endif %}
 
-                                <span class="badge bg-success">
-                                    {{ amm_page_data.current }} / {{ amm_page_data.total }}
-                                </span>
+                                <span class="badge bg-success">{{ amm_page_data.current }} / {{ amm_page_data.total }}</span>
 
                                 {% if amm_page_data.has_next %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.next_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                        Next
-                                    </a>
+                                    <a class="btn btn-outline-secondary app-card-btn"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.next_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">Next</a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Next
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Next</button>
                                 {% endif %}
                             </div>
-
                         </div>
                     </div>
                 {% else %}
-                    <div class="alert alert-warning">AMM 후보가 없습니다.</div>
+                    <div class="alert alert-warning app-alert">AMM 후보가 없습니다.</div>
                 {% endif %}
             {% endwith %}
         </div>
 
-        <!-- IPC -->
-        <div class="col-lg-6">
+        <div class="col-12 col-lg-6">
             <h4 class="section-title mb-3">IPC Candidates</h4>
-
             {% with page=ipc_page_data.item %}
                 {% if page %}
-                    <div class="card shadow-sm mb-3 border-info">
+                    <div class="card portal-card candidate-card candidate-ipc shadow-sm mb-3">
                         <div class="card-body">
-
                             <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                    type="radio"
-                                    name="ipc_page_id"
-                                    value="{{ page.id }}"
-                                    id="ipc_{{ page.id }}">
-
-                                <label class="form-check-label" for="ipc_{{ page.id }}">
-                                    Select IPC Candidate
-                                </label>
+                                <input class="form-check-input" type="radio" name="ipc_page_id" value="{{ page.id }}" id="ipc_{{ page.id }}">
+                                <label class="form-check-label" for="ipc_{{ page.id }}">Select IPC Candidate</label>
                             </div>
 
-                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                            <div class="candidate-top">
                                 <div>
-                                    <strong>
-                                        {{ page.chapter.task }} / Page {{ page.page_number }}
-                                    </strong>
-                                    <div class="text-muted small">
-                                        Score: {{ page.recommend_score }}
-                                    </div>
+                                    <strong>{{ page.chapter.task }} / Page {{ page.page_number }}</strong>
+                                    <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                 </div>
 
                                 <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
                                     target="_blank"
-                                    class="btn btn-sm btn-outline-info">
+                                    class="btn btn-outline-info app-card-btn">
                                     Open IPC Page
                                 </a>
                             </div>
 
-                            <p class="small mb-1 mt-2">
-                                {{ page.chapter.title|default:"-" }}
-                            </p>
+                            <p class="small mb-2 mt-2">{{ page.chapter.title|default:"-" }}</p>
+                            <div class="candidate-snippet">{{ page.snippet|highlight_query:query }}</div>
 
-                            <div class="bg-light border rounded p-2 small">
-                                {{ page.snippet|highlight_query:query }}
-                            </div>
-
-                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                            <div class="candidate-pager">
                                 {% if ipc_page_data.has_previous %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.previous_page }}&cdl_page={{ cdl_page_data.current }}">
-                                        Previous
-                                    </a>
+                                    <a class="btn btn-outline-secondary app-card-btn"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.previous_page }}&cdl_page={{ cdl_page_data.current }}">Previous</a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Previous
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Previous</button>
                                 {% endif %}
 
-                                <span class="badge bg-info text-dark">
-                                    {{ ipc_page_data.current }} / {{ ipc_page_data.total }}
-                                </span>
+                                <span class="badge bg-info text-dark">{{ ipc_page_data.current }} / {{ ipc_page_data.total }}</span>
 
                                 {% if ipc_page_data.has_next %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.next_page }}&cdl_page={{ cdl_page_data.current }}">
-                                        Next
-                                    </a>
+                                    <a class="btn btn-outline-secondary app-card-btn"
+                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.next_page }}&cdl_page={{ cdl_page_data.current }}">Next</a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Next
-                                    </button>
+                                    <button class="btn btn-outline-secondary app-card-btn" disabled>Next</button>
                                 {% endif %}
                             </div>
-
                         </div>
                     </div>
                 {% else %}
-                    <div class="alert alert-warning">IPC 후보가 없습니다.</div>
+                    <div class="alert alert-warning app-alert">IPC 후보가 없습니다.</div>
                 {% endif %}
             {% endwith %}
         </div>
 
-        <!-- CDL -->
-        {% comment %} <div class="col-lg-6">
-            <h4 class="section-title mb-3">CDL Candidates</h4>
-
-            {% with page=cdl_page_data.item %}
-                {% if page %}
-                    <div class="card shadow-sm mb-3 border-warning">
-                        <div class="card-body">
-
-                            <div class="form-check mb-2">
-                                <input class="form-check-input"
-                                    type="radio"
-                                    name="cdl_page_id"
-                                    value="{{ page.id }}"
-                                    id="cdl_{{ page.id }}">
-
-                                <label class="form-check-label" for="cdl_{{ page.id }}">
-                                    Select CDL Candidate
-                                </label>
-                            </div>
-
-                            <div class="d-flex justify-content-between flex-wrap gap-2">
-                                <div>
-                                    <strong>CDL Page {{ page.page_number }}</strong>
-                                    <div class="text-muted small">
-                                        Score: {{ page.recommend_score }}
-                                    </div>
-                                </div>
-
-                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
-                                    class="btn btn-sm btn-outline-warning">
-                                    Open CDL Page
-                                </a>
-                            </div>
-
-                            <div class="bg-light border rounded p-2 small mt-2">
-                                {{ page.snippet|highlight_query:query }}
-                            </div>
-
-                            <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
-                                {% if cdl_page_data.has_previous %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.previous_page }}">
-                                        Previous
-                                    </a>
-                                {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Previous
-                                    </button>
-                                {% endif %}
-
-                                <span class="badge bg-warning text-dark">
-                                    {{ cdl_page_data.current }} / {{ cdl_page_data.total }}
-                                </span>
-
-                                {% if cdl_page_data.has_next %}
-                                    <a class="btn btn-sm btn-outline-secondary"
-                                        href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.next_page }}">
-                                        Next
-                                    </a>
-                                {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Next
-                                    </button>
-                                {% endif %}
-                            </div>
-
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="alert alert-warning">CDL 후보가 없습니다.</div>
-                {% endif %}
-            {% endwith %}
-        </div> {% endcomment %}
         {% endif %}
-
     </div>
-
-    {% comment %} <div class="mt-4 d-flex justify-content-end">
-        {% if user.is_staff %}            
-            <button type="submit" class="btn btn-primary">
-                선택한 후보로 Dispatch 추가
-            </button>
-        {% endif %}
-    </div> {% endcomment %}
-
 </form>
-
 {% endif %}
 
-{% endblock %}
+{% endblock content %}

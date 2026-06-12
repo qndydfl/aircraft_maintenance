@@ -1,134 +1,306 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{{ aircraft.name }} Manuals
+{% endblock title %}
+
+{% block css %}
+    <link href="{% static 'css/aircraft_manual_detail.css' %}" rel="stylesheet">
+{% endblock css %}
+
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+<div class="detail-hero mb-4">
     <div>
-        <h2 class="mb-1">{{ aircraft.name }} Manuals</h2>
-        <p class="text-muted mb-0">AMM / FIM / IPC / MEL / CDL</p>
+        <p class="home-eyebrow mb-1">
+            {{ aircraft.maker }}
+        </p>
+
+        <h2 class="page-title mb-2">
+            {{ aircraft.name }} Manuals
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            AMM / FIM / IPC / MEL / CDL
+        </p>
     </div>
 
-    <div class="d-flex gap-2 page-actions">
+    <div class="home-actions">
         {% if user.is_staff and aircraft.maker == "BOEING" %}
-        <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}" class="btn btn-primary">Add PDF Manual</a>
-        <a href="{% url 'manual_package_create' %}?aircraft={{ aircraft.pk }}" class="btn btn-outline-primary">Upload ZIP Package</a>
+            <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}"
+                class="btn btn-primary app-action-btn">
+                Add PDF
+            </a>
+
+            <a href="{% url 'manual_package_create' %}?aircraft={{ aircraft.pk }}"
+                class="btn btn-outline-primary app-action-btn">
+                Upload ZIP
+            </a>
         {% endif %}
 
-        <a href="{% url 'aircraft_manual_print' aircraft.pk %}" target="_blank" class="btn btn-outline-warning">Print</a>
-        <a href="{% url 'home' %}" class="btn btn-outline-secondary">Back</a>
+        <a href="{% url 'aircraft_manual_print' aircraft.pk %}"
+            target="_blank"
+            class="btn btn-outline-warning app-action-btn">
+            Print
+        </a>
+
+        <a href="{% url 'home' %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-3 g-md-4">
     {% for item in aircraft.get_manual_status_list %}
-    <div class="col-md-4 col-sm-6">
-        <div class="card portal-card h-100 shadow-sm {% if not item.file and not item.package %}border-secondary opacity-75{% endif %}">
-            <div class="card-body">
-                <h5 class="card-title fw-bold">{{ item.type }}</h5>
 
-                {% if item.package %}
-                {% if item.package.revision_no %}
-                <p class="small mb-1"><strong>Revision No:</strong> {{ item.package.revision_no }}</p>
-                {% endif %}
-                {% if item.package.revision_date_text %}
-                <p class="small mb-2"><strong>Revision Date:</strong> {{ item.package.revision_date_text }}</p>
-                {% endif %}
-                <p class="text-muted small">Uploaded: {{ item.package.uploaded_at|date:"Y-m-d H:i" }}</p>
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card portal-card manual-detail-card h-100 shadow-sm {% if not item.file and not item.package %}manual-empty-card{% endif %}">
+                <div class="card-body">
 
-                {% if item.package.processed %}
-                <p class="small mb-2"><span class="badge bg-success">PROCESSED</span> Chapter: {{ item.package.chapter_count }} / Pages: {{ item.package.page_count }}</p>
-                {% else %}
-                <p class="small mb-2"><span class="badge bg-warning text-dark">NOT PROCESSED</span></p>
-                {% endif %}
+                    <div class="aircraft-card-header">
+                        <div>
+                            <p class="aircraft-maker mb-1">
+                                MANUAL
+                            </p>
 
-                <div class="d-flex gap-2 mb-2">
-                    <a href="{% url 'manual_package_open' item.package.pk %}" class="btn btn-primary w-50">Open</a>
-                    <a href="{{ item.package.zip_file.url }}" download class="btn btn-success w-50">Download</a>
-                </div>
+                            <h5 class="aircraft-title mb-0">
+                                {{ item.type }}
+                            </h5>
+                        </div>
 
-                {% if user.is_staff %}
-                <div class="d-flex gap-2 mt-2">
-                    <a href="{% url 'manual_package_reupload' package_pk=item.package.pk %}" class="btn btn-sm btn-warning w-50">Re-upload</a>
-                    <a href="{% url 'manual_package_delete' item.package.pk %}" class="btn btn-sm btn-danger w-50">Delete</a>
-                </div>
-                <form method="post" action="{% url 'manual_package_reindex' item.package.pk %}" class="mt-2">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-info w-100">Re-index ZIP</button>
-                </form>
-                {% endif %}
+                        {% if item.package or item.file %}
+                            <span class="aircraft-type-pill">
+                                READY
+                            </span>
+                        {% else %}
+                            <span class="aircraft-type-pill empty-pill">
+                                EMPTY
+                            </span>
+                        {% endif %}
+                    </div>
 
-                {% elif item.file %}
-                {% if item.file.revision_no %}
-                <p class="small mb-1"><strong>Revision No:</strong> {{ item.file.revision_no }}</p>
-                {% endif %}
-                {% if item.file.revision_date_text %}
-                <p class="small mb-2"><strong>Revision Date:</strong> {{ item.file.revision_date_text }}</p>
-                {% endif %}
-                <p class="text-muted small">Uploaded: {{ item.file.uploaded_at|date:"Y-m-d H:i" }}</p>
+                    {% if item.package %}
 
-                {% if item.file.description %}
-                <p>{{ item.file.description }}</p>
-                {% endif %}
+                        {% if item.package.revision_no %}
+                            <p class="small mb-1">
+                                <strong>Revision No:</strong>
+                                {{ item.package.revision_no }}
+                            </p>
+                        {% endif %}
 
-                {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
-                <p class="small mb-2">
-                    {% if item.file.is_indexed_pdf %}
-                    <span class="badge bg-success">INDEXED</span>
-                    {{ item.file.indexed_page_count }} page(s)
+                        {% if item.package.revision_date_text %}
+                            <p class="small mb-2">
+                                <strong>Revision Date:</strong>
+                                {{ item.package.revision_date_text }}
+                            </p>
+                        {% endif %}
+
+                        <p class="text-muted small mb-2">
+                            Uploaded: {{ item.package.uploaded_at|date:"Y-m-d H:i" }}
+                        </p>
+
+                        {% if item.package.processed %}
+                            <p class="small mb-3">
+                                <span class="badge bg-success manual-badge">
+                                    PROCESSED
+                                </span>
+                                Chapter: {{ item.package.chapter_count }} /
+                                Pages: {{ item.package.page_count }}
+                            </p>
+                        {% else %}
+                            <p class="small mb-3">
+                                <span class="badge bg-warning text-dark manual-badge">
+                                    NOT PROCESSED
+                                </span>
+                            </p>
+                        {% endif %}
+
+                        <div class="card-button-group">
+                            <div class="detail-button-grid">
+                                <a href="{% url 'manual_package_open' item.package.pk %}"
+                                    class="btn btn-primary app-card-btn">
+                                    Open
+                                </a>
+
+                                <a href="{{ item.package.zip_file.url }}"
+                                    download
+                                    class="btn btn-success app-card-btn">
+                                    Download
+                                </a>
+                            </div>
+
+                            {% if user.is_staff %}
+                                <div class="detail-button-grid">
+                                    <a href="{% url 'manual_package_reupload' package_pk=item.package.pk %}"
+                                        class="btn btn-warning app-card-btn">
+                                        Re-upload
+                                    </a>
+
+                                    <a href="{% url 'manual_package_delete' item.package.pk %}"
+                                        class="btn btn-danger app-card-btn">
+                                        Delete
+                                    </a>
+                                </div>
+
+                                <form method="post"
+                                    action="{% url 'manual_package_reindex' item.package.pk %}">
+                                    {% csrf_token %}
+
+                                    <button type="submit"
+                                        class="btn btn-outline-info w-100 app-card-btn">
+                                        Re-index ZIP
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                    {% elif item.file %}
+
+                        {% if item.file.revision_no %}
+                            <p class="small mb-1">
+                                <strong>Revision No:</strong>
+                                {{ item.file.revision_no }}
+                            </p>
+                        {% endif %}
+
+                        {% if item.file.revision_date_text %}
+                            <p class="small mb-2">
+                                <strong>Revision Date:</strong>
+                                {{ item.file.revision_date_text }}
+                            </p>
+                        {% endif %}
+
+                        <p class="text-muted small mb-2">
+                            Uploaded: {{ item.file.uploaded_at|date:"Y-m-d H:i" }}
+                        </p>
+
+                        {% if item.file.description %}
+                            <p class="manual-card-note">
+                                {{ item.file.description }}
+                            </p>
+                        {% endif %}
+
+                        {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
+                            <p class="small mb-3">
+                                {% if item.file.is_indexed_pdf %}
+                                    <span class="badge bg-success manual-badge">
+                                        INDEXED
+                                    </span>
+                                    {{ item.file.indexed_page_count }} page(s)
+                                {% else %}
+                                    <span class="badge bg-warning text-dark manual-badge">
+                                        NOT INDEXED
+                                    </span>
+                                {% endif %}
+                            </p>
+                        {% endif %}
+
+                        <div class="card-button-group">
+                            <div class="detail-button-grid">
+                                {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
+                                    <a href="{% url 'manual_file_pdf_viewer' item.file.pk %}"
+                                        class="btn btn-primary app-card-btn">
+                                        Open
+                                    </a>
+                                {% else %}
+                                    <a href="{{ item.file.file.url }}"
+                                        target="_blank"
+                                        class="btn btn-primary app-card-btn">
+                                        Open
+                                    </a>
+                                {% endif %}
+
+                                <a href="{{ item.file.file.url }}"
+                                    download
+                                    class="btn btn-success app-card-btn">
+                                    Download
+                                </a>
+                            </div>
+
+                            {% if user.is_staff and item.file.pk %}
+                                <div class="detail-button-grid">
+                                    <a href="{% url 'manual_file_update' item.file.pk %}"
+                                        class="btn btn-warning app-card-btn">
+                                        Re-upload
+                                    </a>
+
+                                    <a href="{% url 'manual_file_delete' item.file.pk %}"
+                                        class="btn btn-danger app-card-btn">
+                                        Delete
+                                    </a>
+                                </div>
+
+                                <form method="post"
+                                    action="{% url 'manual_file_reindex' item.file.pk %}">
+                                    {% csrf_token %}
+
+                                    <button type="submit"
+                                        class="btn btn-outline-info w-100 app-card-btn">
+                                        Re-index PDF
+                                    </button>
+                                </form>
+
+                                {% if item.file.manual_type == "MEL" %}
+                                    <form method="post"
+                                        action="{% url 'extract_mel_dispatch_items' item.file.pk %}">
+                                        {% csrf_token %}
+
+                                        <button type="submit"
+                                            class="btn btn-outline-danger w-100 app-card-btn">
+                                            Extract MEL Items
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
                     {% else %}
-                    <span class="badge bg-warning text-dark">NOT INDEXED</span>
+
+                        <p class="manual-card-note">
+                            등록된 파일이 없습니다.
+                        </p>
+
+                        {% if user.is_staff %}
+                            {% if aircraft.maker == "AIRBUS" %}
+
+                                {% if item.type == "MEL" or item.type == "CDL" %}
+                                    <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"
+                                        class="btn btn-outline-primary w-100 app-card-btn">
+                                        Add {{ item.type }} PDF
+                                    </a>
+                                {% else %}
+                                    <p class="small text-muted mb-0">
+                                        {{ item.type }}는 외부 Airbus World에서 확인하세요.
+                                    </p>
+                                {% endif %}
+
+                            {% else %}
+
+                                {% if item.type == "AMM" or item.type == "FIM" or item.type == "IPC" %}
+                                    <a href="{% url 'manual_package_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"
+                                        class="btn btn-outline-primary w-100 app-card-btn">
+                                        Upload {{ item.type }} ZIP
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"
+                                        class="btn btn-outline-primary w-100 app-card-btn">
+                                        Add {{ item.type }} PDF
+                                    </a>
+                                {% endif %}
+
+                            {% endif %}
+                        {% endif %}
+
                     {% endif %}
-                </p>
-                {% endif %}
 
-                <div class="d-flex gap-2 mb-2">
-                    {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
-                    <a href="{% url 'manual_file_pdf_viewer' item.file.pk %}" class="btn btn-primary w-50">Open</a>
-                    {% else %}
-                    <a href="{{ item.file.file.url }}" target="_blank" class="btn btn-primary w-50">Open</a>
-                    {% endif %}
-                    <a href="{{ item.file.file.url }}" download class="btn btn-success w-50">Download</a>
                 </div>
-
-                {% if user.is_staff and item.file.pk %}
-                <div class="d-flex gap-2 mt-2">
-                    <a href="{% url 'manual_file_update' item.file.pk %}" class="btn btn-sm btn-warning w-50">Re-upload</a>
-                    <a href="{% url 'manual_file_delete' item.file.pk %}" class="btn btn-sm btn-danger w-50">Delete</a>
-                </div>
-                <form method="post" action="{% url 'manual_file_reindex' item.file.pk %}" class="mt-2">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-info w-100">Re-index PDF</button>
-                </form>
-                {% if item.file.manual_type == "MEL" %}
-                <form method="post" action="{% url 'extract_mel_dispatch_items' item.file.pk %}" class="mt-2">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Extract MEL Items</button>
-                </form>
-                {% endif %}
-                {% endif %}
-
-                {% else %}
-                <p class="text-muted">등록된 파일이 없습니다.</p>
-                {% if user.is_staff %}
-                {% if aircraft.maker == "AIRBUS" %}
-                {% if item.type == "MEL" or item.type == "CDL" %}
-                <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}" class="btn btn-outline-primary w-100">Add {{ item.type }} PDF</a>
-                {% else %}
-                <p class="small text-muted mb-0">{{ item.type }}는 외부 Airbus World에서 확인하세요.</p>
-                {% endif %}
-                {% else %}
-                {% if item.type == "AMM" or item.type == "FIM" or item.type == "IPC" %}
-                <a href="{% url 'manual_package_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}" class="btn btn-outline-primary w-100">Upload {{ item.type }} ZIP</a>
-                {% else %}
-                <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}" class="btn btn-outline-primary w-100">Add {{ item.type }} PDF</a>
-                {% endif %}
-                {% endif %}
-                {% endif %}
-                {% endif %}
             </div>
         </div>
-    </div>
+
     {% endfor %}
 </div>
 
-{% endblock %}
+{% endblock content %}

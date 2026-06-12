@@ -1,0 +1,55 @@
+.detail-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+    border: 1px solid rgba(13, 110, 253, 0.08);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: var(--app-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.manual-detail-card {
+    border-top: 4px solid #0d6efd;
+}
+
+.manual-empty-card {
+    border-top-color: #adb5bd;
+    opacity: 0.85;
+}
+
+.empty-pill {
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
+}
+
+.detail-button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+@media (max-width: 767.98px) {
+    .detail-hero {
+        flex-direction: column;
+        align-items: stretch;
+        border-radius: 22px;
+        padding: 20px;
+    }
+
+    .detail-button-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .manual-detail-card .app-card-btn {
+        min-height: 44px;
+        font-size: 0.88rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .detail-button-grid {
+        grid-template-columns: 1fr;
+    }
+}

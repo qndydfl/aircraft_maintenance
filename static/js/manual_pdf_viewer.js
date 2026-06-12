@@ -528,10 +528,11 @@ window.addEventListener("resize", function () {
 
 function applyOutlineState() {
     const storedValue = sessionStorage.getItem(outlineStorageKey);
-    const isHidden = storedValue === null ? false : storedValue === "true";
+
+    const isHidden = storedValue === null ? true : storedValue === "true";
 
     if (storedValue === null) {
-        sessionStorage.setItem(outlineStorageKey, "false");
+        sessionStorage.setItem(outlineStorageKey, "true");
     }
 
     if (isHidden) {

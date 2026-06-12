@@ -92,7 +92,8 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
 
         if aircraft_id:
             context["back_url"] = reverse_lazy(
-                "aircraft_manual_detail", kwargs={"pk": aircraft_id}
+                "aircraft_manual_detail",
+                kwargs={"pk": aircraft_id},
             )
         else:
             context["back_url"] = reverse_lazy("home")
@@ -102,19 +103,32 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        page_count = index_pdf_pages_for_manual_file_safely(self.object)
+        try:
+            page_count = index_pdf_pages_for_manual_file_safely(self.object)
 
-        if page_count:
-            messages.success(
+            if page_count:
+                messages.success(
+                    self.request,
+                    f"{self.object.manual_type} PDF Page {page_count}개 인덱싱 완료",
+                )
+            else:
+                messages.info(
+                    self.request,
+                    "PDF 업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
+                )
+
+        except Exception as error:
+            messages.warning(
                 self.request,
-                f"{self.object.manual_type} PDF Page {page_count}개 인덱싱 완료",
+                f"PDF 업로드는 완료되었지만 인덱싱 실패: {error}",
             )
 
         return response
 
     def get_success_url(self):
         return reverse_lazy(
-            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
         )
 
 
@@ -128,7 +142,8 @@ class ManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
 
         context["back_url"] = reverse_lazy(
-            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
         )
 
         return context
@@ -136,24 +151,32 @@ class ManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        page_count = index_pdf_pages_for_manual_file_safely(self.object)
+        try:
+            page_count = index_pdf_pages_for_manual_file_safely(self.object)
 
-        if page_count:
-            messages.success(
+            if page_count:
+                messages.success(
+                    self.request,
+                    f"{self.object.manual_type} PDF Page {page_count}개 재인덱싱 완료",
+                )
+            else:
+                messages.info(
+                    self.request,
+                    "PDF 업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
+                )
+
+        except Exception as error:
+            messages.warning(
                 self.request,
-                f"{self.object.manual_type} PDF Page {page_count}개 재인덱싱 완료",
-            )
-        else:
-            messages.info(
-                self.request,
-                "PDF 인덱싱 대상이 아니거나 페이지 텍스트를 추출하지 못했습니다.",
+                f"PDF 업로드는 완료되었지만 인덱싱 실패: {error}",
             )
 
         return response
 
     def get_success_url(self):
         return reverse_lazy(
-            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
         )
 
 
@@ -162,9 +185,16 @@ class ManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
     template_name = "manuals/manual_file_confirm_delete.html"
     context_object_name = "manual"
 
+    def form_valid(self, form):
+        if self.object.file:
+            self.object.file.delete(save=False)
+
+        return super().form_valid(form)
+
     def get_success_url(self):
         return reverse_lazy(
-            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
         )
 
 
@@ -173,29 +203,24 @@ class ManualPackageDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView
     template_name = "manuals/manual_package_confirm_delete.html"
     context_object_name = "package"
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        zip_path = self.object.zip_file.path if self.object.zip_file else None
-        merged_pdf_path = (
-            self.object.merged_pdf.path if self.object.merged_pdf else None
-        )
+    def form_valid(self, form):
         extracted_path = self.object.extracted_path
 
-        if zip_path and os.path.exists(zip_path):
-            os.remove(zip_path)
+        if self.object.zip_file:
+            self.object.zip_file.delete(save=False)
 
-        if merged_pdf_path and os.path.exists(merged_pdf_path):
-            os.remove(merged_pdf_path)
+        if self.object.merged_pdf:
+            self.object.merged_pdf.delete(save=False)
 
         if extracted_path and os.path.exists(extracted_path):
             shutil.rmtree(extracted_path, ignore_errors=True)
 
-        return super().delete(request, *args, **kwargs)
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy(
-            "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
         )
 
 
@@ -670,29 +695,19 @@ def _ensure_merged_package_pdf(package):
     if not chapter_paths:
         return None
 
-    latest_source_mtime = max(os.path.getmtime(path) for _, path in chapter_paths)
-
     if package.merged_pdf:
-        merged_path = package.merged_pdf.path
-
-        if os.path.exists(merged_path) and os.path.getsize(merged_path) > 0:
-            if os.path.getmtime(merged_path) >= latest_source_mtime:
-                return merged_path
+        try:
+            if package.merged_pdf.size > 0:
+                return package.merged_pdf
+        except Exception:
+            pass
 
     merged_pdf = merge_package_chapter_pdfs(package)
 
     if not merged_pdf:
         return None
 
-    merged_path = merged_pdf.path
-
-    if not os.path.exists(merged_path) or os.path.getsize(merged_path) == 0:
-        return None
-
-    return merged_path
-
-
-from .services import parse_search_query
+    return merged_pdf
 
 
 class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
@@ -776,12 +791,15 @@ class ManualPackagePDFView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         package = ManualPackage.objects.select_related("aircraft").get(pk=kwargs["pk"])
 
-        merged_path = _ensure_merged_package_pdf(package)
+        merged_pdf = _ensure_merged_package_pdf(package)
 
-        if not merged_path:
+        if not merged_pdf:
             raise Http404("Merged PDF is not available")
 
-        return FileResponse(open(merged_path, "rb"), content_type="application/pdf")
+        return FileResponse(
+            package.merged_pdf.open("rb"),
+            content_type="application/pdf",
+        )
 
 
 class ManualPackagePDFViewerView(LoginRequiredMixin, DetailView):
@@ -796,11 +814,12 @@ class ManualPackagePDFViewerView(LoginRequiredMixin, DetailView):
         page_number = safe_int(self.request.GET.get("page", "1"), default=1)
         query = self.request.GET.get("q", "").strip()
 
-        merged_path = _ensure_merged_package_pdf(package)
+        merged_pdf = _ensure_merged_package_pdf(package)
 
         context["viewer_title"] = f"{package.aircraft.name} / {package.manual_type}"
         context["viewer_subtitle"] = "Merged PDF Viewer"
-        if merged_path:
+
+        if merged_pdf:
             context["pdf_url"] = reverse(
                 "manual_package_pdf",
                 kwargs={"pk": package.pk},
@@ -810,10 +829,12 @@ class ManualPackagePDFViewerView(LoginRequiredMixin, DetailView):
             context["merge_error"] = (
                 "병합된 PDF를 만들 수 없습니다. ZIP 처리 상태를 확인하세요."
             )
+
         context["back_url"] = reverse(
             "aircraft_manual_detail",
             kwargs={"pk": package.aircraft.pk},
         )
+
         context["page_number"] = page_number
         context["query"] = query
         context["package_chapters"] = []
