@@ -34,7 +34,6 @@ from .services import (
     calculate_package_score,
     calculate_file_score,
     safe_int,
-    merge_package_chapter_pdfs,
     parse_manual_search_query,
     build_manual_text_regex,
 )
@@ -56,12 +55,16 @@ class HomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["boeing_aircrafts"] = Aircraft.objects.filter(maker="BOEING").order_by(
-            "name"
+        context["boeing_aircrafts"] = (
+            Aircraft.objects.filter(maker="BOEING")
+            .order_by("name")
+            .prefetch_related("manuals", "manual_packages")
         )
 
-        context["airbus_aircrafts"] = Aircraft.objects.filter(maker="AIRBUS").order_by(
-            "name"
+        context["airbus_aircrafts"] = (
+            Aircraft.objects.filter(maker="AIRBUS")
+            .order_by("name")
+            .prefetch_related("manuals", "manual_packages")
         )
 
         return context
@@ -77,6 +80,7 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
             "manuals",
             "manual_packages",
             "manual_packages__chapters",
+            "manual_packages__chapters__pages",
             "manuals__pdf_pages",
         )
 
@@ -208,9 +212,6 @@ class ManualPackageDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView
 
         if self.object.zip_file:
             self.object.zip_file.delete(save=False)
-
-        if self.object.merged_pdf:
-            self.object.merged_pdf.delete(save=False)
 
         if extracted_path and os.path.exists(extracted_path):
             shutil.rmtree(extracted_path, ignore_errors=True)
@@ -457,84 +458,124 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         aircraft_id = self.request.GET.get("aircraft", "").strip()
         manual_type = self.request.GET.get("manual_type", "").strip()
 
-        package_pages = ManualPDFPage.objects.none()
-        file_pages = ManualFilePDFPage.objects.none()
+        package_pages = []
+        file_pages = []
 
         if query:
-            package_pages = ManualPDFPage.objects.select_related(
+            package_pages_qs = ManualPDFPage.objects.select_related(
                 "chapter",
                 "chapter__package",
                 "chapter__package__aircraft",
             )
 
-            file_pages = ManualFilePDFPage.objects.select_related(
+            file_pages_qs = ManualFilePDFPage.objects.select_related(
                 "manual_file",
                 "manual_file__aircraft",
             )
 
             if aircraft_id:
-                package_pages = package_pages.filter(
+                package_pages_qs = package_pages_qs.filter(
                     chapter__package__aircraft_id=aircraft_id
                 )
-
-                file_pages = file_pages.filter(manual_file__aircraft_id=aircraft_id)
+                file_pages_qs = file_pages_qs.filter(
+                    manual_file__aircraft_id=aircraft_id
+                )
 
             if manual_type:
                 if manual_type in ["AMM", "FIM", "IPC"]:
-                    package_pages = package_pages.filter(
+                    package_pages_qs = package_pages_qs.filter(
                         chapter__package__manual_type=manual_type
                     )
-                    file_pages = ManualFilePDFPage.objects.none()
+                    file_pages_qs = ManualFilePDFPage.objects.none()
 
                 elif manual_type in ["MEL", "CDL"]:
-                    file_pages = file_pages.filter(manual_file__manual_type=manual_type)
-                    package_pages = ManualPDFPage.objects.none()
+                    file_pages_qs = file_pages_qs.filter(
+                        manual_file__manual_type=manual_type
+                    )
+                    package_pages_qs = ManualPDFPage.objects.none()
 
-            words = query.split()
+            search_value, match_mode = parse_manual_search_query(query)
 
-            for word in words:
-                package_pages = package_pages.filter(
-                    Q(text__icontains=word)
-                    | Q(chapter__task__icontains=word)
-                    | Q(chapter__subtask__icontains=word)
-                    | Q(chapter__title__icontains=word)
+            if search_value:
+                text_regex = build_manual_text_regex(search_value, match_mode)
+
+                if match_mode == "contains":
+                    package_pages_qs = package_pages_qs.filter(
+                        text__icontains=search_value
+                    )
+
+                    file_pages_qs = file_pages_qs.filter(text__icontains=search_value)
+
+                elif match_mode == "wildcard":
+                    package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
+
+                    file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
+
+                else:
+                    package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
+
+                    file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
+
+                package_pages = list(package_pages_qs)
+                file_pages = list(file_pages_qs)
+
+                highlight_query = " ".join(
+                    part.strip() for part in search_value.split("*") if part.strip()
                 )
 
-                file_pages = file_pages.filter(
-                    Q(text__icontains=word)
-                    | Q(manual_file__manual_type__icontains=word)
-                    | Q(manual_file__description__icontains=word)
+                for page in package_pages:
+                    page.snippet = page.get_snippet(highlight_query)
+                    page.score = calculate_package_score(page, highlight_query)
+
+                for page in file_pages:
+                    page.snippet = page.get_snippet(highlight_query)
+                    page.score = calculate_file_score(page, highlight_query)
+
+                package_pages = sorted(
+                    package_pages,
+                    key=lambda page: (
+                        page.chapter.package.manual_type,
+                        page.chapter.package.aircraft.name,
+                        page.chapter.task or "",
+                        page.chapter.subtask or "",
+                        page.page_number,
+                    ),
                 )
 
-            package_pages = list(package_pages[:200])
-            file_pages = list(file_pages[:200])
+                file_pages = sorted(
+                    file_pages,
+                    key=lambda page: (
+                        page.manual_file.manual_type,
+                        page.manual_file.aircraft.name,
+                        page.page_number,
+                    ),
+                )
 
-            for page in package_pages:
-                page.snippet = page.get_snippet(query)
-                page.score = calculate_package_score(page, query)
+        grouped_results = {
+            "AMM": [],
+            "FIM": [],
+            "IPC": [],
+            "MEL": [],
+            "CDL": [],
+        }
 
-            for page in file_pages:
-                page.snippet = page.get_snippet(query)
-                page.score = calculate_file_score(page, query)
+        for page in package_pages:
+            page_manual_type = page.chapter.package.manual_type
 
-            package_pages = sorted(
-                package_pages, key=lambda page: page.score, reverse=True
-            )[:50]
+            if page_manual_type in grouped_results:
+                grouped_results[page_manual_type].append(page)
 
-            file_pages = sorted(file_pages, key=lambda page: page.score, reverse=True)[
-                :50
-            ]
+        for page in file_pages:
+            page_manual_type = page.manual_file.manual_type
 
-            for page in package_pages:
-                page.snippet = page.get_snippet(query)
-
-            for page in file_pages:
-                page.snippet = page.get_snippet(query)
+            if page_manual_type in grouped_results:
+                grouped_results[page_manual_type].append(page)
 
         context["package_pages"] = package_pages
         context["file_pages"] = file_pages
+        context["grouped_results"] = grouped_results
 
-        context["aircrafts"] = Aircraft.objects.filter(maker="BOEING")
+        context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
 
         context["manual_types"] = [
             "AMM",
@@ -551,10 +592,6 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         return context
 
 
-from django.urls import reverse
-from django.db.models import Q
-
-
 class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
     model = ManualChapter
     template_name = "manuals/manual_pdf_viewer.html"
@@ -566,6 +603,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         chapter = self.object
         page_number = safe_int(self.request.GET.get("page", "1"), default=1)
         query = self.request.GET.get("q", "").strip()
+        view_mode = self.request.GET.get("mode", "single")
 
         context["viewer_title"] = (
             f"{chapter.package.aircraft.name} / "
@@ -586,128 +624,95 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
 
         context["page_number"] = page_number
         context["query"] = query
-        context["viewer_type"] = "file"
+        context["viewer_type"] = "chapter"
+        context["view_mode"] = view_mode
 
         context["prev_match_url"] = None
         context["next_match_url"] = None
         context["current_match_index"] = 0
         context["match_count"] = 0
+        context["matching_pages_json"] = json.dumps([])
 
         if query:
             search_value, match_mode = parse_manual_search_query(query)
-            text_regex = build_manual_text_regex(search_value, match_mode)
 
-            if match_mode == "contains":
-                page_filter = Q(text__icontains=search_value)
-            else:
-                page_filter = Q(text__iregex=text_regex)
+            if search_value:
+                text_regex = build_manual_text_regex(search_value, match_mode)
 
-            matches = list(
-                ManualPDFPage.objects.select_related("chapter")
-                .filter(chapter__package=chapter.package)
-                .filter(page_filter)
-                .order_by(
-                    "chapter__task",
-                    "chapter__subtask",
-                    "page_number",
+                if match_mode == "contains":
+                    page_filter = Q(text__icontains=search_value)
+                else:
+                    page_filter = Q(text__iregex=text_regex)
+
+                matches = list(
+                    ManualPDFPage.objects.select_related("chapter")
+                    .filter(chapter__package=chapter.package)
+                    .filter(page_filter)
+                    .order_by(
+                        "chapter__task",
+                        "chapter__subtask",
+                        "page_number",
+                    )
+                    .values(
+                        "chapter_id",
+                        "page_number",
+                        "chapter__task",
+                    )
                 )
-                .values(
-                    "chapter_id",
-                    "page_number",
-                    "chapter__task",
-                )
-            )
 
-            context["match_count"] = len(matches)
+                context["match_count"] = len(matches)
 
-            current_index = None
+                current_index = None
 
-            for index, item in enumerate(matches):
-                if (
-                    item["chapter_id"] == chapter.pk
-                    and item["page_number"] == page_number
-                ):
-                    current_index = index
-                    break
-
-            if current_index is None:
                 for index, item in enumerate(matches):
                     if (
                         item["chapter_id"] == chapter.pk
-                        and item["page_number"] >= page_number
+                        and item["page_number"] == page_number
                     ):
                         current_index = index
                         break
 
-            if current_index is not None:
-                context["current_match_index"] = current_index + 1
+                if current_index is None:
+                    for index, item in enumerate(matches):
+                        if (
+                            item["chapter_id"] == chapter.pk
+                            and item["page_number"] >= page_number
+                        ):
+                            current_index = index
+                            break
 
-                if current_index > 0:
-                    prev_item = matches[current_index - 1]
-                    context["prev_match_url"] = (
-                        reverse(
-                            "manual_chapter_pdf_viewer",
-                            kwargs={"pk": prev_item["chapter_id"]},
-                        )
-                        + f"?page={prev_item['page_number']}&q={query}"
-                    )
+                if current_index is not None:
+                    context["current_match_index"] = current_index + 1
 
-                if current_index < len(matches) - 1:
-                    next_item = matches[current_index + 1]
-                    context["next_match_url"] = (
-                        reverse(
-                            "manual_chapter_pdf_viewer",
-                            kwargs={"pk": next_item["chapter_id"]},
+                    if current_index > 0:
+                        prev_item = matches[current_index - 1]
+                        context["prev_match_url"] = (
+                            reverse(
+                                "manual_chapter_pdf_viewer",
+                                kwargs={"pk": prev_item["chapter_id"]},
+                            )
+                            + f"?page={prev_item['page_number']}&q={query}&mode={view_mode}"
                         )
-                        + f"?page={next_item['page_number']}&q={query}"
-                    )
+
+                    if current_index < len(matches) - 1:
+                        next_item = matches[current_index + 1]
+                        context["next_match_url"] = (
+                            reverse(
+                                "manual_chapter_pdf_viewer",
+                                kwargs={"pk": next_item["chapter_id"]},
+                            )
+                            + f"?page={next_item['page_number']}&q={query}&mode={view_mode}"
+                        )
+
+                matching_pages_list = [
+                    item["page_number"]
+                    for item in matches
+                    if item["chapter_id"] == chapter.pk
+                ]
+
+                context["matching_pages_json"] = json.dumps(matching_pages_list)
 
         return context
-
-
-def _get_chapter_pdf_paths(package):
-    if not package.extracted_path:
-        return []
-
-    extracted_root = os.path.abspath(package.extracted_path)
-    chapters = package.chapters.order_by("task", "subtask")
-    chapter_paths = []
-
-    for chapter in chapters:
-        pdf_path = os.path.abspath(
-            os.path.join(extracted_root, chapter.pdf_relative_path)
-        )
-
-        if os.path.commonpath([extracted_root, pdf_path]) != extracted_root:
-            continue
-
-        if not os.path.exists(pdf_path):
-            continue
-
-        chapter_paths.append((chapter, pdf_path))
-
-    return chapter_paths
-
-
-def _ensure_merged_package_pdf(package):
-    chapter_paths = _get_chapter_pdf_paths(package)
-
-    if not chapter_paths:
-        return None
-
-    if package.merged_pdf:
-        try:
-            if package.merged_pdf.size > 0:
-                return package.merged_pdf
-        except Exception:
-            pass
-
-    merged_pdf = merge_package_chapter_pdfs(package)
-
-    if not merged_pdf:
-        return None
-
-    return merged_pdf
 
 
 class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
@@ -721,11 +726,11 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         manual = self.object
         page_number = safe_int(self.request.GET.get("page", "1"), default=1)
         query = self.request.GET.get("q", "").strip()
+        view_mode = self.request.GET.get("mode", "single")
 
         context["viewer_title"] = f"{manual.aircraft.name} / {manual.manual_type}"
         context["viewer_subtitle"] = manual.description or "PDF Viewer"
         context["pdf_url"] = reverse("manual_file_pdf", kwargs={"pk": manual.pk})
-
         context["back_url"] = reverse(
             "aircraft_manual_detail",
             kwargs={"pk": manual.aircraft.pk},
@@ -734,39 +739,68 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         context["page_number"] = page_number
         context["query"] = query
         context["viewer_type"] = "file"
+        context["view_mode"] = view_mode
+
+        context["prev_match_url"] = None
+        context["next_match_url"] = None
+        context["current_match_index"] = 0
+        context["match_count"] = 0
+        context["matching_pages_json"] = json.dumps([])
 
         if query:
             search_value, match_mode = parse_manual_search_query(query)
-            text_regex = build_manual_text_regex(search_value, match_mode)
 
-            if match_mode == "contains":
-                page_filter = Q(text__icontains=search_value)
-            else:
-                page_filter = Q(text__iregex=text_regex)
+            if search_value:
+                text_regex = build_manual_text_regex(search_value, match_mode)
 
-            matching_pages = (
-                ManualFilePDFPage.objects.filter(manual_file=manual)
-                .filter(page_filter)
-                .order_by("page_number")
-                .values_list("page_number", flat=True)
-                .distinct()
-            )
-        else:
-            matching_pages = []
+                if match_mode == "contains":
+                    page_filter = Q(text__icontains=search_value)
+                else:
+                    page_filter = Q(text__iregex=text_regex)
 
-        context.update(get_match_navigation(matching_pages, page_number))
+                matching_pages_list = list(
+                    ManualFilePDFPage.objects.filter(manual_file=manual)
+                    .filter(page_filter)
+                    .order_by("page_number")
+                    .values_list("page_number", flat=True)
+                    .distinct()
+                )
 
-        matching_pages_list = list(matching_pages)
+                context["match_count"] = len(matching_pages_list)
+                context["matching_pages_json"] = json.dumps(matching_pages_list)
 
-        context.update(
-            get_match_navigation(
-                matching_pages_list,
-                page_number,
-            )
-        )
+                current_index = None
 
-        context["matching_pages_json"] = json.dumps(matching_pages_list)
-        context["view_mode"] = self.request.GET.get("mode", "single")
+                for index, matched_page_number in enumerate(matching_pages_list):
+                    if matched_page_number == page_number:
+                        current_index = index
+                        break
+
+                if current_index is None:
+                    for index, matched_page_number in enumerate(matching_pages_list):
+                        if matched_page_number >= page_number:
+                            current_index = index
+                            break
+
+                if current_index is None and matching_pages_list:
+                    current_index = 0
+
+                if current_index is not None:
+                    context["current_match_index"] = current_index + 1
+
+                    if current_index > 0:
+                        prev_page_number = matching_pages_list[current_index - 1]
+                        context["prev_match_url"] = (
+                            reverse("manual_file_pdf_viewer", kwargs={"pk": manual.pk})
+                            + f"?page={prev_page_number}&q={query}"
+                        )
+
+                    if current_index < len(matching_pages_list) - 1:
+                        next_page_number = matching_pages_list[current_index + 1]
+                        context["next_match_url"] = (
+                            reverse("manual_file_pdf_viewer", kwargs={"pk": manual.pk})
+                            + f"?page={next_page_number}&q={query}"
+                        )
 
         return context
 
@@ -785,62 +819,6 @@ class ManualFilePDFView(LoginRequiredMixin, View):
             raise Http404("PDF file is not available")
 
         return FileResponse(manual.file.open("rb"), content_type="application/pdf")
-
-
-class ManualPackagePDFView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        package = ManualPackage.objects.select_related("aircraft").get(pk=kwargs["pk"])
-
-        merged_pdf = _ensure_merged_package_pdf(package)
-
-        if not merged_pdf:
-            raise Http404("Merged PDF is not available")
-
-        return FileResponse(
-            package.merged_pdf.open("rb"),
-            content_type="application/pdf",
-        )
-
-
-class ManualPackagePDFViewerView(LoginRequiredMixin, DetailView):
-    model = ManualPackage
-    template_name = "manuals/manual_pdf_viewer.html"
-    context_object_name = "package"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        package = self.object
-        page_number = safe_int(self.request.GET.get("page", "1"), default=1)
-        query = self.request.GET.get("q", "").strip()
-
-        merged_pdf = _ensure_merged_package_pdf(package)
-
-        context["viewer_title"] = f"{package.aircraft.name} / {package.manual_type}"
-        context["viewer_subtitle"] = "Merged PDF Viewer"
-
-        if merged_pdf:
-            context["pdf_url"] = reverse(
-                "manual_package_pdf",
-                kwargs={"pk": package.pk},
-            )
-        else:
-            context["pdf_url"] = ""
-            context["merge_error"] = (
-                "병합된 PDF를 만들 수 없습니다. ZIP 처리 상태를 확인하세요."
-            )
-
-        context["back_url"] = reverse(
-            "aircraft_manual_detail",
-            kwargs={"pk": package.aircraft.pk},
-        )
-
-        context["page_number"] = page_number
-        context["query"] = query
-        context["package_chapters"] = []
-        context["viewer_type"] = "file"
-
-        return context
 
 
 class ManualPackageUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
@@ -873,8 +851,6 @@ class ManualPackageUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView
                 f"ZIP 재처리 완료: Chapter {result['chapter_count']}개, PDF Page {result['page_count']}개 인덱싱 완료",
             )
 
-            _ensure_merged_package_pdf(self.object)
-
         except Exception as error:
             messages.error(self.request, f"ZIP 재처리 실패: {error}")
 
@@ -897,8 +873,6 @@ class ManualPackageReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
                 request,
                 f"{package.manual_type} 재인덱싱 완료: Chapter {result['chapter_count']}개, PDF Page {result['page_count']}개",
             )
-
-            _ensure_merged_package_pdf(package)
 
         except Exception as error:
             messages.error(request, f"재인덱싱 실패: {error}")
@@ -952,7 +926,6 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
 
         try:
             result = process_manual_package_safely(package)
-            _ensure_merged_package_pdf(package)
 
             messages.success(
                 self.request,

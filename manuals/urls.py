@@ -22,8 +22,6 @@ from .views import (
     ManualPackageUpdateView,
     ManualPackageReindexView,
     ManualPackageOpenView,
-    ManualPackagePDFView,
-    ManualPackagePDFViewerView,
     ManualFileReindexView,
     ManualPackageReuploadView,
     ManualPackageDeleteView,
@@ -116,24 +114,9 @@ urlpatterns = [
         name="manual_package_open",
     ),
     path(
-        "manual-packages/<int:pk>/pdf/",
-        ManualPackagePDFView.as_view(),
-        name="manual_package_pdf",
-    ),
-    path(
-        "manual-packages/<int:pk>/pdf/viewer/",
-        ManualPackagePDFViewerView.as_view(),
-        name="manual_package_pdf_viewer",
-    ),
-    path(
         "manual-files/<int:pk>/reindex/",
         ManualFileReindexView.as_view(),
         name="manual_file_reindex",
-    ),
-    path(
-        "manual-packages/<int:package_pk>/viewer/",
-        ManualPackagePDFViewerView.as_view(),
-        name="manual_package_pdf_viewer",
     ),
     path(
         "manual-packages/<int:package_pk>/reupload/",

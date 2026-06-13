@@ -10,16 +10,14 @@
 
 <div class="detail-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">
-            SEARCH
-        </p>
+        <p class="home-eyebrow mb-1">SEARCH</p>
 
         <h2 class="page-title mb-2">
             Manual Search
         </h2>
 
         <p class="text-muted mb-0 home-subtitle">
-            ZIP 매뉴얼과 PDF 매뉴얼에서 추출된 텍스트를 검색합니다.
+            매뉴얼별로 검색 결과를 분류해서 보여줍니다.
         </p>
     </div>
 
@@ -37,37 +35,29 @@
             <div class="row g-3">
 
                 <div class="col-12 col-md-3">
-                    <label class="form-label">
-                        Aircraft
-                    </label>
+                    <label class="form-label">Aircraft</label>
 
                     <select name="aircraft"
                         class="form-select app-form-control">
-                        <option value="">
-                            전체 기종
-                        </option>
+                        <option value="">전체 기종</option>
 
                         {% for aircraft in aircrafts %}
                             <option value="{{ aircraft.id }}"
                                 {% if selected_aircraft == aircraft.id|stringformat:"s" %}
                                     selected
                                 {% endif %}>
-                                {{ aircraft.name }}
+                                {{ aircraft.maker }} - {{ aircraft.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <label class="form-label">
-                        Manual
-                    </label>
+                    <label class="form-label">Manual</label>
 
                     <select name="manual_type"
                         class="form-select app-form-control">
-                        <option value="">
-                            전체
-                        </option>
+                        <option value="">전체</option>
 
                         {% for type in manual_types %}
                             <option value="{{ type }}"
@@ -81,9 +71,7 @@
                 </div>
 
                 <div class="col-12 col-md-5">
-                    <label class="form-label">
-                        Search
-                    </label>
+                    <label class="form-label">Search</label>
 
                     <input type="text"
                         name="q"
@@ -107,136 +95,114 @@
 {% if query %}
 
     <div class="search-summary mb-3">
-        <div>
-            <span class="search-summary-label">
-                ZIP Manual
-            </span>
+        {% for manual_type, pages in grouped_results.items %}
+            <div>
+                <span class="search-summary-label">
+                    {{ manual_type }}
+                </span>
 
-            <strong>
-                {{ package_pages|length }}
-            </strong>
-        </div>
-
-        <div>
-            <span class="search-summary-label">
-                PDF Manual
-            </span>
-
-            <strong>
-                {{ file_pages|length }}
-            </strong>
-        </div>
+                <strong>
+                    {{ pages|length }}
+                </strong>
+            </div>
+        {% endfor %}
     </div>
 
-    {% for page in package_pages %}
+    {% for manual_type, pages in grouped_results.items %}
+        {% if pages %}
+            {% with first_page=pages.0 %}
+                <div class="card portal-card manual-group-card shadow-sm mb-3">
+                    <div class="card-body">
 
-        <div class="card portal-card search-result-card shadow-sm mb-3">
-            <div class="card-body">
+                        <div class="manual-group-header">
+                            <div>
+                                <p class="aircraft-maker mb-1">
+                                    {{ manual_type }} MANUAL
+                                </p>
 
-                <div class="search-result-header">
-                    <div>
-                        <p class="aircraft-maker mb-1">
-                            ZIP MANUAL
-                        </p>
+                                <h4 class="section-title mb-1">
+                                    {{ manual_type }} Results
+                                </h4>
 
-                        <h5 class="search-result-title mb-1">
-                            {{ page.chapter.package.aircraft.name }}
-                            /
-                            {{ page.chapter.package.manual_type }}
-                        </h5>
-
-                        <div class="search-meta">
-                            Task: {{ page.chapter.task }}
-                            |
-                            Subtask: {{ page.chapter.subtask|default:"-" }}
-                            |
-                            Page: {{ page.page_number }}
-                            |
-                            Score: {{ page.score }}
-                        </div>
-                    </div>
-
-                    <div class="search-result-actions">
-                        <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                            target="_blank"
-                            class="btn btn-primary app-card-btn">
-                            Open Page
-                        </a>
-
-                        <a href="{% url 'dispatch_auto_search' %}?aircraft={{ page.chapter.package.aircraft.id }}&q={{ page.chapter.task|urlencode }}"
-                            class="btn btn-outline-danger app-card-btn">
-                            Find Dispatch
-                        </a>
-                    </div>
-                </div>
-
-                <p class="search-result-description">
-                    <strong>Title:</strong>
-                    {{ page.chapter.title|default:"-" }}
-                </p>
-
-                <div class="search-snippet">
-                    {{ page.snippet|highlight_query:query }}
-                </div>
-
-            </div>
-        </div>
-
-    {% endfor %}
-
-    {% for page in file_pages %}
-
-        <div class="card portal-card search-result-card pdf-result-card shadow-sm mb-3">
-            <div class="card-body">
-
-                <div class="search-result-header">
-                    <div>
-                        <p class="aircraft-maker text-danger mb-1">
-                            PDF MANUAL
-                        </p>
-
-                        <h5 class="search-result-title mb-1">
-                            {{ page.manual_file.aircraft.name }}
-                            /
-                            {{ page.manual_file.manual_type }}
-                        </h5>
-
-                        <div class="search-meta">
-                            PDF Manual Page:
-                            {{ page.page_number }}
-                            |
-                            Score:
-                            {{ page.score }}
-                        </div>
-
-                        {% if page.revision_label %}
-                            <div class="search-meta">
-                                {{ page.revision_label }}
+                                <p class="section-description mb-0">
+                                    검색된 페이지 {{ pages|length }}개
+                                </p>
                             </div>
-                        {% endif %}
-                    </div>
 
-                    <div class="search-result-actions">
-                        <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                            target="_blank"
-                            class="btn btn-danger app-card-btn">
-                            Open PDF Page
-                        </a>
+                            <span class="badge bg-primary manual-badge">
+                                {{ pages|length }} pages
+                            </span>
+                        </div>
+
+                        <div class="manual-group-info mt-3">
+                            {% if manual_type == "MEL" or manual_type == "CDL" %}
+                                <div>
+                                    <span>Aircraft</span>
+                                    <strong>{{ first_page.manual_file.aircraft.name }}</strong>
+                                </div>
+
+                                <div>
+                                    <span>Manual</span>
+                                    <strong>{{ first_page.manual_file.manual_type }}</strong>
+                                </div>
+
+                                <div>
+                                    <span>First Match</span>
+                                    <strong>Page {{ first_page.page_number }}</strong>
+                                </div>
+                            {% else %}
+                                <div>
+                                    <span>Aircraft</span>
+                                    <strong>{{ first_page.chapter.package.aircraft.name }}</strong>
+                                </div>
+
+                                <div>
+                                    <span>Manual</span>
+                                    <strong>{{ first_page.chapter.package.manual_type }}</strong>
+                                </div>
+
+                                <div>
+                                    <span>First Match</span>
+                                    <strong>
+                                        {{ first_page.chapter.task }} /
+                                        Page {{ first_page.page_number }}
+                                    </strong>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="manual-group-actions mt-3">
+                            {% if manual_type == "MEL" or manual_type == "CDL" %}
+                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-danger app-card-btn">
+                                    Open First Match
+                                </a>
+
+                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-outline-danger app-card-btn">
+                                    Show Matched Pages
+                                </a>
+                            {% else %}
+                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-primary app-card-btn">
+                                    Open First Match
+                                </a>
+
+                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
+                                    target="_blank"
+                                    class="btn btn-outline-primary app-card-btn">
+                                    Open Viewer
+                                </a>
+                            {% endif %}
+                        </div>
+
                     </div>
                 </div>
-
-                <p class="search-result-description">
-                    <strong>Description:</strong>
-                    {{ page.manual_file.description|default:"-" }}
-                </p>
-
-                <div class="search-snippet">
-                    {{ page.snippet|highlight_query:query }}
-                </div>
-
-            </div>
-        </div>
-
+            {% endwith %}
+        {% endif %}
     {% endfor %}
 
     {% if not package_pages and not file_pages %}
@@ -250,40 +216,6 @@
     <div class="alert alert-info app-alert">
         검색어를 입력하세요.
     </div>
-
-{% endif %}
-
-{% if is_paginated %}
-
-    <nav class="mt-4">
-        <ul class="pagination justify-content-center">
-
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link"
-                        href="?aircraft={{ selected_aircraft }}&manual_type={{ selected_manual_type }}&q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">
-                        Previous
-                    </a>
-                </li>
-            {% endif %}
-
-            <li class="page-item active">
-                <span class="page-link">
-                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-                </span>
-            </li>
-
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link"
-                        href="?aircraft={{ selected_aircraft }}&manual_type={{ selected_manual_type }}&q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">
-                        Next
-                    </a>
-                </li>
-            {% endif %}
-
-        </ul>
-    </nav>
 
 {% endif %}
 

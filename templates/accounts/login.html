@@ -1,38 +1,61 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock css %}
 
 {% block content %}
 
-<div class="row justify-content-center">
+<div class="login-wrapper">
 
-    <div class="col-md-4">
+    <div class="login-card">
 
-        <div class="card">
+        <div class="login-header">
 
-            <div class="card-header">
-                Login
+            <div class="login-logo">
+                📘
             </div>
 
-            <div class="card-body">
+            <h2 class="login-title">
+                Manual Portal
+            </h2>
 
-                <form method="post">
-
-                    {% csrf_token %}
-
-                    {{ form.as_p }}
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary w-100">
-
-                        Login
-
-                    </button>
-
-                </form>
-
-            </div>
+            <p class="login-subtitle">
+                Login to continue
+            </p>
 
         </div>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Username
+                </label>
+
+                {{ form.username }}
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">
+                    Password
+                </label>
+
+                {{ form.password }}
+            </div>
+
+            <button
+                type="submit"
+                class="btn btn-primary login-btn">
+
+                Login
+
+            </button>
+
+        </form>
 
     </div>
 

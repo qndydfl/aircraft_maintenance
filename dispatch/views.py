@@ -765,7 +765,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         query = self.request.GET.get("q", "").strip()
         search_type = self.request.GET.get("search_type", "keyword").strip()
 
-        context["aircrafts"] = Aircraft.objects.filter(maker="BOEING")
+        context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
         context["selected_aircraft"] = aircraft_id
         context["query"] = query
         context["search_type"] = search_type
@@ -788,7 +788,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         if not query:
             return context
 
-        aircraft_qs = Aircraft.objects.filter(maker="BOEING")
+        aircraft_qs = Aircraft.objects.all().order_by("maker", "name")
 
         if aircraft_id:
             aircraft_qs = aircraft_qs.filter(pk=aircraft_id)

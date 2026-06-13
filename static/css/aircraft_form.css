@@ -1,0 +1,118 @@
+.aircraft-form{
+
+    display:grid;
+
+    gap:20px;
+
+}
+
+.aircraft-form-section{
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:18px;
+
+    padding:18px;
+
+}
+
+.aircraft-form-title{
+
+    font-weight:800;
+
+    margin-bottom:16px;
+
+    color:#111827;
+
+}
+
+.aircraft-form input,
+.aircraft-form select{
+
+    min-height:46px;
+
+    border-radius:12px;
+
+}
+
+.aircraft-guide{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:12px;
+
+}
+
+.guide-card{
+
+    background:#ffffff;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:14px;
+
+    padding:14px;
+
+}
+
+.guide-card strong{
+
+    display:block;
+
+    margin-bottom:4px;
+
+}
+
+.guide-card small{
+
+    color:#6b7280;
+
+}
+
+.aircraft-form-actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:8px;
+
+}
+
+@media(max-width:768px){
+
+    .aircraft-guide{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .aircraft-form-actions{
+
+        display:grid;
+
+        grid-template-columns:1fr 1fr;
+
+    }
+
+    .aircraft-form-actions .btn{
+
+        width:100%;
+
+    }
+
+}
+
+@media(max-width:420px){
+
+    .aircraft-form-actions{
+
+        grid-template-columns:1fr;
+
+    }
+
+}

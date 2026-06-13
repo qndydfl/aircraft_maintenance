@@ -54,32 +54,49 @@ function parseViewerSearchQuery(query) {
         return {
             value: "",
             mode: "exact",
+            words: [],
+            regex: null,
         };
     }
 
-    const trimmed = query.trim();
+    const trimmed = query.trim().toLowerCase();
 
-    if (
-        trimmed.startsWith("*") &&
-        trimmed.endsWith("*") &&
-        trimmed.length > 2
-    ) {
-        return {
-            value: trimmed.slice(1, -1).trim().toLowerCase(),
-            mode: "contains",
-        };
-    }
+    if (trimmed.includes("*")) {
+        const words = trimmed
+            .split("*")
+            .map(function (word) {
+                return word.trim();
+            })
+            .filter(Boolean);
 
-    if (trimmed.endsWith("*") && trimmed.length > 1) {
+        if (!words.length) {
+            return {
+                value: "",
+                mode: "exact",
+                words: [],
+                regex: null,
+            };
+        }
+
+        const regexText = words
+            .map(function (word) {
+                return escapeRegExp(word);
+            })
+            .join(".*");
+
         return {
-            value: trimmed.slice(0, -1).trim().toLowerCase(),
-            mode: "startswith",
+            value: trimmed,
+            mode: "wildcard",
+            words: words,
+            regex: new RegExp(regexText, "i"),
         };
     }
 
     return {
-        value: trimmed.toLowerCase(),
+        value: trimmed,
         mode: "exact",
+        words: [trimmed],
+        regex: null,
     };
 }
 
@@ -106,18 +123,16 @@ function isMatchedText(text) {
     }
 
     const normalizedText = normalizeText(text);
+
+    if (parsedSearch.mode === "wildcard") {
+        return parsedSearch.words.some(function (word) {
+            return normalizedText.includes(word);
+        });
+    }
+
     const escaped = escapeRegExp(parsedSearch.value);
-
-    if (parsedSearch.mode === "contains") {
-        return normalizedText.includes(parsedSearch.value);
-    }
-
-    if (parsedSearch.mode === "startswith") {
-        const regex = new RegExp("\\b" + escaped + "[a-z0-9/_-]*", "i");
-        return regex.test(normalizedText);
-    }
-
     const regex = new RegExp("\\b" + escaped + "\\b", "i");
+
     return regex.test(normalizedText);
 }
 
@@ -529,10 +544,16 @@ window.addEventListener("resize", function () {
 function applyOutlineState() {
     const storedValue = sessionStorage.getItem(outlineStorageKey);
 
-    const isHidden = storedValue === null ? true : storedValue === "true";
+    let isHidden;
 
     if (storedValue === null) {
-        sessionStorage.setItem(outlineStorageKey, "true");
+        // PC에서는 Contents 기본 표시
+        // 모바일에서는 Contents 기본 숨김
+        isHidden = window.innerWidth < 768;
+
+        sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
+    } else {
+        isHidden = storedValue === "true";
     }
 
     if (isHidden) {
@@ -717,20 +738,23 @@ function isTextMatchedByParsedSearch(text, parsed) {
     }
 
     const normalizedText = normalizeText(text);
+
+    if (parsed.mode === "wildcard") {
+        if (parsed.regex) {
+            return parsed.regex.test(normalizedText);
+        }
+
+        return parsed.words.every(function (word) {
+            return normalizedText.includes(word);
+        });
+    }
+
     const escaped = escapeRegExp(parsed.value);
-
-    if (parsed.mode === "contains") {
-        return normalizedText.includes(parsed.value);
-    }
-
-    if (parsed.mode === "startswith") {
-        const regex = new RegExp("\\b" + escaped + "[a-z0-9/_-]*", "i");
-        return regex.test(normalizedText);
-    }
-
     const regex = new RegExp("\\b" + escaped + "\\b", "i");
+
     return regex.test(normalizedText);
 }
+
 
 function updateViewerSearchCount() {
     if (!viewerSearchMatches.length) {
@@ -805,3 +829,58 @@ if (viewerSearchNextBtn) {
         goToSearchMatch(viewerSearchIndex + 1);
     });
 }
+
+let wheelLock = false;
+
+pdfContainer.addEventListener(
+    "wheel",
+    function (event) {
+        if (!pdfDoc) {
+            return;
+        }
+
+        // Ctrl + Wheel = PDF만 확대/축소
+        if (event.ctrlKey) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            scaleMode = "custom";
+
+            if (event.deltaY < 0) {
+                scale = Math.min(scale + 0.1, 4);
+            } else {
+                scale = Math.max(scale - 0.1, 0.5);
+            }
+
+            queueRenderPage(currentPage);
+            return;
+        }
+
+        // 일반 Wheel = 이전/다음 페이지
+        if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (wheelLock) {
+            return;
+        }
+
+        wheelLock = true;
+
+        if (event.deltaY > 0) {
+            goToPage(currentPage + 1);
+        } else if (event.deltaY < 0) {
+            goToPage(currentPage - 1);
+        }
+
+        setTimeout(function () {
+            wheelLock = false;
+        }, 350);
+    },
+    {
+        passive: false,
+    }
+);

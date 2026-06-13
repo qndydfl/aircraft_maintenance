@@ -4,7 +4,6 @@ from django.conf import settings
 from bs4 import BeautifulSoup
 from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage
 from django.db import transaction
-from django.core.files import File
 from pypdf import PdfReader, PdfWriter
 
 
@@ -55,50 +54,6 @@ def find_index_html(extract_to):
 
     return None
 
-
-# def process_manual_package(package):
-#     zip_file_path = package.zip_file.path
-
-#     extract_to = os.path.join(
-#         settings.MEDIA_ROOT,
-#         "extracted_manuals",
-#         str(package.aircraft.id),
-#         package.manual_type.lower(),
-#         str(package.id),
-#     )
-
-#     safe_extract_zip(zip_file_path=zip_file_path, extract_to=extract_to)
-
-#     index_html_path = find_index_html(extract_to)
-
-#     if not index_html_path:
-#         raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
-
-#     package.extracted_path = extract_to
-#     package.save(
-#         update_fields=[
-#             "extracted_path",
-#         ]
-#     )
-
-#     save_package_revision_info(package, index_html_path)
-
-#     chapter_count = parse_index_html(package=package, index_html_path=index_html_path)
-
-#     page_count = index_pdf_pages_for_package(package=package)
-
-#     package.processed = True
-#     package.save(
-#         update_fields=[
-#             "processed",
-#         ]
-#     )
-
-#     return {
-#         "index_html_path": index_html_path,
-#         "chapter_count": chapter_count,
-#         "page_count": page_count,
-#     }
 
 def process_manual_package(package):
     extract_to = os.path.join(
@@ -462,83 +417,6 @@ def index_pdf_pages_for_manual_file_safely(manual_file):
             os.remove(temp_pdf_path)
 
 
-# def process_manual_package_safely(package):
-#     zip_file_path = package.zip_file.path
-
-#     final_extract_to = os.path.join(
-#         settings.MEDIA_ROOT,
-#         "extracted_manuals",
-#         str(package.aircraft.id),
-#         package.manual_type.lower(),
-#         str(package.id),
-#     )
-
-#     temp_extract_to = os.path.join(
-#         settings.MEDIA_ROOT,
-#         "temp_extracted_manuals",
-#         str(uuid.uuid4()),
-#     )
-
-#     old_extracted_path = package.extracted_path
-
-#     try:
-#         safe_extract_zip(zip_file_path=zip_file_path, extract_to=temp_extract_to)
-
-#         index_html_path = find_index_html(temp_extract_to)
-
-#         if not index_html_path:
-#             raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
-
-#         with transaction.atomic():
-
-#             ManualChapter.objects.filter(package=package).delete()
-
-#             package.extracted_path = temp_extract_to
-#             package.processed = False
-#             package.save(
-#                 update_fields=[
-#                     "extracted_path",
-#                     "processed",
-#                 ]
-#             )
-
-#             save_package_revision_info(package, index_html_path)
-
-#             chapter_count = parse_index_html(
-#                 package=package, index_html_path=index_html_path
-#             )
-
-#             page_count = index_pdf_pages_for_package(package=package)
-
-#             if os.path.exists(final_extract_to):
-#                 shutil.rmtree(final_extract_to, ignore_errors=True)
-
-#             os.makedirs(os.path.dirname(final_extract_to), exist_ok=True)
-
-#             shutil.move(temp_extract_to, final_extract_to)
-
-#             package.extracted_path = final_extract_to
-#             package.processed = True
-#             package.save(
-#                 update_fields=[
-#                     "extracted_path",
-#                     "processed",
-#                 ]
-#             )
-
-#         if old_extracted_path and old_extracted_path != final_extract_to:
-#             shutil.rmtree(old_extracted_path, ignore_errors=True)
-
-#         return {
-#             "chapter_count": chapter_count,
-#             "page_count": page_count,
-#         }
-
-#     except Exception:
-#         shutil.rmtree(temp_extract_to, ignore_errors=True)
-
-#         raise
-
 def process_manual_package_safely(package):
     final_extract_to = os.path.join(
         settings.MEDIA_ROOT,
@@ -555,23 +433,36 @@ def process_manual_package_safely(package):
     )
 
     old_extracted_path = package.extracted_path
+    temp_zip_path = None
 
     try:
         os.makedirs(temp_extract_to, exist_ok=True)
 
-        with tempfile.NamedTemporaryFile(suffix=".zip", delete=True) as temp_zip:
-            package.zip_file.open("rb")
+        temp_zip = tempfile.NamedTemporaryFile(
+            suffix=".zip",
+            delete=False,
+        )
 
-            for chunk in package.zip_file.chunks():
-                temp_zip.write(chunk)
+        temp_zip_path = temp_zip.name
 
-            package.zip_file.close()
-            temp_zip.flush()
+        package.zip_file.open("rb")
 
-            safe_extract_zip(
-                zip_file_path=temp_zip.name,
-                extract_to=temp_extract_to,
-            )
+        for chunk in package.zip_file.chunks():
+            temp_zip.write(chunk)
+
+        package.zip_file.close()
+
+        temp_zip.flush()
+        temp_zip.close()
+
+        safe_extract_zip(
+            zip_file_path=temp_zip_path,
+            extract_to=temp_extract_to,
+        )
+
+        if temp_zip_path and os.path.exists(temp_zip_path):
+            os.remove(temp_zip_path)
+            temp_zip_path = None
 
         index_html_path = find_index_html(temp_extract_to)
 
@@ -615,6 +506,10 @@ def process_manual_package_safely(package):
     except Exception:
         shutil.rmtree(temp_extract_to, ignore_errors=True)
         raise
+
+    finally:
+        if temp_zip_path and os.path.exists(temp_zip_path):
+            os.remove(temp_zip_path)
 
 
 def calculate_package_score(page, query):
@@ -726,91 +621,43 @@ def get_match_navigation(pages, current_page):
     }
 
 
-def merge_package_chapter_pdfs(package):
-    chapters = package.chapters.all().order_by("task", "subtask")
-
-    if not chapters.exists():
-        return None
-
-    writer = PdfWriter()
-    page_offset = 0
-
-    for chapter in chapters:
-        if not chapter.pdf_relative_path:
-            continue
-
-        pdf_path = chapter.get_pdf_full_path()
-
-        if not os.path.exists(pdf_path):
-            continue
-
-        reader = PdfReader(pdf_path)
-
-        writer.append(pdf_path)
-
-        title_parts = [chapter.task]
-
-        if chapter.subtask:
-            title_parts.append(chapter.subtask)
-
-        if chapter.title:
-            title_parts.append(chapter.title)
-
-        bookmark_title = " / ".join(title_parts)
-
-        writer.add_outline_item(title=bookmark_title, page_number=page_offset)
-
-        page_offset += len(reader.pages)
-
-    if len(writer.pages) == 0:
-        return None
-
-    output_dir = os.path.join("media", "merged_manuals")
-    os.makedirs(output_dir, exist_ok=True)
-
-    filename = f"{package.aircraft.name}_{package.manual_type}_{package.id}.pdf"
-    filename = filename.replace(" ", "_")
-
-    output_path = os.path.join(output_dir, filename)
-
-    with open(output_path, "wb") as f:
-        writer.write(f)
-
-    with open(output_path, "rb") as f:
-        package.merged_pdf.save(filename, File(f), save=True)
-
-    return package.merged_pdf
-
-
 def get_pdf_full_path(self):
     return os.path.join(settings.MEDIA_ROOT, self.pdf_relative_path)
 
 
 def parse_manual_search_query(query):
+    query = (query or "").strip()
+
     if not query:
         return "", "exact"
 
-    value = query.strip()
+    query = " ".join(query.split())
 
-    if value.startswith("*") and value.endswith("*") and len(value) > 2:
-        return value[1:-1].strip(), "contains"
+    if "*" in query:
+        return query.lower(), "wildcard"
 
-    if value.endswith("*") and len(value) > 1:
-        return value[:-1].strip(), "startswith"
-
-    return value, "exact"
+    return query.lower(), "exact"
 
 
 def build_manual_text_regex(search_value, match_mode):
+    search_value = (search_value or "").strip().lower()
+
+    if not search_value:
+        return ""
+
+    if match_mode == "wildcard":
+        parts = [
+            re.escape(part.strip()) for part in search_value.split("*") if part.strip()
+        ]
+
+        if not parts:
+            return ""
+
+        return r".*".join(parts)
+
     escaped = re.escape(search_value)
 
-    if match_mode == "contains":
-        return escaped
-
-    if match_mode == "startswith":
-        return rf"\b{escaped}[A-Za-z0-9/_-]*"
-
-    return rf"\b{escaped}\b"
+    return r"\b" + escaped + r"\b"
 
 
 def extract_package_revision_info(package_dir):

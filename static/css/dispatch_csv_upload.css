@@ -1,0 +1,35 @@
+.csv-upload-form {
+    display: grid;
+    gap: 16px;
+}
+
+.csv-file-input {
+    min-height: 44px;
+    border-radius: 13px;
+}
+
+.csv-example-wrap {
+    overflow-x: auto;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+}
+
+.csv-example {
+    margin: 0;
+    padding: 16px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    white-space: pre;
+}
+
+@media (max-width: 767.98px) {
+    .csv-upload-form .btn {
+        width: 100%;
+    }
+
+    .csv-example {
+        font-size: 0.75rem;
+        padding: 14px;
+    }
+}

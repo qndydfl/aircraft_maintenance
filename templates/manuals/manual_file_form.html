@@ -1,98 +1,138 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %}
+{% load static %}
 
-<div
-    class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
->
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/manual_file_form.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="detail-hero mb-4">
     <div>
-        <h2 class="mb-1">
-            {% if manual %} Re-upload Manual File {% else %} Add Manual File {% endif %}
+        <p class="home-eyebrow mb-1">MANUAL FILE</p>
+
+        <h2 class="page-title mb-2">
+            {% if manual %}
+                Re-upload Manual File
+            {% else %}
+                Add Manual File
+            {% endif %}
         </h2>
 
-        <p class="text-muted mb-0">
-            AMM / FIM / IPC는 ZIP, MEL / CDL은 PDF 파일로 업로드합니다.
+        <p class="text-muted mb-0 home-subtitle">
+            MEL / CDL은 PDF 파일로 업로드합니다.
         </p>
     </div>
 
-    <a href="{{ back_url }}" class="btn btn-outline-secondary"> Back </a>
+    <div class="home-actions">
+        <a href="{{ back_url }}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
 </div>
 
-<div class="card shadow-sm">
+<div class="card portal-card shadow-sm">
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %} {% if form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        <form method="post"
+            enctype="multipart/form-data"
+            class="manual-file-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger app-alert">
+                    {{ form.non_field_errors }}
+                </div>
             {% endif %}
 
-            <div class="mb-3">
-                <label class="form-label"> Aircraft </label>
+            <div class="manual-file-section">
+                <h5 class="manual-file-section-title">
+                    Manual Information
+                </h5>
 
-                {{ form.aircraft }} {% if form.aircraft.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.aircraft.errors }}
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">
+                            Aircraft
+                        </label>
+
+                        {{ form.aircraft }}
+
+                        {% if form.aircraft.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.aircraft.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">
+                            Manual Type
+                        </label>
+
+                        {{ form.manual_type }}
+
+                        {% if form.manual_type.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.manual_type.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
 
-            <div class="mb-3">
-                <label class="form-label"> Manual Type </label>
+            <div class="manual-file-section">
+                <h5 class="manual-file-section-title">
+                    Upload File
+                </h5>
 
-                {{ form.manual_type }} {% if form.manual_type.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.manual_type.errors }}
-                </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label"> File </label>
+                <label class="form-label">
+                    File
+                </label>
 
                 {{ form.file }}
 
-                <div class="form-text mt-2">
-                    <strong>업로드 규칙</strong><br />
-                    AMM / FIM / IPC → ZIP 파일만 가능<br />
-                    MEL / CDL → PDF 파일만 가능
+                <div class="manual-upload-guide mt-3">
+                    <strong>업로드 규칙</strong>
+
+                    <div>
+                        MEL / CDL → PDF 파일
+                    </div>
+
+                    <div class="text-muted small mt-1">
+                        AMM / FIM / IPC는 ZIP Package Upload 메뉴를 사용하세요.
+                    </div>
                 </div>
 
                 {% if form.file.errors %}
-                <div class="text-danger small mt-1">{{ form.file.errors }}</div>
+                    <div class="text-danger small mt-1">
+                        {{ form.file.errors }}
+                    </div>
                 {% endif %}
             </div>
 
-            <div class="mb-3">
-                <label class="form-label"> Description </label>
+            <div class="manual-file-section">
+                <h5 class="manual-file-section-title">
+                    Description
+                </h5>
 
-                {{ form.description }} {% if form.description.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.description.errors }}
-                </div>
+                {{ form.description }}
+
+                {% if form.description.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.description.errors }}
+                    </div>
                 {% endif %}
             </div>
 
-            {% comment %} <div class="mb-3">
-                <label class="form-label"> Revision No </label>
+            <div class="manual-file-actions">
+                <button type="submit"
+                    class="btn btn-primary app-card-btn">
+                    Save
+                </button>
 
-                {{ form.revision_no }} {% if form.revision_no.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.revision_no.errors }}
-                </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label"> Revision Date </label>
-
-                {{ form.revision_date_text }} {% if form.revision_date_text.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.revision_date_text.errors }}
-                </div>
-                {% endif %}
-            </div> {% endcomment %}
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Save</button>
-
-                <a href="{{ back_url }}" class="btn btn-outline-secondary">
+                <a href="{{ back_url }}"
+                    class="btn btn-outline-secondary app-card-btn">
                     Cancel
                 </a>
             </div>
@@ -100,4 +140,4 @@
     </div>
 </div>
 
-{% endblock %}
+{% endblock content %}

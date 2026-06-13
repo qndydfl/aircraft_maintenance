@@ -4,6 +4,47 @@ from django.core.exceptions import ValidationError
 import os
 
 
+def build_snippet_from_text(text, query, length=180):
+    if not text:
+        return ""
+
+    if not query:
+        return text[:length]
+
+    text_lower = text.lower()
+
+    if isinstance(query, (list, tuple)):
+        words = [str(word).lower().strip() for word in query if str(word).strip()]
+    else:
+        query_text = str(query).lower().replace("*", " ")
+        words = [word.strip() for word in query_text.split() if word.strip()]
+
+    first_index = -1
+
+    for word in words:
+        index = text_lower.find(word)
+
+        if index != -1:
+            first_index = index
+            break
+
+    if first_index == -1:
+        return text[:length]
+
+    start = max(first_index - 80, 0)
+    end = min(first_index + length, len(text))
+
+    snippet = text[start:end]
+
+    if start > 0:
+        snippet = "..." + snippet
+
+    if end < len(text):
+        snippet = snippet + "..."
+
+    return snippet
+
+
 def get_pdf_full_path(self):
     return os.path.join(settings.MEDIA_ROOT, self.pdf_relative_path)
 
@@ -43,22 +84,22 @@ class Aircraft(models.Model):
         return sorted(manuals, key=lambda manual: manual.manual_order())
 
     def get_amm(self):
-        return self.manuals.filter(manual_type="AMM").first()
+        return self.get_manual_by_type("AMM")
 
     def get_fim(self):
-        return self.manuals.filter(manual_type="FIM").first()
+        return self.get_manual_by_type("FIM")
 
     def get_ipc(self):
-        return self.manuals.filter(manual_type="IPC").first()
+        return self.get_manual_by_type("IPC")
 
     def get_mel(self):
-        return self.manuals.filter(manual_type="MEL").first()
+        return self.get_manual_by_type("MEL")
 
     def get_cdl(self):
-        return self.manuals.filter(manual_type="CDL").first()
+        return self.get_manual_by_type("CDL")
 
     def has_manual(self, manual_type):
-        return self.manuals.filter(manual_type=manual_type).exists()
+        return any(manual.manual_type == manual_type for manual in self.manuals.all())
 
     def has_amm(self):
         return self.has_manual("AMM")
@@ -75,20 +116,35 @@ class Aircraft(models.Model):
     def has_cdl(self):
         return self.has_manual("CDL")
 
+    def has_any_manual(self):
+        return (self.manuals.exists() or self.manual_packages.exists())
+
     def get_manual_by_type(self, manual_type):
-        return self.manuals.filter(manual_type=manual_type).first()
+        return next(
+            (
+                manual
+                for manual in self.manuals.all()
+                if manual.manual_type == manual_type
+            ),
+            None,
+        )
 
     def get_manual_status_list(self):
 
         manual_types = ["AMM", "FIM", "IPC", "MEL", "CDL"]
 
+        manuals_by_type = {manual.manual_type: manual for manual in self.manuals.all()}
+        packages_by_type = {
+            package.manual_type: package for package in self.manual_packages.all()
+        }
+
         result = []
 
         for manual_type in manual_types:
 
-            package = self.manual_packages.filter(manual_type=manual_type).first()
+            package = packages_by_type.get(manual_type)
 
-            file = self.manuals.filter(manual_type=manual_type).first()
+            file = manuals_by_type.get(manual_type)
 
             result.append(
                 {
@@ -101,7 +157,14 @@ class Aircraft(models.Model):
         return result
 
     def get_package_by_type(self, manual_type):
-        return self.manual_packages.filter(manual_type=manual_type).first()
+        return next(
+            (
+                package
+                for package in self.manual_packages.all()
+                if package.manual_type == manual_type
+            ),
+            None,
+        )
 
 
 class ManualFile(models.Model):
@@ -136,7 +199,7 @@ class ManualFile(models.Model):
         unique_together = [["aircraft", "manual_type"]]
 
     def indexed_page_count(self):
-        return self.pdf_pages.count()
+        return len(self.pdf_pages.all())
 
     def is_indexed_pdf(self):
         return self.indexed_page_count() > 0
@@ -192,8 +255,6 @@ class ManualPackage(models.Model):
         Aircraft, on_delete=models.CASCADE, related_name="manual_packages"
     )
 
-    merged_pdf = models.FileField(upload_to="merged_manuals/", blank=True, null=True)
-
     manual_type = models.CharField(max_length=10, choices=MANUAL_TYPE_CHOICES)
 
     zip_file = models.FileField(upload_to="manual_packages/")
@@ -214,10 +275,10 @@ class ManualPackage(models.Model):
         unique_together = [["aircraft", "manual_type"]]
 
     def chapter_count(self):
-        return self.chapters.count()
+        return len(self.chapters.all())
 
     def page_count(self):
-        return ManualPDFPage.objects.filter(chapter__package=self).count()
+        return sum(len(chapter.pages.all()) for chapter in self.chapters.all())
 
     def __str__(self):
         return f"{self.aircraft.name} - {self.manual_type}"
@@ -272,36 +333,7 @@ class ManualPDFPage(models.Model):
         unique_together = [["chapter", "page_number"]]
 
     def get_snippet(self, query, length=180):
-        if not query:
-            return self.text[:length]
-
-        text_lower = self.text.lower()
-        words = query.lower().split()
-
-        first_index = -1
-
-        for word in words:
-            index = text_lower.find(word)
-
-            if index != -1:
-                first_index = index
-                break
-
-        if first_index == -1:
-            return self.text[:length]
-
-        start = max(first_index - 80, 0)
-        end = min(first_index + length, len(self.text))
-
-        snippet = self.text[start:end]
-
-        if start > 0:
-            snippet = "..." + snippet
-
-        if end < len(self.text):
-            snippet = snippet + "..."
-
-        return snippet
+        return build_snippet_from_text(self.text, query, length)
 
     def __str__(self):
         return f"{self.chapter} - Page {self.page_number}"
@@ -325,36 +357,7 @@ class ManualFilePDFPage(models.Model):
         unique_together = [["manual_file", "page_number"]]
 
     def get_snippet(self, query, length=180):
-        if not query:
-            return self.text[:length]
-
-        text_lower = self.text.lower()
-        words = query.lower().split()
-
-        first_index = -1
-
-        for word in words:
-            index = text_lower.find(word)
-
-            if index != -1:
-                first_index = index
-                break
-
-        if first_index == -1:
-            return self.text[:length]
-
-        start = max(first_index - 80, 0)
-        end = min(first_index + length, len(self.text))
-
-        snippet = self.text[start:end]
-
-        if start > 0:
-            snippet = "..." + snippet
-
-        if end < len(self.text):
-            snippet = snippet + "..."
-
-        return snippet
+        return build_snippet_from_text(self.text, query, length)
 
     def __str__(self):
         return f"{self.manual_file} - Page {self.page_number}"

@@ -1,11 +1,20 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/aircraft_form.css' %}">
+{% endblock css %}
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="detail-hero mb-4">
 
     <div>
-        <h2 class="mb-1">
+        <p class="home-eyebrow mb-1">
+            AIRCRAFT
+        </p>
+
+        <h2 class="page-title mb-2">
             {% if aircraft %}
                 Edit Aircraft
             {% else %}
@@ -13,61 +22,129 @@
             {% endif %}
         </h2>
 
-        <p class="text-muted mb-0">
-            Boeing 기종 또는 Airbus 링크를 등록합니다.
+        <p class="text-muted mb-0 home-subtitle">
+            Boeing 또는 Airbus 기종을 등록합니다.
         </p>
     </div>
 
-    <a href="{% url 'aircraft_manage' %}"
-        class="btn btn-outline-secondary">
-        Back
-    </a>
+    <div class="home-actions">
+        <a href="{% url 'aircraft_manage' %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
 
 </div>
 
-<div class="card shadow-sm">
+<div class="card portal-card shadow-sm">
 
     <div class="card-body">
 
-        <form method="post">
+        <form method="post" class="aircraft-form">
 
             {% csrf_token %}
 
             {% if form.non_field_errors %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger app-alert">
                     {{ form.non_field_errors }}
                 </div>
             {% endif %}
 
-            <div class="mb-3">
-                <label class="form-label">
-                    Maker
-                </label>
-                {{ form.maker }}
-            </div>
+            <div class="aircraft-form-section">
 
-            <div class="mb-3">
-                <label class="form-label">
-                    Aircraft Name
-                </label>
-                {{ form.name }}
-            </div>
+                <h5 class="aircraft-form-title">
+                    Basic Information
+                </h5>
 
-            <div class="mb-3">
-                <label class="form-label">
-                    Airbus URL
-                </label>
-                {{ form.airbus_url }}
+                <div class="mb-3">
 
-                <div class="form-text">
-                    Airbus인 경우에만 입력하세요. Boeing은 비워두면 됩니다.
+                    <label class="form-label">
+                        Maker
+                    </label>
+
+                    {{ form.maker }}
+
                 </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Aircraft Name
+                    </label>
+
+                    {{ form.name }}
+
+                </div>
+
             </div>
 
-            <button type="submit"
-                    class="btn btn-primary">
-                Save
-            </button>
+            <div class="aircraft-form-section">
+
+                <h5 class="aircraft-form-title">
+                    Airbus World Link
+                </h5>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Airbus URL
+                    </label>
+
+                    {{ form.airbus_url }}
+
+                    <div class="form-text mt-2">
+
+                        Boeing은 비워두세요.<br>
+
+                        Airbus만 Airbus World URL을 입력합니다.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="aircraft-guide">
+
+                <div class="guide-card">
+
+                    <strong>Boeing</strong>
+
+                    <small>
+                        AMM / FIM / IPC / MEL / CDL 관리
+                    </small>
+
+                </div>
+
+                <div class="guide-card">
+
+                    <strong>Airbus</strong>
+
+                    <small>
+                        MEL / CDL PDF + Airbus World Link
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="aircraft-form-actions">
+
+                <button type="submit"
+                        class="btn btn-primary app-card-btn">
+
+                    Save
+
+                </button>
+
+                <a href="{% url 'aircraft_manage' %}"
+                    class="btn btn-outline-secondary app-card-btn">
+
+                    Cancel
+
+                </a>
+
+            </div>
 
         </form>
 

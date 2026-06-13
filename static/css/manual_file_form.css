@@ -1,0 +1,65 @@
+.manual-file-form {
+    display: grid;
+    gap: 18px;
+}
+
+.manual-file-section {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 16px;
+}
+
+.manual-file-section-title {
+    color: #111827;
+    font-weight: 850;
+    font-size: 1rem;
+    margin-bottom: 14px;
+}
+
+.manual-file-form .form-control,
+.manual-file-form .form-select,
+.manual-file-form textarea {
+    min-height: 44px;
+    border-radius: 13px;
+}
+
+.manual-file-form textarea {
+    min-height: 110px;
+}
+
+.manual-upload-guide {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 12px;
+    color: #374151;
+}
+
+.manual-file-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+@media (max-width: 767.98px) {
+    .manual-file-section {
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .manual-file-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .manual-file-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .manual-file-actions {
+        grid-template-columns: 1fr;
+    }
+}
