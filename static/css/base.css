@@ -1,0 +1,216 @@
+:root {
+    --app-bg: #f4f6fb;
+    --app-card-bg: #ffffff;
+    --app-border: #e5e7eb;
+    --app-text: #1f2937;
+    --app-muted: #6b7280;
+    --app-primary: #0d6efd;
+    --app-danger: #dc3545;
+    --app-radius: 18px;
+    --app-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--app-bg);
+    color: var(--app-text);
+    padding-top: 72px;
+    padding-bottom: 0;
+    min-height: 100vh;
+}
+
+.app-navbar {
+    min-height: 60px;
+    box-shadow: 0 4px 18px rgba(13, 110, 253, 0.25);
+}
+
+.app-navbar-container {
+    min-height: 56px;
+}
+
+.app-brand {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.app-user-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.app-logout-btn {
+    border-radius: 999px;
+    font-weight: 700;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.app-main {
+    min-height: calc(100vh - 72px);
+}
+
+.app-container {
+    padding-bottom: 32px;
+}
+
+.app-alert {
+    border-radius: 14px;
+    border: 0;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.app-action-btn {
+    border-radius: 999px;
+    font-weight: 700;
+    padding: 0.55rem 1rem;
+    white-space: nowrap;
+}
+
+.app-card-btn {
+    border-radius: 13px;
+    font-weight: 750;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+}
+
+.portal-card {
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: var(--app-radius);
+    background: var(--app-card-bg);
+    overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.portal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important;
+    border-color: rgba(13, 110, 253, 0.22);
+}
+
+.portal-card .card-body {
+    padding: 18px;
+}
+
+.btn-info {
+    color: #052c35;
+    font-weight: 750;
+}
+
+.mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    height: 68px;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(229, 231, 235, 0.9);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.mobile-nav-item {
+    flex: 1;
+    height: 100%;
+    color: #4b5563;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    font-weight: 750;
+}
+
+.mobile-nav-danger {
+    color: var(--app-danger);
+}
+
+.mobile-nav-icon {
+    font-size: 1.15rem;
+}
+
+.mobile-nav-text {
+    font-size: 0.72rem;
+}
+
+@media (max-width: 767.98px) {
+    body {
+        padding-top: 66px;
+        padding-bottom: 82px;
+    }
+
+    .app-navbar {
+        min-height: 56px;
+    }
+
+    .app-navbar-container {
+        min-height: 52px;
+    }
+
+    .app-brand {
+        font-size: 1.05rem;
+    }
+
+    .app-user-name {
+        font-size: 0.8rem;
+        max-width: 100px;
+    }
+
+    .app-container {
+        padding-left: 14px;
+        padding-right: 14px;
+        padding-bottom: 24px;
+    }
+
+    .admin-only-action {
+        display: none !important;
+    }
+
+    .app-action-btn,
+    .app-card-btn {
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+
+    .portal-card {
+        border-radius: 14px;
+    }
+
+    .portal-card:hover {
+        transform: none;
+    }
+
+    .portal-card .card-body {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-action-btn,
+    .app-card-btn {
+        font-size: 0.8rem;
+        padding: 7px 9px;
+    }
+
+    .portal-card .card-body {
+        padding: 12px;
+    }
+}

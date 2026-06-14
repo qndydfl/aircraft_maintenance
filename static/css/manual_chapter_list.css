@@ -1,153 +1,248 @@
-.chapter-hero {
-    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
-    border: 1px solid rgba(13, 110, 253, 0.08);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: var(--app-shadow);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 18px;
+/* ==========================================
+   Manual Chapter List & Outline Global Style
+   ========================================== */
+
+/* 챕터 리스트 영역 기본 컨테이너 */
+.outline-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    overflow-y: auto;
+    padding: 14px;
+    box-sizing: border-box;
 }
 
-.chapter-search-form {
-    position: sticky;
-    top: 72px;
-    z-index: 20;
+/* 토글 버튼 등에 의해 완전히 숨겨질 때 */
+.outline-hidden .outline-panel {
+    display: none;
 }
 
-.chapter-search-group {
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-    border-radius: 16px;
-    overflow: hidden;
+/* 상단 타이틀 스펙 */
+.outline-title {
+    font-size: 0.85rem;
+    font-weight: 850;
+    color: #111827;
+    margin-bottom: 12px;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
 }
 
-.chapter-search-input {
-    min-height: 46px;
-}
-
-.chapter-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.chapter-bookmark-list {
+/* 트리 구조용 리스트 초기화 */
+.outline-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: grid;
-    gap: 8px;
+    gap: 4px;
 }
 
-.chapter-bookmark-item {
+.outline-item {
+    margin: 0;
+    padding: 0;
+}
+
+/* 챕터 행 레이아웃 (아이콘/토글 + 링크) */
+.outline-item .d-flex {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    color: #1f2937;
+    align-items: start;
+    gap: 6px;
+    width: 100%;
+}
+
+/* 챕터 링크 스타일 */
+.outline-link {
+    flex: 1;
+    display: block;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: #374151;
     text-decoration: none;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    font-weight: 500;
+    word-break: break-all;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.chapter-bookmark-item:hover {
-    background: #eef5ff;
-    border-color: rgba(13, 110, 253, 0.25);
-}
-
-.chapter-bookmark-icon {
+/* 마우스 호버 및 활성화 상태 */
+.outline-link:hover {
+    background: #f0f6ff;
     color: #0d6efd;
-    font-weight: 800;
+}
+
+.outline-link:active,
+.outline-item.active > .d-flex .outline-link {
+    background: #e0ecff;
+    color: #0a58ca;
+    font-weight: 700;
+}
+
+/* 하위 목록 (자식 노드) 영역 */
+.outline-children {
+    list-style: none;
+    padding-left: 16px; /* 들여쓰기로 계층 구조 표현 */
+    margin: 4px 0 0 0;
+    display: grid;
+    gap: 4px;
+    border-left: 1px dashed #e5e7eb; /* 시각적 가이드 라인 */
+}
+
+/* 자식 노드가 닫혔을 때 수동 제어용 (JS 연동) */
+.outline-children.collapsed {
+    display: none;
+}
+
+/* 토글 버튼 (▸, ▾ 모양 변형 컨트롤) */
+.outline-toggle {
+    border: 0;
+    background: transparent;
+    padding: 4px 6px;
+    line-height: 1;
+    font-size: 0.75rem;
+    color: #0d6efd;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.outline-toggle:hover {
+    background: #eef5ff;
+}
+
+/* 자식 항목이 없는 챕터의 일반 아이콘 (▱) */
+.outline-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    flex-shrink: 0;
     margin-top: 2px;
 }
 
-.chapter-bookmark-text {
-    line-height: 1.35;
-}
-
-.chapter-table {
-    margin-bottom: 0;
-}
-
-.chapter-table th {
-    color: #374151;
-    font-size: 0.82rem;
-}
-
-.chapter-result-list {
-    display: grid;
-    gap: 12px;
-}
-
-.chapter-result-card {
-    border: 1px solid #e5e7eb;
-    background: #f8fafc;
-    border-radius: 16px;
-    padding: 14px;
-}
-
-.chapter-result-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: flex-start;
-    margin-bottom: 10px;
-}
-
-.chapter-result-label {
-    color: #0d6efd;
-    font-size: 0.68rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-}
-
-.chapter-result-title {
-    font-weight: 850;
-    color: #111827;
-}
-
-.chapter-result-description {
+/* 데이터 로딩 및 데이터 없음 안내 문구 */
+.outline-empty {
     color: #6b7280;
-    font-size: 0.88rem;
-    line-height: 1.45;
-    margin-bottom: 12px;
+    font-size: 0.82rem;
+    text-align: center;
+    padding: 20px 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px dashed #e5e7eb;
 }
 
+/* ==========================================
+   Tablet Responsive (991.98px 이하)
+   ========================================== */
+@media (max-width: 991.98px) {
+    .outline-panel {
+        width: 240px;
+        padding: 12px;
+    }
+}
+
+/* ==========================================
+   Mobile Responsive (767.98px 이하 디바이스)
+   ========================================== */
 @media (max-width: 767.98px) {
-    .chapter-hero {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 20px;
-        border-radius: 20px;
+    /* 모바일 환경에서는 화면 좌측에서 부드럽게 튀어나오는 서랍장(Drawer) 슬라이드 방식으로 변경 */
+    .outline-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 80%;
+        max-width: 300px;
+        height: 100%;
+        z-index: 1050; /* 부트스트랩 모달급 레이어 우선순위 */
+        background: #ffffff;
+        box-shadow: 6px 0 20px rgba(15, 23, 42, 0.15);
+        
+        /* 슬라이딩 애니메이션 효과 */
+        transform: translateX(0);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .chapter-search-form {
-        top: 64px;
+    /* 토글 버튼을 눌러 숨김 상태(.outline-hidden)가 되면 좌측 화면 밖(-105%)으로 밀어내기 */
+    .outline-hidden .outline-panel {
+        display: block !important; /* display: none 무효화 */
+        transform: translateX(-105%);
     }
 
-    .chapter-search-group {
-        display: grid;
-        grid-template-columns: 1fr;
-        border-radius: 18px;
-        overflow: visible;
-        gap: 8px;
-        box-shadow: none;
+    /* 모바일 터치 가독성을 위해 패딩 및 서체 크기 소폭 확장 */
+    .outline-link {
+        padding: 10px 12px;
+        font-size: 0.85rem;
     }
+    
+    .outline-toggle {
+        padding: 6px 8px;
+        font-size: 0.85rem;
+    }
+}
 
-    .chapter-search-group .form-control,
-    .chapter-search-group .btn {
-        width: 100%;
-        border-radius: 14px !important;
-        min-height: 44px;
+/* ==========================================
+   Small Mobile Responsive (420px 이하)
+   ========================================== */
+@media (max-width: 420px) {
+    .outline-panel {
+        width: 85%; /* 초소형 기기에서는 조금 더 넓게 배치 */
     }
+}
 
-    .chapter-bookmark-item {
-        padding: 13px;
-        border-radius: 15px;
-    }
+/* 챕터 아이템 그리드 디자인 최적화 */
+.chapter-bookmark-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 16px;
+}
 
-    .chapter-result-card {
-        border-radius: 17px;
-        padding: 15px;
+/* 화면이 커질 때 다단 그리드로 자동 전환 */
+@media (min-width: 768px) {
+    .chapter-bookmark-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
+}
+@media (min-width: 1200px) {
+    .chapter-bookmark-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 개별 북마크 카드 룩앤필 */
+.chapter-bookmark-item {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease-in-out;
+}
+
+.chapter-bookmark-item:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* 텍스트 줄바꿈 강제 제어 시스템 */
+.text-truncate-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 모바일용 하단 백버튼 래퍼 패딩 가이드 */
+.chapter-footer-actions {
+    padding: 0 4px;
 }

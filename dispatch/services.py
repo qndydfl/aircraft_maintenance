@@ -789,3 +789,21 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
                         count += 1
 
     return count
+
+
+def is_fault_code_query(query):
+    query = (query or "").strip()
+
+    if not query:
+        return False
+
+    return bool(re.search(r"\d", query))
+
+
+def is_message_query(query):
+    query = (query or "").strip()
+
+    if not query:
+        return False
+
+    return not is_fault_code_query(query)

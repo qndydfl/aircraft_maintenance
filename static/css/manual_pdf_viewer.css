@@ -1,3 +1,6 @@
+/* ==========================================================================
+   1. GLOBAL & BASE LAYOUT
+   ========================================================================== */
 body {
     padding-top: 0;
     padding-bottom: 0;
@@ -14,24 +17,34 @@ body {
 }
 
 .viewer-page {
-    height: 100vh;
+    height: 100vh; /* 화면 높이를 100%로 꽉 채움 */
     display: flex;
     flex-direction: column;
     background: #eef1f5;
+    overflow: hidden;
 }
 
-/* Top Title Bar */
+.manual-pdf-layout {
+    flex: 1;
+    min-height: 0; /* 자식 컨테이너가 화면 밖으로 터지는 현상 방지 */
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ==========================================================================
+   2. TOPBAR (TITLE & TOP ACTIONS)
+   ========================================================================== */
 .viewer-topbar {
     min-height: 64px;
     padding: 10px 18px;
     background: #ffffff;
     border-bottom: 1px solid #e5e7eb;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
-
     flex-wrap: nowrap;
     z-index: 50;
 }
@@ -76,6 +89,9 @@ body {
     white-space: nowrap;
 }
 
+/* ==========================================================================
+   3. TOOLBAR & SEARCH PANEL
+   ========================================================================== */
 .viewer-toolbar {
     display: flex;
     align-items: center;
@@ -90,11 +106,11 @@ body {
     scrollbar-width: none;
 }
 
-.viewer-toolbar::-webkit-scrollbar {
+.viewer-toolbar::-webkit-scrollbar,
+.viewer-toolbar-main::-webkit-scrollbar,
+.viewer-search-row::-webkit-scrollbar {
     display: none;
 }
-
-/* Toolbar */
 
 .viewer-toolbar-main {
     display: flex;
@@ -103,11 +119,6 @@ body {
     flex-wrap: nowrap;
     overflow-x: auto;
     white-space: nowrap;
-}
-
-.viewer-toolbar-main::-webkit-scrollbar,
-.viewer-search-row::-webkit-scrollbar {
-    display: none;
 }
 
 .viewer-search-panel {
@@ -177,27 +188,41 @@ body {
     font-size: 0.82rem;
 }
 
-/* Layout */
-
-.manual-pdf-layout {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    gap: 0;
-    overflow: hidden;
-    position: relative;
-}
-
+/* ==========================================================================
+   4. OUTLINE PANEL (SIDEBAR TREE)
+   ========================================================================== */
 .outline-panel {
     width: 280px;
+    min-width: 160px;
+    max-width: 60vw;
     flex-shrink: 0;
     background: #ffffff;
-    border-right: 1px solid #e5e7eb;
+    border-right: none;
     overflow-y: auto;
     padding: 14px;
 }
 
 .outline-hidden .outline-panel {
+    display: none;
+}
+
+/* Resizer handle between outline and PDF area */
+.outline-resizer {
+    width: 5px;
+    flex-shrink: 0;
+    background: #e5e7eb;
+    cursor: col-resize;
+    transition: background 0.15s;
+    position: relative;
+    z-index: 10;
+}
+
+.outline-resizer:hover,
+.outline-resizer.is-dragging {
+    background: #6b7280;
+}
+
+.outline-hidden .outline-resizer {
     display: none;
 }
 
@@ -220,36 +245,103 @@ body {
     margin: 0;
 }
 
-.outline-link {
-    display: flex;
-    gap: 8px;
-    padding: 10px;
-    border-radius: 12px;
-    color: #1f2937;
+/* 계층별 들여쓰기 및 왼쪽 흐린 가이드 라인 */
+.outline-list.depth-1 {
+    padding-left: 14px;
+    margin-top: 2px;
+    border-left: 1px dashed #cbd5e1;
+}
+
+.outline-list.depth-2 {
+    padding-left: 12px;
+    border-left: 1px dotted #94a3b8;
+}
+
+/* 개별 행 디자인 */
+.outline-row {
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    transition: all 0.2s ease;
+}
+
+/* 상위 레벨(ATA/Task) 스타일 */
+.depth-row-0 {
+    font-weight: 700;
+    background-color: #f8fafc;
+    border: 1px solid #f1f5f9;
+}
+
+/* 하위 레벨(Subtask) 스타일 */
+.depth-row-1,
+.depth-row-2 {
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: #4b5563;
+}
+
+.outline-row:hover {
+    background-color: #f0f6ff;
+    cursor: pointer;
+}
+
+/* 활성화 상태 (Active) */
+.outline-row.is-active {
+    background-color: #e0ecff !important;
+    border-color: #bfdbfe;
+}
+
+.outline-row.is-active .outline-tree-link {
+    color: #0d6efd !important;
+    font-weight: 700;
+}
+
+/* 트리 텍스트 링크 스타일 */
+.outline-tree-link {
+    flex: 1;
+    min-width: 0;
+    color: #1e293b;
     text-decoration: none;
-    font-size: 0.82rem;
-    line-height: 1.35;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.outline-link:hover {
-    background: #eef5ff;
-    color: #0d6efd;
-}
-
-.outline-icon,
-.outline-toggle {
-    color: #0d6efd;
-    font-weight: 850;
-}
-
-.outline-toggle {
-    border: 0;
+/* 플러스/마이너스 토글 버튼 */
+.outline-toggle-btn {
+    border: none;
     background: transparent;
-    padding: 6px 2px;
-    line-height: 1;
+    padding: 0 4px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.outline-toggle-btn.is-open .toggle-icon {
+    color: #0d6efd;
+}
+
+/* 일반 문서 노드 공백 아이콘 */
+.outline-doc-icon {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    width: 21px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .outline-children {
+    display: block;
+}
+
+.outline-children-collapsed {
     display: none;
 }
 
@@ -258,12 +350,13 @@ body {
     font-size: 0.85rem;
 }
 
-/* PDF Area */
-
+/* ==========================================================================
+   5. PDF RENDER AREA
+   ========================================================================== */
 .pdf-viewer-scroll {
     flex: 1;
     min-width: 0;
-    overflow: auto;
+    overflow: auto; /* 상하 스크롤 타겟 */
     background: #dfe3e8;
     text-align: center;
     padding: 12px;
@@ -322,25 +415,29 @@ body {
     color: #111827;
 }
 
-/* Tablet */
+/* ==========================================================================
+   6. RESPONSIVE MEDIA QUERIES (TABLET & MOBILE)
+   ========================================================================== */
 
+/* --- Tablet (991.98px 이하) --- */
 @media (max-width: 991.98px) {
     .outline-panel {
         width: 240px;
     }
 }
 
-/* Mobile */
-
+/* --- Mobile (767.98px 이하) --- */
 @media (max-width: 767.98px) {
     .viewer-page {
-        height: 100dvh;
+        height: 100dvh; /* 모바일 주소창 대응 */
     }
 
     .viewer-topbar {
-        min-height: 52px;
+        min-height: auto;
         padding: 7px 9px;
         gap: 8px;
+        flex-wrap: wrap;
+        align-items: flex-start;
     }
 
     .viewer-title {
@@ -354,6 +451,8 @@ body {
 
     .viewer-top-actions {
         gap: 5px;
+        width: 100%;
+        justify-content: flex-end;
     }
 
     .viewer-action-btn {
@@ -392,6 +491,7 @@ body {
         font-size: 0.75rem;
     }
 
+    /* 모바일 서랍장 메뉴 레이아웃 */
     .outline-panel {
         position: absolute;
         top: 0;
@@ -413,11 +513,38 @@ body {
 
     .pdf-viewer-scroll {
         padding: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pdf-viewer-wrap {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    #pdf-canvas {
+        max-width: none;
+    }
+
+    #text-layer {
+        width: auto;
+        height: auto;
+    }
+
+    .multi-page-viewer {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .match-page-box .pdf-viewer-wrap {
+        max-width: 100%;
+    }
+
+    .multi-page-viewer canvas {
+        max-width: none;
     }
 }
 
-/* Small Mobile */
-
+/* --- Small Mobile (420px 이하) --- */
 @media (max-width: 420px) {
     .viewer-action-btn {
         font-size: 0.68rem;

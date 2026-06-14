@@ -1,10 +1,51 @@
-import os, re, zipfile, fitz, shutil, uuid, pdfplumber, tempfile
+import os, re, zipfile, fitz, shutil, uuid, pdfplumber, tempfile, subprocess
 
 from django.conf import settings
 from bs4 import BeautifulSoup
 from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage
 from django.db import transaction
 from pypdf import PdfReader, PdfWriter
+
+
+def get_libreoffice_command():
+    windows_path = r"C:\Program Files\LibreOffice\program\soffice.exe"
+
+    if os.path.exists(windows_path):
+        return windows_path
+
+    command = shutil.which("libreoffice") or shutil.which("soffice")
+
+    if command:
+        return command
+
+    raise Exception("LibreOffice 실행 파일을 찾을 수 없습니다.")
+
+
+def convert_excel_to_pdf(input_path, output_dir):
+    libreoffice_command = get_libreoffice_command()
+
+    result = subprocess.run(
+        [
+            libreoffice_command,
+            "--headless",
+            "--nologo",
+            "--nofirststartwizard",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            output_dir,
+            input_path,
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=60,
+    )
+
+    if result.returncode != 0:
+        raise Exception(
+            f"Excel PDF 변환 실패: {os.path.basename(input_path)} / {result.stderr}"
+        )
 
 
 def storage_file_to_temp_file(django_file, suffix=""):
@@ -460,14 +501,29 @@ def process_manual_package_safely(package):
             extract_to=temp_extract_to,
         )
 
+        for root, dirs, files in os.walk(temp_extract_to):
+            for file_name in files:
+                ext = os.path.splitext(file_name)[1].lower()
+
+                if ext in [".xlsx", ".xls"]:
+                    excel_path = os.path.join(root, file_name)
+
+                    try:
+                        convert_excel_to_pdf(
+                            input_path=excel_path,
+                            output_dir=root,
+                        )
+                    except Exception as error:
+                        raise Exception(f"{file_name} 변환 실패: {error}")
+
         if temp_zip_path and os.path.exists(temp_zip_path):
             os.remove(temp_zip_path)
             temp_zip_path = None
 
         index_html_path = find_index_html(temp_extract_to)
 
-        if not index_html_path:
-            raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
+        # if not index_html_path:
+        #     raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
 
         with transaction.atomic():
             ManualChapter.objects.filter(package=package).delete()
@@ -476,14 +532,18 @@ def process_manual_package_safely(package):
             package.processed = False
             package.save(update_fields=["extracted_path", "processed"])
 
-            save_package_revision_info(package, index_html_path)
+            if index_html_path:
+                save_package_revision_info(package, index_html_path)
 
-            chapter_count = parse_index_html(
-                package=package,
-                index_html_path=index_html_path,
-            )
-
-            page_count = index_pdf_pages_for_package(package=package)
+                chapter_count = parse_index_html(
+                    package=package,
+                    index_html_path=index_html_path,
+                )
+            else:
+                chapter_count = parse_pdf_files_without_index(
+                    package=package,
+                    extract_to=temp_extract_to,
+                )
 
             if os.path.exists(final_extract_to):
                 shutil.rmtree(final_extract_to, ignore_errors=True)
@@ -492,8 +552,13 @@ def process_manual_package_safely(package):
             shutil.move(temp_extract_to, final_extract_to)
 
             package.extracted_path = final_extract_to
-            package.processed = True
+            package.processed = False
             package.save(update_fields=["extracted_path", "processed"])
+
+            page_count = index_pdf_pages_for_package(package=package)
+
+            package.processed = True
+            package.save(update_fields=["processed"])
 
         if old_extracted_path and old_extracted_path != final_extract_to:
             shutil.rmtree(old_extracted_path, ignore_errors=True)
@@ -702,3 +767,49 @@ def save_package_revision_info(package, index_html_path):
     )
 
     return revision_no, revision_date
+
+
+def parse_pdf_files_without_index(package, extract_to):
+    ManualChapter.objects.filter(package=package).delete()
+
+    extracted_root = os.path.abspath(extract_to)
+    created_count = 0
+
+    pdf_files = []
+
+    for root, dirs, files in os.walk(extract_to):
+        for file_name in files:
+            if not file_name.lower().endswith(".pdf"):
+                continue
+
+            pdf_abs_path = os.path.abspath(os.path.join(root, file_name))
+
+            if os.path.commonpath([extracted_root, pdf_abs_path]) != extracted_root:
+                continue
+
+            pdf_files.append(pdf_abs_path)
+
+    pdf_files.sort()
+
+    for index, pdf_abs_path in enumerate(pdf_files, start=1):
+        file_name = os.path.basename(pdf_abs_path)
+        title = os.path.splitext(file_name)[0]
+
+        task = extract_task_from_text(title)
+
+        if not task:
+            task = f"PDF-{index:03d}"
+
+        pdf_relative_path = os.path.relpath(pdf_abs_path, package.extracted_path)
+
+        ManualChapter.objects.create(
+            package=package,
+            task=task,
+            subtask="",
+            title=title,
+            pdf_relative_path=pdf_relative_path,
+        )
+
+        created_count += 1
+
+    return created_count

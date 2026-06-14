@@ -1,8 +1,13 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
 Manual Portal
 {% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock css %}
 
 {% block content %}
 
@@ -24,18 +29,43 @@ Manual Portal
     <div class="home-actions">
         {% if user.is_staff %}
             <a href="{% url 'aircraft_manage' %}"
-                class="btn btn-outline-primary app-action-btn">
+                class="btn btn-outline-primary app-action-btn admin-only-action">
                 Aircraft Manage
             </a>
+
+            <div class="dropdown admin-only-action">
+                <button class="btn btn-outline-warning dropdown-toggle app-action-btn"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Upload
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item"
+                            href="{% url 'manual_file_create' %}">
+                            Upload PDF
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item"
+                            href="{% url 'manual_package_create' %}">
+                            Upload Folder ZIP
+                        </a>
+                    </li>
+                </ul>
+            </div>
         {% endif %}
 
         <a href="{% url 'manual_search' %}"
-            class="btn btn-outline-success app-action-btn">
+            class="btn btn-outline-success app-action-btn main-mobile-action">
             Manual Search
         </a>
 
         <a href="{% url 'dispatch_auto_search' %}"
-            class="btn btn-danger app-action-btn">
+            class="btn btn-danger app-action-btn main-mobile-action">
             Dispatch
         </a>
     </div>
@@ -106,7 +136,7 @@ Manual Portal
                         <div class="card-button-group">
                             <a href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                                 class="btn btn-primary w-100 app-card-btn">
-                                Open PDF Manuals
+                                Open Manuals
                             </a>
 
                             <a href="https://www.myboeingfleet.com"
@@ -190,7 +220,7 @@ Manual Portal
                         <div class="card-button-group">
                             <a href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                                 class="btn btn-primary w-100 app-card-btn">
-                                Open MEL / CDL PDFs
+                                Open Airbus Manuals
                             </a>
 
                             <a href="https://w3.airbus.com/H380/world/airbusworld/forms/airbus.fcc?TYPE=33554433&REALMOID=06-2c93f4bb-1103-4238-98fa-62ca07aab930&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-t%2fTX88CtTFIPqQ15ugBfOME66PQGCWGuAAOSByMZUiVIJPozo431pS4LE4YuSGzU&TARGET=-SM-HTTPS%3a%2f%2fw3%2eairbus%2ecom%2fU980%2fU980_redirect_world%2ehtml%3fresumePath%3d-%2Fidp-%2FANSL9oFTBl-%2FresumeSAML20-%2Fidp-%2FSSO%2eping-%3FpfLoginRedirect-%3Dtrue"

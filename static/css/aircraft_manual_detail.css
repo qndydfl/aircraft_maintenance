@@ -1,3 +1,4 @@
+/* --- 기본 공통 및 PC 스타일 --- */
 .detail-hero {
     background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
     border: 1px solid rgba(13, 110, 253, 0.08);
@@ -10,6 +11,20 @@
     gap: 18px;
 }
 
+.home-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.aircraft-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
 .manual-detail-card {
     border-top: 4px solid #0d6efd;
 }
@@ -17,6 +32,19 @@
 .manual-empty-card {
     border-top-color: #adb5bd;
     opacity: 0.85;
+}
+
+.aircraft-type-pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 50px;
+}
+
+.ready-pill {
+    background: rgba(25, 135, 84, 0.12);
+    color: #198754;
 }
 
 .empty-pill {
@@ -30,26 +58,101 @@
     gap: 8px;
 }
 
-@media (max-width: 767.98px) {
-    .detail-hero {
-        flex-direction: column;
-        align-items: stretch;
-        border-radius: 22px;
-        padding: 20px;
-    }
-
-    .detail-button-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .manual-detail-card .app-card-btn {
-        min-height: 44px;
-        font-size: 0.88rem;
-    }
+.card-button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-@media (max-width: 420px) {
+.card-button-group form {
+    width: 100%;
+    margin: 0;
+}
+
+
+/* --- 📱 모바일 반응형 미디어 쿼리 (767.98px 이하) --- */
+@media (max-width: 767.98px) {
+    
+    /* 1. 불필요한 버튼 그룹 및 폼 요소 완전 제거 */
+    .desktop-only-action,
+    .desktop-only-buttons,
+    .desktop-only-btn-group,
+    .desktop-only-btn,
+    .manual-detail-card font, 
+    .card-button-group form,
+    .card-button-group .detail-button-grid a:not(.mobile-show-btn) { 
+        display: none !important;
+    }
+
+    /* 2. 카드 내부 복잡한 텍스트 및 정보 일괄 제거 (간략화) */
+    .manual-detail-card .small,
+    .manual-detail-card .text-muted {
+        display: none !important;
+    }
+
+    /* 3. 빈 카드일 때 나오는 '등록된 파일이 없습니다' 안내는 유지 */
+    .manual-detail-card .manual-card-note {
+        font-size: 0.85rem;
+        color: #868e96;
+        margin-top: 4px;
+    }
+
+    /* 4. 상단 영웅 영역(Hero) 레이아웃 조정 - Back 버튼만 우측 상단 정렬 */
+    .detail-hero {
+        flex-direction: row; /* 세로 분할 대신 가로 배치 유지 */
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .detail-hero .home-actions {
+        width: auto;
+    }
+
+    .detail-hero .home-actions .app-action-btn.mobile-show-btn {
+        width: auto;
+        font-size: 0.85rem;
+        padding: 6px 14px;
+        border-radius: 8px;
+    }
+
+    /* 5. 카드 내부 레이아웃 및 Open 버튼 전체 화면 너비 채우기 */
+    .manual-detail-card .card-body {
+        padding: 14px;
+    }
+
+    .aircraft-card-header {
+        margin-bottom: 0px; /* 버튼과 밀착되도록 여백 초기화 */
+    }
+
+    /* 레이아웃 그리드를 1열로 변경하여 Open 버튼이 가로로 가득 차게 만듦 */
     .detail-button-grid {
         grid-template-columns: 1fr;
+    }
+
+    .card-button-group {
+        margin-top: 12px;
+    }
+
+    .manual-detail-card .app-card-btn.mobile-show-btn {
+        display: block !important;
+        width: 100%;
+        min-height: 40px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 8px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .aircraft-title {
+        font-size: 1.05rem;
+    }
+
+    .aircraft-type-pill {
+        font-size: 0.65rem;
+        padding: 4px 8px;
     }
 }

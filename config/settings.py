@@ -38,13 +38,13 @@ if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
         "DJANGO_SECRET_KEY must be set to a secure value when DJANGO_DEBUG is false."
     )
 
-# ALLOWED_HOSTS = [
-#     "13.125.173.214",
-#     "localhost",
-#     "127.0.0.1",
-# ]
+ALLOWED_HOSTS = [
+    "13.125.173.214",
+    "localhost",
+    "127.0.0.1",
+]
 
-# DEBUG = False  # 배포 시에는 DEBUG를 False로 설정해야 합니다.
+DEBUG = False  # 배포 시에는 DEBUG를 False로 설정해야 합니다.
 
 
 

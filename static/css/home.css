@@ -1,0 +1,238 @@
+.home-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
+    border: 1px solid rgba(13, 110, 253, 0.08);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: var(--app-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.home-eyebrow {
+    color: var(--app-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    color: #111827;
+}
+
+.home-subtitle {
+    font-size: 0.95rem;
+}
+
+.home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.manual-section {
+    position: relative;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.section-title {
+    color: #111827;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+}
+
+.section-description {
+    color: var(--app-muted);
+    font-size: 0.9rem;
+}
+
+.boeing-card {
+    border-top: 4px solid #0d6efd;
+}
+
+.airbus-card {
+    border-top: 4px solid #0dcaf0;
+}
+
+.aircraft-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.aircraft-maker {
+    color: var(--app-primary);
+    font-size: 0.7rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+}
+
+.airbus-maker {
+    color: #087990;
+}
+
+.aircraft-title {
+    color: #111827;
+    font-size: 1.35rem;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+}
+
+.aircraft-type-pill {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 850;
+}
+
+.airbus-pill {
+    background: rgba(13, 202, 240, 0.18);
+    color: #087990;
+}
+
+.manual-badge-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.manual-badge {
+    font-size: 0.72rem;
+    border-radius: 999px;
+    padding: 0.45em 0.62em;
+    font-weight: 750;
+}
+
+.manual-card-note {
+    min-height: 38px;
+    color: var(--app-muted);
+    font-size: 0.83rem;
+    line-height: 1.45;
+    margin-bottom: 16px;
+}
+
+.card-button-group {
+    display: grid;
+    gap: 8px;
+}
+
+@media (max-width: 991.98px) {
+    .home-hero {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .home-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .home-hero {
+        border-radius: 16px;
+        padding: 14px 12px;
+        margin-top: 4px;
+        margin-bottom: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .page-title {
+        font-size: 1.35rem;
+        line-height: 1.25;
+    }
+
+    .home-eyebrow {
+        font-size: 0.72rem;
+    }
+
+    .home-subtitle,
+    .section-description,
+    .manual-card-note {
+        font-size: 0.82rem;
+    }
+
+    .home-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .section-header {
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-size: 1.05rem;
+    }
+
+    .aircraft-card-header {
+        margin-bottom: 12px;
+    }
+
+    .aircraft-title {
+        font-size: 1.05rem;
+    }
+
+    .aircraft-maker {
+        font-size: 0.72rem;
+    }
+
+    .aircraft-type-pill {
+        font-size: 0.68rem;
+        padding: 4px 8px;
+    }
+
+    .manual-badge-wrap {
+        gap: 5px;
+    }
+
+    .manual-badge {
+        font-size: 0.68rem;
+        padding: 5px 7px;
+    }
+
+    .manual-card-note {
+        min-height: auto;
+        margin-bottom: 14px;
+    }
+
+    .card-button-group {
+        gap: 8px;
+    }
+
+    .row.g-3,
+    .row.g-md-4 {
+        --bs-gutter-y: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.2rem;
+    }
+
+    .aircraft-title {
+        font-size: 1rem;
+    }
+}

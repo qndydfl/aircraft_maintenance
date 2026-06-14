@@ -38,7 +38,7 @@ from .services import (
     build_manual_text_regex,
 )
 from django.http import FileResponse, Http404
-from django.db.models import Q, Count, Min
+from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 
@@ -76,12 +76,14 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "aircraft"
 
     def get_queryset(self):
+        package_queryset = ManualPackage.objects.annotate(
+            chapter_total=Count("chapters", distinct=True),
+            page_total=Count("chapters__pages", distinct=True),
+        )
+
         return Aircraft.objects.order_by("name").prefetch_related(
             "manuals",
-            "manual_packages",
-            "manual_packages__chapters",
-            "manual_packages__chapters__pages",
-            "manuals__pdf_pages",
+            Prefetch("manual_packages", queryset=package_queryset),
         )
 
 
@@ -633,6 +635,23 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
 
+        # ------------------------------------------------------------------
+        # 🔗 [추가 및 보완] 자바스크립트 사이드바 트리 생성을 위한 전체 챕터(목차) 가공 데이터 주입
+        # ------------------------------------------------------------------
+        all_chapters = ManualChapter.objects.filter(package=chapter.package).order_by("task", "subtask")
+        chapters_data = []
+        for ch in all_chapters:
+            chapters_data.append({
+                "pk": ch.pk,
+                "task": ch.task or "",
+                "subtask": ch.subtask or "",
+                "title": ch.title or "",
+                # 프론트엔드 링크 이동 규격 맞춤 생성
+                "viewer_url": reverse("manual_chapter_pdf_viewer", kwargs={"pk": ch.pk}) + f"?page=1" + (f"&q={query}" if query else "")
+            })
+        context["package_chapters_json"] = json.dumps(chapters_data)
+        # ------------------------------------------------------------------
+
         if query:
             search_value, match_mode = parse_manual_search_query(query)
 
@@ -746,6 +765,9 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         context["current_match_index"] = 0
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
+        
+        # 🔗 단일 PDF 파일 형태이므로 트리형 목차 데이터는 빈 배열로 할당하여 에러 차단
+        context["package_chapters_json"] = json.dumps([])
 
         if query:
             search_value, match_mode = parse_manual_search_query(query)

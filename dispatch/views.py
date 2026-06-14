@@ -38,6 +38,8 @@ from .services import (
     resolve_saved_file_page,
     parse_manual_search_query,
     build_manual_text_regex,
+    is_fault_code_query,
+    is_message_query,
 )
 
 
@@ -763,7 +765,16 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
 
         aircraft_id = self.request.GET.get("aircraft", "").strip()
         query = self.request.GET.get("q", "").strip()
-        search_type = self.request.GET.get("search_type", "keyword").strip()
+        search_type = self.request.GET.get("search_type", "all").strip().lower()
+
+        if search_type in ["keyword", "all", "전체"]:
+            search_type = "all"
+
+        elif search_type in ["message", "msg"]:
+            search_type = "message"
+
+        elif search_type in ["fault", "fault_code", "faultcode"]:
+            search_type = "fault"
 
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
         context["selected_aircraft"] = aircraft_id
@@ -772,6 +783,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         context["message_mode"] = search_type == "message"
 
         context["saved_dispatch_results"] = []
+        context["mel_dispatch_rows"] = []
 
         context["amm_results"] = []
         context["fim_results"] = []
@@ -796,31 +808,48 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         if aircraft_id and not aircraft_qs.exists():
             return context
 
-        context["mel_dispatch_rows"] = []
+        # 1. MEL Dispatch Table 결과
+        if search_type == "fault":
+            mel_dispatch_rows = MelDispatchItem.objects.none()
 
-        mel_dispatch_rows = MelDispatchItem.objects.filter(
-            aircraft__in=aircraft_qs
-        ).filter(
-            Q(message__icontains=query)
-            | Q(condition__icontains=query)
-            | Q(mel_item__icontains=query)
-        )[
-            :100
-        ]
+        elif search_type == "message":
+            mel_dispatch_rows = (
+                MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
+                .filter(Q(message__icontains=query) | Q(condition__icontains=query))
+                .order_by("aircraft__name", "message", "page_number")[:100]
+            )
+
+        else:
+            mel_dispatch_rows = (
+                MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
+                .filter(
+                    Q(message__icontains=query)
+                    | Q(condition__icontains=query)
+                    | Q(mel_item__icontains=query)
+                )
+                .order_by("aircraft__name", "message", "page_number")[:100]
+            )
 
         context["mel_dispatch_rows"] = mel_dispatch_rows
 
+        # 2. 저장된 Dispatch Reference 결과
         saved_refs = DispatchReference.objects.filter(
             aircraft__in=aircraft_qs
         ).select_related("aircraft")
 
         if search_type == "message":
             saved_refs = saved_refs.filter(
-                Q(eicas_message__icontains=query) | Q(status_message__icontains=query)
+                Q(eicas_message__icontains=query)
+                | Q(status_message__icontains=query)
+                | Q(mel_search_keyword__icontains=query)
+                | Q(fim_search_keyword__icontains=query)
+                | Q(amm_search_keyword__icontains=query)
+                | Q(description__icontains=query)
+                | Q(note__icontains=query)
             )
 
         elif search_type == "fault":
-            saved_refs = saved_refs.filter(fault_code__icontains=query)
+            saved_refs = saved_refs.filter(Q(fault_code__icontains=query))
 
         else:
             saved_refs = saved_refs.filter(
@@ -850,9 +879,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
 
         context["saved_dispatch_results"] = saved_dispatch_results
 
-        if search_type == "message":
-            return context
-
+        # 3. Manual PDF 검색 (all/message/fault 모두 수행)
         search_value, match_mode = parse_manual_search_query(query)
 
         if not search_value:
@@ -872,67 +899,40 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         text_regex = build_manual_text_regex(search_value, match_mode)
 
         if match_mode == "contains":
-            package_filter = (
-                Q(text__icontains=search_value)
-                | Q(chapter__task__icontains=search_value)
-                | Q(chapter__subtask__icontains=search_value)
-                | Q(chapter__title__icontains=search_value)
-            )
-
-            file_filter = (
-                Q(text__icontains=search_value)
-                | Q(manual_file__manual_type__icontains=search_value)
-                | Q(manual_file__description__icontains=search_value)
-            )
-
-        elif match_mode == "startswith":
-            package_filter = (
-                Q(text__iregex=text_regex)
-                | Q(chapter__task__istartswith=search_value)
-                | Q(chapter__subtask__istartswith=search_value)
-                | Q(chapter__title__istartswith=search_value)
-            )
-
-            file_filter = Q(text__iregex=text_regex) | Q(
-                manual_file__description__istartswith=search_value
-            )
-
+            package_filter = Q(text__icontains=search_value)
+            file_filter = Q(text__icontains=search_value)
         else:
-            package_filter = (
-                Q(text__iregex=text_regex)
-                | Q(chapter__task__iexact=search_value)
-                | Q(chapter__subtask__iexact=search_value)
-                | Q(chapter__title__iexact=search_value)
-            )
-
-            file_filter = Q(text__iregex=text_regex) | Q(
-                manual_file__description__iexact=search_value
-            )
+            package_filter = Q(text__iregex=text_regex)
+            file_filter = Q(text__iregex=text_regex)
 
         context["amm_results"] = list(
-            package_base.filter(chapter__package__manual_type="AMM").filter(
-                package_filter
-            )[:50]
+            package_base.filter(chapter__package__manual_type="AMM")
+            .filter(package_filter)
+            .order_by("chapter__task", "chapter__subtask", "page_number")
         )
 
         context["fim_results"] = list(
-            package_base.filter(chapter__package__manual_type="FIM").filter(
-                package_filter
-            )[:50]
+            package_base.filter(chapter__package__manual_type="FIM")
+            .filter(package_filter)
+            .order_by("chapter__task", "chapter__subtask", "page_number")
         )
 
         context["ipc_results"] = list(
-            package_base.filter(chapter__package__manual_type="IPC").filter(
-                package_filter
-            )[:50]
+            package_base.filter(chapter__package__manual_type="IPC")
+            .filter(package_filter)
+            .order_by("chapter__task", "chapter__subtask", "page_number")
         )
 
         context["mel_results"] = list(
-            file_base.filter(manual_file__manual_type="MEL").filter(file_filter)[:50]
+            file_base.filter(manual_file__manual_type="MEL")
+            .filter(file_filter)
+            .order_by("manual_file__description", "page_number")
         )
 
         context["cdl_results"] = list(
-            file_base.filter(manual_file__manual_type="CDL").filter(file_filter)[:50]
+            file_base.filter(manual_file__manual_type="CDL")
+            .filter(file_filter)
+            .order_by("manual_file__description", "page_number")
         )
 
         for result_group in [

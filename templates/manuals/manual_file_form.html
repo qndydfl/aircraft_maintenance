@@ -13,14 +13,14 @@
 
         <h2 class="page-title mb-2">
             {% if manual %}
-                Re-upload Manual File
+                Re-upload PDF
             {% else %}
-                Add Manual File
+                Upload PDF
             {% endif %}
         </h2>
 
         <p class="text-muted mb-0 home-subtitle">
-            MEL / CDL은 PDF 파일로 업로드합니다.
+            MEL / CDL 또는 기타 PDF 파일을 업로드합니다.
         </p>
     </div>
 
@@ -87,20 +87,20 @@
                 </h5>
 
                 <label class="form-label">
-                    File
+                    PDF File
                 </label>
 
                 {{ form.file }}
 
-                <div class="manual-upload-guide mt-3">
-                    <strong>업로드 규칙</strong>
+                <div class="manual-package-guide mt-3">
+                    <strong>PDF 업로드 안내</strong>
 
                     <div>
-                        MEL / CDL → PDF 파일
+                        MEL / CDL 또는 기타 PDF 파일을 업로드할 수 있습니다.
                     </div>
 
                     <div class="text-muted small mt-1">
-                        AMM / FIM / IPC는 ZIP Package Upload 메뉴를 사용하세요.
+                        폴더 압축 ZIP은 Upload Folder ZIP 메뉴를 사용하세요.
                     </div>
                 </div>
 

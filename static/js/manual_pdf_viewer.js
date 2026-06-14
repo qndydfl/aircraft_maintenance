@@ -33,6 +33,7 @@ const fitPageBtn = document.getElementById("fit-page");
 const outlinePanel = document.getElementById("outline-panel");
 const toggleOutlineBtn = document.getElementById("toggle-outline");
 const manualPdfLayout = document.getElementById("manual-pdf-layout");
+const outlineResizer = document.getElementById("outline-resizer");
 const outlineStorageKey = "manualPdfOutlineHiddenV3";
 const singlePageViewer = document.getElementById("single-page-viewer");
 const multiPageViewer = document.getElementById("multi-page-viewer");
@@ -46,8 +47,14 @@ let viewerSearchQuery = searchQuery || "";
 let viewerSearchMatches = [];
 let viewerSearchIndex = -1;
 
-let scale = 1.5;
-let scaleMode = "custom";
+let scale = 1.0;
+
+function isMobileViewport() {
+    return window.innerWidth < 768;
+}
+
+// 모바일은 기본적으로 가로폭 맞춤으로 시작
+let scaleMode = isMobileViewport() ? "width" : "page";
 
 function parseViewerSearchQuery(query) {
     if (!query) {
@@ -151,7 +158,7 @@ function renderTextLayer(page, viewport) {
 
             const transform = pdfjsLib.Util.transform(
                 viewport.transform,
-                item.transform
+                item.transform,
             );
 
             const x = transform[4];
@@ -173,12 +180,18 @@ function renderTextLayer(page, viewport) {
     });
 }
 
+// [수정] 모바일 해상도를 고려하여 안전 여백 및 모드 자동 전환 로직 보완
 function getFitScale(page) {
     const viewport = page.getViewport({ scale: 1 });
 
-    const containerWidth = Math.max(pdfContainer.clientWidth - 16, 1);
-    const containerHeight = Math.max(pdfContainer.clientHeight - 16, 1);
+    const padding = window.innerWidth < 768 ? 4 : 16;
+    const containerWidth = Math.max(
+        Math.min(pdfContainer.clientWidth, window.innerWidth) - padding,
+        1,
+    );
+    const containerHeight = Math.max(pdfContainer.clientHeight - padding, 1);
 
+    // 모바일이거나 가로 맞춤 모드일 때는 화면 너비 기준으로 스케일 계산
     if (scaleMode === "width") {
         return containerWidth / viewport.width;
     }
@@ -186,7 +199,7 @@ function getFitScale(page) {
     if (scaleMode === "page") {
         return Math.min(
             containerWidth / viewport.width,
-            containerHeight / viewport.height
+            containerHeight / viewport.height,
         );
     }
 
@@ -281,58 +294,78 @@ function goToDestination(dest) {
     });
 }
 
-function createOutlineTree(items) {
+function createOutlineTree(items, depth = 0) {
     const ul = document.createElement("ul");
-    ul.className = "outline-list";
+    ul.className = "outline-list depth-" + depth;
 
     items.forEach(function (item) {
         const li = document.createElement("li");
         li.className = "outline-item";
 
         const row = document.createElement("div");
-        row.className = "d-flex align-items-start gap-2";
+        row.className =
+            "outline-row depth-row-" +
+            depth +
+            " d-flex align-items-center gap-2";
 
         const hasChildren = item.items && item.items.length > 0;
-
         let childUl = null;
 
         if (hasChildren) {
             const toggleBtn = document.createElement("button");
             toggleBtn.type = "button";
-            toggleBtn.className = "outline-toggle";
-            toggleBtn.textContent = "▸";
+            toggleBtn.className = "outline-toggle-btn";
+
+            // ➕ [초기 상태] 하위 항목이 접혀 있으므로 [+] 기호 배치
+            toggleBtn.innerHTML = '<span class="toggle-icon">[+]</span>';
 
             row.appendChild(toggleBtn);
 
+            // 토글 버튼 클릭 시 서브 태스크 열고 닫기 이벤트
             toggleBtn.addEventListener("click", function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                toggleFolder();
+            });
 
-                const isCollapsed =
-                    childUl.classList.contains("outline-children");
+            function toggleFolder() {
+                const isCollapsed = childUl.classList.contains(
+                    "outline-children-collapsed",
+                );
+                const iconSpan = toggleBtn.querySelector(".toggle-icon");
 
                 if (isCollapsed) {
-                    childUl.classList.remove("outline-children");
-                    toggleBtn.textContent = "▾";
+                    // ➖ [열림 상태] 서브 태스크가 펼쳐질 때
+                    childUl.classList.remove("outline-children-collapsed");
+                    toggleBtn.classList.add("is-open");
+                    iconSpan.innerHTML = "[-]";
                 } else {
-                    childUl.classList.add("outline-children");
-                    toggleBtn.textContent = "▸";
+                    // ➕ [닫힘 상태] 서브 태스크를 숨길 때
+                    childUl.classList.add("outline-children-collapsed");
+                    toggleBtn.classList.remove("is-open");
+                    iconSpan.innerHTML = "[+]";
                 }
-            });
+            }
         } else {
-            const spacer = document.createElement("span");
-            spacer.className = "outline-icon";
-            spacer.textContent = "▱";
-            row.appendChild(spacer);
+            // 하위 Subtask가 없는 최종 단락 노드 (문서 표시용 점선 공백 또는 단순 기호)
+            const docIcon = document.createElement("span");
+            docIcon.className = "outline-doc-icon";
+            docIcon.innerHTML = "▱"; // 기존 포맷 유지
+            row.appendChild(docIcon);
         }
 
         const link = document.createElement("a");
-        link.className = "outline-link";
+        link.className = "outline-tree-link";
         link.href = "javascript:void(0)";
-        link.textContent = item.title || "Untitled";
+        link.innerHTML = `<span class="tree-title">${item.title || "Untitled"}</span>`;
 
         link.addEventListener("click", function (event) {
             event.preventDefault();
+
+            document
+                .querySelectorAll(".outline-row")
+                .forEach((r) => r.classList.remove("is-active"));
+            row.classList.add("is-active");
 
             resolveDestination(item.dest).then(function (dest) {
                 goToDestination(dest);
@@ -343,8 +376,8 @@ function createOutlineTree(items) {
         li.appendChild(row);
 
         if (hasChildren) {
-            childUl = createOutlineTree(item.items);
-            childUl.classList.add("outline-children");
+            childUl = createOutlineTree(item.items, depth + 1);
+            childUl.classList.add("outline-children-collapsed"); // 기본 접힘 상태 유지
             li.appendChild(childUl);
         }
 
@@ -367,7 +400,7 @@ function extractAtaParts(title) {
 
     const cleaned = title.replace(/^\s*(ATA\s*)?/i, "").trim();
     const match = cleaned.match(
-        /^(\d{2})(?:[-\.\s]*(\d{2}))?(?:[-\.\s]*(\d{2}))?\b/
+        /^(\d{2})(?:[-\.\s]*(\d{2}))?(?:[-\.\s]*(\d{2}))?\b/,
     );
 
     if (!match) {
@@ -536,10 +569,70 @@ fitPageBtn.addEventListener("click", function () {
 });
 
 window.addEventListener("resize", function () {
+    if (isMobileViewport() && scaleMode === "page") {
+        scaleMode = "width";
+    }
+
     if (scaleMode !== "custom") {
         queueRenderPage(currentPage);
     }
 });
+
+// ── Outline panel resizer ───────────────────────────────────────────────────
+const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
+
+(function initOutlineResizer() {
+    if (!outlineResizer || !outlinePanel || isMobileViewport()) {
+        return;
+    }
+
+    // Restore saved width
+    const savedWidth = localStorage.getItem(OUTLINE_WIDTH_KEY);
+    if (savedWidth) {
+        outlinePanel.style.width = savedWidth + "px";
+    }
+
+    let dragging = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    outlineResizer.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        dragging = true;
+        startX = event.clientX;
+        startWidth = outlinePanel.getBoundingClientRect().width;
+        outlineResizer.classList.add("is-dragging");
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        if (!dragging) return;
+        const delta = event.clientX - startX;
+        const newWidth = Math.min(
+            Math.max(startWidth + delta, 160),
+            window.innerWidth * 0.6,
+        );
+        outlinePanel.style.width = newWidth + "px";
+    });
+
+    document.addEventListener("mouseup", function () {
+        if (!dragging) return;
+        dragging = false;
+        outlineResizer.classList.remove("is-dragging");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        localStorage.setItem(
+            OUTLINE_WIDTH_KEY,
+            Math.round(outlinePanel.getBoundingClientRect().width),
+        );
+        // Re-render so PDF fits the new container width
+        if (scaleMode !== "custom") {
+            queueRenderPage(currentPage);
+        }
+    });
+})();
+// ────────────────────────────────────────────────────────────────────────────
 
 function applyOutlineState() {
     const storedValue = sessionStorage.getItem(outlineStorageKey);
@@ -547,10 +640,7 @@ function applyOutlineState() {
     let isHidden;
 
     if (storedValue === null) {
-        // PC에서는 Contents 기본 표시
-        // 모바일에서는 Contents 기본 숨김
         isHidden = window.innerWidth < 768;
-
         sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
     } else {
         isHidden = storedValue === "true";
@@ -592,6 +682,9 @@ if (!pdfUrl) {
             } else {
                 singlePageViewer.classList.remove("d-none");
                 multiPageViewer.classList.add("d-none");
+
+                // 초기 렌더는 기기 폭 기준으로 자동 선택
+                scaleMode = isMobileViewport() ? "width" : "page";
                 renderPage(currentPage);
             }
 
@@ -599,7 +692,6 @@ if (!pdfUrl) {
         })
         .catch(function (error) {
             console.error("PDF Load Error:", error);
-
             outlineContainer.innerHTML =
                 '<div class="outline-empty">PDF를 불러오지 못했습니다.</div>';
         });
@@ -629,7 +721,7 @@ function createTextLayerForPage(page, viewport, wrapper) {
 
             const transform = pdfjsLib.Util.transform(
                 viewport.transform,
-                item.transform
+                item.transform,
             );
 
             span.style.position = "absolute";
@@ -755,7 +847,6 @@ function isTextMatchedByParsedSearch(text, parsed) {
     return regex.test(normalizedText);
 }
 
-
 function updateViewerSearchCount() {
     if (!viewerSearchMatches.length) {
         viewerSearchCount.textContent = "0 / 0";
@@ -839,6 +930,11 @@ pdfContainer.addEventListener(
             return;
         }
 
+        // [수정] 모바일 화면 크기일 때는 휠 가로채기를 차단하고 브라우저 기본 터치 스크롤을 허용합니다.
+        if (window.innerWidth < 768) {
+            return;
+        }
+
         // Ctrl + Wheel = PDF만 확대/축소
         if (event.ctrlKey) {
             event.preventDefault();
@@ -882,5 +978,5 @@ pdfContainer.addEventListener(
     },
     {
         passive: false,
-    }
+    },
 );

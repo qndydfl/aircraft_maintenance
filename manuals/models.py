@@ -99,7 +99,14 @@ class Aircraft(models.Model):
         return self.get_manual_by_type("CDL")
 
     def has_manual(self, manual_type):
-        return any(manual.manual_type == manual_type for manual in self.manuals.all())
+        has_file = any(
+            manual.manual_type == manual_type for manual in self.manuals.all()
+        )
+        has_package = any(
+            package.manual_type == manual_type for package in self.manual_packages.all()
+        )
+
+        return has_file or has_package
 
     def has_amm(self):
         return self.has_manual("AMM")
@@ -117,7 +124,7 @@ class Aircraft(models.Model):
         return self.has_manual("CDL")
 
     def has_any_manual(self):
-        return (self.manuals.exists() or self.manual_packages.exists())
+        return self.manuals.exists() or self.manual_packages.exists()
 
     def get_manual_by_type(self, manual_type):
         return next(
@@ -131,20 +138,13 @@ class Aircraft(models.Model):
 
     def get_manual_status_list(self):
 
-        manual_types = ["AMM", "FIM", "IPC", "MEL", "CDL"]
-
-        manuals_by_type = {manual.manual_type: manual for manual in self.manuals.all()}
-        packages_by_type = {
-            package.manual_type: package for package in self.manual_packages.all()
-        }
+        manual_types = ["AMM", "FIM", "IPC", "MEL", "CDL", "OTHER"]
 
         result = []
 
         for manual_type in manual_types:
-
-            package = packages_by_type.get(manual_type)
-
-            file = manuals_by_type.get(manual_type)
+            package = self.manual_packages.filter(manual_type=manual_type).first()
+            file = self.manuals.filter(manual_type=manual_type).first()
 
             result.append(
                 {
@@ -174,6 +174,7 @@ class ManualFile(models.Model):
         ("IPC", "IPC"),
         ("MEL", "MEL"),
         ("CDL", "CDL"),
+        ("OTHER", "Other PDF"),
     ]
 
     aircraft = models.ForeignKey(
@@ -199,7 +200,7 @@ class ManualFile(models.Model):
         unique_together = [["aircraft", "manual_type"]]
 
     def indexed_page_count(self):
-        return len(self.pdf_pages.all())
+        return self.pdf_pages.count()
 
     def is_indexed_pdf(self):
         return self.indexed_page_count() > 0
@@ -221,7 +222,7 @@ class AirbusManualLink(models.Model):
         ("AMM", "AMM"),
         ("FIM", "FIM"),
         ("IPC", "IPC"),
-        ("OTHER", "OTHER"),
+        ("OTHER", "Other PDF"),
     ]
 
     aircraft = models.ForeignKey(
@@ -249,6 +250,7 @@ class ManualPackage(models.Model):
         ("AMM", "AMM"),
         ("FIM", "FIM"),
         ("IPC", "IPC"),
+        ("OTHER", "Other PDF"),
     ]
 
     aircraft = models.ForeignKey(
@@ -275,10 +277,20 @@ class ManualPackage(models.Model):
         unique_together = [["aircraft", "manual_type"]]
 
     def chapter_count(self):
-        return len(self.chapters.all())
+        annotated_count = getattr(self, "chapter_total", None)
+
+        if annotated_count is not None:
+            return annotated_count
+
+        return self.chapters.count()
 
     def page_count(self):
-        return sum(len(chapter.pages.all()) for chapter in self.chapters.all())
+        annotated_count = getattr(self, "page_total", None)
+
+        if annotated_count is not None:
+            return annotated_count
+
+        return self.chapters.aggregate(total=models.Count("pages")).get("total") or 0
 
     def __str__(self):
         return f"{self.aircraft.name} - {self.manual_type}"

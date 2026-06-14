@@ -14,8 +14,11 @@
         viewerType: "{{ viewer_type }}",
         matchingPages: {{ matching_pages_json|default:"[]"|safe }},
         viewMode: "{{ view_mode|default:'single' }}",
-        workerSrc:
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
+
+        /* 🔄 [추가] 장고 서버에서 가져온 챕터/서브태스크 데이터를 JS 트리 생성기가 쓸 수 있도록 전달 */
+        packageChapters: {% if package_chapters_json %}{{ package_chapters_json|safe }}{% else %}[]{% endif %},
+
+        workerSrc: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
     };
 </script>
 
@@ -23,19 +26,16 @@
     defer
     src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ></script>
-
 <script defer src="{% static 'js/manual_pdf_viewer.js' %}"></script>
 {% endblock js %} 
 
 {% block nav %} {% endblock nav %} 
 
 {% block content %}
-
 <div class="viewer-page">
     <div class="viewer-topbar">
         <div class="viewer-title-area">
             <h4 class="viewer-title mb-1">{{ viewer_title }}</h4>
-
             <p class="viewer-subtitle mb-0">
                 {{ viewer_subtitle|default:"PDF Viewer" }}
             </p>
@@ -49,7 +49,6 @@
             >
                 Original
             </a>
-
             <a
                 href="{{ back_url }}"
                 class="btn btn-outline-secondary viewer-action-btn"
@@ -82,10 +81,8 @@
                 min="1"
                 class="form-control viewer-page-input"
             />
-
             <span class="viewer-page-total">
-                /
-                <span id="page-count">-</span>
+                / <span id="page-count">-</span>
             </span>
         </div>
 
@@ -99,14 +96,9 @@
         <button id="zoom-out" class="btn btn-outline-secondary viewer-tool-btn">
             -
         </button>
-
-        <span
-            id="zoom-level"
-            class="badge bg-light text-dark viewer-zoom-badge"
+        <span id="zoom-level" class="badge bg-light text-dark viewer-zoom-badge"
+            >100%</span
         >
-            100%
-        </span>
-
         <button id="zoom-in" class="btn btn-outline-secondary viewer-tool-btn">
             +
         </button>
@@ -117,7 +109,6 @@
         >
             Width
         </button>
-
         <button id="fit-page" class="btn btn-outline-secondary viewer-tool-btn">
             Page
         </button>
@@ -143,7 +134,6 @@
                     class="form-control viewer-search-input"
                     placeholder="Find in PDF"
                 />
-
                 <button
                     id="viewer-search-btn"
                     type="button"
@@ -151,7 +141,6 @@
                 >
                     Find
                 </button>
-
                 <button
                     id="viewer-search-prev"
                     type="button"
@@ -159,14 +148,11 @@
                 >
                     ◀
                 </button>
-
                 <span
                     id="viewer-search-count"
                     class="badge bg-primary viewer-match-badge"
+                    >0 / 0</span
                 >
-                    0 / 0
-                </span>
-
                 <button
                     id="viewer-search-next"
                     type="button"
@@ -176,16 +162,15 @@
                 </button>
 
                 {% if query %}
-                <span class="badge bg-warning text-dark viewer-query-badge">
-                    {{ query }}
-                </span>
+                <span class="badge bg-warning text-dark viewer-query-badge"
+                    >{{ query }}</span
+                >
                 {% endif %} {% if query and match_count %} {% if prev_match_url %}
                 <a
                     href="{{ prev_match_url }}"
                     class="btn btn-outline-secondary viewer-tool-btn"
+                    >Prev Match</a
                 >
-                    Prev Match
-                </a>
                 {% else %}
                 <button
                     class="btn btn-outline-secondary viewer-tool-btn"
@@ -195,17 +180,16 @@
                 </button>
                 {% endif %}
 
-                <span class="badge bg-primary viewer-match-badge">
-                    {{ current_match_index }} / {{ match_count }}
-                </span>
+                <span class="badge bg-primary viewer-match-badge"
+                    >{{ current_match_index }} / {{ match_count }}</span
+                >
 
                 {% if next_match_url %}
                 <a
                     href="{{ next_match_url }}"
                     class="btn btn-outline-secondary viewer-tool-btn"
+                    >Next Match</a
                 >
-                    Next Match
-                </a>
                 {% else %}
                 <button
                     class="btn btn-outline-secondary viewer-tool-btn"
@@ -214,9 +198,9 @@
                     Next Match
                 </button>
                 {% endif %} {% elif query %}
-                <span class="badge bg-secondary viewer-match-badge">
-                    No match
-                </span>
+                <span class="badge bg-secondary viewer-match-badge"
+                    >No match</span
+                >
                 {% endif %}
             </div>
         </div>
@@ -225,41 +209,24 @@
     <div id="manual-pdf-layout" class="manual-pdf-layout">
         <aside id="outline-panel" class="outline-panel">
             <div class="outline-title">PDF Contents</div>
-
             <div id="outline-container">
-                {% if viewer_type == "chapter" and package_chapters %}
-                <ul class="outline-list">
-                    {% for item in package_chapters %}
-                    <li class="outline-item">
-                        <a
-                            class="outline-link"
-                            href="{% url 'manual_chapter_pdf_viewer' item.pk %}?page=1{% if query %}&q={{ query|urlencode }}{% endif %}"
-                        >
-                            <span class="outline-icon"> ▱ </span>
-
-                            <span>
-                                {{ item.task }} {% if item.subtask %} / {{ item.subtask }} {% endif %} - {{
-                                item.title|default:"" }}
-                            </span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="outline-empty">Loading contents...</div>
-                {% endif %}
+                <div class="outline-empty">Loading dynamic menu...</div>
             </div>
         </aside>
+
+        <div
+            id="outline-resizer"
+            class="outline-resizer"
+            title="드래그하여 너비 조절"
+        ></div>
 
         <div class="pdf-viewer-scroll">
             <div id="single-page-viewer" class="pdf-viewer-wrap">
                 <canvas id="pdf-canvas"></canvas>
                 <div id="text-layer"></div>
             </div>
-
             <div id="multi-page-viewer" class="multi-page-viewer d-none"></div>
         </div>
     </div>
 </div>
-
 {% endblock content %}
