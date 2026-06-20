@@ -45,13 +45,21 @@
             <a
                 href="{{ pdf_url }}"
                 target="_blank"
-                class="btn btn-outline-primary viewer-action-btn"
+                class="btn btn-outline-primary viewer-action-btn d-none d-md-inline-flex"
             >
                 Original
             </a>
             <a
+                href="{{ pdf_url }}"
+                class="btn btn-outline-primary viewer-action-btn d-inline-flex d-md-none"
+                download
+            >
+                Original
+            </a>
+
+            <a
                 href="{{ back_url }}"
-                class="btn btn-outline-secondary viewer-action-btn"
+                class="btn btn-outline-primary viewer-action-btn"
             >
                 Back
             </a>
@@ -68,12 +76,12 @@
 
         <button
             id="prev-page"
-            class="btn btn-outline-secondary viewer-tool-btn"
+            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
         >
             Prev
         </button>
 
-        <div class="viewer-page-control">
+        <div class="viewer-page-control d-none d-md-inline-flex">
             <input
                 id="page-number"
                 type="number"
@@ -88,43 +96,34 @@
 
         <button
             id="next-page"
-            class="btn btn-outline-secondary viewer-tool-btn"
+            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
         >
             Next
         </button>
 
-        <button id="zoom-out" class="btn btn-outline-secondary viewer-tool-btn">
+        <button id="zoom-out" class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex">
             -
         </button>
-        <span id="zoom-level" class="badge bg-light text-dark viewer-zoom-badge"
+        <span id="zoom-level" class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
             >100%</span
         >
-        <button id="zoom-in" class="btn btn-outline-secondary viewer-tool-btn">
+        <button id="zoom-in" class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex">
             +
         </button>
 
         <button
             id="fit-width"
-            class="btn btn-outline-secondary viewer-tool-btn"
+            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
         >
             Width
         </button>
-        <button id="fit-page" class="btn btn-outline-secondary viewer-tool-btn">
+        <button id="fit-page" class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex">
             Page
-        </button>
-
-        <button
-            type="button"
-            class="btn btn-outline-primary viewer-tool-btn d-md-none"
-            data-bs-toggle="collapse"
-            data-bs-target="#viewer-mobile-search"
-        >
-            Search
         </button>
 
         <div
             id="viewer-mobile-search"
-            class="viewer-search-panel collapse d-md-block"
+            class="viewer-search-panel d-flex d-md-flex"
         >
             <div class="viewer-search-row">
                 <input
@@ -227,6 +226,29 @@
             </div>
             <div id="multi-page-viewer" class="multi-page-viewer d-none"></div>
         </div>
+    </div>
+    <div class="mobile-page-nav d-md-none">
+
+        <button id="mobile-prev-page"
+            class="btn btn-light mobile-page-btn">
+            ◀ Prev
+        </button>
+
+        <div class="mobile-page-indicator">
+            <span id="mobile-page-current">
+                {{ page_number }}
+            </span>
+            /
+            <span id="mobile-page-total">
+                -
+            </span>
+        </div>
+
+        <button id="mobile-next-page"
+            class="btn btn-primary mobile-page-btn">
+            Next ▶
+        </button>
+
     </div>
 </div>
 {% endblock content %}

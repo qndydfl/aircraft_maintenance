@@ -26,6 +26,13 @@ body {
     min-height: 100vh;
 }
 
+.app-admin-btn {
+    border-radius: 999px;
+    font-weight: 800;
+    padding: 0.35rem 0.85rem;
+    white-space: nowrap;
+}
+
 .app-navbar {
     min-height: 60px;
     box-shadow: 0 4px 18px rgba(13, 110, 253, 0.25);
@@ -214,3 +221,74 @@ body {
         padding: 12px;
     }
 }
+
+
+/* loading 시작 */
+.global-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(14px) saturate(170%);
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+}
+
+.global-loading-overlay.d-none {
+    display: none !important;
+}
+
+.loading-box {
+    min-width: 240px;
+    padding: 28px 26px;
+
+    text-align: center;
+
+    background: rgba(255,255,255,0.88);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 24px;
+
+    box-shadow:
+        0 22px 55px rgba(15,23,42,0.18),
+        inset 0 1px 1px rgba(255,255,255,0.95);
+}
+
+.loading-spinner {
+    width: 2.4rem;
+    height: 2.4rem;
+}
+
+.loading-title {
+    margin-top: 14px;
+    font-size: 1rem;
+    font-weight: 850;
+    color: #1d1d1f;
+}
+
+.loading-message {
+    margin-top: 4px;
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+@media (max-width: 767.98px) {
+    .loading-box {
+        min-width: 220px;
+        padding: 24px 22px;
+        border-radius: 22px;
+    }
+
+    .loading-title {
+        font-size: 0.92rem;
+    }
+
+    .loading-message {
+        font-size: 0.76rem;
+    }
+}
+
+/* loading 끝 */

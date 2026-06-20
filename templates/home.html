@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block body_class %}
+home-page
+{% endblock body_class %}
+
 {% block title %}
 Manual Portal
 {% endblock title %}
@@ -220,10 +224,10 @@ Manual Portal
                         <div class="card-button-group">
                             <a href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                                 class="btn btn-primary w-100 app-card-btn">
-                                Open Airbus Manuals
+                                Open Manuals
                             </a>
 
-                            <a href="https://w3.airbus.com/H380/world/airbusworld/forms/airbus.fcc?TYPE=33554433&REALMOID=06-2c93f4bb-1103-4238-98fa-62ca07aab930&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-t%2fTX88CtTFIPqQ15ugBfOME66PQGCWGuAAOSByMZUiVIJPozo431pS4LE4YuSGzU&TARGET=-SM-HTTPS%3a%2f%2fw3%2eairbus%2ecom%2fU980%2fU980_redirect_world%2ehtml%3fresumePath%3d-%2Fidp-%2FANSL9oFTBl-%2FresumeSAML20-%2Fidp-%2FSSO%2eping-%3FpfLoginRedirect-%3Dtrue"
+                            <a href="https://customers.airbus.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="btn btn-info w-100 app-card-btn">

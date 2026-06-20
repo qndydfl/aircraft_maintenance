@@ -6,39 +6,79 @@
     <title>{{ aircraft.name }} Manual Print</title>
 
     <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 13px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
             color: #000;
+            margin: 0;
+            line-height: 1.45;
         }
 
         h1 {
-            font-size: 22px;
-            margin-bottom: 4px;
+            font-size: 20px;
+            margin: 0 0 6px;
+        }
+
+        .print-date {
+            text-align: right;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 12px;
         }
 
         .info {
             margin-bottom: 16px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            background: #fafafa;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
         }
 
         th,
         td {
             border: 1px solid #333;
-            padding: 8px;
+            padding: 6px;
             vertical-align: top;
+            word-break: break-word;
         }
 
         th {
-            background: #eee;
+            background: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        td {
+            font-size: 10px;
         }
 
         .no-print {
             margin-bottom: 16px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: 1px solid #333;
+            background: #fff;
+            cursor: pointer;
         }
 
         @media print {
@@ -52,27 +92,47 @@
         }
     </style>
 </head>
+
 <body>
 
 <div class="no-print">
-    <button onclick="window.print()">Print</button>
-    <button onclick="window.close()">Close</button>
+    <button onclick="window.print()" class="btn">
+        Print
+    </button>
+
+    <button onclick="window.close()" class="btn">
+        Close
+    </button>
 </div>
 
-<h1>{{ aircraft.name }} Manual List</h1>
+<h1>
+    {{ aircraft.name }} Manual List
+</h1>
+
+<div class="print-date">
+    Printed :
+    {% now "Y-m-d H:i" %}
+</div>
 
 <div class="info">
-    <strong>Aircraft:</strong>
-    {{ aircraft.name }}
+    <div>
+        <strong>Aircraft :</strong>
+        {{ aircraft.name }}
+    </div>
+
+    <div>
+        <strong>Total Manuals :</strong>
+        {{ aircraft.get_ordered_manuals|length }}
+    </div>
 </div>
 
 <table>
     <thead>
         <tr>
-            <th>Manual Type</th>
-            <th>File</th>
-            <th>Description</th>
-            <th>Uploaded At</th>
+            <th style="width:15%;">Manual Type</th>
+            <th style="width:35%;">File</th>
+            <th style="width:35%;">Description</th>
+            <th style="width:15%;">Uploaded At</th>
         </tr>
     </thead>
 
@@ -86,7 +146,7 @@
             </tr>
         {% empty %}
             <tr>
-                <td colspan="4">
+                <td colspan="4" style="text-align:center;padding:20px;">
                     등록된 매뉴얼 파일이 없습니다.
                 </td>
             </tr>

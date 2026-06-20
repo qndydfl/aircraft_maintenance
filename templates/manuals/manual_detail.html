@@ -1,50 +1,76 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+manual-detail-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/manual_detail.css' %}">
+{% endblock css %}
 
 {% block content %}
 
-<div class="card shadow-sm">
-
-    <div class="card-body">
-
-        <h3>
-            {{ manual.aircraft.name }}
-            -
-            {{ manual.manual_type }}
-        </h3>
-
-        <hr>
-
-        <p>
-            {{ manual.description }}
+<div class="detail-hero mb-4">
+    <div>
+        <p class="home-eyebrow mb-1">
+            MANUAL FILE
         </p>
 
-        <div class="d-flex gap-2">
+        <h2 class="page-title mb-2">
+            {{ manual.aircraft.name }} - {{ manual.manual_type }}
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            {{ manual.description|default:"Manual file detail" }}
+        </p>
+    </div>
+
+    <div class="home-actions">
+        <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="card portal-card shadow-sm manual-detail-file-card">
+    <div class="card-body">
+
+        <div class="manual-file-info">
+            <span>Aircraft</span>
+            <strong>{{ manual.aircraft.name }}</strong>
+        </div>
+
+        <div class="manual-file-info">
+            <span>Manual Type</span>
+            <strong>{{ manual.manual_type }}</strong>
+        </div>
+
+        <div class="manual-file-info">
+            <span>Description</span>
+            <strong>{{ manual.description|default:"-" }}</strong>
+        </div>
+
+        <div class="manual-file-actions">
 
             {% if manual.manual_type == "MEL" or manual.manual_type == "CDL" %}
-
                 <a href="{{ manual.file.url }}"
                     target="_blank"
-                    class="btn btn-primary">
+                    class="btn btn-primary app-card-btn">
                     Open PDF
                 </a>
-
             {% endif %}
 
             <a href="{{ manual.file.url }}"
                 download
-                class="btn btn-success">
+                class="btn btn-success app-card-btn">
                 Download
-            </a>
-
-            <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
-                class="btn btn-secondary">
-                Back
             </a>
 
         </div>
 
     </div>
-
 </div>
 
-{% endblock %}
+{% endblock content %}

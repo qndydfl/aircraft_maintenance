@@ -1,5 +1,28 @@
+/* manual_package_form.css */
+
+.detail-hero {
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 24px;
+
+    padding: 24px;
+
+    box-shadow:
+        0 18px 45px rgba(15,23,42,0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
 .manual-package-form {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 18px;
 }
 
@@ -7,54 +30,148 @@
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 18px;
-    padding: 16px;
+    padding: 18px;
 }
 
 .manual-package-section-title {
-    color: #111827;
-    font-weight: 850;
     font-size: 1rem;
-    margin-bottom: 14px;
+    font-weight: 850;
+    color: #111827;
+    margin-bottom: 16px;
 }
 
-.manual-package-form .form-control,
-.manual-package-form .form-select {
-    min-height: 44px;
-    border-radius: 13px;
+.manual-package-form .form-label {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #4b5563;
+    margin-bottom: 6px;
+}
+
+.manual-package-form input,
+.manual-package-form select {
+    border-radius: 14px;
 }
 
 .manual-package-guide {
-    background: #ffffff;
-    border: 1px dashed #cbd5e1;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 12px;
-    color: #374151;
+    font-size: 0.85rem;
 }
 
 .manual-package-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+    gap: 10px;
+}
+
+.manual-package-actions .btn {
+    flex: 1;
 }
 
 @media (max-width: 767.98px) {
+
+    .detail-hero {
+        padding: 14px 15px;
+        border-radius: 18px;
+        gap: 10px;
+    }
+
+    .detail-hero .page-title {
+        font-size: 1.12rem;
+        margin-bottom: 3px !important;
+    }
+
+    .detail-hero .home-eyebrow {
+        font-size: 0.68rem;
+    }
+
+    .detail-hero .home-subtitle {
+        font-size: 0.73rem;
+    }
+
+    .detail-hero .app-action-btn {
+        min-height: 32px;
+        padding: 5px 11px;
+        font-size: 0.74rem;
+        border-radius: 999px;
+    }
+
+    .portal-card .card-body {
+        padding: 13px !important;
+    }
+
+    .manual-package-form {
+        gap: 12px;
+    }
+
     .manual-package-section {
-        padding: 14px;
-        border-radius: 16px;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .manual-package-section-title {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+    }
+
+    .manual-package-form .form-label {
+        font-size: 0.72rem;
+    }
+
+    .manual-package-form input,
+    .manual-package-form select {
+        font-size: 0.8rem;
+        border-radius: 11px;
+    }
+
+    .manual-package-guide {
+        padding: 10px;
+        font-size: 0.72rem;
+        border-radius: 12px;
     }
 
     .manual-package-actions {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
 
     .manual-package-actions .btn {
         width: 100%;
+        min-height: 36px;
+        font-size: 0.78rem;
+        border-radius: 11px;
+    }
+
+    /* 하단 여백 제거 */
+
+    body.manual-package-form-page .app-main {
+        min-height: auto;
+    }
+
+    body.manual-package-form-page .app-container {
+        padding-bottom: 0;
+    }
+
+    body.manual-package-form-page .portal-card {
+        margin-bottom: 0;
     }
 }
 
-@media (max-width: 420px) {
-    .manual-package-actions {
-        grid-template-columns: 1fr;
+@media (max-width: 390px) {
+
+    .detail-hero .page-title {
+        font-size: 1.04rem;
+    }
+
+    .manual-package-form input,
+    .manual-package-form select {
+        font-size: 0.76rem;
+    }
+
+    .manual-package-actions .btn {
+        min-height: 34px;
+        font-size: 0.74rem;
     }
 }

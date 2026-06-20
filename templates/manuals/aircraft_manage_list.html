@@ -23,15 +23,17 @@
     </div>
 
     <div class="home-actions">
-        <a href="{% url 'aircraft_create' %}"
-            class="btn btn-primary app-action-btn">
-            Add Aircraft
-        </a>
+        {% if user.is_staff %}
+            <a href="{% url 'aircraft_create' %}"
+                class="btn btn-primary app-action-btn">
+                Add Aircraft
+            </a>
 
-        <a href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
+            <a href="{% url 'home' %}"
+                class="btn btn-outline-secondary app-action-btn">
+                Back
+            </a>
+        {% endif %}
     </div>
 </div>
 
@@ -77,17 +79,19 @@
                             </td>
 
                             <td>
-                                <div class="d-flex gap-2">
-                                    <a href="{% url 'aircraft_update' aircraft.pk %}"
-                                        class="btn btn-sm btn-warning">
-                                        Edit
-                                    </a>
+                                {% if user.is_staff %}
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'aircraft_update' aircraft.pk %}"
+                                            class="btn btn-sm btn-warning">
+                                            Edit
+                                        </a>
 
-                                    <a href="{% url 'aircraft_delete' aircraft.pk %}"
-                                        class="btn btn-sm btn-danger">
-                                        Delete
-                                    </a>
-                                </div>
+                                        <a href="{% url 'aircraft_delete' aircraft.pk %}"
+                                            class="btn btn-sm btn-danger">
+                                            Delete
+                                        </a>
+                                    </div>
+                                {% endif %}
                             </td>
                         </tr>
                     {% empty %}
@@ -130,17 +134,19 @@
                         </div>
                     </div>
 
-                    <div class="aircraft-manage-actions">
-                        <a href="{% url 'aircraft_update' aircraft.pk %}"
-                            class="btn btn-warning app-card-btn">
-                            Edit
-                        </a>
+                    {% if user.is_staff %}
+                        <div class="aircraft-manage-actions">
+                            <a href="{% url 'aircraft_update' aircraft.pk %}"
+                                class="btn btn-warning app-card-btn">
+                                Edit
+                            </a>
 
-                        <a href="{% url 'aircraft_delete' aircraft.pk %}"
-                            class="btn btn-danger app-card-btn">
-                            Delete
-                        </a>
-                    </div>
+                            <a href="{% url 'aircraft_delete' aircraft.pk %}"
+                                class="btn btn-danger app-card-btn">
+                                Delete
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             {% empty %}
                 <div class="text-center text-muted py-4">

@@ -1,28 +1,140 @@
+/* aircraft_manage_list.css */
+
+.detail-hero {
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 26px;
+    padding: 24px;
+    box-shadow:
+        0 18px 45px rgba(15,23,42,0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.manual-badge {
+    border-radius: 999px;
+    font-size: 0.72rem;
+    padding: 6px 9px;
+    font-weight: 800;
+}
+
+.table {
+    font-size: 0.9rem;
+}
+
+.table th {
+    color: #6b7280;
+    font-size: 0.78rem;
+    font-weight: 850;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
 .aircraft-manage-list {
     display: grid;
-    gap: 12px;
+    gap: 10px;
 }
 
 .aircraft-manage-card {
-    border: 1px solid #e5e7eb;
-    background: #f8fafc;
-    border-radius: 17px;
-    padding: 15px;
+    padding: 13px;
+
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 16px;
+
+    box-shadow:
+        0 10px 26px rgba(15,23,42,0.07),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+}
+
+.aircraft-manage-header {
+    margin-bottom: 10px;
 }
 
 .aircraft-manage-title {
+    font-size: 0.98rem;
     font-weight: 850;
-    color: #111827;
+    letter-spacing: -0.03em;
+    color: #1d1d1f;
 }
 
 .aircraft-manage-desc {
+    font-size: 0.76rem;
     color: #6b7280;
-    font-size: 0.88rem;
 }
 
 .aircraft-manage-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 14px;
+    gap: 7px;
+}
+
+.aircraft-manage-actions .app-card-btn {
+    min-height: 34px;
+    padding: 6px 8px;
+    border-radius: 11px;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+@media (max-width: 767.98px) {
+    .detail-hero {
+        padding: 14px 15px;
+        border-radius: 18px;
+        margin-bottom: 14px !important;
+        gap: 10px;
+    }
+
+    .detail-hero .page-title {
+        font-size: 1.12rem;
+        margin-bottom: 3px !important;
+    }
+
+    .detail-hero .home-eyebrow {
+        font-size: 0.68rem;
+    }
+
+    .detail-hero .home-subtitle {
+        font-size: 0.73rem;
+    }
+
+    .home-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+        gap: 7px;
+    }
+
+    .home-actions .app-action-btn {
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 0.74rem;
+        border-radius: 11px;
+    }
+
+    .portal-card .card-body {
+        padding: 12px !important;
+    }
+
+    .manual-badge {
+        font-size: 0.62rem;
+        padding: 5px 7px;
+    }
 }

@@ -1,28 +1,94 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %}
+{% load static %}
 
-<div class="card shadow-sm border-danger">
-    <div class="card-header bg-danger text-white">Delete Manual Package</div>
+{% block body_class %}
+delete-confirm-page
+{% endblock body_class %}
 
-    <div class="card-body">
-        <p>정말 삭제하시겠습니까?</p>
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/delete_confirm.css' %}">
+{% endblock css %}
 
-        <p class="fw-bold">
-            {{ package.aircraft.name }} / {{ package.manual_type }}
+{% block content %}
+
+<div class="detail-hero mb-4">
+
+    <div>
+        <p class="home-eyebrow mb-1">
+            ZIP PACKAGE
         </p>
 
-        <form method="post">
+        <h2 class="page-title mb-2">
+            Delete Manual Package
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            ZIP 매뉴얼 패키지를 삭제합니다.
+        </p>
+    </div>
+
+    <div class="home-actions">
+        <a href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="card portal-card shadow-sm delete-card">
+
+    <div class="card-body">
+
+        <div class="delete-icon">
+            ⚠️
+        </div>
+
+        <h4 class="delete-title">
+            정말 삭제하시겠습니까?
+        </h4>
+
+        <p class="delete-description">
+            ZIP 패키지와 관련 데이터가 모두 삭제됩니다.
+        </p>
+
+        <div class="delete-info">
+
+            <div>
+                <span>Aircraft</span>
+                <strong>
+                    {{ package.aircraft.name }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Manual Type</span>
+                <strong>
+                    {{ package.manual_type }}
+                </strong>
+            </div>
+
+        </div>
+
+        <form method="post"
+            class="delete-actions">
+
             {% csrf_token %}
 
-            <button type="submit" class="btn btn-danger">Delete</button>
+            <button type="submit"
+                class="btn btn-danger app-card-btn">
+                Delete Package
+            </button>
 
-            <a
-                href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
-                class="btn btn-outline-secondary"
-            >
+            <a href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
+                class="btn btn-outline-secondary app-card-btn">
                 Cancel
             </a>
+
         </form>
+
     </div>
+
 </div>
 
 {% endblock %}

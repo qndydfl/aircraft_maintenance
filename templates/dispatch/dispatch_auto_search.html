@@ -2,6 +2,10 @@
 {% load static %}
 {% load manual_extras %}
 
+{% block body_class %}
+dispatch-search-page
+{% endblock body_class %}
+
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/dispatch_auto_search.css' %}">
 {% endblock css %}
@@ -36,7 +40,6 @@
         </a>
 
         <a href="{% url 'dispatch_print' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
-            target="_blank"
             class="btn btn-outline-dark app-action-btn d-none d-md-inline-flex">
             Print
         </a>
@@ -50,7 +53,10 @@
 
 <div class="card portal-card shadow-sm mb-4">
     <div class="card-body">
-        <form method="get">
+        <form method="get"
+            data-loading-title="Searching Dispatch"
+            data-loading-message="Finding MEL / FIM / AMM references...">
+            
             <div class="row g-3">
                 <div class="col-12 col-md-3">
                     <label class="form-label">Aircraft</label>
@@ -172,24 +178,21 @@
                                 </a>
 
                                 {% if item.mel_page %}
-                                    <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
-                                        target="_blank"
+                                    <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-danger">
                                         MEL
                                     </a>
                                 {% endif %}
 
                                 {% if item.fim_page %}
-                                    <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}"
-                                        target="_blank"
+                                    <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-primary">
                                         FIM
                                     </a>
                                 {% endif %}
 
                                 {% if item.amm_page %}
-                                    <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}"
-                                        target="_blank"
+                                    <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-success">
                                         AMM
                                     </a>
@@ -225,24 +228,21 @@
                     </a>
 
                     {% if item.mel_page %}
-                        <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}"
-                            target="_blank"
+                        <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-danger app-card-btn">
                             MEL
                         </a>
                     {% endif %}
 
                     {% if item.fim_page %}
-                        <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}"
-                            target="_blank"
+                        <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-primary app-card-btn">
                             FIM
                         </a>
                     {% endif %}
 
                     {% if item.amm_page %}
-                        <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}"
-                            target="_blank"
+                        <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-success app-card-btn">
                             AMM
                         </a>
@@ -283,8 +283,7 @@
                         <td>{{ row.adc|default:"-" }}</td>
                         <td>
                             {% if row.manual_file and row.page_number %}
-                                <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&mode=matches"
-                                    target="_blank"
+                                <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&mode=matches&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-sm btn-outline-danger">
                                     Open
                                 </a>
@@ -315,8 +314,7 @@
                 </div>
 
                 {% if row.manual_file and row.page_number %}
-                    <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}"
-                        target="_blank"
+                    <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                         class="btn btn-outline-danger w-100 app-card-btn">
                         Open PDF
                     </a>
@@ -365,8 +363,7 @@
                                     {% endif %}
                                 </div>
 
-                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
+                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-danger app-card-btn">
                                     Open MEL Page
                                 </a>
@@ -436,8 +433,7 @@
                                     <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                 </div>
 
-                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
+                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-primary app-card-btn">
                                     Open FIM Page
                                 </a>
@@ -511,8 +507,7 @@
                                     <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                 </div>
 
-                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
+                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-success app-card-btn">
                                     Open AMM Page
                                 </a>
@@ -586,8 +581,7 @@
                                     <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                                 </div>
 
-                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
+                                <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-outline-info app-card-btn">
                                     Open IPC Page
                                 </a>

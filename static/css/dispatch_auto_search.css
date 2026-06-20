@@ -1,131 +1,121 @@
-/* ==========================================
-   1. 기본 컴포넌트 및 기본 스타일
-   ========================================== */
+/* dispatch_auto_search.css */
+
 .detail-hero {
-    margin-top: 18px;
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 24px;
     padding: 24px;
+    box-shadow:
+        0 18px 45px rgba(15,23,42,0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .app-form-control {
-    min-height: 44px;
-    border-radius: 13px;
+    min-height: 42px;
+    border-radius: 14px;
+    font-size: 0.92rem;
 }
 
 .dispatch-actions {
-    width: 100%;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
     gap: 8px;
-}
-
-.mel-condition {
-    white-space: normal !important;
-    word-break: keep-all;
-    overflow: visible !important;
-    max-height: none !important;
-    display: table-cell !important;
-    -webkit-line-clamp: unset !important;
-    line-clamp: unset !important;
+    justify-content: flex-end;
 }
 
 .dispatch-ref-list,
 .mel-result-list {
     display: grid;
-    gap: 12px;
+    gap: 10px;
 }
 
 .dispatch-ref-card,
 .mel-result-card {
-    border: 1px solid #e5e7eb;
-    background: #f8fafc;
-    border-radius: 17px;
-    padding: 15px;
+    padding: 13px;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 16px;
+    box-shadow:
+        0 10px 26px rgba(15,23,42,0.07),
+        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .dispatch-card-title {
-    font-weight: 800;
-    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 850;
+    color: #1d1d1f;
 }
 
 .dispatch-mini-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 7px;
+    margin-bottom: 10px;
 }
 
 .dispatch-mini-grid div {
-    background: #ffffff;
+    background: #f8fafc;
     border: 1px solid #e5e7eb;
-    border-radius: 13px;
-    padding: 9px 10px;
+    border-radius: 12px;
+    padding: 8px;
 }
 
 .dispatch-mini-grid span {
     display: block;
-    color: #6b7280;
-    font-size: 0.72rem;
-    font-weight: 700;
-    margin-bottom: 3px;
+    font-size: 0.64rem;
+    font-weight: 850;
+    color: #8e8e93;
+    margin-bottom: 2px;
 }
 
 .dispatch-mini-grid strong {
-    display: block;
-    color: #111827;
-    font-size: 0.86rem;
+    font-size: 0.76rem;
+    color: #1d1d1f;
     word-break: break-word;
 }
 
 .dispatch-card-actions {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-top: 12px;
+    grid-template-columns: 1fr;
+    gap: 6px;
 }
 
 .mel-condition-box {
-    background: #ffffff;
+    background: #f8fafc;
     border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 11px;
-    margin-bottom: 12px;
+    border-radius: 12px;
+    padding: 9px;
+    margin-bottom: 10px;
 }
 
 .mel-condition-box span {
     display: block;
-    color: #6b7280;
-    font-size: 0.72rem;
-    font-weight: 800;
-    margin-bottom: 5px;
+    font-size: 0.64rem;
+    font-weight: 850;
+    color: #8e8e93;
+    margin-bottom: 4px;
 }
 
 .mel-condition-box p {
-    margin-bottom: 0;
+    margin: 0;
+    font-size: 0.76rem;
     color: #374151;
-    font-size: 0.88rem;
-    line-height: 1.5;
 }
 
 .candidate-card {
-    overflow: hidden;
+    border-top: 0;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 18px;
 }
-
-.candidate-mel { border-top: 4px solid #dc3545; }
-.candidate-fim { border-top: 4px solid #0d6efd; }
-.candidate-amm { border-top: 4px solid #198754; }
-.candidate-ipc { border-top: 4px solid #0dcaf0; }
 
 .candidate-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 12px;
-}
-
-.candidate-top .btn {
-    flex-shrink: 0;
 }
 
 .candidate-snippet {
@@ -133,106 +123,89 @@
     border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 12px;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     line-height: 1.55;
     max-height: 180px;
     overflow-y: auto;
-}
-
-.candidate-snippet mark,
-.candidate-snippet .highlight {
-    background: #fff3cd;
-    color: #111827;
-    padding: 0 2px;
-    border-radius: 3px;
+    margin-top: 10px;
 }
 
 .candidate-pager {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: 8px;
-    margin-top: 14px;
+    margin-top: 12px;
 }
 
-.candidate-pager .badge {
-    border-radius: 999px;
-    padding: 0.55rem 0.7rem;
+body.dispatch-search-page .app-container {
+    padding-bottom: 8px;
 }
 
-
-/* ==========================================
-   2. 모바일 반응형
-   ========================================== */
+body.dispatch-search-page .app-main {
+    min-height: auto;
+}
 
 @media (max-width: 767.98px) {
     .detail-hero {
-        align-items: stretch !important;
-        margin-top: 12px;
-        padding: 16px !important;
-    }
-
-    .dispatch-actions {
-        width: 100%;
-        max-width: none;
-        display: block !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        justify-content: stretch;
-        gap: 8px;
-        margin-top: 8px;
-    }
-
-    .dispatch-actions .btn {
-        width: 100%;
-    }
-
-    .dropdown-menu .dropdown-item {
-        font-size: 0.9rem !important;
+        padding: 14px 15px;
+        border-radius: 18px;
+        margin-bottom: 14px !important;
+        align-items: flex-start !important;
     }
 
     .detail-hero .page-title {
-        font-size: 1.35rem !important;
+        font-size: 1.12rem;
+        margin-bottom: 3px !important;
+    }
+
+    .detail-hero .home-eyebrow {
+        font-size: 0.68rem !important;
     }
 
     .detail-hero .home-subtitle {
-        font-size: 0.85rem !important;
+        font-size: 0.73rem;
     }
 
-    .section-title {
-        font-size: 1.15rem !important;
+    .dispatch-actions {
+        width: auto !important;
+        margin-left: auto;
+        justify-content: flex-end;
     }
 
-    .portal-card .card-body,
-    .dispatch-ref-card,
-    .mel-result-card {
+    .dispatch-actions .app-action-btn {
+        width: auto;
+        min-height: 30px;
+        padding: 5px 11px;
+        font-size: 0.74rem;
+        border-radius: 999px;
+    }
+
+    body.dispatch-search-page .app-container {
+        padding-bottom: 0;
+    }
+
+    .portal-card .card-body {
         padding: 12px !important;
-        border-radius: 14px;
     }
 
-    .app-form-control,
-    .form-select,
-    .form-control {
+    .app-form-control {
         min-height: 38px;
-        padding: 0.35rem 0.65rem !important;
-        font-size: 0.85rem !important;
-        border-radius: 10px;
+        font-size: 0.8rem;
+        border-radius: 11px;
     }
 
-    .app-action-btn,
-    .app-card-btn,
-    .btn {
-        padding: 0.35rem 0.65rem !important;
-        font-size: 0.85rem !important;
-        border-radius: 10px;
+    .form-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        margin-bottom: 4px;
     }
 
-    .dispatch-mini-grid {
-        font-size: 0.78rem !important;
-    }
-
-    .dispatch-mini-grid div {
-        padding: 7px 8px;
-        border-radius: 10px;
+    .app-card-btn {
+        min-height: 34px;
+        font-size: 0.76rem;
+        padding: 6px 8px;
+        border-radius: 11px;
     }
 
     .candidate-top {
@@ -240,38 +213,32 @@
         gap: 8px;
     }
 
-    .candidate-top .btn {
+    .candidate-top .app-card-btn {
         width: 100%;
     }
 
     .candidate-snippet {
-        max-height: 160px;
-        font-size: 0.82rem !important;
-        line-height: 1.45;
-        padding: 10px;
-        border-radius: 10px;
+        max-height: 150px;
+        font-size: 0.74rem;
+        padding: 9px;
     }
 
     .candidate-pager {
-        grid-template-columns: 1fr;
         gap: 6px;
     }
 
-    .candidate-pager .badge {
-        justify-self: center;
-        order: -1;
+    .candidate-pager .app-card-btn {
+        min-height: 32px;
+        font-size: 0.72rem;
+        padding: 5px 8px;
     }
-}
 
-
-/* ==========================================
-   3. 초소형 모바일
-   ========================================== */
-
-@media (max-width: 420px) {
-    .dispatch-actions,
-    .dispatch-card-actions,
     .dispatch-mini-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .dispatch-card-actions .app-card-btn {
+        width: 100%;
     }
 }

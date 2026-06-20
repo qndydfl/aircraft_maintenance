@@ -1,10 +1,22 @@
-/* --- 기본 공통 및 PC 스타일 --- */
+/* aircraft_manual_detail.css */
+
+/* =========================
+   PC / 공통 - iPhone 스타일
+========================= */
+
 .detail-hero {
-    background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%);
-    border: 1px solid rgba(13, 110, 253, 0.08);
-    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 26px;
     padding: 24px;
-    box-shadow: var(--app-shadow);
+
+    box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -21,35 +33,67 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     width: 100%;
     margin-bottom: 12px;
 }
 
 .manual-detail-card {
-    border-top: 4px solid #0d6efd;
+    border: 1px solid rgba(255,255,255,0.82);
+    border-top: 0;
+
+    background: rgba(255,255,255,0.78);
+
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 14px 34px rgba(15, 23, 42, 0.07),
+        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .manual-empty-card {
-    border-top-color: #adb5bd;
-    opacity: 0.85;
+    opacity: 0.72;
+}
+
+.aircraft-maker {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #8e8e93;
+}
+
+.aircraft-title {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #1d1d1f;
 }
 
 .aircraft-type-pill {
     display: inline-block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 6px 10px;
-    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
 }
 
 .ready-pill {
-    background: rgba(25, 135, 84, 0.12);
+    background: rgba(52, 199, 89, 0.14);
     color: #198754;
 }
 
 .empty-pill {
-    background: rgba(108, 117, 125, 0.12);
+    background: rgba(142, 142, 147, 0.14);
     color: #6c757d;
+}
+
+.manual-badge {
+    border-radius: 999px;
+    font-size: 0.68rem;
+    padding: 5px 8px;
 }
 
 .detail-button-grid {
@@ -70,89 +114,241 @@
     margin: 0;
 }
 
+.manual-card-note {
+    font-size: 0.88rem;
+    color: #6b7280;
+}
 
-/* --- 📱 모바일 반응형 미디어 쿼리 (767.98px 이하) --- */
+.manual-detail-card .app-card-btn {
+    border-radius: 14px;
+    font-weight: 800;
+}
+
+/* =========================
+   모바일 - 작고 깔끔하게
+========================= */
+
 @media (max-width: 767.98px) {
-    
-    /* 1. 불필요한 버튼 그룹 및 폼 요소 완전 제거 */
+
     .desktop-only-action,
     .desktop-only-buttons,
     .desktop-only-btn-group,
     .desktop-only-btn,
-    .manual-detail-card font, 
     .card-button-group form,
-    .card-button-group .detail-button-grid a:not(.mobile-show-btn) { 
+    .card-button-group .detail-button-grid a:not(.mobile-show-btn) {
         display: none !important;
     }
 
-    /* 2. 카드 내부 복잡한 텍스트 및 정보 일괄 제거 (간략화) */
+    .detail-hero {
+        border-radius: 18px;
+        padding: 14px 15px;
+        margin-bottom: 14px !important;
+        gap: 10px;
+    }
+
+    .detail-hero .page-title {
+        font-size: 1.15rem;
+        margin-bottom: 2px !important;
+    }
+
+    .detail-hero .home-eyebrow {
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .detail-hero .home-subtitle {
+        font-size: 0.75rem;
+    }
+
+    .detail-hero .home-actions {
+        width: auto;
+        flex-shrink: 0;
+    }
+
+    .detail-hero .home-actions .app-action-btn.mobile-show-btn {
+        width: auto;
+        min-width: auto;
+        font-size: 0.76rem;
+        padding: 5px 11px;
+        border-radius: 999px;
+    }
+
+    .row.g-3 {
+        --bs-gutter-y: 0.65rem;
+    }
+
+    .manual-detail-card {
+        border-radius: 16px;
+        box-shadow:
+            0 8px 22px rgba(15, 23, 42, 0.06),
+            inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+
+    .manual-detail-card .card-body {
+        padding: 11px 12px;
+    }
+
+    .aircraft-card-header {
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    .aircraft-maker {
+        font-size: 0.62rem;
+        margin-bottom: 1px !important;
+    }
+
+    .aircraft-title {
+        font-size: 0.95rem;
+        line-height: 1.1;
+    }
+
+    .aircraft-type-pill {
+        font-size: 0.58rem;
+        padding: 4px 7px;
+    }
+
     .manual-detail-card .small,
     .manual-detail-card .text-muted {
         display: none !important;
     }
 
-    /* 3. 빈 카드일 때 나오는 '등록된 파일이 없습니다' 안내는 유지 */
-    .manual-detail-card .manual-card-note {
-        font-size: 0.85rem;
-        color: #868e96;
-        margin-top: 4px;
+    .manual-card-note {
+        font-size: 0.76rem;
+        margin-top: 2px;
+        margin-bottom: 0;
     }
 
-    /* 4. 상단 영웅 영역(Hero) 레이아웃 조정 - Back 버튼만 우측 상단 정렬 */
-    .detail-hero {
-        flex-direction: row; /* 세로 분할 대신 가로 배치 유지 */
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 16px;
-        padding: 16px;
-    }
-
-    .detail-hero .home-actions {
-        width: auto;
-    }
-
-    .detail-hero .home-actions .app-action-btn.mobile-show-btn {
-        width: auto;
-        font-size: 0.85rem;
-        padding: 6px 14px;
-        border-radius: 8px;
-    }
-
-    /* 5. 카드 내부 레이아웃 및 Open 버튼 전체 화면 너비 채우기 */
-    .manual-detail-card .card-body {
-        padding: 14px;
-    }
-
-    .aircraft-card-header {
-        margin-bottom: 0px; /* 버튼과 밀착되도록 여백 초기화 */
-    }
-
-    /* 레이아웃 그리드를 1열로 변경하여 Open 버튼이 가로로 가득 차게 만듦 */
     .detail-button-grid {
         grid-template-columns: 1fr;
+        gap: 6px;
     }
 
     .card-button-group {
-        margin-top: 12px;
+        margin-top: 8px;
+        gap: 6px;
     }
 
     .manual-detail-card .app-card-btn.mobile-show-btn {
         display: block !important;
         width: 100%;
-        min-height: 40px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        padding: 8px;
-        border-radius: 10px;
+
+        min-height: 34px;
+        padding: 6px 8px;
+
+        font-size: 0.78rem;
+        font-weight: 800;
+
+        border-radius: 11px;
         text-align: center;
     }
+}
 
-    .aircraft-title {
+/* =========================
+   아주 작은 iPhone 대응
+========================= */
+
+@media (max-width: 390px) {
+
+    .detail-hero {
+        padding: 12px;
+    }
+
+    .detail-hero .page-title {
         font-size: 1.05rem;
     }
 
+    .detail-hero .home-subtitle {
+        font-size: 0.7rem;
+    }
+
+    .manual-detail-card .card-body {
+        padding: 10px;
+    }
+
+    .aircraft-title {
+        font-size: 0.9rem;
+    }
+
+    .manual-detail-card .app-card-btn.mobile-show-btn {
+        min-height: 32px;
+        font-size: 0.75rem;
+        padding: 5px 8px;
+    }
+}
+
+body.aircraft-manual-detail-page .app-container {
+    padding-bottom: 8px;
+}
+
+body.aircraft-manual-detail-page .app-main {
+    min-height: auto;
+}
+
+.revision-info {
+    font-size: 0.76rem;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.manual-uploaded {
+    font-size: 0.74rem;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 767.98px) {
+    body.aircraft-manual-detail-page .app-container {
+        padding-bottom: 0;
+    }
+
+    .manual-detail-card .card-body {
+        padding: 12px !important;
+    }
+
+    .aircraft-card-header {
+        margin-bottom: 8px;
+    }
+
+    .aircraft-title {
+        font-size: 0.95rem;
+    }
+
     .aircraft-type-pill {
-        font-size: 0.65rem;
-        padding: 4px 8px;
+        font-size: 0.58rem;
+        padding: 3px 7px;
+    }
+
+    .revision-info,
+    .manual-uploaded {
+        font-size: 0.68rem;
+        margin-bottom: 5px;
+    }
+
+    .manual-card-note {
+        font-size: 0.72rem;
+        margin-bottom: 8px;
+    }
+
+    .desktop-only-btn,
+    .desktop-only-btn-group {
+        display: none !important;
+    }
+
+    .detail-button-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .card-button-group {
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .manual-detail-card .app-card-btn.mobile-show-btn {
+        min-height: 32px;
+        padding: 5px 8px;
+        font-size: 0.74rem;
+        border-radius: 10px;
     }
 }

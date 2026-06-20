@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block body_class %}
+manual-package-form-page
+{% endblock body_class %}
+
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/manual_package_form.css' %}">
 {% endblock css %}
@@ -36,7 +40,9 @@
     <div class="card-body">
         <form method="post"
             enctype="multipart/form-data"
-            class="manual-package-form">
+            class="manual-package-form"
+            data-loading-title="Processing ZIP Manual"
+            data-loading-message="Extracting files and indexing PDF pages...">
             {% csrf_token %}
 
             {% if form.non_field_errors %}

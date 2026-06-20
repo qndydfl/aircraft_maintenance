@@ -1,35 +1,87 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+delete-confirm-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/delete_confirm.css' %}">
+{% endblock css %}
 
 {% block content %}
 
-<div class="card shadow-sm border-danger">
+<div class="detail-hero mb-4">
 
-    <div class="card-header bg-danger text-white">
-        Delete Dispatch
+    <div>
+        <p class="home-eyebrow mb-1">
+            DISPATCH
+        </p>
+
+        <h2 class="page-title mb-2">
+            Delete Dispatch
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            Dispatch 정보를 삭제합니다.
+        </p>
     </div>
+
+    <div class="home-actions">
+        <a href="{% url 'dispatch_detail' dispatch.pk %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="card portal-card shadow-sm delete-card">
 
     <div class="card-body">
 
-        <p>
+        <div class="delete-icon">
+            ⚠️
+        </div>
+
+        <h4 class="delete-title">
             정말 삭제하시겠습니까?
+        </h4>
+
+        <p class="delete-description">
+            삭제 후에는 복구할 수 없습니다.
         </p>
 
-        <p class="fw-bold">
-            {{ dispatch.aircraft.name }} /
-            {{ dispatch.eicas_message|default:dispatch.fault_code }}
-        </p>
+        <div class="delete-info">
 
-        <form method="post">
+            <div>
+                <span>Aircraft</span>
+                <strong>
+                    {{ dispatch.aircraft.name }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Message</span>
+                <strong>
+                    {{ dispatch.eicas_message|default:dispatch.fault_code }}
+                </strong>
+            </div>
+
+        </div>
+
+        <form method="post"
+            class="delete-actions">
 
             {% csrf_token %}
 
             <button type="submit"
-                    class="btn btn-danger">
-                Delete
+                    class="btn btn-danger app-card-btn">
+                Delete Dispatch
             </button>
 
             <a href="{% url 'dispatch_detail' dispatch.pk %}"
-                class="btn btn-outline-secondary">
+                class="btn btn-outline-secondary app-card-btn">
                 Cancel
             </a>
 

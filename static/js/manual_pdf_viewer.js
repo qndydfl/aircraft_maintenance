@@ -34,7 +34,6 @@ const outlinePanel = document.getElementById("outline-panel");
 const toggleOutlineBtn = document.getElementById("toggle-outline");
 const manualPdfLayout = document.getElementById("manual-pdf-layout");
 const outlineResizer = document.getElementById("outline-resizer");
-const outlineStorageKey = "manualPdfOutlineHiddenV3";
 const singlePageViewer = document.getElementById("single-page-viewer");
 const multiPageViewer = document.getElementById("multi-page-viewer");
 const viewerSearchInput = document.getElementById("viewer-search-input");
@@ -43,18 +42,19 @@ const viewerSearchPrevBtn = document.getElementById("viewer-search-prev");
 const viewerSearchNextBtn = document.getElementById("viewer-search-next");
 const viewerSearchCount = document.getElementById("viewer-search-count");
 
+const outlineStorageKey = "manualPdfOutlineHiddenV3";
+const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
+
 let viewerSearchQuery = searchQuery || "";
 let viewerSearchMatches = [];
 let viewerSearchIndex = -1;
 
 let scale = 1.0;
+let scaleMode = isMobileViewport() ? "width" : "page";
 
 function isMobileViewport() {
     return window.innerWidth < 768;
 }
-
-// 모바일은 기본적으로 가로폭 맞춤으로 시작
-let scaleMode = isMobileViewport() ? "width" : "page";
 
 function parseViewerSearchQuery(query) {
     if (!query) {
@@ -143,6 +143,39 @@ function isMatchedText(text) {
     return regex.test(normalizedText);
 }
 
+function getFitScale(page) {
+    const viewport = page.getViewport({ scale: 1 });
+
+    const padding = isMobileViewport() ? 4 : 16;
+
+    const containerWidth = Math.max(
+        pdfContainer.clientWidth - padding,
+        1
+    );
+
+    const containerHeight = Math.max(
+        pdfContainer.clientHeight - padding,
+        1
+    );
+
+    if (scaleMode === "width") {
+        return containerWidth / viewport.width;
+    }
+
+    if (scaleMode === "page") {
+        return Math.min(
+            containerWidth / viewport.width,
+            containerHeight / viewport.height
+        );
+    }
+
+    return scale;
+}
+
+function updateZoomLabel(value) {
+    zoomLevelSpan.textContent = Math.round(value * 100) + "%";
+}
+
 function renderTextLayer(page, viewport) {
     clearTextLayer();
 
@@ -158,7 +191,7 @@ function renderTextLayer(page, viewport) {
 
             const transform = pdfjsLib.Util.transform(
                 viewport.transform,
-                item.transform,
+                item.transform
             );
 
             const x = transform[4];
@@ -180,36 +213,6 @@ function renderTextLayer(page, viewport) {
     });
 }
 
-// [수정] 모바일 해상도를 고려하여 안전 여백 및 모드 자동 전환 로직 보완
-function getFitScale(page) {
-    const viewport = page.getViewport({ scale: 1 });
-
-    const padding = window.innerWidth < 768 ? 4 : 16;
-    const containerWidth = Math.max(
-        Math.min(pdfContainer.clientWidth, window.innerWidth) - padding,
-        1,
-    );
-    const containerHeight = Math.max(pdfContainer.clientHeight - padding, 1);
-
-    // 모바일이거나 가로 맞춤 모드일 때는 화면 너비 기준으로 스케일 계산
-    if (scaleMode === "width") {
-        return containerWidth / viewport.width;
-    }
-
-    if (scaleMode === "page") {
-        return Math.min(
-            containerWidth / viewport.width,
-            containerHeight / viewport.height,
-        );
-    }
-
-    return scale;
-}
-
-function updateZoomLabel(value) {
-    zoomLevelSpan.textContent = Math.round(value * 100) + "%";
-}
-
 function renderPage(pageNumber) {
     pageRendering = true;
     clearTextLayer();
@@ -221,12 +224,16 @@ function renderPage(pageNumber) {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        const renderContext = {
+        canvas.style.width = viewport.width + "px";
+        canvas.style.height = viewport.height + "px";
+
+        textLayer.style.width = viewport.width + "px";
+        textLayer.style.height = viewport.height + "px";
+
+        const renderTask = page.render({
             canvasContext: ctx,
             viewport: viewport,
-        };
-
-        const renderTask = page.render(renderContext);
+        });
 
         renderTask.promise.then(function () {
             renderTextLayer(page, viewport);
@@ -235,13 +242,20 @@ function renderPage(pageNumber) {
             pageRendering = false;
 
             if (pagePending !== null) {
-                renderPage(pagePending);
+                const pendingPage = pagePending;
                 pagePending = null;
+                renderPage(pendingPage);
             }
         });
     });
 
     pageNumberInput.value = pageNumber;
+    const mobilePageCurrent =
+        document.getElementById("mobile-page-current");
+
+    if (mobilePageCurrent) {
+        mobilePageCurrent.textContent = pageNumber;
+    }
 }
 
 function queueRenderPage(pageNumber) {
@@ -262,6 +276,15 @@ function goToPage(pageNumber) {
     }
 
     currentPage = pageNumber;
+
+    if (
+        isMobileViewport() &&
+        !manualPdfLayout.classList.contains("outline-hidden")
+    ) {
+        manualPdfLayout.classList.add("outline-hidden");
+        sessionStorage.setItem(outlineStorageKey, "true");
+    }
+
     queueRenderPage(currentPage);
 }
 
@@ -315,13 +338,10 @@ function createOutlineTree(items, depth = 0) {
             const toggleBtn = document.createElement("button");
             toggleBtn.type = "button";
             toggleBtn.className = "outline-toggle-btn";
-
-            // ➕ [초기 상태] 하위 항목이 접혀 있으므로 [+] 기호 배치
             toggleBtn.innerHTML = '<span class="toggle-icon">[+]</span>';
 
             row.appendChild(toggleBtn);
 
-            // 토글 버튼 클릭 시 서브 태스크 열고 닫기 이벤트
             toggleBtn.addEventListener("click", function (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -330,27 +350,24 @@ function createOutlineTree(items, depth = 0) {
 
             function toggleFolder() {
                 const isCollapsed = childUl.classList.contains(
-                    "outline-children-collapsed",
+                    "outline-children-collapsed"
                 );
                 const iconSpan = toggleBtn.querySelector(".toggle-icon");
 
                 if (isCollapsed) {
-                    // ➖ [열림 상태] 서브 태스크가 펼쳐질 때
                     childUl.classList.remove("outline-children-collapsed");
                     toggleBtn.classList.add("is-open");
                     iconSpan.innerHTML = "[-]";
                 } else {
-                    // ➕ [닫힘 상태] 서브 태스크를 숨길 때
                     childUl.classList.add("outline-children-collapsed");
                     toggleBtn.classList.remove("is-open");
                     iconSpan.innerHTML = "[+]";
                 }
             }
         } else {
-            // 하위 Subtask가 없는 최종 단락 노드 (문서 표시용 점선 공백 또는 단순 기호)
             const docIcon = document.createElement("span");
             docIcon.className = "outline-doc-icon";
-            docIcon.innerHTML = "▱"; // 기존 포맷 유지
+            docIcon.innerHTML = "▱";
             row.appendChild(docIcon);
         }
 
@@ -364,7 +381,10 @@ function createOutlineTree(items, depth = 0) {
 
             document
                 .querySelectorAll(".outline-row")
-                .forEach((r) => r.classList.remove("is-active"));
+                .forEach(function (r) {
+                    r.classList.remove("is-active");
+                });
+
             row.classList.add("is-active");
 
             resolveDestination(item.dest).then(function (dest) {
@@ -377,7 +397,7 @@ function createOutlineTree(items, depth = 0) {
 
         if (hasChildren) {
             childUl = createOutlineTree(item.items, depth + 1);
-            childUl.classList.add("outline-children-collapsed"); // 기본 접힘 상태 유지
+            childUl.classList.add("outline-children-collapsed");
             li.appendChild(childUl);
         }
 
@@ -400,7 +420,7 @@ function extractAtaParts(title) {
 
     const cleaned = title.replace(/^\s*(ATA\s*)?/i, "").trim();
     const match = cleaned.match(
-        /^(\d{2})(?:[-\.\s]*(\d{2}))?(?:[-\.\s]*(\d{2}))?\b/,
+        /^(\d{2})(?:[-\.\s]*(\d{2}))?(?:[-\.\s]*(\d{2}))?\b/
     );
 
     if (!match) {
@@ -560,15 +580,25 @@ zoomOutBtn.addEventListener("click", function () {
 
 fitWidthBtn.addEventListener("click", function () {
     scaleMode = "width";
-    queueRenderPage(currentPage);
+
+    requestAnimationFrame(function () {
+        queueRenderPage(currentPage);
+    });
 });
 
 fitPageBtn.addEventListener("click", function () {
     scaleMode = "page";
-    queueRenderPage(currentPage);
+
+    requestAnimationFrame(function () {
+        queueRenderPage(currentPage);
+    });
 });
 
-window.addEventListener("resize", function () {
+function rerenderOnResize() {
+    if (!pdfDoc) {
+        return;
+    }
+
     if (isMobileViewport() && scaleMode === "page") {
         scaleMode = "width";
     }
@@ -576,17 +606,19 @@ window.addEventListener("resize", function () {
     if (scaleMode !== "custom") {
         queueRenderPage(currentPage);
     }
-});
+}
 
-// ── Outline panel resizer ───────────────────────────────────────────────────
-const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", rerenderOnResize);
+}
+
+window.addEventListener("resize", rerenderOnResize);
 
 (function initOutlineResizer() {
     if (!outlineResizer || !outlinePanel || isMobileViewport()) {
         return;
     }
 
-    // Restore saved width
     const savedWidth = localStorage.getItem(OUTLINE_WIDTH_KEY);
     if (savedWidth) {
         outlinePanel.style.width = savedWidth + "px";
@@ -595,44 +627,66 @@ const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
     let dragging = false;
     let startX = 0;
     let startWidth = 0;
+    let resizeRenderTimer = null;
 
     outlineResizer.addEventListener("mousedown", function (event) {
         event.preventDefault();
+
         dragging = true;
         startX = event.clientX;
         startWidth = outlinePanel.getBoundingClientRect().width;
+
         outlineResizer.classList.add("is-dragging");
         document.body.style.cursor = "col-resize";
         document.body.style.userSelect = "none";
     });
 
     document.addEventListener("mousemove", function (event) {
-        if (!dragging) return;
+        if (!dragging) {
+            return;
+        }
+
         const delta = event.clientX - startX;
+
         const newWidth = Math.min(
             Math.max(startWidth + delta, 160),
-            window.innerWidth * 0.6,
+            window.innerWidth * 0.6
         );
+
         outlinePanel.style.width = newWidth + "px";
+
+        if (resizeRenderTimer) {
+            clearTimeout(resizeRenderTimer);
+        }
+
+        resizeRenderTimer = setTimeout(function () {
+            if (scaleMode !== "custom") {
+                queueRenderPage(currentPage);
+            }
+        }, 80);
     });
 
     document.addEventListener("mouseup", function () {
-        if (!dragging) return;
+        if (!dragging) {
+            return;
+        }
+
         dragging = false;
+
         outlineResizer.classList.remove("is-dragging");
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
+
         localStorage.setItem(
             OUTLINE_WIDTH_KEY,
-            Math.round(outlinePanel.getBoundingClientRect().width),
+            Math.round(outlinePanel.getBoundingClientRect().width)
         );
-        // Re-render so PDF fits the new container width
+
         if (scaleMode !== "custom") {
             queueRenderPage(currentPage);
         }
     });
 })();
-// ────────────────────────────────────────────────────────────────────────────
 
 function applyOutlineState() {
     const storedValue = sessionStorage.getItem(outlineStorageKey);
@@ -640,7 +694,7 @@ function applyOutlineState() {
     let isHidden;
 
     if (storedValue === null) {
-        isHidden = window.innerWidth < 768;
+        isHidden = isMobileViewport();
         sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
     } else {
         isHidden = storedValue === "true";
@@ -660,7 +714,16 @@ toggleOutlineBtn.addEventListener("click", function () {
 
     const isHidden = manualPdfLayout.classList.contains("outline-hidden");
 
-    sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
+    sessionStorage.setItem(
+        outlineStorageKey,
+        isHidden ? "true" : "false"
+    );
+
+    setTimeout(function () {
+        if (scaleMode !== "custom") {
+            queueRenderPage(currentPage);
+        }
+    }, 180);
 });
 
 if (!pdfUrl) {
@@ -673,6 +736,13 @@ if (!pdfUrl) {
             pdfDoc = pdfDoc_;
             pageCountSpan.textContent = pdfDoc.numPages;
 
+            const mobilePageTotal =
+                document.getElementById("mobile-page-total");
+
+            if (mobilePageTotal) {
+                mobilePageTotal.textContent = pdfDoc.numPages;
+            }
+
             if (currentPage > pdfDoc.numPages) {
                 currentPage = 1;
             }
@@ -683,7 +753,6 @@ if (!pdfUrl) {
                 singlePageViewer.classList.remove("d-none");
                 multiPageViewer.classList.add("d-none");
 
-                // 초기 렌더는 기기 폭 기준으로 자동 선택
                 scaleMode = isMobileViewport() ? "width" : "page";
                 renderPage(currentPage);
             }
@@ -692,6 +761,7 @@ if (!pdfUrl) {
         })
         .catch(function (error) {
             console.error("PDF Load Error:", error);
+
             outlineContainer.innerHTML =
                 '<div class="outline-empty">PDF를 불러오지 못했습니다.</div>';
         });
@@ -721,7 +791,7 @@ function createTextLayerForPage(page, viewport, wrapper) {
 
             const transform = pdfjsLib.Util.transform(
                 viewport.transform,
-                item.transform,
+                item.transform
             );
 
             span.style.position = "absolute";
@@ -763,9 +833,10 @@ function renderMatchPage(pageNumber) {
         const pageCanvas = document.createElement("canvas");
         pageCanvas.height = viewport.height;
         pageCanvas.width = viewport.width;
+        pageCanvas.style.width = viewport.width + "px";
+        pageCanvas.style.height = viewport.height + "px";
 
         wrapper.appendChild(pageCanvas);
-
         pageBox.appendChild(label);
         pageBox.appendChild(wrapper);
         multiPageViewer.appendChild(pageBox);
@@ -930,12 +1001,10 @@ pdfContainer.addEventListener(
             return;
         }
 
-        // [수정] 모바일 화면 크기일 때는 휠 가로채기를 차단하고 브라우저 기본 터치 스크롤을 허용합니다.
-        if (window.innerWidth < 768) {
+        if (isMobileViewport()) {
             return;
         }
 
-        // Ctrl + Wheel = PDF만 확대/축소
         if (event.ctrlKey) {
             event.preventDefault();
             event.stopPropagation();
@@ -952,7 +1021,6 @@ pdfContainer.addEventListener(
             return;
         }
 
-        // 일반 Wheel = 이전/다음 페이지
         if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
             return;
         }
@@ -978,5 +1046,144 @@ pdfContainer.addEventListener(
     },
     {
         passive: false,
-    },
+    }
 );
+
+let touchStartDistance = null;
+
+function getDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+pdfContainer.addEventListener(
+    "touchstart",
+    function (event) {
+        if (event.touches.length === 2) {
+            touchStartDistance = getDistance(event.touches);
+        }
+    },
+    { passive: true }
+);
+
+pdfContainer.addEventListener(
+    "touchmove",
+    function (event) {
+        if (event.touches.length !== 2) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const currentDistance = getDistance(event.touches);
+
+        if (!touchStartDistance) {
+            touchStartDistance = currentDistance;
+            return;
+        }
+
+        const delta = (currentDistance - touchStartDistance) / 250;
+
+        scaleMode = "custom";
+
+        scale = Math.min(
+            Math.max(scale + delta, 0.5),
+            4
+        );
+
+        touchStartDistance = currentDistance;
+
+        queueRenderPage(currentPage);
+    },
+    { passive: false }
+);
+
+pdfContainer.addEventListener("touchend", function () {
+    touchStartDistance = null;
+});
+
+let swipeStartX = null;
+let swipeStartY = null;
+let swipeStartTime = 0;
+
+pdfContainer.addEventListener(
+    "touchstart",
+    function (event) {
+        if (event.touches.length !== 1) {
+            return;
+        }
+
+        swipeStartX = event.touches[0].clientX;
+        swipeStartY = event.touches[0].clientY;
+        swipeStartTime = Date.now();
+    },
+    { passive: true }
+);
+
+pdfContainer.addEventListener(
+    "touchend",
+    function (event) {
+        if (swipeStartX === null || swipeStartY === null) {
+            return;
+        }
+
+        const endX = event.changedTouches[0].clientX;
+        const endY = event.changedTouches[0].clientY;
+
+        const deltaX = endX - swipeStartX;
+        const deltaY = endY - swipeStartY;
+        const elapsed = Date.now() - swipeStartTime;
+
+        swipeStartX = null;
+        swipeStartY = null;
+
+        if (elapsed > 600) {
+            return;
+        }
+
+        if (Math.abs(deltaX) < 80) {
+            return;
+        }
+
+        if (Math.abs(deltaX) < Math.abs(deltaY)) {
+            return;
+        }
+
+        if (deltaX < 0) {
+            goToPage(currentPage + 1);
+        } else {
+            goToPage(currentPage - 1);
+        }
+    },
+    { passive: true }
+);
+
+const mobilePrev =
+    document.getElementById("mobile-prev-page");
+
+const mobileNext =
+    document.getElementById("mobile-next-page");
+
+const mobileCurrent =
+    document.getElementById("mobile-page-current");
+
+const mobileTotal =
+    document.getElementById("mobile-page-total");
+
+if (mobileTotal && pageCountSpan) {
+    mobileTotal.textContent = pageCountSpan.textContent;
+}
+
+if (mobilePrev) {
+    mobilePrev.addEventListener("click", function () {
+        goToPage(currentPage - 1);
+    });
+}
+
+if (mobileNext) {
+    mobileNext.addEventListener("click", function () {
+        goToPage(currentPage + 1);
+    });
+}

@@ -6,24 +6,59 @@
     <title>Dispatch Print</title>
 
     <style>
+
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
             color: #000;
+            margin: 0;
+            line-height: 1.45;
         }
 
         h1 {
             font-size: 20px;
-            margin-bottom: 4px;
+            margin: 0 0 6px;
+        }
+
+        .print-date {
+            text-align: right;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 12px;
         }
 
         .info {
             margin-bottom: 16px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            background: #fafafa;
+        }
+
+        .info-row {
+            margin-bottom: 4px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tbody {
+            display: table-row-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
         }
 
         th,
@@ -31,17 +66,47 @@
             border: 1px solid #333;
             padding: 6px;
             vertical-align: top;
+            word-break: break-word;
         }
 
         th {
-            background: #eee;
+            background: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        td {
+            font-size: 10px;
+        }
+
+        .description-cell {
+            line-height: 1.5;
+        }
+
+        .section-label {
+            font-weight: bold;
         }
 
         .no-print {
             margin-bottom: 16px;
         }
 
+        .btn-print {
+            padding: 8px 14px;
+            border: 1px solid #333;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .btn-close {
+            padding: 8px 14px;
+            border: 1px solid #333;
+            background: #fff;
+            cursor: pointer;
+        }
+
         @media print {
+
             .no-print {
                 display: none;
             }
@@ -50,83 +115,167 @@
                 margin: 0;
             }
         }
+
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <button onclick="window.print()">
+
+    <button
+        onclick="window.print()"
+        class="btn-print">
         Print
     </button>
 
-    <button onclick="window.close()">
+    <button
+        onclick="window.close()"
+        class="btn-close">
         Close
     </button>
+
 </div>
 
-<h1>Dispatch Search Result</h1>
+<h1>
+    Dispatch Search Result
+</h1>
+
+<div class="print-date">
+    Printed :
+    {% now "Y-m-d H:i" %}
+</div>
 
 <div class="info">
-    <div>
-        <strong>Search:</strong>
+
+    <div class="info-row">
+        <strong>Search :</strong>
         {{ query|default:"-" }}
     </div>
 
-    <div>
-        <strong>Total:</strong>
+    <div class="info-row">
+        <strong>Total Result :</strong>
         {{ results|length }}
     </div>
+
 </div>
 
 <table>
+
     <thead>
+
         <tr>
-            <th>Aircraft</th>
-            <th>EICAS Message</th>
-            <th>Fault Code</th>
-            <th>MEL</th>
-            <th>FIM</th>
-            <th>AMM</th>
-            <th>Description / Note</th>
+            <th style="width:10%;">
+                Aircraft
+            </th>
+
+            <th style="width:16%;">
+                EICAS Message
+            </th>
+
+            <th style="width:10%;">
+                Fault Code
+            </th>
+
+            <th style="width:10%;">
+                MEL
+            </th>
+
+            <th style="width:12%;">
+                FIM
+            </th>
+
+            <th style="width:12%;">
+                AMM
+            </th>
+
+            <th style="width:30%;">
+                Description / Note
+            </th>
         </tr>
+
     </thead>
 
     <tbody>
-        {% for item in results %}
-            <tr>
-                <td>{{ item.aircraft.name }}</td>
-                <td>{{ item.eicas_message|default:"-" }}</td>
-                <td>{{ item.fault_code|default:"-" }}</td>
-                <td>{{ item.mel_number|default:"-" }}</td>
-                <td>{{ item.fim_chapter|default:"-" }}</td>
-                <td>{{ item.amm_chapter|default:"-" }}</td>
-                <td>
-                    {% if item.description %}
-                        <strong>Description:</strong>
-                        {{ item.description }}
-                        <br>
-                    {% endif %}
 
-                    {% if item.note %}
-                        <strong>Note:</strong>
+        {% for item in results %}
+
+        <tr>
+
+            <td>
+                {{ item.aircraft.name }}
+            </td>
+
+            <td>
+                {{ item.eicas_message|default:"-" }}
+            </td>
+
+            <td>
+                {{ item.fault_code|default:"-" }}
+            </td>
+
+            <td>
+                {{ item.mel_number|default:"-" }}
+            </td>
+
+            <td>
+                {{ item.fim_chapter|default:"-" }}
+            </td>
+
+            <td>
+                {{ item.amm_chapter|default:"-" }}
+            </td>
+
+            <td class="description-cell">
+
+                {% if item.description %}
+                    <div>
+                        <span class="section-label">
+                            Description:
+                        </span>
+                        {{ item.description }}
+                    </div>
+                {% endif %}
+
+                {% if item.note %}
+                    <div style="margin-top:4px;">
+                        <span class="section-label">
+                            Note:
+                        </span>
                         {{ item.note }}
-                    {% endif %}
-                </td>
-            </tr>
+                    </div>
+                {% endif %}
+
+                {% if not item.description and not item.note %}
+                    -
+                {% endif %}
+
+            </td>
+
+        </tr>
+
         {% empty %}
-            <tr>
-                <td colspan="7">
-                    검색 결과가 없습니다.
-                </td>
-            </tr>
+
+        <tr>
+
+            <td colspan="7"
+                style="text-align:center;padding:20px;">
+                검색 결과가 없습니다.
+            </td>
+
+        </tr>
+
         {% endfor %}
+
     </tbody>
+
 </table>
 
 <script>
+
     window.onload = function () {
         window.print();
     };
+
 </script>
 
 </body>

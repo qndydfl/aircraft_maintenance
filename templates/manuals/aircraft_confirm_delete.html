@@ -1,39 +1,101 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+delete-confirm-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/delete_confirm.css' %}">
+{% endblock css %}
 
 {% block content %}
 
-<div class="card shadow-sm border-danger">
+<div class="detail-hero mb-4">
 
-    <div class="card-header bg-danger text-white">
-        Delete Aircraft
+    <div>
+        <p class="home-eyebrow mb-1">
+            AIRCRAFT
+        </p>
+
+        <h2 class="page-title mb-2">
+            Delete Aircraft
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            Aircraft 정보를 삭제합니다.
+        </p>
     </div>
+
+    <div class="home-actions">
+        <a href="{% url 'aircraft_manage' %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="card portal-card shadow-sm delete-card">
 
     <div class="card-body">
 
-        <p>
-            정말 삭제하시겠습니까?
-        </p>
-
-        <p class="fw-bold">
-            {{ aircraft.get_maker_display }} /
-            {{ aircraft.name }}
-        </p>
-
-        <div class="alert alert-warning">
-            이 기종을 삭제하면 연결된 매뉴얼 파일과 Dispatch 데이터도 함께 삭제됩니다.
+        <div class="delete-icon">
+            ✈️
         </div>
 
-        <form method="post">
+        <h4 class="delete-title">
+            정말 삭제하시겠습니까?
+        </h4>
+
+        <p class="delete-description">
+            삭제 후에는 복구할 수 없습니다.
+        </p>
+
+        <div class="delete-warning">
+
+            이 기종을 삭제하면
+
+            <strong>
+                연결된 매뉴얼 파일,
+                ZIP 패키지,
+                Dispatch 데이터
+            </strong>
+
+            가 함께 삭제됩니다.
+
+        </div>
+
+        <div class="delete-info">
+
+            <div>
+                <span>Maker</span>
+                <strong>
+                    {{ aircraft.get_maker_display }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Aircraft</span>
+                <strong>
+                    {{ aircraft.name }}
+                </strong>
+            </div>
+
+        </div>
+
+        <form method="post"
+            class="delete-actions">
 
             {% csrf_token %}
 
             <button type="submit"
-                    class="btn btn-danger">
-                Delete
+                class="btn btn-danger app-card-btn">
+                Delete Aircraft
             </button>
 
             <a href="{% url 'aircraft_manage' %}"
-                class="btn btn-outline-secondary">
+                class="btn btn-outline-secondary app-card-btn">
                 Cancel
             </a>
 

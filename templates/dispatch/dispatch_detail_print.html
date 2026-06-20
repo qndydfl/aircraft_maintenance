@@ -6,31 +6,51 @@
     <title>Dispatch Detail Print</title>
 
     <style>
+
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 13px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
             color: #000;
+            margin: 0;
+            line-height: 1.5;
         }
 
         h1 {
+            margin: 0 0 8px;
             font-size: 22px;
+        }
+
+        .print-info {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 16px;
+            color: #666;
+            font-size: 10px;
         }
 
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
+            page-break-inside: avoid;
         }
 
         .section-title {
+            font-size: 13px;
             font-weight: bold;
-            border-bottom: 2px solid #000;
-            margin-bottom: 8px;
-            padding-bottom: 4px;
+            background: #f2f2f2;
+            border: 1px solid #333;
+            padding: 6px 8px;
+            margin-bottom: 0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         th,
@@ -38,19 +58,37 @@
             border: 1px solid #333;
             padding: 8px;
             vertical-align: top;
+            word-break: break-word;
         }
 
         th {
             width: 180px;
-            background: #eee;
+            background: #fafafa;
             text-align: left;
+            font-weight: bold;
+        }
+
+        .text-box {
+            border: 1px solid #333;
+            padding: 10px;
+            min-height: 60px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .no-print {
             margin-bottom: 16px;
         }
 
+        .btn {
+            padding: 8px 14px;
+            border: 1px solid #333;
+            background: #fff;
+            cursor: pointer;
+        }
+
         @media print {
+
             .no-print {
                 display: none;
             }
@@ -59,23 +97,52 @@
                 margin: 0;
             }
         }
+
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <button onclick="window.print()">Print</button>
-    <button onclick="window.close()">Close</button>
+
+    <button
+        class="btn"
+        onclick="window.print()">
+        Print
+    </button>
+
+    <button
+        class="btn"
+        onclick="window.close()">
+        Close
+    </button>
+
 </div>
 
-<h1>Dispatch Detail</h1>
+<h1>
+    Dispatch Detail
+</h1>
+
+<div class="print-info">
+
+    <div>
+        Aircraft Maintenance Manual Portal
+    </div>
+
+    <div>
+        Printed :
+        {% now "Y-m-d H:i" %}
+    </div>
+
+</div>
 
 <div class="section">
+
     <div class="section-title">
         Aircraft / Fault Information
     </div>
 
     <table>
+
         <tr>
             <th>Aircraft</th>
             <td>{{ dispatch.aircraft.name }}</td>
@@ -90,18 +157,32 @@
             <th>Fault Code</th>
             <td>{{ dispatch.fault_code|default:"-" }}</td>
         </tr>
+
+        <tr>
+            <th>Created</th>
+            <td>{{ dispatch.created_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+
     </table>
+
 </div>
 
 <div class="section">
+
     <div class="section-title">
         Manual Reference
     </div>
 
     <table>
+
         <tr>
             <th>MEL Number</th>
             <td>{{ dispatch.mel_number|default:"-" }}</td>
+        </tr>
+
+        <tr>
+            <th>MEL Keyword</th>
+            <td>{{ dispatch.mel_search_keyword|default:"-" }}</td>
         </tr>
 
         <tr>
@@ -110,40 +191,58 @@
         </tr>
 
         <tr>
+            <th>FIM Keyword</th>
+            <td>{{ dispatch.fim_search_keyword|default:"-" }}</td>
+        </tr>
+
+        <tr>
             <th>AMM Chapter</th>
             <td>{{ dispatch.amm_chapter|default:"-" }}</td>
         </tr>
+
+        <tr>
+            <th>AMM Keyword</th>
+            <td>{{ dispatch.amm_search_keyword|default:"-" }}</td>
+        </tr>
+
     </table>
+
 </div>
 
 {% if dispatch.description %}
-    <div class="section">
-        <div class="section-title">
-            Description
-        </div>
+<div class="section">
 
-        <div>
-            {{ dispatch.description|linebreaks }}
-        </div>
+    <div class="section-title">
+        Description
     </div>
+
+    <div class="text-box">
+        {{ dispatch.description }}
+    </div>
+
+</div>
 {% endif %}
 
 {% if dispatch.note %}
-    <div class="section">
-        <div class="section-title">
-            Note
-        </div>
+<div class="section">
 
-        <div>
-            {{ dispatch.note|linebreaks }}
-        </div>
+    <div class="section-title">
+        Note
     </div>
+
+    <div class="text-box">
+        {{ dispatch.note }}
+    </div>
+
+</div>
 {% endif %}
 
 <script>
-    window.onload = function () {
-        window.print();
-    };
+
+window.onload = function () {
+    window.print();
+};
+
 </script>
 
 </body>

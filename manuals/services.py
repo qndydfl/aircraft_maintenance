@@ -1,4 +1,5 @@
 import os, re, zipfile, fitz, shutil, uuid, pdfplumber, tempfile, subprocess
+from datetime import datetime
 
 from django.conf import settings
 from bs4 import BeautifulSoup
@@ -266,9 +267,89 @@ def index_pdf_pages_for_package(package):
     return total_pages
 
 
-def extract_pdf_revision_info(pdf_path):
+
+# mel: rev no, rev date, cdl: rev no, issue date, approved date
+# 이렇게 되어 있는데 cdl은 issue date와 approved date 중에 approved date가 있으면 approved date를 우선으로 하고, 없으면 issue date를 사용하도록 수정해야 함.
+def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
+    manual_type = (manual_type or "").upper()
+
+    is_mel_or_cdl = manual_type in ["MEL", "CDL"] or bool(
+        re.search(
+            r"(?:^|[\\/_\-])(MEL|CDL)(?:[\\/_\-.]|$)",
+            source_file_name or "",
+            re.IGNORECASE,
+        )
+    )
+
+    is_cdl = manual_type == "CDL" or bool(
+        re.search(
+            r"(?:^|[\\/_\-])CDL(?:[\\/_\-.]|$)",
+            source_file_name or "",
+            re.IGNORECASE,
+        )
+    )
+
     revision_no = ""
     revision_date = ""
+    is_mel_or_cdl = bool(
+        re.search(
+            r"(?:^|[\\/_\-])(MEL|CDL)(?:[\\/_\-.]|$)",
+            source_file_name or "",
+            re.IGNORECASE,
+        )
+    )
+    is_cdl = bool(
+        re.search(
+            r"(?:^|[\\/_\-])CDL(?:[\\/_\-.]|$)",
+            source_file_name or "",
+            re.IGNORECASE,
+        )
+    )
+
+    def normalize_date(value):
+        normalized = (value or "").upper().replace(" ", "").strip()
+
+        # OCR에서 03JUL025처럼 연도 첫 자리(2)가 누락되는 경우를 보정한다.
+        three_digit_year_match = re.match(r"^(\d{1,2}[A-Z]{3})(\d{3})$", normalized)
+
+        if three_digit_year_match:
+            normalized = (
+                f"{three_digit_year_match.group(1)}2{three_digit_year_match.group(2)}"
+            )
+
+        return normalized
+
+    def parse_ddmmmyyyy(value):
+        normalized = normalize_date(value)
+
+        if not normalized:
+            return None
+
+        for fmt in ("%d%b%Y", "%d%b%y"):
+            try:
+                return datetime.strptime(normalized, fmt)
+            except ValueError:
+                continue
+
+        return None
+
+    def pick_latest_date(current, candidate):
+        current_norm = normalize_date(current)
+        candidate_norm = normalize_date(candidate)
+
+        if not candidate_norm:
+            return current_norm
+
+        if not current_norm:
+            return candidate_norm
+
+        current_dt = parse_ddmmmyyyy(current_norm)
+        candidate_dt = parse_ddmmmyyyy(candidate_norm)
+
+        if current_dt and candidate_dt:
+            return candidate_norm if candidate_dt >= current_dt else current_norm
+
+        return candidate_norm
 
     revision_patterns = [
         r"Revision\s*No\.?\s*:?\s*([0-9][0-9A-Za-z\-]*)",
@@ -278,16 +359,198 @@ def extract_pdf_revision_info(pdf_path):
     date_patterns = [
         r"Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
         r"Issue\s*Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+        r"\b([0-9]{1,2}[A-Za-z]{3}[0-9]{4})\b",
     ]
+
+    def extract_airbus_rev_date(value):
+        if not value:
+            return ""
+
+        date_near_label_match = re.search(
+            r"Rev\s*Date[^0-9A-Za-z]{0,20}(\d{1,2}[A-Za-z]{3}\d{4})",
+            value,
+            re.IGNORECASE,
+        )
+
+        if date_near_label_match:
+            return normalize_date(date_near_label_match.group(1))
+
+        return ""
+
+    def extract_airbus_rev_date_candidates(value):
+        if not value:
+            return []
+
+        if not re.search(r"Rev\.?\s*Date", value, re.IGNORECASE):
+            return []
+
+        matches = re.findall(
+            r"\b(\d{1,2}\s*[A-Za-z]{3}\s*\d{2,4})\b",
+            value,
+            re.IGNORECASE,
+        )
+
+        return [normalize_date(match) for match in matches]
 
     with pdfplumber.open(pdf_path) as pdf:
         if not pdf.pages:
             return revision_no, revision_date
 
-        # Scan early pages because CDL cover pages often omit explicit revision labels.
+        latest_airbus_rev_date = ""
+        highest_airbus_rev_no = None
+        highest_airbus_rev_date = ""
+
+        def update_airbus_rev_from_pairs(value):
+            nonlocal highest_airbus_rev_no, highest_airbus_rev_date
+
+            if not value:
+                return
+
+            if not re.search(r"Rev\s*No", value, re.IGNORECASE):
+                return
+
+            has_date_header = bool(
+                re.search(r"Rev\.?\s*Date", value, re.IGNORECASE)
+                or re.search(r"Issue\s*Date", value, re.IGNORECASE)
+                or re.search(r"Approved\s*Date", value, re.IGNORECASE)
+            )
+
+            if not has_date_header:
+                return
+
+            rev_rows = re.findall(
+                r"\b(\d{1,3})\s+(\d{1,2}\s*[A-Za-z]{3}\s*\d{2,4})\s+(\d{1,2}\s*[A-Za-z]{3}\s*\d{2,4})\b",
+                value,
+                re.IGNORECASE,
+            )
+
+            if rev_rows:
+                for rev_no_text, issue_date_text, approved_date_text in rev_rows:
+                    try:
+                        rev_no_int = int(rev_no_text)
+                    except ValueError:
+                        continue
+
+                    preferred_date = approved_date_text if is_cdl and approved_date_text else issue_date_text
+
+                    if (
+                        highest_airbus_rev_no is None
+                        or rev_no_int >= highest_airbus_rev_no
+                    ):
+                        highest_airbus_rev_no = rev_no_int
+                        highest_airbus_rev_date = normalize_date(preferred_date)
+
+                return
+
+            rev_pairs = re.findall(
+                r"\b(\d{1,3})\s+(\d{1,2}\s*[A-Za-z]{3}\s*\d{2,4})\b",
+                value,
+                re.IGNORECASE,
+            )
+
+            for rev_no_text, rev_date_text in rev_pairs:
+                try:
+                    rev_no_int = int(rev_no_text)
+                except ValueError:
+                    continue
+
+                if highest_airbus_rev_no is None or rev_no_int >= highest_airbus_rev_no:
+                    highest_airbus_rev_no = rev_no_int
+                    highest_airbus_rev_date = normalize_date(rev_date_text)
+
         for page in pdf.pages[:8]:
             text = page.extract_text() or ""
+            normalized_text = re.sub(r"\s+", " ", text).strip()
 
+            if is_mel_or_cdl:
+                update_airbus_rev_from_pairs(normalized_text)
+
+                for candidate in extract_airbus_rev_date_candidates(normalized_text):
+                    latest_airbus_rev_date = pick_latest_date(
+                        latest_airbus_rev_date,
+                        candidate,
+                    )
+
+            if not revision_date:
+                revision_date = extract_airbus_rev_date(
+                    normalized_text
+                ) or extract_airbus_rev_date(text)
+
+            # 1) Airbus 한 줄 표 형식:
+            # Rev No Rev Date 20 05FEB2026
+            airbus_inline_match = re.search(
+                r"Rev\s*No\s+Rev\s*Date\s+(\d{1,3})\s+(\d{1,2}[A-Za-z]{3}\d{4})",
+                normalized_text,
+                re.IGNORECASE,
+            )
+
+            if airbus_inline_match:
+                revision_no = airbus_inline_match.group(1).strip()
+                revision_date = normalize_date(airbus_inline_match.group(2))
+                break
+
+            # 2) Airbus 표가 줄바꿈으로 추출되는 형식:
+            # Rev No ... 20 ... Rev Date ... 05FEB2026
+            if not revision_no:
+                rev_match = re.search(
+                    r"Rev\s*No.*?\b(\d{1,3})\b",
+                    text,
+                    re.IGNORECASE | re.DOTALL,
+                )
+
+                if rev_match:
+                    revision_no = rev_match.group(1).strip()
+
+            if not revision_date and not is_mel_or_cdl:
+                date_match = re.search(
+                    r"\b(\d{1,2}[A-Za-z]{3}\d{4})\b",
+                    text,
+                    re.IGNORECASE,
+                )
+
+                if date_match:
+                    revision_date = normalize_date(date_match.group(1))
+
+            # 3) pdfplumber table 추출 검사
+            if not revision_no or not revision_date:
+                tables = page.extract_tables() or []
+
+                for table in tables:
+                    for row in table:
+                        row_text = " ".join(
+                            str(cell or "").strip() for cell in row if cell is not None
+                        )
+
+                        row_text = re.sub(r"\s+", " ", row_text).strip()
+
+                        if is_mel_or_cdl:
+                            update_airbus_rev_from_pairs(row_text)
+
+                            for candidate in extract_airbus_rev_date_candidates(
+                                row_text
+                            ):
+                                latest_airbus_rev_date = pick_latest_date(
+                                    latest_airbus_rev_date,
+                                    candidate,
+                                )
+
+                        table_match = re.search(
+                            r"\b(\d{1,3})\b.*?\b(\d{1,2}[A-Za-z]{3}\d{4})\b",
+                            row_text,
+                            re.IGNORECASE,
+                        )
+
+                        if table_match:
+                            revision_no = revision_no or table_match.group(1).strip()
+                            revision_date = revision_date or normalize_date(
+                                table_match.group(2)
+                            )
+                            break
+
+                    if revision_no and revision_date:
+                        break
+
+            # 4) Boeing 기존 패턴
             if not revision_no:
                 for pattern in revision_patterns:
                     rev_match = re.search(pattern, text, re.IGNORECASE)
@@ -296,21 +559,59 @@ def extract_pdf_revision_info(pdf_path):
                         revision_no = rev_match.group(1).strip()
                         break
 
-            if not revision_date:
+            if not revision_date and not is_mel_or_cdl:
                 for pattern in date_patterns:
                     date_match = re.search(pattern, text, re.IGNORECASE)
 
                     if date_match:
-                        revision_date = date_match.group(1).strip()
+                        revision_date = normalize_date(date_match.group(1))
                         break
 
-            if revision_no and revision_date:
+            if revision_no and revision_date and not is_mel_or_cdl:
                 break
 
+        if is_mel_or_cdl:
+            for page in pdf.pages[:120]:
+                text = page.extract_text() or ""
+                normalized_text = re.sub(r"\s+", " ", text).strip()
+
+                update_airbus_rev_from_pairs(normalized_text)
+
+                for candidate in extract_airbus_rev_date_candidates(normalized_text):
+                    latest_airbus_rev_date = pick_latest_date(
+                        latest_airbus_rev_date,
+                        candidate,
+                    )
+
+            if highest_airbus_rev_no is not None:
+                revision_no = str(highest_airbus_rev_no)
+
+            if highest_airbus_rev_date:
+                revision_date = highest_airbus_rev_date
+
+            if not highest_airbus_rev_date and latest_airbus_rev_date:
+                revision_date = latest_airbus_rev_date
+
+        if not revision_date and not is_mel_or_cdl:
+            for page in pdf.pages[:50]:
+                text = page.extract_text() or ""
+                normalized_text = re.sub(r"\s+", " ", text).strip()
+
+                revision_date = extract_airbus_rev_date(
+                    normalized_text
+                ) or extract_airbus_rev_date(text)
+
+                if revision_date:
+                    break
+
+    # 5) 파일명 fallback: *_R20_*
     if not revision_no:
-        file_name = os.path.basename(pdf_path)
+        file_name = os.path.basename(source_file_name) or os.path.basename(pdf_path)
+
         file_name_match = re.search(
-            r"(?:^|[_\-])R(\d{1,3})(?=[_\-.]|$)", file_name, re.IGNORECASE
+            r"(?:^|[_\-])R(\d{1,3})(?=[_\-.]|$)",
+            file_name,
+            re.IGNORECASE,
         )
 
         if file_name_match:
@@ -320,7 +621,7 @@ def extract_pdf_revision_info(pdf_path):
 
 
 def save_manual_file_revision_info(manual_file):
-    if manual_file.manual_type not in ["MEL", "CDL"]:
+    if manual_file.manual_type not in ["MEL", "CDL", "OTHER"]:
         return "", ""
 
     if not manual_file.file:
@@ -332,7 +633,11 @@ def save_manual_file_revision_info(manual_file):
     )
 
     try:
-        revision_no, revision_date = extract_pdf_revision_info(temp_pdf_path)
+        revision_no, revision_date = extract_pdf_revision_info(
+            temp_pdf_path,
+            source_file_name=getattr(manual_file.file, "name", ""),
+            manual_type=manual_file.manual_type,
+        )
 
         manual_file.revision_no = revision_no
         manual_file.revision_date_text = revision_date
@@ -351,7 +656,7 @@ def save_manual_file_revision_info(manual_file):
 
 
 def index_pdf_pages_for_manual_file(manual_file):
-    if manual_file.manual_type not in ["MEL", "CDL"]:
+    if manual_file.manual_type not in ["MEL", "CDL", "OTHER"]:
         return 0
 
     if not manual_file.file:
@@ -363,7 +668,11 @@ def index_pdf_pages_for_manual_file(manual_file):
     )
 
     try:
-        revision_no, revision_date = extract_pdf_revision_info(temp_pdf_path)
+        revision_no, revision_date = extract_pdf_revision_info(
+            temp_pdf_path,
+            source_file_name=getattr(manual_file.file, "name", ""),
+            manual_type=manual_file.manual_type,
+        )
 
         manual_file.revision_no = revision_no
         manual_file.revision_date_text = revision_date
@@ -404,7 +713,7 @@ def index_pdf_pages_for_manual_file(manual_file):
 
 
 def index_pdf_pages_for_manual_file_safely(manual_file):
-    if manual_file.manual_type not in ["MEL", "CDL"]:
+    if manual_file.manual_type not in ["MEL", "CDL", "OTHER"]:
         return 0
 
     if not manual_file.file:
@@ -416,7 +725,11 @@ def index_pdf_pages_for_manual_file_safely(manual_file):
     )
 
     try:
-        revision_no, revision_date = extract_pdf_revision_info(temp_pdf_path)
+        revision_no, revision_date = extract_pdf_revision_info(
+            temp_pdf_path,
+            source_file_name=getattr(manual_file.file, "name", ""),
+            manual_type=manual_file.manual_type,
+        )
 
         manual_file.revision_no = revision_no
         manual_file.revision_date_text = revision_date
@@ -554,6 +867,20 @@ def process_manual_package_safely(package):
             package.extracted_path = final_extract_to
             package.processed = False
             package.save(update_fields=["extracted_path", "processed"])
+
+            if not package.revision_no and not package.revision_date_text:
+                first_pdf = ManualChapter.objects.filter(package=package).first()
+
+                if first_pdf:
+                    pdf_path = os.path.join(
+                        package.extracted_path, first_pdf.pdf_relative_path
+                    )
+
+                    rev_no, rev_date = extract_pdf_revision_info(pdf_path, manual_type=first_pdf.manual_file.manual_type)
+
+                    package.revision_no = rev_no
+                    package.revision_date_text = rev_date
+                    package.save(update_fields=["revision_no", "revision_date_text"])
 
             page_count = index_pdf_pages_for_package(package=package)
 

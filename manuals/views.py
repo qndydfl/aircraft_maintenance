@@ -619,10 +619,15 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
             kwargs={"pk": chapter.pk},
         )
 
-        context["back_url"] = reverse(
-            "manual_chapter_list",
-            kwargs={"package_pk": chapter.package.pk},
-        )
+        back_url = self.request.GET.get("back")
+
+        if back_url:
+            context["back_url"] = back_url
+        else:
+            context["back_url"] = reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": chapter.package.pk},
+            )
 
         context["page_number"] = page_number
         context["query"] = query
@@ -750,10 +755,16 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         context["viewer_title"] = f"{manual.aircraft.name} / {manual.manual_type}"
         context["viewer_subtitle"] = manual.description or "PDF Viewer"
         context["pdf_url"] = reverse("manual_file_pdf", kwargs={"pk": manual.pk})
-        context["back_url"] = reverse(
-            "aircraft_manual_detail",
-            kwargs={"pk": manual.aircraft.pk},
-        )
+        
+        back_url = self.request.GET.get("back")
+
+        if back_url:
+            context["back_url"] = back_url
+        else:
+            context["back_url"] = reverse(
+                "aircraft_manual_detail",
+                kwargs={"pk": manual.aircraft.pk},
+            )
 
         context["page_number"] = page_number
         context["query"] = query

@@ -6,9 +6,13 @@
 <link rel="stylesheet" href="{% static 'css/manual_search.css' %}">
 {% endblock css %}
 
+{% block body_class %}
+manual-search-page
+{% endblock body_class %}
+
 {% block content %}
 
-<div class="detail-hero mb-4">
+<div class="detail-hero">
     <div>
         <p class="home-eyebrow mb-1">SEARCH</p>
 
@@ -23,7 +27,7 @@
 
     <div class="home-actions">
         <a href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn">
+            class="btn btn-outline-secondary app-action-btn hero-back-btn">
             Back
         </a>
     </div>
@@ -31,7 +35,10 @@
 
 <div class="card portal-card shadow-sm mb-4">
     <div class="card-body">
-        <form method="get">
+        <form method="get"
+            data-loading-title="Searching Manuals"
+            data-loading-message="Scanning indexed manual pages...">
+            
             <div class="row g-3">
 
                 <div class="col-12 col-md-3">
@@ -173,27 +180,13 @@
 
                         <div class="manual-group-actions mt-3">
                             {% if manual_type == "MEL" or manual_type == "CDL" %}
-                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
+                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-danger app-card-btn">
-                                    Open First Match
-                                </a>
-
-                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
-                                    class="btn btn-outline-danger app-card-btn">
-                                    Show Matched Pages
+                                    Open Viewer
                                 </a>
                             {% else %}
-                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
+                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-primary app-card-btn">
-                                    Open First Match
-                                </a>
-
-                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}"
-                                    target="_blank"
-                                    class="btn btn-outline-primary app-card-btn">
                                     Open Viewer
                                 </a>
                             {% endif %}

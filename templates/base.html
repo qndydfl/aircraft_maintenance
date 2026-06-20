@@ -23,12 +23,16 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
     </script>
-
+    
+    <script defer src="{% static 'js/base.js' %}"></script>
+    
     {% block css %}{% endblock css %}
+    
     {% block js %}{% endblock js %}
 </head>
 
-<body>
+
+<body class="{% block body_class %}{% endblock body_class %}">
 
 {% block nav %}
 <nav class="navbar navbar-dark bg-primary fixed-top app-navbar">
@@ -42,6 +46,13 @@
         <div class="d-flex align-items-center gap-2">
 
             {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                    <a href="{% url 'admin:index' %}"
+                        class="btn btn-warning btn-sm app-admin-btn">
+                        Admin
+                    </a>
+                {% endif %}
+
                 <span class="text-white app-user-name">
                     {{ user.username }}
                 </span>
@@ -107,6 +118,24 @@
         </a>
     {% endif %}
 </nav>
+
+<div id="global-loading" class="global-loading-overlay d-none">
+    <div class="loading-box">
+        <div class="spinner-border text-primary"
+            role="status">
+        </div>
+
+        <div class="loading-title">
+            Processing...
+        </div>
+
+        <div class="loading-message">
+            Please wait.
+        </div>
+    </div>
+</div>
+
 {% endif %}
+
 </body>
 </html>

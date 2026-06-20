@@ -1,35 +1,99 @@
+/* dispatch_csv_upload.css */
+
+.detail-hero {
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow:
+        0 18px 45px rgba(15,23,42,0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
 .csv-upload-form {
     display: grid;
-    gap: 16px;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 12px;
 }
 
 .csv-file-input {
     min-height: 44px;
-    border-radius: 13px;
+    border-radius: 14px;
 }
 
 .csv-example-wrap {
     overflow-x: auto;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
     border-radius: 16px;
 }
 
 .csv-example {
     margin: 0;
+    min-width: 900px;
     padding: 16px;
-    font-size: 0.82rem;
-    line-height: 1.5;
+    background: #0f172a;
+    color: #e5e7eb;
+    border-radius: 16px;
+    font-size: 0.78rem;
+    line-height: 1.55;
     white-space: pre;
 }
 
 @media (max-width: 767.98px) {
-    .csv-upload-form .btn {
+    body.dispatch-csv-upload-page .app-main {
+        min-height: auto;
+    }
+
+    body.dispatch-csv-upload-page .app-container {
+        padding-bottom: 0;
+    }
+
+    .detail-hero {
+        padding: 14px 15px;
+        border-radius: 18px;
+        gap: 10px;
+    }
+
+    .detail-hero .page-title {
+        font-size: 1.12rem;
+        margin-bottom: 3px !important;
+    }
+
+    .detail-hero .home-eyebrow {
+        font-size: 0.68rem;
+    }
+
+    .detail-hero .home-subtitle {
+        font-size: 0.73rem;
+    }
+
+    .csv-upload-form {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .csv-file-input {
+        min-height: 38px;
+        font-size: 0.8rem;
+        border-radius: 11px;
+    }
+
+    .csv-upload-form .app-card-btn {
         width: 100%;
+        min-height: 36px;
+        font-size: 0.78rem;
+        border-radius: 11px;
     }
 
     .csv-example {
-        font-size: 0.75rem;
-        padding: 14px;
+        min-width: 760px;
+        padding: 12px;
+        font-size: 0.68rem;
     }
 }

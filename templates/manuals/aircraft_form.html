@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block body_class %}
+aircraft-form-page
+{% endblock body_class %}
+
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/aircraft_form.css' %}">
 {% endblock css %}

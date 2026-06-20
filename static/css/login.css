@@ -1,104 +1,259 @@
-.login-wrapper {
-    min-height: calc(100vh - 80px);
+/*
+--------------------------------------------------
+Login Page Layout
+--------------------------------------------------
+*/
+
+body.login-page {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(0,122,255,0.22), transparent 32%),
+        radial-gradient(circle at 82% 28%, rgba(175,82,222,0.18), transparent 34%),
+        radial-gradient(circle at 50% 90%, rgba(52,199,89,0.12), transparent 36%),
+        linear-gradient(135deg, #f7f9fc, #eef1f7);
+
+    padding-bottom: 0;
+}
+
+body.login-page .app-main {
+    min-height: calc(100vh - 72px);
+}
+
+body.login-page .app-container {
+    min-height: calc(100vh - 72px);
 
     display: flex;
     justify-content: center;
     align-items: center;
 
-    padding: 20px;
+    padding-bottom: 0;
 }
 
-.login-card {
+/*
+--------------------------------------------------
+Wrapper
+--------------------------------------------------
+*/
 
+.login-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/*
+--------------------------------------------------
+Vision Pro Card
+--------------------------------------------------
+*/
+
+.login-card {
     width: 100%;
     max-width: 420px;
 
-    background: #ffffff;
+    padding: 42px 34px;
 
-    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
 
-    padding: 32px;
+    border-radius: 34px;
 
-    box-shadow: 0 10px 35px rgba(0,0,0,.08);
+    background: rgba(255,255,255,0.48);
 
-    border: 1px solid #ececec;
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
 
+    border: 1px solid rgba(255,255,255,0.65);
+
+    box-shadow:
+        0 30px 80px rgba(31,38,135,0.18),
+        inset 0 1px 1px rgba(255,255,255,0.75);
 }
 
+.login-card::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,0.75),
+            rgba(255,255,255,0.15)
+        );
+
+    pointer-events: none;
+}
+
+.login-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/*
+--------------------------------------------------
+Header
+--------------------------------------------------
+*/
+
 .login-header {
-
     text-align: center;
-
-    margin-bottom: 28px;
-
+    margin-bottom: 34px;
 }
 
 .login-logo {
+    width: 78px;
+    height: 78px;
 
-    font-size: 52px;
+    margin: 0 auto 18px;
 
-    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
+    font-size: 40px;
+
+    border-radius: 24px;
+
+    background: rgba(255,255,255,0.55);
+
+    backdrop-filter: blur(20px);
+
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.8),
+        0 12px 30px rgba(0,0,0,0.08);
 }
 
 .login-title {
+    margin-bottom: 8px;
 
+    font-size: 30px;
     font-weight: 800;
 
-    margin-bottom: 6px;
+    letter-spacing: -0.04em;
 
+    color: #1d1d1f;
 }
 
 .login-subtitle {
+    margin: 0;
 
-    color: #6c757d;
+    font-size: 15px;
 
-    margin-bottom: 0;
-
+    color: rgba(60,60,67,0.7);
 }
 
-.login-card input {
+/*
+--------------------------------------------------
+Form
+--------------------------------------------------
+*/
 
-    min-height: 46px;
+.form-label {
+    margin-bottom: 8px;
 
-    border-radius: 12px;
-
-}
-
-.login-btn {
-
-    width: 100%;
-
-    height: 46px;
-
-    border-radius: 12px;
-
+    font-size: 13px;
     font-weight: 700;
 
+    color: rgba(60,60,67,0.78);
 }
 
-@media (max-width:768px){
+.form-control {
+    height: 56px;
 
-    .login-wrapper{
+    border-radius: 18px;
 
-        align-items:flex-start;
+    background: rgba(255,255,255,0.62);
 
-        padding-top:40px;
+    border: 1px solid rgba(255,255,255,0.75);
 
+    font-size: 16px;
+
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.7),
+        0 8px 20px rgba(0,0,0,0.04);
+}
+
+.form-control:focus {
+    background: rgba(255,255,255,0.82);
+
+    border-color: rgba(13,110,253,0.55);
+
+    box-shadow:
+        0 0 0 5px rgba(13,110,253,0.16),
+        inset 0 1px 1px rgba(255,255,255,0.85);
+}
+
+/*
+--------------------------------------------------
+Button
+--------------------------------------------------
+*/
+
+.login-btn {
+    width: 100%;
+    height: 56px;
+
+    border: none;
+
+    border-radius: 18px;
+
+    color: white;
+
+    font-size: 17px;
+    font-weight: 800;
+
+    background: rgba(13,110,253,0.9);
+
+    box-shadow:
+        0 14px 30px rgba(13,110,253,0.28),
+        inset 0 1px 1px rgba(255,255,255,0.35);
+
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+}
+
+.login-btn:hover {
+    background: rgba(11,94,215,0.96);
+}
+
+.login-btn:active {
+    transform: scale(0.985);
+}
+
+/*
+--------------------------------------------------
+Mobile
+--------------------------------------------------
+*/
+
+@media (max-width: 767.98px) {
+
+    body.login-page .app-main {
+        min-height: calc(100vh - 66px);
     }
 
-    .login-card{
-
-        padding:24px;
-
-        border-radius:20px;
-
+    body.login-page .app-container {
+        min-height: calc(100vh - 66px);
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
-    .login-logo{
-
-        font-size:42px;
-
+    .login-card {
+        max-width: 100%;
+        padding: 36px 24px;
+        border-radius: 30px;
     }
 
+    .login-title {
+        font-size: 26px;
+    }
+
+    .login-logo {
+        width: 72px;
+        height: 72px;
+        font-size: 36px;
+    }
 }

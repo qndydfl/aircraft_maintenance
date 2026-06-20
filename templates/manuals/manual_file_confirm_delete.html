@@ -1,35 +1,96 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+delete-confirm-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/delete_confirm.css' %}">
+{% endblock css %}
 
 {% block content %}
 
-<div class="card shadow-sm border-danger">
+<div class="detail-hero mb-4">
 
-    <div class="card-header bg-danger text-white">
-        Delete Manual File
+    <div>
+        <p class="home-eyebrow mb-1">
+            MANUAL FILE
+        </p>
+
+        <h2 class="page-title mb-2">
+            Delete Manual File
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            PDF 매뉴얼 파일을 삭제합니다.
+        </p>
     </div>
+
+    <div class="home-actions">
+        <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+
+</div>
+
+<div class="card portal-card shadow-sm delete-card">
 
     <div class="card-body">
 
-        <p>
+        <div class="delete-icon">
+            ⚠️
+        </div>
+
+        <h4 class="delete-title">
             정말 삭제하시겠습니까?
+        </h4>
+
+        <p class="delete-description">
+            PDF 파일과 관련 데이터가 모두 삭제됩니다.
         </p>
 
-        <p class="fw-bold">
-            {{ manual.aircraft.name }} /
-            {{ manual.manual_type }}
-        </p>
+        <div class="delete-info">
 
-        <form method="post">
+            <div>
+                <span>Aircraft</span>
+                <strong>
+                    {{ manual.aircraft.name }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Manual Type</span>
+                <strong>
+                    {{ manual.manual_type }}
+                </strong>
+            </div>
+
+            {% if manual.description %}
+            <div class="delete-info-full">
+                <span>Description</span>
+                <strong>
+                    {{ manual.description }}
+                </strong>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <form method="post"
+            class="delete-actions">
 
             {% csrf_token %}
 
             <button type="submit"
-                    class="btn btn-danger">
+                class="btn btn-danger app-card-btn">
                 Delete
             </button>
 
             <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
-                class="btn btn-outline-secondary">
+                class="btn btn-outline-secondary app-card-btn">
                 Cancel
             </a>
 

@@ -1,0 +1,202 @@
+/* delete_confirm.css */
+
+body.delete-confirm-page .detail-hero {
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow:
+        0 18px 45px rgba(15,23,42,0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+body.delete-confirm-page .detail-hero .home-actions {
+    margin-left: auto;
+    width: auto;
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+body.delete-confirm-page .detail-hero .app-action-btn {
+    width: auto;
+    border-radius: 999px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.delete-card {
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.delete-card .card-body {
+    padding: 32px;
+    text-align: center;
+}
+
+.delete-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+.delete-title {
+    font-size: 1.4rem;
+    font-weight: 850;
+    color: #1d1d1f;
+}
+
+.delete-description {
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+.delete-warning {
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #9a3412;
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.delete-warning strong {
+    display: block;
+    margin-top: 6px;
+}
+
+.delete-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.delete-info-full {
+    grid-column: 1 / -1;
+}
+
+.delete-info div {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.delete-info span {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.delete-info strong {
+    display: block;
+    color: #111827;
+}
+
+.delete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+@media (max-width: 767.98px) {
+    body.delete-confirm-page .app-main {
+        min-height: auto !important;
+    }
+
+    body.delete-confirm-page .app-container {
+        padding-bottom: 0 !important;
+    }
+
+    body.delete-confirm-page .detail-hero {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+    }
+
+    body.delete-confirm-page .detail-hero > div:first-child {
+        flex: 1;
+        min-width: 0;
+    }
+
+    body.delete-confirm-page .detail-hero .home-actions {
+        width: auto !important;
+        flex: 0 0 auto !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        margin-left: 10px !important;
+    }
+
+    body.delete-confirm-page .detail-hero .app-action-btn {
+        width: auto !important;
+        min-width: auto !important;
+        white-space: nowrap !important;
+    }
+    
+
+    body.delete-confirm-page .detail-hero .page-title {
+        font-size: 1.08rem;
+        margin-bottom: 3px !important;
+    }
+
+    body.delete-confirm-page .detail-hero .home-eyebrow {
+        font-size: 0.66rem;
+        margin-bottom: 2px !important;
+    }
+
+    body.delete-confirm-page .detail-hero .home-subtitle {
+        font-size: 0.72rem;
+    }
+
+    .delete-card {
+        margin-bottom: 0 !important;
+    }
+
+    .delete-card .card-body {
+        padding: 18px;
+    }
+
+    .delete-title {
+        font-size: 1.1rem;
+    }
+
+    .delete-description {
+        font-size: 0.8rem;
+        margin-bottom: 16px;
+    }
+
+    .delete-warning {
+        font-size: 0.8rem;
+        padding: 12px;
+    }
+
+    .delete-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .delete-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 0;
+    }
+
+    .delete-actions .btn {
+        width: 100%;
+    }
+}

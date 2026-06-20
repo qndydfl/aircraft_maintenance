@@ -1,0 +1,45 @@
+.manual-detail-file-card {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.manual-file-info {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.manual-file-info span {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #8e8e93;
+    margin-bottom: 4px;
+}
+
+.manual-file-info strong {
+    color: #111827;
+}
+
+.manual-file-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+@media (max-width: 767.98px) {
+    body.manual-detail-page .app-container {
+        padding-bottom: 0;
+    }
+
+    .manual-file-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .manual-file-actions .btn {
+        width: 100%;
+    }
+}

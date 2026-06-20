@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block body_class %}
+manual-file-form-page
+{% endblock body_class %}
+
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/manual_file_form.css' %}">
 {% endblock css %}
@@ -36,7 +40,9 @@
     <div class="card-body">
         <form method="post"
             enctype="multipart/form-data"
-            class="manual-file-form">
+            class="manual-file-form"
+            data-loading-title="Uploading PDF"
+            data-loading-message="Reading pages and creating search index...">
             {% csrf_token %}
 
             {% if form.non_field_errors %}
