@@ -1104,61 +1104,61 @@ pdfContainer.addEventListener("touchend", function () {
     touchStartDistance = null;
 });
 
-let swipeStartX = null;
-let swipeStartY = null;
-let swipeStartTime = 0;
+// let swipeStartX = null;
+// let swipeStartY = null;
+// let swipeStartTime = 0;
 
-pdfContainer.addEventListener(
-    "touchstart",
-    function (event) {
-        if (event.touches.length !== 1) {
-            return;
-        }
+// pdfContainer.addEventListener(
+//     "touchstart",
+//     function (event) {
+//         if (event.touches.length !== 1) {
+//             return;
+//         }
 
-        swipeStartX = event.touches[0].clientX;
-        swipeStartY = event.touches[0].clientY;
-        swipeStartTime = Date.now();
-    },
-    { passive: true }
-);
+//         swipeStartX = event.touches[0].clientX;
+//         swipeStartY = event.touches[0].clientY;
+//         swipeStartTime = Date.now();
+//     },
+//     { passive: true }
+// );
 
-pdfContainer.addEventListener(
-    "touchend",
-    function (event) {
-        if (swipeStartX === null || swipeStartY === null) {
-            return;
-        }
+// pdfContainer.addEventListener(
+//     "touchend",
+//     function (event) {
+//         if (swipeStartX === null || swipeStartY === null) {
+//             return;
+//         }
 
-        const endX = event.changedTouches[0].clientX;
-        const endY = event.changedTouches[0].clientY;
+//         const endX = event.changedTouches[0].clientX;
+//         const endY = event.changedTouches[0].clientY;
 
-        const deltaX = endX - swipeStartX;
-        const deltaY = endY - swipeStartY;
-        const elapsed = Date.now() - swipeStartTime;
+//         const deltaX = endX - swipeStartX;
+//         const deltaY = endY - swipeStartY;
+//         const elapsed = Date.now() - swipeStartTime;
 
-        swipeStartX = null;
-        swipeStartY = null;
+//         swipeStartX = null;
+//         swipeStartY = null;
 
-        if (elapsed > 600) {
-            return;
-        }
+//         if (elapsed > 600) {
+//             return;
+//         }
 
-        if (Math.abs(deltaX) < 80) {
-            return;
-        }
+//         if (Math.abs(deltaX) < 80) {
+//             return;
+//         }
 
-        if (Math.abs(deltaX) < Math.abs(deltaY)) {
-            return;
-        }
+//         if (Math.abs(deltaX) < Math.abs(deltaY)) {
+//             return;
+//         }
 
-        if (deltaX < 0) {
-            goToPage(currentPage + 1);
-        } else {
-            goToPage(currentPage - 1);
-        }
-    },
-    { passive: true }
-);
+//         if (deltaX < 0) {
+//             goToPage(currentPage + 1);
+//         } else {
+//             goToPage(currentPage - 1);
+//         }
+//     },
+//     { passive: true }
+// );
 
 const mobilePrev =
     document.getElementById("mobile-prev-page");

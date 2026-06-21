@@ -1,9 +1,3 @@
-/*
---------------------------------------------------
-Login Page Layout
---------------------------------------------------
-*/
-
 body.login-page {
     background:
         radial-gradient(circle at 18% 18%, rgba(0,122,255,0.22), transparent 32%),
@@ -15,11 +9,11 @@ body.login-page {
 }
 
 body.login-page .app-main {
-    min-height: calc(100vh - 72px);
+    min-height: calc(100vh - 12rem);
 }
 
 body.login-page .app-container {
-    min-height: calc(100vh - 72px);
+    min-height: calc(100vh - 12rem);
 
     display: flex;
     justify-content: center;
@@ -28,24 +22,12 @@ body.login-page .app-container {
     padding-bottom: 0;
 }
 
-/*
---------------------------------------------------
-Wrapper
---------------------------------------------------
-*/
-
 .login-wrapper {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-
-/*
---------------------------------------------------
-Vision Pro Card
---------------------------------------------------
-*/
 
 .login-card {
     width: 100%;
@@ -90,12 +72,6 @@ Vision Pro Card
     position: relative;
     z-index: 1;
 }
-
-/*
---------------------------------------------------
-Header
---------------------------------------------------
-*/
 
 .login-header {
     text-align: center;
@@ -144,12 +120,6 @@ Header
     color: rgba(60,60,67,0.7);
 }
 
-/*
---------------------------------------------------
-Form
---------------------------------------------------
-*/
-
 .form-label {
     margin-bottom: 8px;
 
@@ -185,12 +155,6 @@ Form
         inset 0 1px 1px rgba(255,255,255,0.85);
 }
 
-/*
---------------------------------------------------
-Button
---------------------------------------------------
-*/
-
 .login-btn {
     width: 100%;
     height: 56px;
@@ -223,20 +187,15 @@ Button
     transform: scale(0.985);
 }
 
-/*
---------------------------------------------------
-Mobile
---------------------------------------------------
-*/
 
 @media (max-width: 767.98px) {
 
     body.login-page .app-main {
-        min-height: calc(100vh - 66px);
+        min-height: calc(100vh - 10rem);
     }
 
     body.login-page .app-container {
-        min-height: calc(100vh - 66px);
+        min-height: calc(100vh - 10rem);
         padding-left: 16px;
         padding-right: 16px;
     }

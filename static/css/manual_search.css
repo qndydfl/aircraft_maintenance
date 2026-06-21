@@ -9,7 +9,7 @@
 .detail-hero {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center !important;
     gap: 18px;
     margin-top: 14px;
     margin-bottom: 20px;

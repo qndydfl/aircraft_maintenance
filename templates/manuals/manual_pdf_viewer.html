@@ -101,13 +101,21 @@
             Next
         </button>
 
-        <button id="zoom-out" class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex">
+        <button
+            id="zoom-out"
+            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+        >
             -
         </button>
-        <span id="zoom-level" class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
+        <span
+            id="zoom-level"
+            class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
             >100%</span
         >
-        <button id="zoom-in" class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex">
+        <button
+            id="zoom-in"
+            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+        >
             +
         </button>
 
@@ -117,7 +125,10 @@
         >
             Width
         </button>
-        <button id="fit-page" class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex">
+        <button
+            id="fit-page"
+            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+        >
             Page
         </button>
 
@@ -126,6 +137,7 @@
             class="viewer-search-panel d-flex d-md-flex"
         >
             <div class="viewer-search-row">
+                {% if not from_search_page %}
                 <input
                     id="viewer-search-input"
                     type="text"
@@ -159,11 +171,12 @@
                 >
                     ▶
                 </button>
-
+                {% endif %}
+                
                 {% if query %}
                 <span class="badge bg-warning text-dark viewer-query-badge"
-                    >{{ query }}</span
-                >
+                    >{{ query }}
+                </span>
                 {% endif %} {% if query and match_count %} {% if prev_match_url %}
                 <a
                     href="{{ prev_match_url }}"
@@ -228,27 +241,19 @@
         </div>
     </div>
     <div class="mobile-page-nav d-md-none">
-
-        <button id="mobile-prev-page"
-            class="btn btn-light mobile-page-btn">
+        <button id="mobile-prev-page" class="btn btn-light mobile-page-btn">
             ◀ Prev
         </button>
 
         <div class="mobile-page-indicator">
-            <span id="mobile-page-current">
-                {{ page_number }}
-            </span>
+            <span id="mobile-page-current"> {{ page_number }} </span>
             /
-            <span id="mobile-page-total">
-                -
-            </span>
+            <span id="mobile-page-total"> - </span>
         </div>
 
-        <button id="mobile-next-page"
-            class="btn btn-primary mobile-page-btn">
+        <button id="mobile-next-page" class="btn btn-primary mobile-page-btn">
             Next ▶
         </button>
-
     </div>
 </div>
 {% endblock content %}

@@ -606,6 +606,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         page_number = safe_int(self.request.GET.get("page", "1"), default=1)
         query = self.request.GET.get("q", "").strip()
         view_mode = self.request.GET.get("mode", "single")
+        back_url = self.request.GET.get("back", "")
 
         context["viewer_title"] = (
             f"{chapter.package.aircraft.name} / "
@@ -619,8 +620,6 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
             kwargs={"pk": chapter.pk},
         )
 
-        back_url = self.request.GET.get("back")
-
         if back_url:
             context["back_url"] = back_url
         else:
@@ -628,6 +627,16 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                 "manual_chapter_list",
                 kwargs={"package_pk": chapter.package.pk},
             )
+
+        back_url_lower = (back_url or "").lower()
+        from_search_flag = self.request.GET.get("from_search_page", "").lower()
+        context["from_search_page"] = (
+            from_search_flag in {"1", "true", "yes"}
+            or "manual-search" in back_url_lower
+            or "manual_search" in back_url_lower
+            or "dispatch_auto_search" in back_url_lower
+            or "/dispatch/" in back_url_lower
+        )
 
         context["page_number"] = page_number
         context["query"] = query
@@ -640,22 +649,31 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
 
-        # ------------------------------------------------------------------
-        # 🔗 [추가 및 보완] 자바스크립트 사이드바 트리 생성을 위한 전체 챕터(목차) 가공 데이터 주입
-        # ------------------------------------------------------------------
-        all_chapters = ManualChapter.objects.filter(package=chapter.package).order_by("task", "subtask")
+        all_chapters = ManualChapter.objects.filter(package=chapter.package).order_by(
+            "task", "subtask"
+        )
+
         chapters_data = []
+
         for ch in all_chapters:
-            chapters_data.append({
-                "pk": ch.pk,
-                "task": ch.task or "",
-                "subtask": ch.subtask or "",
-                "title": ch.title or "",
-                # 프론트엔드 링크 이동 규격 맞춤 생성
-                "viewer_url": reverse("manual_chapter_pdf_viewer", kwargs={"pk": ch.pk}) + f"?page=1" + (f"&q={query}" if query else "")
-            })
+            chapters_data.append(
+                {
+                    "pk": ch.pk,
+                    "task": ch.task or "",
+                    "subtask": ch.subtask or "",
+                    "title": ch.title or "",
+                    "viewer_url": (
+                        reverse(
+                            "manual_chapter_pdf_viewer",
+                            kwargs={"pk": ch.pk},
+                        )
+                        + "?page=1"
+                        + (f"&q={query}" if query else "")
+                    ),
+                }
+            )
+
         context["package_chapters_json"] = json.dumps(chapters_data)
-        # ------------------------------------------------------------------
 
         if query:
             search_value, match_mode = parse_manual_search_query(query)
@@ -751,12 +769,11 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         page_number = safe_int(self.request.GET.get("page", "1"), default=1)
         query = self.request.GET.get("q", "").strip()
         view_mode = self.request.GET.get("mode", "single")
+        back_url = self.request.GET.get("back", "")
 
         context["viewer_title"] = f"{manual.aircraft.name} / {manual.manual_type}"
         context["viewer_subtitle"] = manual.description or "PDF Viewer"
         context["pdf_url"] = reverse("manual_file_pdf", kwargs={"pk": manual.pk})
-        
-        back_url = self.request.GET.get("back")
 
         if back_url:
             context["back_url"] = back_url
@@ -765,6 +782,16 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                 "aircraft_manual_detail",
                 kwargs={"pk": manual.aircraft.pk},
             )
+
+        back_url_lower = (back_url or "").lower()
+        from_search_flag = self.request.GET.get("from_search_page", "").lower()
+        context["from_search_page"] = (
+            from_search_flag in {"1", "true", "yes"}
+            or "manual-search" in back_url_lower
+            or "manual_search" in back_url_lower
+            or "dispatch_auto_search" in back_url_lower
+            or "/dispatch/" in back_url_lower
+        )
 
         context["page_number"] = page_number
         context["query"] = query
@@ -776,8 +803,6 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         context["current_match_index"] = 0
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
-        
-        # 🔗 단일 PDF 파일 형태이므로 트리형 목차 데이터는 빈 배열로 할당하여 에러 차단
         context["package_chapters_json"] = json.dumps([])
 
         if query:
@@ -824,15 +849,21 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                     if current_index > 0:
                         prev_page_number = matching_pages_list[current_index - 1]
                         context["prev_match_url"] = (
-                            reverse("manual_file_pdf_viewer", kwargs={"pk": manual.pk})
-                            + f"?page={prev_page_number}&q={query}"
+                            reverse(
+                                "manual_file_pdf_viewer",
+                                kwargs={"pk": manual.pk},
+                            )
+                            + f"?page={prev_page_number}&q={query}&mode={view_mode}"
                         )
 
                     if current_index < len(matching_pages_list) - 1:
                         next_page_number = matching_pages_list[current_index + 1]
                         context["next_match_url"] = (
-                            reverse("manual_file_pdf_viewer", kwargs={"pk": manual.pk})
-                            + f"?page={next_page_number}&q={query}"
+                            reverse(
+                                "manual_file_pdf_viewer",
+                                kwargs={"pk": manual.pk},
+                            )
+                            + f"?page={next_page_number}&q={query}&mode={view_mode}"
                         )
 
         return context

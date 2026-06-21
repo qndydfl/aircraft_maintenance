@@ -291,25 +291,10 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
 
     revision_no = ""
     revision_date = ""
-    is_mel_or_cdl = bool(
-        re.search(
-            r"(?:^|[\\/_\-])(MEL|CDL)(?:[\\/_\-.]|$)",
-            source_file_name or "",
-            re.IGNORECASE,
-        )
-    )
-    is_cdl = bool(
-        re.search(
-            r"(?:^|[\\/_\-])CDL(?:[\\/_\-.]|$)",
-            source_file_name or "",
-            re.IGNORECASE,
-        )
-    )
 
     def normalize_date(value):
         normalized = (value or "").upper().replace(" ", "").strip()
 
-        # OCR에서 03JUL025처럼 연도 첫 자리(2)가 누락되는 경우를 보정한다.
         three_digit_year_match = re.match(r"^(\d{1,2}[A-Z]{3})(\d{3})$", normalized)
 
         if three_digit_year_match:
@@ -357,8 +342,11 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
     ]
 
     date_patterns = [
-        r"Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
+        r"Revision\s*Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+        r"Rev\.?\s*Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
         r"Issue\s*Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+        r"Approved\s*Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+        r"Date\s*:?\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
         r"\b([0-9]{1,2}[A-Za-z]{3}[0-9]{4})\b",
     ]
 
@@ -476,8 +464,6 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
                     normalized_text
                 ) or extract_airbus_rev_date(text)
 
-            # 1) Airbus 한 줄 표 형식:
-            # Rev No Rev Date 20 05FEB2026
             airbus_inline_match = re.search(
                 r"Rev\s*No\s+Rev\s*Date\s+(\d{1,3})\s+(\d{1,2}[A-Za-z]{3}\d{4})",
                 normalized_text,
@@ -489,8 +475,6 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
                 revision_date = normalize_date(airbus_inline_match.group(2))
                 break
 
-            # 2) Airbus 표가 줄바꿈으로 추출되는 형식:
-            # Rev No ... 20 ... Rev Date ... 05FEB2026
             if not revision_no:
                 rev_match = re.search(
                     r"Rev\s*No.*?\b(\d{1,3})\b",
@@ -501,17 +485,24 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
                 if rev_match:
                     revision_no = rev_match.group(1).strip()
 
-            if not revision_date and not is_mel_or_cdl:
-                date_match = re.search(
-                    r"\b(\d{1,2}[A-Za-z]{3}\d{4})\b",
-                    text,
-                    re.IGNORECASE,
-                )
+            if not revision_no:
+                for pattern in revision_patterns:
+                    rev_match = re.search(pattern, text, re.IGNORECASE)
 
-                if date_match:
-                    revision_date = normalize_date(date_match.group(1))
+                    if rev_match:
+                        revision_no = rev_match.group(1).strip()
+                        break
 
-            # 3) pdfplumber table 추출 검사
+            # 핵심 수정:
+            # MEL/CDL이어도 Boeing 앞쪽의 "Date: 21 OCT 2025"를 읽도록 함.
+            if not revision_date:
+                for pattern in date_patterns:
+                    date_match = re.search(pattern, text, re.IGNORECASE)
+
+                    if date_match:
+                        revision_date = normalize_date(date_match.group(1))
+                        break
+
             if not revision_no or not revision_date:
                 tables = page.extract_tables() or []
 
@@ -550,23 +541,6 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
                     if revision_no and revision_date:
                         break
 
-            # 4) Boeing 기존 패턴
-            if not revision_no:
-                for pattern in revision_patterns:
-                    rev_match = re.search(pattern, text, re.IGNORECASE)
-
-                    if rev_match:
-                        revision_no = rev_match.group(1).strip()
-                        break
-
-            if not revision_date and not is_mel_or_cdl:
-                for pattern in date_patterns:
-                    date_match = re.search(pattern, text, re.IGNORECASE)
-
-                    if date_match:
-                        revision_date = normalize_date(date_match.group(1))
-                        break
-
             if revision_no and revision_date and not is_mel_or_cdl:
                 break
 
@@ -592,7 +566,7 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
             if not highest_airbus_rev_date and latest_airbus_rev_date:
                 revision_date = latest_airbus_rev_date
 
-        if not revision_date and not is_mel_or_cdl:
+        if not revision_date:
             for page in pdf.pages[:50]:
                 text = page.extract_text() or ""
                 normalized_text = re.sub(r"\s+", " ", text).strip()
@@ -601,10 +575,17 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
                     normalized_text
                 ) or extract_airbus_rev_date(text)
 
+                if not revision_date:
+                    for pattern in date_patterns:
+                        date_match = re.search(pattern, text, re.IGNORECASE)
+
+                        if date_match:
+                            revision_date = normalize_date(date_match.group(1))
+                            break
+
                 if revision_date:
                     break
 
-    # 5) 파일명 fallback: *_R20_*
     if not revision_no:
         file_name = os.path.basename(source_file_name) or os.path.basename(pdf_path)
 
