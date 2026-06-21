@@ -2,158 +2,149 @@
 {% load static %}
 
 {% block body_class %}
-aircraft-form-page
+form-page aircraft-form-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/aircraft_form.css' %}">
+<link rel="stylesheet" href="{% static 'css/portal_form.css' %}">
 {% endblock css %}
 
 {% block content %}
 
-<div class="detail-hero mb-4">
+<div class="portal-form-wrap">
 
-    <div>
-        <p class="home-eyebrow mb-1">
-            AIRCRAFT
-        </p>
+    <div class="portal-form-hero mb-4">
+        <div>
+            <p class="home-eyebrow mb-1">
+                AIRCRAFT
+            </p>
 
-        <h2 class="page-title mb-2">
-            {% if aircraft %}
-                Edit Aircraft
-            {% else %}
-                Add Aircraft
-            {% endif %}
-        </h2>
+            <h2 class="page-title mb-2">
+                {% if aircraft %}
+                    Edit Aircraft
+                {% else %}
+                    Add Aircraft
+                {% endif %}
+            </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
-            Boeing 또는 Airbus 기종을 등록합니다.
-        </p>
+            <p class="text-muted mb-0 home-subtitle">
+                Boeing 또는 Airbus 기종을 등록합니다.
+            </p>
+        </div>
+
+        <div class="home-actions">
+            <a href="{% url 'aircraft_manage' %}"
+                class="btn btn-outline-secondary app-action-btn">
+                Back
+            </a>
+        </div>
     </div>
 
-    <div class="home-actions">
-        <a href="{% url 'aircraft_manage' %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
+    <div class="card portal-card shadow-sm portal-form-card">
+        <div class="card-body">
 
-</div>
+            <form method="post" class="portal-form">
+                {% csrf_token %}
 
-<div class="card portal-card shadow-sm">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger app-alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
 
-    <div class="card-body">
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Basic Information
+                    </h5>
 
-        <form method="post" class="aircraft-form">
+                    <div class="mb-3">
+                        <label class="form-label">Maker</label>
+                        {{ form.maker }}
 
-            {% csrf_token %}
-
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger app-alert">
-                    {{ form.non_field_errors }}
-                </div>
-            {% endif %}
-
-            <div class="aircraft-form-section">
-
-                <h5 class="aircraft-form-title">
-                    Basic Information
-                </h5>
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Maker
-                    </label>
-
-                    {{ form.maker }}
-
-                </div>
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Aircraft Name
-                    </label>
-
-                    {{ form.name }}
-
-                </div>
-
-            </div>
-
-            <div class="aircraft-form-section">
-
-                <h5 class="aircraft-form-title">
-                    Airbus World Link
-                </h5>
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Airbus URL
-                    </label>
-
-                    {{ form.airbus_url }}
-
-                    <div class="form-text mt-2">
-
-                        Boeing은 비워두세요.<br>
-
-                        Airbus만 Airbus World URL을 입력합니다.
-
+                        {% if form.maker.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.maker.errors }}
+                            </div>
+                        {% endif %}
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Aircraft Name</label>
+                        {{ form.name }}
+
+                        {% if form.name.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
-            </div>
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Airbus World Link
+                    </h5>
 
-            <div class="aircraft-guide">
+                    <div class="mb-3">
+                        <label class="form-label">Airbus URL</label>
+                        {{ form.airbus_url }}
 
-                <div class="guide-card">
+                        <div class="portal-form-guide mt-3">
+                            Boeing은 비워두세요.<br>
+                            Airbus만 Airbus World URL을 입력합니다.
+                        </div>
 
-                    <strong>Boeing</strong>
-
-                    <small>
-                        AMM / FIM / IPC / MEL / CDL 관리
-                    </small>
-
+                        {% if form.airbus_url.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.airbus_url.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <div class="guide-card">
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Guide
+                    </h5>
 
-                    <strong>Airbus</strong>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="portal-form-guide">
+                                <strong>Boeing</strong>
+                                <div class="text-muted small mt-1">
+                                    AMM / FIM / IPC / MEL / CDL 관리
+                                </div>
+                            </div>
+                        </div>
 
-                    <small>
-                        MEL / CDL PDF + Airbus World Link
-                    </small>
-
+                        <div class="col-12 col-md-6">
+                            <div class="portal-form-guide">
+                                <strong>Airbus</strong>
+                                <div class="text-muted small mt-1">
+                                    MEL / CDL PDF + Airbus World Link
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-            </div>
+                <div class="portal-form-actions">
+                    <button type="submit"
+                            class="btn btn-primary app-card-btn">
+                        Save
+                    </button>
 
-            <div class="aircraft-form-actions">
+                    <a href="{% url 'aircraft_manage' %}"
+                        class="btn btn-outline-secondary app-card-btn">
+                        Cancel
+                    </a>
+                </div>
 
-                <button type="submit"
-                        class="btn btn-primary app-card-btn">
+            </form>
 
-                    Save
-
-                </button>
-
-                <a href="{% url 'aircraft_manage' %}"
-                    class="btn btn-outline-secondary app-card-btn">
-
-                    Cancel
-
-                </a>
-
-            </div>
-
-        </form>
-
+        </div>
     </div>
 
 </div>
 
-{% endblock %}
+{% endblock content %}

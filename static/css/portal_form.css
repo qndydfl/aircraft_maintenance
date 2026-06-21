@@ -1,0 +1,138 @@
+/* portal_form.css */
+
+.portal-form-wrap {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.portal-form-card {
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.portal-form-card .card-body {
+    padding: 24px;
+}
+
+.portal-form-section {
+    padding-bottom: 22px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid rgba(226,232,240,0.9);
+}
+
+.portal-form-section:last-of-type {
+    border-bottom: 0;
+    margin-bottom: 0;
+}
+
+.portal-form-section-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 14px;
+}
+
+.portal-form-guide {
+    padding: 13px 14px;
+    background: rgba(248,250,252,0.85);
+    border: 1px solid rgba(226,232,240,0.95);
+    border-radius: 16px;
+    font-size: 0.84rem;
+}
+
+.portal-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.portal-form-actions .app-card-btn {
+    min-width: 120px;
+}
+
+.portal-form-card .form-label {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #4b5563;
+    margin-bottom: 6px;
+}
+
+.portal-form-card .form-control,
+.portal-form-card .form-select,
+.portal-form-card input,
+.portal-form-card select,
+.portal-form-card textarea {
+    border-radius: 14px;
+}
+
+.portal-form-card textarea {
+    min-height: 120px;
+}
+
+@media (max-width: 767.98px) {
+
+    .portal-form-card {
+        border-radius: 16px;
+    }
+
+    .portal-form-card .card-body {
+        padding: 14px !important;
+    }
+
+    .portal-form-section {
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+    }
+
+    .portal-form-section-title {
+        font-size: 0.88rem;
+        margin-bottom: 10px;
+    }
+
+    .portal-form-card .form-label {
+        font-size: 0.76rem;
+        font-weight: 700;
+    }
+
+    .portal-form-card .form-control,
+    .portal-form-card .form-select,
+    .portal-form-card input,
+    .portal-form-card select,
+    .portal-form-card textarea {
+        min-height: 40px;
+        font-size: 0.82rem;
+        border-radius: 12px;
+    }
+
+    .portal-form-card textarea {
+        min-height: 90px;
+    }
+
+    .portal-form-guide {
+        font-size: 0.74rem;
+        padding: 11px 12px;
+        border-radius: 13px;
+    }
+
+    .portal-form-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 18px;
+    }
+
+    .portal-form-actions .app-card-btn {
+        min-height: 36px;
+        min-width: 0;
+        font-size: 0.78rem;
+        border-radius: 11px !important;
+    }
+
+    body.form-page .app-main {
+        min-height: auto;
+    }
+
+    body.form-page .app-container {
+        padding-bottom: 0;
+    }
+}

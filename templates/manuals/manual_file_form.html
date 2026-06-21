@@ -2,148 +2,154 @@
 {% load static %}
 
 {% block body_class %}
-manual-file-form-page
+form-page manual-file-form-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_file_form.css' %}">
+<link rel="stylesheet" href="{% static 'css/portal_form.css' %}">
 {% endblock css %}
 
 {% block content %}
 
-<div class="detail-hero mb-4">
-    <div>
-        <p class="home-eyebrow mb-1">MANUAL FILE</p>
+<div class="portal-form-wrap">
 
-        <h2 class="page-title mb-2">
-            {% if manual %}
-                Re-upload PDF
-            {% else %}
-                Upload PDF
-            {% endif %}
-        </h2>
+    <div class="portal-form-hero mb-4">
+        <div>
+            <p class="home-eyebrow mb-1">MANUAL FILE</p>
 
-        <p class="text-muted mb-0 home-subtitle">
-            MEL / CDL 또는 기타 PDF 파일을 업로드합니다.
-        </p>
+            <h2 class="page-title mb-2">
+                {% if manual %}
+                    Re-upload PDF
+                {% else %}
+                    Upload PDF
+                {% endif %}
+            </h2>
+
+            <p class="text-muted mb-0 home-subtitle">
+                MEL / CDL 또는 기타 PDF 파일을 업로드합니다.
+            </p>
+        </div>
+
+        <div class="home-actions">
+            <a href="{{ back_url }}"
+                class="btn btn-outline-secondary app-action-btn">
+                Back
+            </a>
+        </div>
     </div>
 
-    <div class="home-actions">
-        <a href="{{ back_url }}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
-</div>
+    <div class="card portal-card shadow-sm portal-form-card">
+        <div class="card-body">
+            <form method="post"
+                enctype="multipart/form-data"
+                class="portal-form"
+                data-loading-title="Uploading PDF"
+                data-loading-message="Reading pages and creating search index...">
 
-<div class="card portal-card shadow-sm">
-    <div class="card-body">
-        <form method="post"
-            enctype="multipart/form-data"
-            class="manual-file-form"
-            data-loading-title="Uploading PDF"
-            data-loading-message="Reading pages and creating search index...">
-            {% csrf_token %}
+                {% csrf_token %}
 
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger app-alert">
-                    {{ form.non_field_errors }}
-                </div>
-            {% endif %}
-
-            <div class="manual-file-section">
-                <h5 class="manual-file-section-title">
-                    Manual Information
-                </h5>
-
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">
-                            Aircraft
-                        </label>
-
-                        {{ form.aircraft }}
-
-                        {% if form.aircraft.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.aircraft.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">
-                            Manual Type
-                        </label>
-
-                        {{ form.manual_type }}
-
-                        {% if form.manual_type.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.manual_type.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="manual-file-section">
-                <h5 class="manual-file-section-title">
-                    Upload File
-                </h5>
-
-                <label class="form-label">
-                    PDF File
-                </label>
-
-                {{ form.file }}
-
-                <div class="manual-package-guide mt-3">
-                    <strong>PDF 업로드 안내</strong>
-
-                    <div>
-                        MEL / CDL 또는 기타 PDF 파일을 업로드할 수 있습니다.
-                    </div>
-
-                    <div class="text-muted small mt-1">
-                        폴더 압축 ZIP은 Upload Folder ZIP 메뉴를 사용하세요.
-                    </div>
-                </div>
-
-                {% if form.file.errors %}
-                    <div class="text-danger small mt-1">
-                        {{ form.file.errors }}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger app-alert">
+                        {{ form.non_field_errors }}
                     </div>
                 {% endif %}
-            </div>
 
-            <div class="manual-file-section">
-                <h5 class="manual-file-section-title">
-                    Description
-                </h5>
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Manual Information
+                    </h5>
 
-                {{ form.description }}
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">
+                                Aircraft
+                            </label>
 
-                {% if form.description.errors %}
-                    <div class="text-danger small mt-1">
-                        {{ form.description.errors }}
+                            {{ form.aircraft }}
+
+                            {% if form.aircraft.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.aircraft.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">
+                                Manual Type
+                            </label>
+
+                            {{ form.manual_type }}
+
+                            {% if form.manual_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.manual_type.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
-                {% endif %}
-            </div>
+                </div>
 
-            <div class="manual-file-actions">
-                <button type="submit"
-                    class="btn btn-primary app-card-btn">
-                    Save
-                </button>
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Upload File
+                    </h5>
 
-                <a href="{{ back_url }}"
-                    class="btn btn-outline-secondary app-card-btn">
-                    Cancel
-                </a>
-            </div>
-        </form>
+                    <label class="form-label">
+                        PDF File
+                    </label>
+
+                    {{ form.file }}
+
+                    <div class="portal-form-guide mt-3">
+                        <strong>PDF 업로드 안내</strong>
+
+                        <div>
+                            MEL / CDL 또는 기타 PDF 파일을 업로드할 수 있습니다.
+                        </div>
+
+                        <div class="text-muted small mt-1">
+                            폴더 압축 ZIP은 Upload Folder ZIP 메뉴를 사용하세요.
+                        </div>
+                    </div>
+
+                    {% if form.file.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.file.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Description
+                    </h5>
+
+                    {{ form.description }}
+
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.description.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="portal-form-actions">
+                    <button type="submit"
+                            class="btn btn-primary app-card-btn">
+                        Save
+                    </button>
+
+                    <a href="{{ back_url }}"
+                        class="btn btn-outline-secondary app-card-btn">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
     </div>
+
 </div>
 
 {% endblock content %}

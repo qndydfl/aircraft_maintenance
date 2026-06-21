@@ -52,10 +52,10 @@ def get_pdf_full_path(self):
 def validate_manual_file(value):
     ext = os.path.splitext(value.name)[1].lower()
 
-    allowed_extensions = [".pdf", ".zip"]
+    allowed_extensions = [".pdf", ".zip", ".doc", ".docx", ".xls", ".xlsx"]
 
     if ext not in allowed_extensions:
-        raise ValidationError("PDF 또는 ZIP 파일만 업로드할 수 있습니다.")
+        raise ValidationError("PDF, ZIP, DOC, DOCX, XLS, 또는 XLSX 파일만 업로드할 수 있습니다.")
 
 
 class Aircraft(models.Model):
@@ -165,6 +165,10 @@ class Aircraft(models.Model):
             ),
             None,
         )
+    
+    @property
+    def has_boarding(self):
+        return self.manuals.filter(manual_type="BOARDING").exists()
 
 
 class ManualFile(models.Model):
@@ -181,7 +185,7 @@ class ManualFile(models.Model):
         Aircraft, on_delete=models.CASCADE, related_name="manuals"
     )
 
-    manual_type = models.CharField(max_length=10, choices=MANUAL_TYPE_CHOICES)
+    manual_type = models.CharField(max_length=20, choices=MANUAL_TYPE_CHOICES)
 
     file = models.FileField(upload_to="manuals/", validators=[validate_manual_file])
 
@@ -231,9 +235,10 @@ class AirbusManualLink(models.Model):
         related_name="airbus_links",
     )
     manual_type = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=MANUAL_TYPE_CHOICES,
     )
+
     title = models.CharField(max_length=100, blank=True)
     url = models.URLField()
     description = models.TextField(blank=True)
@@ -257,7 +262,7 @@ class ManualPackage(models.Model):
         Aircraft, on_delete=models.CASCADE, related_name="manual_packages"
     )
 
-    manual_type = models.CharField(max_length=10, choices=MANUAL_TYPE_CHOICES)
+    manual_type = models.CharField(max_length=20, choices=MANUAL_TYPE_CHOICES)
 
     zip_file = models.FileField(upload_to="manual_packages/")
 
@@ -373,3 +378,70 @@ class ManualFilePDFPage(models.Model):
 
     def __str__(self):
         return f"{self.manual_file} - Page {self.page_number}"
+
+
+class CommonManualCategory(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class CommonManualFile(models.Model):
+    category = models.ForeignKey(
+        CommonManualCategory,
+        on_delete=models.CASCADE,
+        related_name="files",
+    )
+
+    title = models.CharField(max_length=150)
+    file = models.FileField(upload_to="common_manuals/")
+    pdf_file = models.FileField(
+        upload_to="common_manuals/pdf/",
+        blank=True,
+        null=True,
+    )
+    description = models.TextField(blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    revision_no = models.CharField(max_length=50, blank=True, default="")
+    revision_date_text = models.CharField(max_length=100, blank=True, default="")
+
+    class Meta:
+        ordering = ["category", "title"]
+
+    def __str__(self):
+        return f"{self.category.name} - {self.title}"
+
+    def indexed_page_count(self):
+        return self.pdf_pages.count()
+
+    def is_indexed_pdf(self):
+        return self.indexed_page_count() > 0
+
+
+class CommonManualPDFPage(models.Model):
+    common_file = models.ForeignKey(
+        CommonManualFile,
+        on_delete=models.CASCADE,
+        related_name="pdf_pages",
+    )
+
+    page_number = models.PositiveIntegerField()
+    text = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["common_file", "page_number"]
+        unique_together = [["common_file", "page_number"]]
+
+    def get_snippet(self, query, length=180):
+        return build_snippet_from_text(self.text, query, length)
+
+    def __str__(self):
+        return f"{self.common_file} - Page {self.page_number}"

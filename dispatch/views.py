@@ -43,6 +43,47 @@ from .services import (
 )
 
 
+class DispatchListView(LoginRequiredMixin, ListView):
+    model = DispatchReference
+    template_name = "dispatch/dispatch_list.html"
+    context_object_name = "dispatches"
+    paginate_by = 30
+
+    def get_queryset(self):
+        queryset = DispatchReference.objects.select_related("aircraft").order_by(
+            "aircraft__name",
+            "eicas_message",
+            "-created_at",
+        )
+
+        aircraft_id = self.request.GET.get("aircraft", "").strip()
+        q = self.request.GET.get("q", "").strip()
+
+        if aircraft_id:
+            queryset = queryset.filter(aircraft_id=aircraft_id)
+
+        if q:
+            queryset = queryset.filter(
+                Q(eicas_message__icontains=q)
+                | Q(status_message__icontains=q)
+                | Q(fault_code__icontains=q)
+                | Q(mel_number__icontains=q)
+                | Q(fim_chapter__icontains=q)
+                | Q(amm_chapter__icontains=q)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
+        context["selected_aircraft"] = self.request.GET.get("aircraft", "").strip()
+        context["query"] = self.request.GET.get("q", "").strip()
+
+        return context
+    
+    
 class DispatchSearchView(LoginRequiredMixin, ListView):
     model = DispatchReference
     template_name = "dispatch/dispatch_search.html"

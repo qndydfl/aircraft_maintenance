@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+form-page common-manual-form-page
+{% endblock body_class %}
+
+{% block title %}
+Common Manual Upload
+{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/portal_form.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="common-form-hero mb-4">
+    <div>
+        <p class="home-eyebrow mb-1">COMMON MANUAL</p>
+
+        <h2 class="page-title mb-2">
+            {% if common_file %}
+                Edit Common Manual File
+            {% else %}
+                Upload Common Manual File
+            {% endif %}
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            PDF / Word / Excel 파일을 업로드합니다.
+        </p>
+    </div>
+
+    <div class="home-actions">
+        <a href="{{ back_url }}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="common-form-wrap">
+    <div class="card portal-card common-form-card shadow-sm">
+        <div class="card-body">
+            <form method="post"
+                enctype="multipart/form-data"
+                data-loading-title="Processing Common Manual"
+                data-loading-message="Uploading and preparing file...">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger app-alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="common-form-section">
+                    <h5 class="common-form-section-title">
+                        File Information
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Category</label>
+                            {{ form.category }}
+
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.category.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Title</label>
+                            {{ form.title }}
+
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="common-form-section">
+                    <h5 class="common-form-section-title">
+                        Upload File
+                    </h5>
+
+                    <label class="form-label">File</label>
+                    {{ form.file }}
+
+                    <div class="common-upload-guide mt-3">
+                        <strong>업로드 안내</strong>
+
+                        <div>
+                            PDF, Word, Excel 파일을 업로드할 수 있습니다.
+                        </div>
+
+                        <div class="text-muted small mt-1">
+                            Word / Excel 파일은 서버에서 PDF로 변환 후 검색 인덱싱됩니다.
+                        </div>
+                    </div>
+
+                    {% if form.file.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.file.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="common-form-section">
+                    <h5 class="common-form-section-title">
+                        Description
+                    </h5>
+
+                    <label class="form-label">Description</label>
+                    {{ form.description }}
+
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.description.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% comment %} <div class="common-form-section">
+                    <h5 class="common-form-section-title">
+                        Revision
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Revision No</label>
+                            {{ form.revision_no }}
+
+                            {% if form.revision_no.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.revision_no.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Revision Date</label>
+                            {{ form.revision_date_text }}
+
+                            {% if form.revision_date_text.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.revision_date_text.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div> {% endcomment %}
+
+                <div class="common-form-actions">
+                    <button type="submit"
+                        class="btn btn-primary app-card-btn">
+                        Save
+                    </button>
+
+                    <a href="{{ back_url }}"
+                        class="btn btn-outline-secondary app-card-btn">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

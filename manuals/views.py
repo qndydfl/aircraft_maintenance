@@ -20,8 +20,17 @@ from .models import (
     ManualChapter,
     ManualPDFPage,
     ManualFilePDFPage,
+    CommonManualCategory,
+    CommonManualFile,
+    CommonManualPDFPage,
 )
-from .forms import ManualFileForm, AircraftForm, ManualPackageForm
+from .forms import (
+    ManualFileForm,
+    AircraftForm,
+    ManualPackageForm,
+    CommonManualCategoryForm,
+    CommonManualFileForm,
+)
 
 from django.contrib import messages
 from .services import (
@@ -36,11 +45,13 @@ from .services import (
     safe_int,
     parse_manual_search_query,
     build_manual_text_regex,
+    index_pdf_pages_for_common_manual_file_safely,
 )
 from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
+from django.views import View
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -65,6 +76,10 @@ class HomeView(LoginRequiredMixin, TemplateView):
             Aircraft.objects.filter(maker="AIRBUS")
             .order_by("name")
             .prefetch_related("manuals", "manual_packages")
+        )
+
+        context["common_categories"] = CommonManualCategory.objects.prefetch_related(
+            "files"
         )
 
         return context
@@ -235,6 +250,13 @@ class AircraftManageListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
     def get_queryset(self):
         return Aircraft.objects.all().order_by("maker", "name")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["common_categories"] = CommonManualCategory.objects.prefetch_related(
+            "files"
+        )
+        return context
+
 
 class AircraftCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
     model = Aircraft
@@ -253,10 +275,23 @@ class AircraftUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
 
 class AircraftDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
     model = Aircraft
-    template_name = "manuals/aircraft_confirm_delete.html"
+    template_name = "common/delete_confirm.html"
     context_object_name = "aircraft"
-    success_url = reverse_lazy("aircraft_manage")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "delete_type": "AIRCRAFT",
+            "delete_title": self.object.name,
+            "delete_message": "기종을 삭제하시겠습니까?",
+            "warning_message": "연결된 매뉴얼도 함께 제거될 수 있습니다.",
+            "back_url": reverse("aircraft_manage"),
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse("aircraft_manage")
+    
 
 class AircraftManualPrintView(LoginRequiredMixin, DetailView):
     model = Aircraft
@@ -462,6 +497,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
         package_pages = []
         file_pages = []
+        common_pages = []
 
         if query:
             package_pages_qs = ManualPDFPage.objects.select_related(
@@ -473,6 +509,11 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
             file_pages_qs = ManualFilePDFPage.objects.select_related(
                 "manual_file",
                 "manual_file__aircraft",
+            )
+
+            common_pages_qs = CommonManualPDFPage.objects.select_related(
+                "common_file",
+                "common_file__category",
             )
 
             if aircraft_id:
@@ -489,12 +530,19 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                         chapter__package__manual_type=manual_type
                     )
                     file_pages_qs = ManualFilePDFPage.objects.none()
+                    common_pages_qs = CommonManualPDFPage.objects.none()
 
-                elif manual_type in ["MEL", "CDL"]:
+                elif manual_type in ["MEL", "CDL", "OTHER"]:
                     file_pages_qs = file_pages_qs.filter(
                         manual_file__manual_type=manual_type
                     )
                     package_pages_qs = ManualPDFPage.objects.none()
+                    common_pages_qs = CommonManualPDFPage.objects.none()
+
+                elif manual_type == "COMMON":
+                    common_pages_qs = common_pages_qs
+                    package_pages_qs = ManualPDFPage.objects.none()
+                    file_pages_qs = ManualFilePDFPage.objects.none()
 
             search_value, match_mode = parse_manual_search_query(query)
 
@@ -505,21 +553,19 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     package_pages_qs = package_pages_qs.filter(
                         text__icontains=search_value
                     )
-
                     file_pages_qs = file_pages_qs.filter(text__icontains=search_value)
-
-                elif match_mode == "wildcard":
-                    package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
-
-                    file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
+                    common_pages_qs = common_pages_qs.filter(
+                        text__icontains=search_value
+                    )
 
                 else:
                     package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
-
                     file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
+                    common_pages_qs = common_pages_qs.filter(text__iregex=text_regex)
 
                 package_pages = list(package_pages_qs)
                 file_pages = list(file_pages_qs)
+                common_pages = list(common_pages_qs)
 
                 highlight_query = " ".join(
                     part.strip() for part in search_value.split("*") if part.strip()
@@ -532,6 +578,10 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 for page in file_pages:
                     page.snippet = page.get_snippet(highlight_query)
                     page.score = calculate_file_score(page, highlight_query)
+
+                for page in common_pages:
+                    page.snippet = page.get_snippet(highlight_query)
+                    page.score = 50
 
                 package_pages = sorted(
                     package_pages,
@@ -553,12 +603,22 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     ),
                 )
 
+                common_pages = sorted(
+                    common_pages,
+                    key=lambda page: (
+                        page.common_file.category.name,
+                        page.common_file.title,
+                        page.page_number,
+                    ),
+                )
+
         grouped_results = {
             "AMM": [],
             "FIM": [],
             "IPC": [],
             "MEL": [],
             "CDL": [],
+            "OTHER": [],
         }
 
         for page in package_pages:
@@ -575,6 +635,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
         context["package_pages"] = package_pages
         context["file_pages"] = file_pages
+        context["common_pages"] = common_pages
         context["grouped_results"] = grouped_results
 
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
@@ -585,6 +646,8 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
             "IPC",
             "MEL",
             "CDL",
+            "OTHER",
+            "COMMON",
         ]
 
         context["query"] = query
@@ -1022,3 +1085,378 @@ class ExtractMelDispatchItemsView(LoginRequiredMixin, StaffRequiredMixin, View):
             "aircraft_manual_detail",
             pk=manual.aircraft.pk,
         )
+
+
+class CommonManualCategoryDetailView(LoginRequiredMixin, DetailView):
+    model = CommonManualCategory
+    template_name = "manuals/common_manual_category_detail.html"
+    context_object_name = "category"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        back_url = self.request.GET.get("back", "").strip()
+
+        context["files"] = CommonManualFile.objects.filter(
+            category=self.object
+        ).order_by("title")
+        context["back_url"] = back_url or reverse_lazy("home")
+
+        return context
+
+
+class CommonManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+    model = CommonManualFile
+    form_class = CommonManualFileForm
+    template_name = "manuals/common_manual_file_form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        category_id = self.request.GET.get("category")
+
+        if category_id:
+            initial["category"] = category_id
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.request.GET.get("category"):
+            form.fields["category"].disabled = True
+
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        category_id = self.request.GET.get("category")
+
+        if category_id:
+            context["back_url"] = reverse_lazy(
+                "common_manual_category_detail",
+                kwargs={"pk": category_id},
+            )
+        else:
+            context["back_url"] = reverse_lazy("aircraft_manage")
+
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "common_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        try:
+            page_count = index_pdf_pages_for_common_manual_file_safely(self.object)
+
+            if page_count:
+                messages.success(
+                    self.request,
+                    f"공통 매뉴얼 PDF Page {page_count}개 인덱싱 완료",
+                )
+            else:
+                messages.info(
+                    self.request,
+                    "업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
+                )
+
+        except Exception as error:
+            messages.warning(
+                self.request,
+                f"업로드는 완료되었지만 인덱싱 실패: {error}",
+            )
+
+        return response
+
+
+class CommonManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+    model = CommonManualFile
+    form_class = CommonManualFileForm
+    template_name = "manuals/common_manual_file_form.html"
+    context_object_name = "common_file"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["back_url"] = reverse_lazy(
+            "common_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "common_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        try:
+            page_count = index_pdf_pages_for_common_manual_file_safely(self.object)
+
+            if page_count:
+                messages.success(
+                    self.request,
+                    f"공통 매뉴얼 PDF Page {page_count}개 재인덱싱 완료",
+                )
+            else:
+                messages.info(
+                    self.request,
+                    "업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
+                )
+
+        except Exception as error:
+            messages.warning(
+                self.request,
+                f"업로드는 완료되었지만 인덱싱 실패: {error}",
+            )
+
+        return response
+
+
+class CommonManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
+    model = CommonManualFile
+    template_name = "common/delete_confirm.html"
+    context_object_name = "common_file"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "delete_type": "MANUAL FILE",
+            "delete_title": self.object.manual_type,
+            "delete_message": "매뉴얼 파일을 삭제하시겠습니까?",
+            "warning_message": "PDF 인덱스 데이터도 함께 삭제됩니다.",
+            "back_url": reverse(
+                "aircraft_manual_detail",
+                kwargs={"pk": self.object.aircraft.pk},
+            ),
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "common_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+
+class CommonManualFilePDFView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        common_file = get_object_or_404(CommonManualFile, pk=kwargs["pk"])
+
+        if common_file.pdf_file:
+            return FileResponse(
+                common_file.pdf_file.open("rb"),
+                content_type="application/pdf",
+            )
+
+        if common_file.file and common_file.file.name.lower().endswith(".pdf"):
+            return FileResponse(
+                common_file.file.open("rb"),
+                content_type="application/pdf",
+            )
+
+        raise Http404("PDF file is not available")
+
+
+class CommonManualFilePDFViewerView(LoginRequiredMixin, DetailView):
+    model = CommonManualFile
+    template_name = "manuals/manual_pdf_viewer.html"
+    context_object_name = "common_file"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        common_file = self.object
+        page_number = safe_int(self.request.GET.get("page", "1"), default=1)
+        query = self.request.GET.get("q", "").strip()
+        view_mode = self.request.GET.get("mode", "single")
+        back_url = self.request.GET.get("back", "")
+
+        context["viewer_title"] = f"COMMON / {common_file.category.name}"
+        context["viewer_subtitle"] = common_file.title
+        context["pdf_url"] = reverse(
+            "common_manual_file_pdf",
+            kwargs={"pk": common_file.pk},
+        )
+
+        back_url_lower = (back_url or "").lower()
+        from_search_flag = self.request.GET.get("from_search_page", "").lower()
+
+        if back_url:
+            context["back_url"] = back_url
+        else:
+            context["back_url"] = reverse(
+                "common_manual_category_detail",
+                kwargs={"pk": common_file.category.pk},
+            )
+
+        context["from_search_page"] = (
+            from_search_flag in {"1", "true", "yes"}
+            or "manual-search" in back_url_lower
+            or "manual_search" in back_url_lower
+            or "dispatch_auto_search" in back_url_lower
+            or "/dispatch/" in back_url_lower
+        )
+        context["page_number"] = page_number
+        context["query"] = query
+        context["viewer_type"] = "common"
+        context["view_mode"] = view_mode
+
+        context["prev_match_url"] = None
+        context["next_match_url"] = None
+        context["current_match_index"] = 0
+        context["match_count"] = 0
+        context["matching_pages_json"] = json.dumps([])
+        context["package_chapters_json"] = json.dumps([])
+
+        if query:
+            search_value, match_mode = parse_manual_search_query(query)
+
+            if search_value:
+                text_regex = build_manual_text_regex(search_value, match_mode)
+
+                if match_mode == "contains":
+                    page_filter = Q(text__icontains=search_value)
+                else:
+                    page_filter = Q(text__iregex=text_regex)
+
+                matching_pages_list = list(
+                    CommonManualPDFPage.objects.filter(common_file=common_file)
+                    .filter(page_filter)
+                    .order_by("page_number")
+                    .values_list("page_number", flat=True)
+                    .distinct()
+                )
+
+                context["match_count"] = len(matching_pages_list)
+                context["matching_pages_json"] = json.dumps(matching_pages_list)
+
+                current_index = None
+
+                for index, matched_page_number in enumerate(matching_pages_list):
+                    if matched_page_number == page_number:
+                        current_index = index
+                        break
+
+                if current_index is None:
+                    for index, matched_page_number in enumerate(matching_pages_list):
+                        if matched_page_number >= page_number:
+                            current_index = index
+                            break
+
+                if current_index is None and matching_pages_list:
+                    current_index = 0
+
+                if current_index is not None:
+                    context["current_match_index"] = current_index + 1
+
+                    if current_index > 0:
+                        prev_page_number = matching_pages_list[current_index - 1]
+                        context["prev_match_url"] = (
+                            reverse(
+                                "common_manual_file_pdf_viewer",
+                                kwargs={"pk": common_file.pk},
+                            )
+                            + f"?page={prev_page_number}&q={query}&mode={view_mode}"
+                        )
+
+                    if current_index < len(matching_pages_list) - 1:
+                        next_page_number = matching_pages_list[current_index + 1]
+                        context["next_match_url"] = (
+                            reverse(
+                                "common_manual_file_pdf_viewer",
+                                kwargs={"pk": common_file.pk},
+                            )
+                            + f"?page={next_page_number}&q={query}&mode={view_mode}"
+                        )
+
+        return context
+
+
+class CommonManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        common_file = get_object_or_404(CommonManualFile, pk=kwargs["pk"])
+
+        try:
+            page_count = index_pdf_pages_for_common_manual_file_safely(common_file)
+
+            messages.success(
+                request,
+                f"공통 매뉴얼 재인덱싱 완료: PDF Page {page_count}개",
+            )
+
+        except Exception as error:
+            messages.error(request, f"공통 매뉴얼 재인덱싱 실패: {error}")
+
+        return redirect(
+            "common_manual_category_detail",
+            pk=common_file.category.pk,
+        )
+
+
+class CommonManualCategoryCreateView(
+    LoginRequiredMixin, StaffRequiredMixin, CreateView
+):
+    model = CommonManualCategory
+    form_class = CommonManualCategoryForm
+    template_name = "manuals/common_manual_category_form.html"
+    success_url = reverse_lazy("aircraft_manage")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["back_url"] = reverse_lazy("aircraft_manage")
+        return context
+
+
+class CommonManualCategoryUpdateView(
+    LoginRequiredMixin, StaffRequiredMixin, UpdateView
+):
+    model = CommonManualCategory
+    form_class = CommonManualCategoryForm
+    template_name = "manuals/common_manual_category_form.html"
+    context_object_name = "category"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["back_url"] = reverse_lazy("aircraft_manage")
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("aircraft_manage")
+
+
+class CommonManualCategoryDeleteView(
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    DeleteView,
+):
+    model = CommonManualCategory
+    template_name = "common/delete_confirm.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            "delete_type": "COMMON MANUAL",
+            "delete_title": self.object.name,
+            "delete_message": "공통 매뉴얼 카테고리를 삭제하시겠습니까?",
+            "warning_message": "카테고리에 연결된 파일도 함께 삭제될 수 있습니다.",
+            "back_url": reverse(
+                "common_manual_category_detail",
+                kwargs={"pk": self.object.pk},
+            ),
+        })
+
+        return context
+
+    def get_success_url(self):
+        return reverse("home")

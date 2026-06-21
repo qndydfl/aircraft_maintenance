@@ -12,28 +12,32 @@ dispatch-search-page
 
 {% block content %}
 
-<div class="detail-hero mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-    <div class="hero-text-content">
-        <p class="home-eyebrow mb-1 text-primary fw-bold" style="font-size: 0.75rem; letter-spacing: 1px;">DISPATCH</p>
-        <h2 class="page-title mb-2 fs-4 fs-md-2 fw-bold">Dispatch Auto Search</h2>
-        <p class="text-muted mb-0 home-subtitle small">
+<div class="portal-hero mb-4">
+    <div>
+        <p class="home-eyebrow mb-1">
+            DISPATCH
+        </p>
+
+        <h2 class="page-title mb-2">
+            Dispatch Auto Search
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
             PDF 인덱스에서 MEL / FIM / AMM / IPC / CDL 후보를 자동 검색합니다.
         </p>
     </div>
 
-    <div class="home-actions dispatch-actions w-100 w-md-auto">
+    <div class="home-actions">
         {% if user.is_staff %}
-            <a href="{% url 'dispatch_create' %}?aircraft={{ selected_aircraft }}&eicas_message={{ query|urlencode }}"
-                class="btn btn-primary app-action-btn d-none d-md-inline-flex">
-                Add Dispatch
-            </a>
-
             <a href="{% url 'dispatch_csv_upload' %}"
                 class="btn btn-outline-danger app-action-btn d-none d-md-inline-flex">
                 CSV Upload
             </a>
         {% endif %}
-
+        <a href="{% url 'dispatch_list' %}"
+            class="btn btn-outline-primary app-action-btn d-none d-md-inline-flex">
+            Dispatch List
+        </a>
         <a href="{% url 'dispatch_csv_download' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
             class="btn btn-outline-success app-action-btn d-none d-md-inline-flex">
             CSV Download
@@ -56,7 +60,7 @@ dispatch-search-page
         <form method="get"
             data-loading-title="Searching Dispatch"
             data-loading-message="Finding MEL / FIM / AMM references...">
-            
+
             <div class="row g-3">
                 <div class="col-12 col-md-3">
                     <label class="form-label">Aircraft</label>
@@ -106,15 +110,15 @@ dispatch-search-page
 </div>
 
 {% if message_mode and not selected_aircraft %}
-<div class="alert alert-secondary app-alert py-2">
-    기종을 선택하지 않아서 전체 항공기 기준으로 검색합니다.
-</div>
+    <div class="alert alert-secondary app-alert py-2">
+        기종을 선택하지 않아서 전체 항공기 기준으로 검색합니다.
+    </div>
 {% endif %}
 
 {% if query and search_type == "message" and not mel_dispatch_rows and not saved_dispatch_results and not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item and not cdl_page_data.item %}
-<div class="alert alert-warning app-alert">
-    Message 검색 결과가 없습니다.
-</div>
+    <div class="alert alert-warning app-alert">
+        Message 검색 결과가 없습니다.
+    </div>
 {% endif %}
 
 {% if saved_dispatch_results %}
@@ -178,7 +182,7 @@ dispatch-search-page
                                 </a>
 
                                 {% if item.mel_page %}
-                                    <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                                    <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-danger">
                                         MEL
                                     </a>
@@ -251,6 +255,7 @@ dispatch-search-page
             </div>
             {% endfor %}
         </div>
+
     </div>
 </div>
 {% endif %}
@@ -322,6 +327,7 @@ dispatch-search-page
             </div>
             {% endfor %}
         </div>
+
     </div>
 </div>
 {% endif %}
@@ -329,16 +335,17 @@ dispatch-search-page
 {% if query %}
 <form method="get" action="{% url 'dispatch_create' %}">
     {% csrf_token %}
+
     <input type="hidden" name="search_type" value="{{ search_type }}">
     <input type="hidden" name="search_text" value="{{ query }}">
 
     <div class="row g-4">
-
-        <div class="col-12 col-lg-6">
-            <h4 class="section-title mb-3">MEL Candidates</h4>
-
-            {% with page=mel_page_data.item %}
-                {% if page %}
+        {% with page=mel_page_data.item %}
+        
+            {% if page %}
+                <div class="col-12 col-lg-6">
+                    <h4 class="section-title mb-3">MEL Candidates</h4>           
+                
                     <div class="card portal-card candidate-card candidate-mel shadow-sm mb-3">
                         <div class="card-body">
                             <div class="form-check mb-2">
@@ -402,17 +409,16 @@ dispatch-search-page
                             </div>
                         </div>
                     </div>
-                {% else %}
-                    <div class="alert alert-warning app-alert">MEL 후보가 없습니다.</div>
-                {% endif %}
-            {% endwith %}
-        </div>
-
-        <div class="col-12 col-lg-6">
-            <h4 class="section-title mb-3">FIM Candidates</h4>
-
-            {% with page=fim_page_data.item %}
-                {% if page %}
+                </div>
+            {% else %}
+            {% endif %}
+        {% endwith %}        
+        
+        {% with page=fim_page_data.item %}
+            {% if page %}
+                <div class="col-12 col-lg-6">
+                    <h4 class="section-title mb-3">FIM Candidates</h4>           
+                
                     <div class="card portal-card candidate-card candidate-fim shadow-sm mb-3">
                         <div class="card-body">
                             <div class="form-check mb-2">
@@ -476,17 +482,16 @@ dispatch-search-page
                             </div>
                         </div>
                     </div>
-                {% else %}
-                    <div class="alert alert-warning app-alert">FIM 후보가 없습니다.</div>
-                {% endif %}
-            {% endwith %}
-        </div>
-
-        <div class="col-12 col-lg-6">
-            <h4 class="section-title mb-3">AMM Candidates</h4>
-
-            {% with page=amm_page_data.item %}
-                {% if page %}
+                </div>
+            {% else %}
+            {% endif %}
+        {% endwith %}
+        
+        {% with page=amm_page_data.item %}
+            {% if page %}
+                <div class="col-12 col-lg-6">
+                    <h4 class="section-title mb-3">AMM Candidates</h4>
+                
                     <div class="card portal-card candidate-card candidate-amm shadow-sm mb-3">
                         <div class="card-body">
                             <div class="form-check mb-2">
@@ -550,17 +555,16 @@ dispatch-search-page
                             </div>
                         </div>
                     </div>
-                {% else %}
-                    <div class="alert alert-warning app-alert">AMM 후보가 없습니다.</div>
-                {% endif %}
-            {% endwith %}
-        </div>
-
-        <div class="col-12 col-lg-6">
-            <h4 class="section-title mb-3">IPC Candidates</h4>
-
-            {% with page=ipc_page_data.item %}
-                {% if page %}
+                </div>
+            {% else %}
+            {% endif %}
+        {% endwith %}
+            
+        {% with page=ipc_page_data.item %}
+            {% if page %}
+                <div class="col-12 col-lg-6">
+                    <h4 class="section-title mb-3">IPC Candidates</h4>
+            
                     <div class="card portal-card candidate-card candidate-ipc shadow-sm mb-3">
                         <div class="card-body">
                             <div class="form-check mb-2">
@@ -624,11 +628,10 @@ dispatch-search-page
                             </div>
                         </div>
                     </div>
-                {% else %}
-                    <div class="alert alert-warning app-alert">IPC 후보가 없습니다.</div>
-                {% endif %}
-            {% endwith %}
-        </div>
+                </div>
+            {% else %}
+            {% endif %}
+        {% endwith %}       
 
     </div>
 </form>

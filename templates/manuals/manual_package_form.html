@@ -2,138 +2,135 @@
 {% load static %}
 
 {% block body_class %}
-manual-package-form-page
+form-page manual-package-form-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_package_form.css' %}">
+<link rel="stylesheet" href="{% static 'css/portal_form.css' %}">
 {% endblock css %}
 
 {% block content %}
 
-<div class="detail-hero mb-4">
-    <div>
-        <p class="home-eyebrow mb-1">ZIP PACKAGE</p>
+<div class="portal-form-wrap">
 
-        <h2 class="page-title mb-2">
-            {% if package %}
-                Re-upload ZIP Manual Package
-            {% else %}
-                Upload ZIP Manual Package
-            {% endif %}
-        </h2>
+    <div class="portal-form-hero mb-4">
+        <div>
+            <p class="home-eyebrow mb-1">ZIP PACKAGE</p>
 
-        <p class="text-muted mb-0 home-subtitle">
-            AMM / FIM / IPC ZIP 파일을 업로드합니다.
-        </p>
+            <h2 class="page-title mb-2">
+                {% if package %}
+                    Re-upload ZIP Manual Package
+                {% else %}
+                    Upload ZIP Manual Package
+                {% endif %}
+            </h2>
+
+            <p class="text-muted mb-0 home-subtitle">
+                AMM / FIM / IPC ZIP 파일을 업로드합니다.
+            </p>
+        </div>
+
+        <div class="home-actions">
+            <a href="{{ back_url }}"
+                class="btn btn-outline-secondary app-action-btn">
+                Back
+            </a>
+        </div>
     </div>
 
-    <div class="home-actions">
-        <a href="{{ back_url }}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
-</div>
+    <div class="card portal-card shadow-sm portal-form-card">
+        <div class="card-body">
+            <form method="post"
+                enctype="multipart/form-data"
+                class="portal-form"
+                data-loading-title="Processing ZIP Manual"
+                data-loading-message="Extracting files and indexing PDF pages...">
 
-<div class="card portal-card shadow-sm">
-    <div class="card-body">
-        <form method="post"
-            enctype="multipart/form-data"
-            class="manual-package-form"
-            data-loading-title="Processing ZIP Manual"
-            data-loading-message="Extracting files and indexing PDF pages...">
-            {% csrf_token %}
+                {% csrf_token %}
 
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger app-alert">
-                    {{ form.non_field_errors }}
-                </div>
-            {% endif %}
-
-            <div class="manual-package-section">
-                <h5 class="manual-package-section-title">
-                    Package Information
-                </h5>
-
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">
-                            Aircraft
-                        </label>
-
-                        {{ form.aircraft }}
-
-                        {% if form.aircraft.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.aircraft.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">
-                            Manual Type
-                        </label>
-
-                        {{ form.manual_type }}
-
-                        {% if form.manual_type.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.manual_type.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="manual-package-section">
-                <h5 class="manual-package-section-title">
-                    Upload ZIP
-                </h5>
-
-                <label class="form-label">
-                    ZIP File
-                </label>
-
-                {{ form.zip_file }}
-
-                <div class="manual-package-guide mt-3">
-                    <strong>ZIP 구조 안내</strong>
-
-                    <div>
-                        index.html이 있는 매뉴얼 ZIP 또는 PDF 파일들이 들어있는 폴더 ZIP을 업로드할 수 있습니다.
-                    </div>
-
-                    <div class="text-muted small mt-1">
-                        Excel 파일은 먼저 PDF로 변환한 뒤 ZIP으로 압축해서 업로드하세요.
-                    </div>
-                </div>
-
-                {% if form.zip_file.errors %}
-                    <div class="text-danger small mt-1">
-                        {{ form.zip_file.errors }}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger app-alert">
+                        {{ form.non_field_errors }}
                     </div>
                 {% endif %}
-            </div>
 
-            <div class="manual-package-actions">
-                <button type="submit"
-                    class="btn btn-primary app-card-btn">
-                    {% if package %}
-                        Re-upload ZIP
-                    {% else %}
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Package Information
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Aircraft</label>
+                            {{ form.aircraft }}
+
+                            {% if form.aircraft.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.aircraft.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Manual Type</label>
+                            {{ form.manual_type }}
+
+                            {% if form.manual_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.manual_type.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
                         Upload ZIP
-                    {% endif %}
-                </button>
+                    </h5>
 
-                <a href="{{ back_url }}"
-                    class="btn btn-outline-secondary app-card-btn">
-                    Cancel
-                </a>
-            </div>
-        </form>
+                    <label class="form-label">ZIP File</label>
+                    {{ form.zip_file }}
+
+                    <div class="portal-form-guide mt-3">
+                        <strong>ZIP 구조 안내</strong>
+
+                        <div>
+                            index.html이 있는 매뉴얼 ZIP 또는 PDF 파일들이 들어있는 폴더 ZIP을 업로드할 수 있습니다.
+                        </div>
+
+                        <div class="text-muted small mt-1">
+                            Excel 파일은 먼저 PDF로 변환한 뒤 ZIP으로 압축해서 업로드하세요.
+                        </div>
+                    </div>
+
+                    {% if form.zip_file.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.zip_file.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="portal-form-actions">
+                    <button type="submit"
+                            class="btn btn-primary app-card-btn">
+                        {% if package %}
+                            Re-upload ZIP
+                        {% else %}
+                            Upload ZIP
+                        {% endif %}
+                    </button>
+
+                    <a href="{{ back_url }}"
+                        class="btn btn-outline-secondary app-card-btn">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
     </div>
+
 </div>
 
 {% endblock content %}

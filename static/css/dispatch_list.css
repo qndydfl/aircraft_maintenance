@@ -1,0 +1,100 @@
+/* dispatch_list.css */
+
+/* Dispatch 상태 Badge */
+
+.dispatch-status-badge {
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.dispatch-status-complete {
+    background: rgba(52,199,89,.15);
+    color: #198754;
+}
+
+.dispatch-status-partial {
+    background: rgba(255,193,7,.18);
+    color: #b58105;
+}
+
+.dispatch-status-empty {
+    background: rgba(108,117,125,.14);
+    color: #6c757d;
+}
+
+/* 카드 정보 */
+
+.dispatch-list-info {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.dispatch-list-info div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.dispatch-list-info span {
+    font-size: .72rem;
+    color: #8e8e93;
+    font-weight: 700;
+}
+
+.dispatch-list-info strong {
+    font-size: .82rem;
+    color: #1d1d1f;
+    text-align: right;
+}
+
+/* 검색 영역 */
+
+.dispatch-search-card {
+    border-radius: 18px;
+}
+
+.dispatch-search-card .form-control,
+.dispatch-search-card .form-select {
+    border-radius: 14px;
+}
+
+/* 모바일 */
+
+@media (max-width: 767.98px) {
+
+    .dispatch-search-card .card-body {
+        padding: 12px !important;
+    }
+
+    .dispatch-search-card .row {
+        --bs-gutter-y: 8px;
+    }
+
+    .dispatch-list-info {
+        gap: 4px;
+    }
+
+    .dispatch-list-info span {
+        font-size: .66rem;
+    }
+
+    .dispatch-list-info strong {
+        font-size: .74rem;
+    }
+
+    .dispatch-status-badge {
+        font-size: .62rem;
+        padding: 4px 7px;
+    }
+
+    .portal-list-card-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .portal-list-card-actions .btn {
+        width: 100%;
+    }
+}

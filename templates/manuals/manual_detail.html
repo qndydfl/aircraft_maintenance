@@ -2,16 +2,16 @@
 {% load static %}
 
 {% block body_class %}
-manual-detail-page
+detail-page manual-detail-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/portal_detail.css' %}">
 {% endblock css %}
 
 {% block content %}
 
-<div class="detail-hero mb-4">
+<div class="portal-detail-hero mb-4">
     <div>
         <p class="home-eyebrow mb-1">
             MANUAL FILE
@@ -28,43 +28,44 @@ manual-detail-page
 
     <div class="home-actions">
         <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
-            class="btn btn-outline-secondary app-action-btn">
+            class="btn btn-outline-secondary app-action-btn mobile-show-btn">
             Back
         </a>
     </div>
 </div>
 
-<div class="card portal-card shadow-sm manual-detail-file-card">
+<div class="card portal-card shadow-sm portal-detail-card">
     <div class="card-body">
 
-        <div class="manual-file-info">
-            <span>Aircraft</span>
-            <strong>{{ manual.aircraft.name }}</strong>
+        <div class="portal-detail-info mb-4">
+            <div>
+                <span>Aircraft</span>
+                <strong>{{ manual.aircraft.name }}</strong>
+            </div>
+
+            <div>
+                <span>Manual Type</span>
+                <strong>{{ manual.manual_type }}</strong>
+            </div>
+
+            <div>
+                <span>Description</span>
+                <strong>{{ manual.description|default:"-" }}</strong>
+            </div>
         </div>
 
-        <div class="manual-file-info">
-            <span>Manual Type</span>
-            <strong>{{ manual.manual_type }}</strong>
-        </div>
+        <div class="portal-detail-button-group">
 
-        <div class="manual-file-info">
-            <span>Description</span>
-            <strong>{{ manual.description|default:"-" }}</strong>
-        </div>
-
-        <div class="manual-file-actions">
-
-            {% if manual.manual_type == "MEL" or manual.manual_type == "CDL" %}
-                <a href="{{ manual.file.url }}"
-                    target="_blank"
-                    class="btn btn-primary app-card-btn">
+            {% if manual.manual_type == "MEL" or manual.manual_type == "CDL" or manual.manual_type == "OTHER" %}
+                <a href="{% url 'manual_file_pdf_viewer' manual.pk %}?back={{ request.get_full_path|urlencode }}"
+                    class="btn btn-primary app-card-btn mobile-show-btn">
                     Open PDF
                 </a>
             {% endif %}
 
             <a href="{{ manual.file.url }}"
                 download
-                class="btn btn-success app-card-btn">
+                class="btn btn-success app-card-btn mobile-show-btn">
                 Download
             </a>
 

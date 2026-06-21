@@ -26,6 +26,16 @@ from .views import (
     ManualPackageReuploadView,
     ManualPackageDeleteView,
     ExtractMelDispatchItemsView,
+    CommonManualCategoryDetailView,
+    CommonManualFileCreateView,
+    CommonManualFileUpdateView,
+    CommonManualFileDeleteView,
+    CommonManualFilePDFView,
+    CommonManualFilePDFViewerView,
+    CommonManualFileReindexView,
+    CommonManualCategoryCreateView,
+    CommonManualCategoryUpdateView,
+    CommonManualCategoryDeleteView,
 )
 
 urlpatterns = [
@@ -128,4 +138,55 @@ urlpatterns = [
         ExtractMelDispatchItemsView.as_view(),
         name="extract_mel_dispatch_items",
     ),
+    path(
+        "common/<int:pk>/",
+        CommonManualCategoryDetailView.as_view(),
+        name="common_manual_category_detail",
+    ),
+    path(
+        "common/file/upload/",
+        CommonManualFileCreateView.as_view(),
+        name="common_manual_file_create",
+    ),
+    path(
+        "common/file/<int:pk>/edit/",
+        CommonManualFileUpdateView.as_view(),
+        name="common_manual_file_update",
+    ),
+    path(
+        "common/file/<int:pk>/delete/",
+        CommonManualFileDeleteView.as_view(),
+        name="common_manual_file_delete",
+    ),
+    path(
+        "common/file/<int:pk>/pdf/",
+        CommonManualFilePDFView.as_view(),
+        name="common_manual_file_pdf",
+    ),
+    path(
+        "common/file/<int:pk>/viewer/",
+        CommonManualFilePDFViewerView.as_view(),
+        name="common_manual_file_pdf_viewer",
+    ),
+    path(
+        "common/file/<int:pk>/reindex/",
+        CommonManualFileReindexView.as_view(),
+        name="common_manual_file_reindex",
+    ),
+    path(
+        "common/category/add/",
+        CommonManualCategoryCreateView.as_view(),
+        name="common_manual_category_create",
+    ),
+    path(
+        "common/category/<int:pk>/edit/",
+        CommonManualCategoryUpdateView.as_view(),
+        name="common_manual_category_update",
+    ),
+    path(
+        "common/category/<int:pk>/delete/",
+        CommonManualCategoryDeleteView.as_view(),
+        name="common_manual_category_delete",
+    ),
+
 ]

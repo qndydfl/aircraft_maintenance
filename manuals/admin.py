@@ -7,6 +7,9 @@ from .models import (
     ManualPDFPage,
     ManualChapter,
     ManualFilePDFPage,
+    CommonManualCategory,
+    CommonManualFile,
+    CommonManualPDFPage,
 )
 
 
@@ -128,5 +131,69 @@ class ManualFilePDFPageAdmin(admin.ModelAdmin):
     search_fields = [
         "manual_file__aircraft__name",
         "manual_file__manual_type",
+        "text",
+    ]
+
+
+@admin.register(CommonManualCategory)
+class CommonManualCategoryAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "code",
+        "order",
+    ]
+
+    search_fields = [
+        "name",
+        "code",
+        "description",
+    ]
+
+    ordering = [
+        "order",
+        "name",
+    ]
+
+
+@admin.register(CommonManualFile)
+class CommonManualFileAdmin(admin.ModelAdmin):
+    list_display = [
+        "title",
+        "category",
+        "uploaded_at",
+        "revision_no",
+        "revision_date_text",
+        "indexed_page_count",
+    ]
+
+    list_filter = [
+        "category",
+        "uploaded_at",
+    ]
+
+    search_fields = [
+        "title",
+        "description",
+        "category__name",
+    ]
+
+    readonly_fields = [
+        "uploaded_at",
+    ]
+
+
+@admin.register(CommonManualPDFPage)
+class CommonManualPDFPageAdmin(admin.ModelAdmin):
+    list_display = [
+        "common_file",
+        "page_number",
+    ]
+
+    list_filter = [
+        "common_file__category",
+    ]
+
+    search_fields = [
+        "common_file__title",
         "text",
     ]

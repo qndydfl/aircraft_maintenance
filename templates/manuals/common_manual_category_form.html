@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+form-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/portal_form.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="portal-form-wrap">
+
+    <div class="portal-form-hero mb-4">
+        <div>
+            <p class="home-eyebrow mb-1">
+                COMMON MANUAL
+            </p>
+
+            <h2 class="page-title mb-2">
+                {% if form.instance.pk %}
+                    Edit Category
+                {% else %}
+                    Add Category
+                {% endif %}
+            </h2>
+
+            <p class="text-muted mb-0 home-subtitle">
+                공통 매뉴얼 카테고리를 관리합니다.
+            </p>
+        </div>
+
+        <div class="home-actions">
+            <a
+                href="{{ back_url }}"
+                class="btn btn-outline-secondary app-action-btn"
+            >
+                Back
+            </a>
+        </div>
+    </div>
+
+    <div class="card portal-card shadow-sm portal-form-card">
+        <div class="card-body">
+
+            <form method="post" class="portal-form">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger app-alert mb-3">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="portal-form-section">
+
+                    <h5 class="portal-form-section-title">
+                        Category Information
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Category Name
+                        </label>
+
+                        {{ form.name }}
+
+                        {% if form.name.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Description
+                        </label>
+
+                        {{ form.description }}
+
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div class="portal-form-actions">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success app-card-btn"
+                    >
+                        {% if form.instance.pk %}
+                            Update Category
+                        {% else %}
+                            Save Category
+                        {% endif %}
+                    </button>
+
+                    <a
+                        href="{{ back_url }}"
+                        class="btn btn-outline-secondary app-card-btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}

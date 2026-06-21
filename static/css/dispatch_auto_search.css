@@ -1,17 +1,5 @@
 /* dispatch_auto_search.css */
 
-.detail-hero {
-    background: rgba(255,255,255,0.76);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow:
-        0 18px 45px rgba(15,23,42,0.08),
-        inset 0 1px 1px rgba(255,255,255,0.9);
-}
-
 .app-form-control {
     min-height: 42px;
     border-radius: 14px;
@@ -147,40 +135,6 @@ body.dispatch-search-page .app-main {
 }
 
 @media (max-width: 767.98px) {
-    .detail-hero {
-        padding: 14px 15px;
-        border-radius: 18px;
-        margin-bottom: 14px !important;
-        align-items: flex-start !important;
-    }
-
-    .detail-hero .page-title {
-        font-size: 1.12rem;
-        margin-bottom: 3px !important;
-    }
-
-    .detail-hero .home-eyebrow {
-        font-size: 0.68rem !important;
-    }
-
-    .detail-hero .home-subtitle {
-        font-size: 0.73rem;
-    }
-
-    .dispatch-actions {
-        width: auto !important;
-        margin-left: auto;
-        justify-content: flex-end;
-    }
-
-    .dispatch-actions .app-action-btn {
-        width: auto;
-        min-height: 30px;
-        padding: 5px 11px;
-        font-size: 0.74rem;
-        border-radius: 999px;
-    }
-
     body.dispatch-search-page .app-container {
         padding-bottom: 0;
     }
@@ -240,5 +194,75 @@ body.dispatch-search-page .app-main {
 
     .dispatch-card-actions .app-card-btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 767.98px) {
+
+    .candidate-card .card-body {
+        padding: 10px !important;
+    }
+
+    .candidate-card {
+        border-radius: 14px;
+        margin-bottom: 10px !important;
+    }
+
+    .candidate-card .form-check {
+        margin-bottom: 6px !important;
+    }
+
+    .candidate-card .form-check-label {
+        font-size: 0.72rem;
+    }
+
+    .candidate-top {
+        gap: 6px;
+    }
+
+    .candidate-top strong {
+        font-size: 0.78rem;
+    }
+
+    .candidate-top .small {
+        font-size: 0.68rem;
+    }
+
+    .candidate-top .app-card-btn {
+        min-height: 30px;
+        font-size: 0.7rem;
+        padding: 5px 8px;
+        border-radius: 10px;
+    }
+
+    .candidate-snippet {
+        max-height: 90px;
+        font-size: 0.68rem;
+        line-height: 1.4;
+        padding: 8px;
+        margin-top: 7px;
+        border-radius: 10px;
+    }
+
+    .candidate-pager {
+        margin-top: 8px;
+        gap: 5px;
+    }
+
+    .candidate-pager .app-card-btn {
+        min-height: 28px;
+        font-size: 0.68rem;
+        padding: 4px 7px;
+        border-radius: 9px;
+    }
+
+    .candidate-pager .badge {
+        font-size: 0.65rem;
+        padding: 5px 7px;
+    }
+
+    .section-title {
+        font-size: 1rem;
+        margin-bottom: 8px !important;
     }
 }

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+delete-confirm-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/delete_confirm.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="detail-hero mb-4">
+    <div>
+        <p class="home-eyebrow mb-1">
+            {{ delete_type|default:"DELETE" }}
+        </p>
+
+        <h2 class="page-title mb-2">
+            Delete Confirmation
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            이 작업은 되돌릴 수 없습니다.
+        </p>
+    </div>
+
+    <div class="home-actions">
+        <a href="{{ back_url }}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="card portal-card shadow-sm delete-card">
+    <div class="card-body">
+
+        <div class="delete-icon">
+            🗑️
+        </div>
+
+        <h4 class="delete-title">
+            {{ delete_title }}
+        </h4>
+
+        <p class="delete-description">
+            {{ delete_message }}
+        </p>
+
+        {% if warning_message %}
+        <div class="delete-warning">
+            {{ warning_message }}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="delete-actions">
+
+                <button type="submit"
+                        class="btn btn-danger app-card-btn">
+                    Delete
+                </button>
+
+                <a href="{{ back_url }}"
+                    class="btn btn-outline-secondary app-card-btn">
+                    Cancel
+                </a>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% endblock content %}

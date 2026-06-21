@@ -11,6 +11,7 @@ from .views import (
     DispatchPrintView,
     DispatchDetailPrintView,
     DispatchAutoSearchView,
+    DispatchListView,
 )
 
 urlpatterns = [
@@ -32,4 +33,5 @@ urlpatterns = [
     path("<int:pk>/", DispatchDetailView.as_view(), name="dispatch_detail"),
     path("<int:pk>/edit/", DispatchUpdateView.as_view(), name="dispatch_update"),
     path("<int:pk>/delete/", DispatchDeleteView.as_view(), name="dispatch_delete"),
+    path("dispatch/list/", DispatchListView.as_view(), name="dispatch_list"),
 ]

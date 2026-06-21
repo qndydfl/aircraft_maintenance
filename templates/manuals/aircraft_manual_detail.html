@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block body_class %}
-aircraft-manual-detail-page
+detail-page aircraft-manual-detail-page
 {% endblock body_class %}
 
 {% block title %}
@@ -10,12 +10,12 @@ aircraft-manual-detail-page
 {% endblock title %}
 
 {% block css %}
-<link href="{% static 'css/aircraft_manual_detail.css' %}" rel="stylesheet" />
+<link href="{% static 'css/portal_detail.css' %}" rel="stylesheet">
 {% endblock css %}
 
 {% block content %}
 
-<div class="detail-hero mb-4">
+<div class="portal-detail-hero mb-4">
 
     <div>
         <p class="home-eyebrow mb-1">
@@ -64,28 +64,28 @@ aircraft-manual-detail-page
 
         <div class="col-12 col-sm-6 col-lg-4">
 
-            <div class="card portal-card manual-detail-card h-100 shadow-sm {% if not item.file and not item.package %}manual-empty-card{% endif %}">
+            <div class="card portal-card portal-detail-card h-100 shadow-sm {% if not item.file and not item.package %}portal-detail-empty-card{% endif %}">
 
                 <div class="card-body">
 
-                    <div class="aircraft-card-header">
+                    <div class="portal-detail-card-header">
 
                         <div>
-                            <p class="aircraft-maker mb-1">
+                            <p class="portal-detail-eyebrow mb-1">
                                 MANUAL
                             </p>
 
-                            <h5 class="aircraft-title mb-0">
+                            <h5 class="portal-detail-title mb-0">
                                 {{ item.type }}
                             </h5>
                         </div>
 
                         {% if item.package or item.file %}
-                            <span class="aircraft-type-pill ready-pill">
+                            <span class="portal-detail-pill ready-pill">
                                 READY
                             </span>
                         {% else %}
-                            <span class="aircraft-type-pill empty-pill">
+                            <span class="portal-detail-pill empty-pill">
                                 EMPTY
                             </span>
                         {% endif %}
@@ -126,9 +126,9 @@ aircraft-manual-detail-page
                             </p>
                         {% endif %}
 
-                        <div class="card-button-group">
+                        <div class="portal-detail-button-group">
 
-                            <div class="detail-button-grid">
+                            <div class="portal-detail-button-grid">
                                 <a href="{% url 'manual_package_open' item.package.pk %}"
                                     class="btn btn-primary app-card-btn mobile-show-btn">
                                     Open
@@ -142,7 +142,7 @@ aircraft-manual-detail-page
                             </div>
 
                             {% if user.is_staff %}
-                                <div class="detail-button-grid desktop-only-btn-group">
+                                <div class="portal-detail-button-grid desktop-only-btn-group">
                                     <a href="{% url 'manual_package_reupload' package_pk=item.package.pk %}"
                                         class="btn btn-warning app-card-btn">
                                         Re-upload
@@ -189,12 +189,13 @@ aircraft-manual-detail-page
                         </p>
 
                         {% if item.file.description %}
-                            <p class="manual-card-note">
+                            <p class="portal-detail-note">
                                 {{ item.file.description }}
                             </p>
                         {% endif %}
 
                         {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" or item.file.manual_type == "OTHER" %}
+
                             <p class="small mb-3">
                                 {% if item.file.is_indexed_pdf %}
                                     <span class="badge bg-success manual-badge">
@@ -209,9 +210,9 @@ aircraft-manual-detail-page
                             </p>
                         {% endif %}
 
-                        <div class="card-button-group">
+                        <div class="portal-detail-button-group">
 
-                            <div class="detail-button-grid">
+                            <div class="portal-detail-button-grid">
                                 {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" or item.file.manual_type == "OTHER" %}
                                     <a href="{% url 'manual_file_pdf_viewer' item.file.pk %}?back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-primary app-card-btn mobile-show-btn">
@@ -233,7 +234,7 @@ aircraft-manual-detail-page
                             </div>
 
                             {% if user.is_staff and item.file.pk %}
-                                <div class="detail-button-grid desktop-only-btn-group">
+                                <div class="portal-detail-button-grid desktop-only-btn-group">
                                     <a href="{% url 'manual_file_update' item.file.pk %}"
                                         class="btn btn-warning app-card-btn">
                                         Re-upload
@@ -278,7 +279,7 @@ aircraft-manual-detail-page
 
                     {% else %}
 
-                        <p class="manual-card-note mb-0">
+                        <p class="portal-detail-note mb-0">
                             등록된 파일이 없습니다.
                         </p>
 

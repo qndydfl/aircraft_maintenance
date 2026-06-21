@@ -53,7 +53,8 @@
 
 .manual-group-card,
 .search-result-card,
-.pdf-result-card {
+.pdf-result-card,
+.common-result-card {
     border-top: 0;
 }
 
@@ -172,6 +173,22 @@ body.manual-search-page .app-container {
 
 body.manual-search-page .app-main {
     min-height: auto;
+}
+
+
+/* Common Manual Result */
+.common-result-card {
+    border-left: 5px solid #198754;
+}
+
+.common-result-snippet {
+    padding: 12px 14px;
+    background: rgba(25, 135, 84, 0.06);
+    border: 1px solid rgba(25, 135, 84, 0.16);
+    border-radius: 14px;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: #334155;
 }
 
 
@@ -335,20 +352,21 @@ body.manual-search-page .app-main {
         padding: 9px;
     }
 
-    .manual-search-page .app-container {
-        padding-bottom: 8px;
+    .common-result-card {
+        border-left: 0;
+        border-top: 4px solid #198754;
     }
 
-    .manual-search-page .app-main {
-        min-height: auto;
+    .common-result-snippet {
+        font-size: 0.75rem;
+        padding: 10px 11px;
+        border-radius: 12px;
+        max-height: 96px;
+        overflow: hidden;
     }
 
     body.manual-search-page {
         padding-bottom: 82px;
-    }
-
-    body.manual-search-page .app-container {
-        padding-bottom: 8px;
     }
 }
 

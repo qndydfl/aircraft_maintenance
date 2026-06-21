@@ -1,38 +1,4 @@
-.detail-hero {
-    background: rgba(255,255,255,.76);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border: 1px solid rgba(255,255,255,.82);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow:
-        0 18px 45px rgba(15,23,42,.08),
-        inset 0 1px 1px rgba(255,255,255,.9);
-
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 18px;
-}
-
-.detail-hero > div:first-child {
-    flex: 1;
-    min-width: 0;
-}
-
-.detail-hero .home-actions {
-    margin-left: auto;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.detail-hero .app-action-btn {
-    border-radius: 999px;
-    font-weight: 800;
-    white-space: nowrap;
-}
+/* dispatch_detail.css */
 
 .dispatch-detail-card {
     overflow: hidden;
@@ -40,7 +6,7 @@
 
 .dispatch-card-header {
     padding: 12px 16px;
-    font-size: .85rem;
+    font-size: 0.85rem;
     font-weight: 800;
     color: #fff;
 }
@@ -80,7 +46,7 @@
 .dispatch-info-item span,
 .dispatch-reference-item span {
     display: block;
-    font-size: .72rem;
+    font-size: 0.72rem;
     color: #8e8e93;
     font-weight: 800;
     margin-bottom: 4px;
@@ -114,63 +80,15 @@
     gap: 8px;
 }
 
+body.dispatch-detail-page .app-main {
+    min-height: auto;
+}
+
+body.dispatch-detail-page .app-container {
+    padding-bottom: 0;
+}
+
 @media (max-width: 767.98px) {
-    body.dispatch-detail-page .app-main {
-        min-height: auto;
-    }
-
-    body.dispatch-detail-page .app-container {
-        padding-bottom: 0;
-    }
-
-    .detail-hero {
-        padding: 14px 15px;
-        border-radius: 18px;
-
-        flex-direction: row !important;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .detail-hero > div:first-child {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .detail-hero .page-title {
-        font-size: 1.08rem;
-        margin-bottom: 3px !important;
-    }
-
-    .detail-hero .home-eyebrow {
-        font-size: .66rem;
-        margin-bottom: 2px !important;
-    }
-
-    .detail-hero .home-subtitle {
-        font-size: .72rem;
-    }
-
-    .detail-hero .home-actions {
-        width: auto !important;
-        margin-left: auto;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end;
-        gap: 5px;
-        flex-shrink: 0;
-    }
-
-    .detail-hero .app-action-btn {
-        width: auto !important;
-        min-height: 30px;
-        padding: 5px 10px;
-        font-size: .7rem;
-        border-radius: 999px;
-        white-space: nowrap;
-    }
-
     .dispatch-info-grid,
     .dispatch-reference-grid {
         grid-template-columns: 1fr;
@@ -185,12 +103,12 @@
 
     .dispatch-info-item span,
     .dispatch-reference-item span {
-        font-size: .64rem;
+        font-size: 0.64rem;
     }
 
     .dispatch-info-item strong,
     .dispatch-reference-item strong {
-        font-size: .76rem;
+        font-size: 0.76rem;
     }
 
     .dispatch-open-actions {
@@ -202,7 +120,7 @@
     .dispatch-staff-actions .btn {
         width: 100%;
         min-height: 36px;
-        font-size: .76rem;
+        font-size: 0.76rem;
         border-radius: 11px;
     }
 
@@ -213,6 +131,6 @@
     }
 
     .dispatch-text-body {
-        font-size: .8rem;
+        font-size: 0.8rem;
     }
 }

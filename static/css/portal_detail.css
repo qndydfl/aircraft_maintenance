@@ -1,0 +1,244 @@
+/* portal_detail.css */
+
+.portal-detail-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.portal-detail-card {
+    border: 1px solid rgba(255,255,255,0.82);
+    border-top: 0;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    border-radius: 22px;
+    box-shadow:
+        0 14px 34px rgba(15, 23, 42, 0.07),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+}
+
+.portal-detail-empty-card {
+    opacity: 0.72;
+}
+
+.portal-detail-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #8e8e93;
+}
+
+.portal-detail-title {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #1d1d1f;
+}
+
+.portal-detail-pill {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.ready-pill {
+    background: rgba(52, 199, 89, 0.14);
+    color: #198754;
+}
+
+.empty-pill {
+    background: rgba(142, 142, 147, 0.14);
+    color: #6c757d;
+}
+
+.manual-badge {
+    border-radius: 999px;
+    font-size: 0.68rem;
+    padding: 5px 8px;
+}
+
+.portal-detail-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.portal-detail-info > div {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.portal-detail-info span {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.portal-detail-info strong {
+    display: block;
+    color: #111827;
+}
+
+.portal-detail-button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.portal-detail-button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.portal-detail-button-group form {
+    width: 100%;
+    margin: 0;
+}
+
+.portal-detail-note {
+    font-size: 0.88rem;
+    color: #6b7280;
+}
+
+.portal-detail-card .app-card-btn {
+    border-radius: 14px;
+    font-weight: 800;
+}
+
+.revision-info {
+    font-size: 0.76rem;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.manual-uploaded {
+    font-size: 0.74rem;
+    margin-bottom: 8px;
+}
+
+body.detail-page .app-container {
+    padding-bottom: 8px;
+}
+
+body.detail-page .app-main {
+    min-height: auto;
+}
+
+@media (max-width: 767.98px) {
+    .desktop-only-action,
+    .desktop-only-buttons,
+    .desktop-only-btn-group,
+    .desktop-only-btn,
+    .portal-detail-button-group form,
+    .portal-detail-button-grid a:not(.mobile-show-btn) {
+        display: none !important;
+    }
+
+    .row.g-3 {
+        --bs-gutter-y: 0.65rem;
+    }
+
+    .portal-detail-card {
+        border-radius: 16px;
+        box-shadow:
+            0 8px 22px rgba(15, 23, 42, 0.06),
+            inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+
+    .portal-detail-card .card-body {
+        padding: 12px !important;
+    }
+
+    .portal-detail-card-header {
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    .portal-detail-eyebrow {
+        font-size: 0.62rem;
+        margin-bottom: 1px !important;
+    }
+
+    .portal-detail-title {
+        font-size: 0.95rem;
+        line-height: 1.1;
+    }
+
+    .portal-detail-pill {
+        font-size: 0.58rem;
+        padding: 3px 7px;
+    }
+
+    .portal-detail-card .small,
+    .portal-detail-card .text-muted {
+        display: none !important;
+    }
+
+    .portal-detail-note {
+        font-size: 0.72rem;
+        margin-bottom: 8px;
+    }
+
+    .revision-info,
+    .manual-uploaded {
+        font-size: 0.68rem;
+        margin-bottom: 5px;
+    }
+
+    .portal-detail-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .portal-detail-button-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .portal-detail-button-group {
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .portal-detail-card .app-card-btn.mobile-show-btn {
+        display: block !important;
+        width: 100%;
+        min-height: 32px;
+        padding: 5px 8px;
+        font-size: 0.74rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    body.detail-page .app-container {
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 390px) {
+    .portal-detail-card .card-body {
+        padding: 10px !important;
+    }
+
+    .portal-detail-title {
+        font-size: 0.9rem;
+    }
+
+    .portal-detail-card .app-card-btn.mobile-show-btn {
+        min-height: 32px;
+        font-size: 0.75rem;
+        padding: 5px 8px;
+    }
+}

@@ -38,7 +38,7 @@ manual-search-page
         <form method="get"
             data-loading-title="Searching Manuals"
             data-loading-message="Scanning indexed manual pages...">
-            
+
             <div class="row g-3">
 
                 <div class="col-12 col-md-3">
@@ -113,6 +113,16 @@ manual-search-page
                 </strong>
             </div>
         {% endfor %}
+
+        <div>
+            <span class="search-summary-label">
+                COMMON
+            </span>
+
+            <strong>
+                {{ common_pages|length }}
+            </strong>
+        </div>
     </div>
 
     {% for manual_type, pages in grouped_results.items %}
@@ -142,7 +152,7 @@ manual-search-page
                         </div>
 
                         <div class="manual-group-info mt-3">
-                            {% if manual_type == "MEL" or manual_type == "CDL" %}
+                            {% if manual_type == "MEL" or manual_type == "CDL" or manual_type == "OTHER" %}
                                 <div>
                                     <span>Aircraft</span>
                                     <strong>{{ first_page.manual_file.aircraft.name }}</strong>
@@ -179,13 +189,13 @@ manual-search-page
                         </div>
 
                         <div class="manual-group-actions mt-3">
-                            {% if manual_type == "MEL" or manual_type == "CDL" %}
-                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                            {% if manual_type == "MEL" or manual_type == "CDL" or manual_type == "OTHER" %}
+                                <a href="{% url 'manual_file_pdf_viewer' first_page.manual_file.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-danger app-card-btn">
                                     Open Viewer
                                 </a>
                             {% else %}
-                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                                <a href="{% url 'manual_chapter_pdf_viewer' first_page.chapter.pk %}?page={{ first_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-primary app-card-btn">
                                     Open Viewer
                                 </a>
@@ -198,7 +208,67 @@ manual-search-page
         {% endif %}
     {% endfor %}
 
-    {% if not package_pages and not file_pages %}
+    {% if common_pages %}
+        <div class="card portal-card manual-group-card common-result-card shadow-sm mb-3">
+            <div class="card-body">
+
+                <div class="manual-group-header">
+                    <div>
+                        <p class="aircraft-maker mb-1">
+                            COMMON MANUAL
+                        </p>
+
+                        <h4 class="section-title mb-1">
+                            Common Manual Results
+                        </h4>
+
+                        <p class="section-description mb-0">
+                            공통 매뉴얼에서 검색된 페이지 {{ common_pages|length }}개
+                        </p>
+                    </div>
+
+                    <span class="badge bg-success manual-badge">
+                        {{ common_pages|length }} pages
+                    </span>
+                </div>
+
+                {% with first_common=common_pages.0 %}
+                    <div class="manual-group-info mt-3">
+                        <div>
+                            <span>Category</span>
+                            <strong>{{ first_common.common_file.category.name }}</strong>
+                        </div>
+
+                        <div>
+                            <span>File</span>
+                            <strong>{{ first_common.common_file.title }}</strong>
+                        </div>
+
+                        <div>
+                            <span>First Match</span>
+                            <strong>Page {{ first_common.page_number }}</strong>
+                        </div>
+                    </div>
+
+                    {% if first_common.snippet %}
+                        <div class="common-result-snippet mt-3">
+                            {{ first_common.snippet|highlight_query:query }}
+                        </div>
+                    {% endif %}
+
+                    <div class="manual-group-actions mt-3">
+                        <a href="{% url 'common_manual_file_pdf_viewer' first_common.common_file.pk %}?page={{ first_common.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            class="btn btn-success app-card-btn">
+                            Open Viewer
+                        </a>
+                    </div>
+                {% endwith %}
+
+            </div>
+        </div>
+    {% endif %}
+
+    {% if not package_pages and not file_pages and not common_pages %}
         <div class="alert alert-warning app-alert">
             검색 결과가 없습니다.
         </div>

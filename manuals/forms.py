@@ -3,7 +3,7 @@ import os
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import ManualFile, Aircraft, ManualPackage
+from .models import ManualFile, Aircraft, ManualPackage, CommonManualCategory, CommonManualFile
 
 
 class ManualFileForm(forms.ModelForm):
@@ -23,7 +23,12 @@ class ManualFileForm(forms.ModelForm):
         widgets = {
             "aircraft": forms.Select(attrs={"class": "form-select"}),
             "manual_type": forms.Select(attrs={"class": "form-select"}),
-            "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "file": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".pdf,.doc,.docx,.xls,.xlsx",
+                }
+            ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
             "revision_no": forms.TextInput(attrs={"class": "form-control"}),
             "revision_date_text": forms.TextInput(attrs={"class": "form-control"}),
@@ -38,7 +43,8 @@ class ManualFileForm(forms.ModelForm):
 
         if aircraft and manual_type:
             queryset = ManualFile.objects.filter(
-                aircraft=aircraft, manual_type=manual_type
+                aircraft=aircraft,
+                manual_type=manual_type,
             )
 
             if self.instance.pk:
@@ -54,11 +60,7 @@ class ManualFileForm(forms.ModelForm):
 
         ext = os.path.splitext(file.name)[1].lower()
 
-        zip_manuals = ["AMM", "FIM", "IPC"]
         pdf_manuals = ["MEL", "CDL"]
-
-        if manual_type in zip_manuals and ext != ".zip":
-            raise ValidationError("AMM / FIM / IPC는 ZIP 파일만 업로드할 수 있습니다.")
 
         if manual_type in pdf_manuals and ext != ".pdf":
             raise ValidationError("MEL / CDL은 PDF 파일만 업로드할 수 있습니다.")
@@ -122,3 +124,75 @@ class ManualPackageForm(forms.ModelForm):
             )
 
         return zip_file
+    
+
+class CommonManualCategoryForm(forms.ModelForm):
+
+    class Meta:
+        model = CommonManualCategory
+
+        fields = [
+            "name",
+            "code",
+            "description",
+            "order",
+        ]
+
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "code": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+class CommonManualFileForm(forms.ModelForm):
+
+    class Meta:
+        model = CommonManualFile
+
+        fields = [
+            "category",
+            "title",
+            "file",
+            "description",
+            "revision_no",
+            "revision_date_text",
+        ]
+
+        widgets = {
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "file": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".pdf,.doc,.docx,.xls,.xlsx",
+                }
+            ),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "revision_no": forms.TextInput(attrs={"class": "form-control"}),
+            "revision_date_text": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+    def clean_file(self):
+        file = self.cleaned_data.get("file")
+
+        if not file:
+            return file
+
+        ext = os.path.splitext(file.name)[1].lower()
+
+        allowed_extensions = [
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx",
+        ]
+
+        if ext not in allowed_extensions:
+            raise ValidationError(
+                "공통 매뉴얼은 PDF, Word, Excel 파일만 업로드할 수 있습니다."
+            )
+
+        return file

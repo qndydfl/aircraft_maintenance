@@ -7,6 +7,8 @@ from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage
 from django.db import transaction
 from pypdf import PdfReader, PdfWriter
 
+from django.core.files import File
+
 
 def get_libreoffice_command():
     windows_path = r"C:\Program Files\LibreOffice\program\soffice.exe"
@@ -22,7 +24,7 @@ def get_libreoffice_command():
     raise Exception("LibreOffice 실행 파일을 찾을 수 없습니다.")
 
 
-def convert_excel_to_pdf(input_path, output_dir):
+def convert_office_to_pdf(input_path, output_dir):
     libreoffice_command = get_libreoffice_command()
 
     result = subprocess.run(
@@ -40,13 +42,21 @@ def convert_excel_to_pdf(input_path, output_dir):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        timeout=60,
+        timeout=120,
     )
 
     if result.returncode != 0:
         raise Exception(
-            f"Excel PDF 변환 실패: {os.path.basename(input_path)} / {result.stderr}"
+            f"PDF 변환 실패: {os.path.basename(input_path)} / {result.stderr}"
         )
+
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    converted_pdf_path = os.path.join(output_dir, base_name + ".pdf")
+
+    if not os.path.exists(converted_pdf_path):
+        raise Exception("변환된 PDF 파일을 찾을 수 없습니다.")
+
+    return converted_pdf_path
 
 
 def storage_file_to_temp_file(django_file, suffix=""):
@@ -267,7 +277,6 @@ def index_pdf_pages_for_package(package):
     return total_pages
 
 
-
 # mel: rev no, rev date, cdl: rev no, issue date, approved date
 # 이렇게 되어 있는데 cdl은 issue date와 approved date 중에 approved date가 있으면 approved date를 우선으로 하고, 없으면 issue date를 사용하도록 수정해야 함.
 def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
@@ -419,7 +428,11 @@ def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
                     except ValueError:
                         continue
 
-                    preferred_date = approved_date_text if is_cdl and approved_date_text else issue_date_text
+                    preferred_date = (
+                        approved_date_text
+                        if is_cdl and approved_date_text
+                        else issue_date_text
+                    )
 
                     if (
                         highest_airbus_rev_no is None
@@ -694,32 +707,61 @@ def index_pdf_pages_for_manual_file(manual_file):
 
 
 def index_pdf_pages_for_manual_file_safely(manual_file):
-    if manual_file.manual_type not in ["MEL", "CDL", "OTHER"]:
+    return index_pdf_pages_for_manual_file(manual_file)
+
+
+def index_pdf_pages_for_common_manual_file_safely(common_file):
+    if not common_file.file:
         return 0
 
-    if not manual_file.file:
-        return 0
+    original_name = common_file.file.name.lower()
+    suffix = os.path.splitext(original_name)[1]
 
-    temp_pdf_path = storage_file_to_temp_file(
-        manual_file.file,
-        suffix=".pdf",
+    temp_input_path = storage_file_to_temp_file(
+        common_file.file,
+        suffix=suffix,
     )
 
+    temp_dir = tempfile.mkdtemp()
+    temp_pdf_path = None
+
     try:
+        if suffix == ".pdf":
+            temp_pdf_path = temp_input_path
+
+        elif suffix in [".doc", ".docx", ".xls", ".xlsx"]:
+            temp_pdf_path = convert_office_to_pdf(
+                input_path=temp_input_path,
+                output_dir=temp_dir,
+            )
+
+            pdf_name = os.path.splitext(os.path.basename(common_file.file.name))[0] + ".pdf"
+
+            with open(temp_pdf_path, "rb") as pdf_file:
+                common_file.pdf_file.save(
+                    pdf_name,
+                    File(pdf_file),
+                    save=False,
+                )
+
+        else:
+            raise Exception("지원하지 않는 파일 형식입니다.")
+
         revision_no, revision_date = extract_pdf_revision_info(
             temp_pdf_path,
-            source_file_name=getattr(manual_file.file, "name", ""),
-            manual_type=manual_file.manual_type,
+            source_file_name=getattr(common_file.file, "name", ""),
+            manual_type="COMMON",
         )
 
-        manual_file.revision_no = revision_no
-        manual_file.revision_date_text = revision_date
-        manual_file.save(
-            update_fields=[
-                "revision_no",
-                "revision_date_text",
-            ]
-        )
+        if revision_no and not common_file.revision_no:
+            common_file.revision_no = revision_no
+
+        if revision_date and not common_file.revision_date_text:
+            common_file.revision_date_text = revision_date
+
+        common_file.save()
+
+        from .models import CommonManualPDFPage
 
         new_pages = []
 
@@ -731,8 +773,8 @@ def index_pdf_pages_for_manual_file_safely(manual_file):
                 text = page.get_text("text")
 
                 new_pages.append(
-                    ManualFilePDFPage(
-                        manual_file=manual_file,
+                    CommonManualPDFPage(
+                        common_file=common_file,
                         page_number=page_index + 1,
                         text=text,
                     )
@@ -742,14 +784,17 @@ def index_pdf_pages_for_manual_file_safely(manual_file):
             document.close()
 
         with transaction.atomic():
-            ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
-            ManualFilePDFPage.objects.bulk_create(new_pages)
+            CommonManualPDFPage.objects.filter(common_file=common_file).delete()
+            CommonManualPDFPage.objects.bulk_create(new_pages)
 
         return len(new_pages)
 
     finally:
-        if os.path.exists(temp_pdf_path):
-            os.remove(temp_pdf_path)
+        if temp_input_path and os.path.exists(temp_input_path):
+            os.remove(temp_input_path)
+
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def process_manual_package_safely(package):
@@ -803,7 +848,7 @@ def process_manual_package_safely(package):
                     excel_path = os.path.join(root, file_name)
 
                     try:
-                        convert_excel_to_pdf(
+                        convert_office_to_pdf(
                             input_path=excel_path,
                             output_dir=root,
                         )
@@ -857,7 +902,9 @@ def process_manual_package_safely(package):
                         package.extracted_path, first_pdf.pdf_relative_path
                     )
 
-                    rev_no, rev_date = extract_pdf_revision_info(pdf_path, manual_type=first_pdf.manual_file.manual_type)
+                    rev_no, rev_date = extract_pdf_revision_info(
+                        pdf_path, manual_type=first_pdf.manual_file.manual_type
+                    )
 
                     package.revision_no = rev_no
                     package.revision_date_text = rev_date

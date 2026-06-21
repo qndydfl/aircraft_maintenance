@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+list-page dispatch-list-page
+{% endblock body_class %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/portal_list.css' %}">
+<link rel="stylesheet" href="{% static 'css/dispatch_list.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="portal-list-hero mb-4">
+
+    <div>
+        <p class="home-eyebrow mb-1">
+            DISPATCH
+        </p>
+
+        <h2 class="page-title mb-2">
+            Dispatch List
+        </h2>
+
+        <p class="text-muted mb-0 home-subtitle">
+            등록된 Dispatch Reference 목록
+        </p>
+    </div>
+
+    <div class="portal-list-actions">
+
+        {% if user.is_staff %}
+        <a href="{% url 'dispatch_create' %}"
+            class="btn btn-primary app-action-btn d-none d-md-inline-flex">
+            Add Dispatch
+        </a>
+        {% endif %}
+
+        <a href="{% url 'dispatch_auto_search' %}"
+            class="btn btn-outline-primary app-action-btn d-none d-md-inline-flex">
+            Search
+        </a>
+
+        <a href="{% url 'dispatch_auto_search' %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+<div class="card portal-card shadow-sm dispatch-search-card mb-4">
+    <div class="card-body">
+
+        <form method="get">
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4">
+
+                    <label class="form-label">
+                        Aircraft
+                    </label>
+
+                    <select name="aircraft"
+                            class="form-select">
+
+                        <option value="">
+                            All Aircraft
+                        </option>
+
+                        {% for aircraft in aircrafts %}
+                            <option value="{{ aircraft.id }}"
+                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ aircraft.name }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-12 col-md-6">
+
+                    <label class="form-label">
+                        Search
+                    </label>
+
+                    <input type="text"
+                        name="q"
+                        value="{{ query }}"
+                        class="form-control"
+                        placeholder="EICAS, Fault Code, MEL, FIM, AMM">
+
+                </div>
+
+                <div class="col-12 col-md-2 d-flex align-items-end">
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 app-card-btn">
+                        Search
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{% if dispatches %}
+
+<div class="d-none d-md-block">
+
+    <div class="card portal-card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table portal-list-table">
+
+                    <thead>
+                        <tr>
+                            <th>Aircraft</th>
+                            <th>EICAS</th>
+                            <th>Fault Code</th>
+                            <th>MEL</th>
+                            <th>FIM</th>
+                            <th>AMM</th>
+                            <th>Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for dispatch in dispatches %}
+
+                        <tr>
+
+                            <td>
+                                {{ dispatch.aircraft.name }}
+                            </td>
+
+                            <td>
+                                {{ dispatch.eicas_message|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ dispatch.fault_code|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ dispatch.mel_number|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ dispatch.fim_chapter|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ dispatch.amm_chapter|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ dispatch.created_at|date:"Y-m-d" }}
+                            </td>
+
+                            <td>
+
+                                <a href="{% url 'dispatch_detail' dispatch.pk %}"
+                                    class="btn btn-sm btn-primary">
+                                    Open
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="d-md-none">
+
+    <div class="portal-list-grid">
+
+        {% for dispatch in dispatches %}
+
+        <div class="portal-list-card">
+
+            <div class="portal-list-card-header">
+
+                <div class="portal-list-card-title">
+                    {{ dispatch.eicas_message|default:"No EICAS" }}
+                </div>
+
+                <div class="portal-list-card-desc">
+                    {{ dispatch.aircraft.name }}
+                </div>
+
+            </div>
+
+            <div class="dispatch-list-info">
+
+                <div>
+                    <span>Fault Code</span>
+                    <strong>
+                        {{ dispatch.fault_code|default:"-" }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>MEL</span>
+                    <strong>
+                        {{ dispatch.mel_number|default:"-" }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>FIM</span>
+                    <strong>
+                        {{ dispatch.fim_chapter|default:"-" }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>AMM</span>
+                    <strong>
+                        {{ dispatch.amm_chapter|default:"-" }}
+                    </strong>
+                </div>
+
+            </div>
+
+            <div class="portal-list-card-actions mt-3">
+
+                <a href="{% url 'dispatch_detail' dispatch.pk %}"
+                    class="btn btn-primary app-card-btn">
+                    Open
+                </a>
+
+                {% if user.is_staff %}
+
+                <a href="{% url 'dispatch_update' dispatch.pk %}"
+                    class="btn btn-warning app-card-btn">
+                    Edit
+                </a>
+
+                <a href="{% url 'dispatch_delete' dispatch.pk %}"
+                    class="btn btn-danger app-card-btn">
+                    Delete
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-warning app-alert">
+    등록된 Dispatch 데이터가 없습니다.
+</div>
+
+{% endif %}
+
+{% endblock content %}

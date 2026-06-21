@@ -292,3 +292,88 @@ body {
 }
 
 /* loading 끝 */
+
+/* ========================================
+    Portal Common Hero
+======================================== */
+
+.portal-hero,
+.portal-form-hero,
+.portal-detail-hero,
+.portal-list-hero,
+.portal-chapter-hero,
+.detail-hero {
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 24px;
+
+    padding: 22px 24px;
+
+    box-shadow:
+        0 18px 45px rgba(15,23,42,0.08),
+        inset 0 1px 1px rgba(255,255,255,0.9);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.home-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 767.98px) {
+
+    .portal-hero,
+    .portal-form-hero,
+    .portal-detail-hero,
+    .portal-list-hero,
+    .portal-chapter-hero,
+    .detail-hero {
+        padding: 14px 15px;
+        border-radius: 18px;
+        gap: 10px;
+    }
+
+    .page-title {
+        font-size: 1.12rem;
+        margin-bottom: 3px !important;
+    }
+
+    .home-eyebrow {
+        font-size: 0.68rem !important;
+    }
+
+    .home-subtitle {
+        font-size: 0.73rem;
+    }
+
+    .home-actions {
+        margin-left: auto !important;
+        width: auto !important;
+
+        flex: 0 0 auto !important;
+
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+    }
+
+    .home-actions .app-action-btn {
+        width: auto !important;
+        white-space: nowrap !important;
+
+        font-size: 0.75rem;
+        padding: 6px 12px !important;
+        border-radius: 999px !important;
+    }
+}
