@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from .models import Aircraft, ManualFile
+from .forms import CommonManualCategoryForm
+from .models import Aircraft, ManualFile, CommonManualCategory
 
 
 class AircraftManualAccessTests(TestCase):
@@ -84,3 +85,40 @@ class ManualFilePDFEndpointTests(TestCase):
             response,
             reverse("manual_file_pdf", kwargs={"pk": manual.pk}),
         )
+
+
+class CommonManualCategoryFormTests(TestCase):
+    def test_category_form_accepts_rendered_fields_only(self):
+        form = CommonManualCategoryForm(
+            data={
+                "name": "Flight Deck",
+                "description": "Common flight deck manuals",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+        category = form.save()
+
+        self.assertEqual(category.name, "Flight Deck")
+        self.assertEqual(category.code, "FLIGHT_DECK")
+        self.assertEqual(category.order, 0)
+
+    def test_category_form_generates_unique_code_suffix(self):
+        CommonManualCategory.objects.create(
+            name="Flight Deck",
+            code="FLIGHT_DECK",
+        )
+
+        form = CommonManualCategoryForm(
+            data={
+                "name": "Flight Deck",
+                "description": "Duplicate name",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+        category = form.save()
+
+        self.assertEqual(category.code, "FLIGHT_DECK_2")

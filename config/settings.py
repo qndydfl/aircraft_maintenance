@@ -7,26 +7,33 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env")
-
-DEFAULT_SECRET_KEY = "django-insecure-local-dev-key"
-
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
-
-# ---업로드시 아래 내용 활성화---
-DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
-
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
-
-USE_R2 = os.getenv("USE_R2", "False") == "True"
-
-
 # 개발시 아래 내용 활성화
 # ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # DEBUG = True
 
 # USE_R2=False
+
+# load_dotenv(os.path.join(BASE_DIR.parent, ".env"))
+
+# ------------------------------------
+
+
+# ---업로드시 아래 내용 활성화---
+load_dotenv('/home/ubuntu/aircraft_maintenance/.env')
+
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")]
+
+USE_R2 = os.getenv("USE_R2", "FALSE").upper() == "TRUE"
+
+# ------------------------------------
+
+
+DEFAULT_SECRET_KEY = "django-insecure-local-dev-key"
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
 
 
 if USE_R2:

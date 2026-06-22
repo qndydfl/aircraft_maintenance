@@ -2,8 +2,15 @@ import os
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 
-from .models import ManualFile, Aircraft, ManualPackage, CommonManualCategory, CommonManualFile
+from .models import (
+    ManualFile,
+    Aircraft,
+    ManualPackage,
+    CommonManualCategory,
+    CommonManualFile,
+)
 
 
 class ManualFileForm(forms.ModelForm):
@@ -124,26 +131,50 @@ class ManualPackageForm(forms.ModelForm):
             )
 
         return zip_file
-    
+
 
 class CommonManualCategoryForm(forms.ModelForm):
+
+    def _build_unique_code(self):
+        base_code = slugify(self.cleaned_data.get("name", ""), allow_unicode=False)
+        base_code = base_code.replace("-", "_").upper() or "CATEGORY"
+        candidate = base_code[:50]
+        suffix = 2
+
+        existing_codes = CommonManualCategory.objects.all()
+        if self.instance.pk:
+            existing_codes = existing_codes.exclude(pk=self.instance.pk)
+
+        while existing_codes.filter(code=candidate).exists():
+            suffix_text = f"_{suffix}"
+            candidate = f"{base_code[:50 - len(suffix_text)]}{suffix_text}"
+            suffix += 1
+
+        return candidate
 
     class Meta:
         model = CommonManualCategory
 
         fields = [
             "name",
-            "code",
             "description",
-            "order",
         ]
 
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "code": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "order": forms.NumberInput(attrs={"class": "form-control"}),
         }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if not instance.code:
+            instance.code = self._build_unique_code()
+
+        if commit:
+            instance.save()
+
+        return instance
 
 
 class CommonManualFileForm(forms.ModelForm):
