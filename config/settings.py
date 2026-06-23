@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 개발시 아래 내용 활성화
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
-DEBUG = True
+# DEBUG = True
 
-USE_R2=False
+# USE_R2=False
 
-load_dotenv(os.path.join(BASE_DIR.parent, ".env"))
+# load_dotenv(os.path.join(BASE_DIR.parent, ".env"))
 
 # ------------------------------------
 
@@ -22,11 +22,11 @@ load_dotenv(os.path.join(BASE_DIR.parent, ".env"))
 # ---업로드시 아래 내용 활성화---
 load_dotenv('/home/ubuntu/aircraft_maintenance/.env')
 
-# DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
 
-# ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")]
 
-# USE_R2 = os.getenv("USE_R2", "FALSE").upper() == "TRUE"
+USE_R2 = os.getenv("USE_R2", "FALSE").upper() == "TRUE"
 
 # ------------------------------------
 
