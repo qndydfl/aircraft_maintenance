@@ -94,29 +94,40 @@
     </div>
 </main>
 
-{% if user.is_authenticated %}
+
 <nav class="mobile-bottom-nav d-md-none">
-    <a href="{% url 'home' %}" class="mobile-nav-item">
+    <a href="{% url 'home' %}"
+        class="mobile-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
         <span class="mobile-nav-icon">⌂</span>
         <span class="mobile-nav-text">Home</span>
     </a>
 
-    <a href="{% url 'manual_search' %}" class="mobile-nav-item">
+    <a href="{% url 'manual_search' %}"
+        class="mobile-nav-item
+        {% if request.resolver_match.url_name == 'manual_search' or request.resolver_match.url_name == 'manual_pdf_viewer' or request.resolver_match.url_name == 'aircraft_manual_detail' or request.resolver_match.url_name == 'common_manual_category_detail' %}
+        active
+        {% endif %}">
         <span class="mobile-nav-icon">⌕</span>
         <span class="mobile-nav-text">Search</span>
     </a>
 
-    <a href="{% url 'dispatch_auto_search' %}" class="mobile-nav-item mobile-nav-danger">
+    <a href="{% url 'dispatch_auto_search' %}"
+        class="mobile-nav-item 
+        {% if request.resolver_match.url_name == 'dispatch_auto_search' or request.resolver_match.url_name == 'dispatch_detail' %}
+        active
+        {% endif %}">
         <span class="mobile-nav-icon">!</span>
         <span class="mobile-nav-text">Dispatch</span>
     </a>
-
-    {% if user.is_staff %}
-        <a href="{% url 'aircraft_manage' %}" class="mobile-nav-item">
-            <span class="mobile-nav-icon">⚙</span>
-            <span class="mobile-nav-text">Manage</span>
-        </a>
-    {% endif %}
+    
+    <a href="{% url 'aircraft_manage' %}"
+        class="mobile-nav-item
+        {% if request.resolver_match.url_name == 'aircraft_manage' or request.resolver_match.url_name == 'aircraft_create' or request.resolver_match.url_name == 'aircraft_update' or request.resolver_match.url_name == 'aircraft_delete' %}
+        active
+        {% endif %}">
+        <span class="mobile-nav-icon">⚙</span>
+        <span class="mobile-nav-text">Manage</span>
+    </a>
 </nav>
 
 <div id="global-loading" class="global-loading-overlay d-none">
@@ -134,8 +145,6 @@
         </div>
     </div>
 </div>
-
-{% endif %}
 
 </body>
 </html>

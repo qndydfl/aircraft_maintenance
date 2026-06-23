@@ -1,8 +1,6 @@
-/* home.css */
-
-/* =========================
-   Hero
-========================= */
+/* ========================================
+   HOME HERO
+======================================== */
 
 .home-hero {
     background: rgba(255,255,255,0.76);
@@ -22,6 +20,8 @@
     justify-content: space-between;
     align-items: center;
     gap: 18px;
+
+    margin-top: 12px;
 }
 
 .home-eyebrow {
@@ -51,9 +51,9 @@
     gap: 9px;
 }
 
-/* =========================
-   Sections
-========================= */
+/* ========================================
+   SECTION
+======================================== */
 
 .manual-section {
     position: relative;
@@ -78,9 +78,9 @@
     font-size: 0.86rem;
 }
 
-/* =========================
-   Cards
-========================= */
+/* ========================================
+   CARD
+======================================== */
 
 .boeing-card,
 .airbus-card {
@@ -165,30 +165,43 @@
     gap: 7px;
 }
 
-/* =========================
-   Tablet
-========================= */
+/* ========================================
+   TABLET
+   568 ~ 991
+======================================== */
 
 @media (max-width: 991.98px) {
+
     .home-hero {
         align-items: stretch;
         flex-direction: column;
+        gap: 14px;
     }
 
     .home-actions {
         justify-content: flex-start;
     }
+
+    .page-title {
+        font-size: 1.6rem;
+    }
+
+    .aircraft-title {
+        font-size: 1.08rem;
+    }
 }
 
-/* =========================
-   Mobile
-========================= */
+/* ========================================
+   MOBILE
+   567 이하
+======================================== */
 
-@media (max-width: 767.98px) {
+@media (max-width: 567px) {
+
     .home-hero {
         border-radius: 18px;
         padding: 14px 15px;
-        margin-top: 2px;
+        margin-top: 12px;
         margin-bottom: 14px !important;
 
         flex-direction: column;
@@ -225,20 +238,12 @@
         border-radius: 11px;
     }
 
-    .section-header {
-        margin-bottom: 10px;
-    }
-
     .section-title {
         font-size: 0.98rem;
     }
 
     .section-description {
         font-size: 0.7rem;
-    }
-
-    .manual-section {
-        margin-bottom: 22px !important;
     }
 
     .portal-card .card-body {
@@ -250,11 +255,6 @@
         border-radius: 16px;
     }
 
-    .aircraft-card-header {
-        margin-bottom: 9px;
-        gap: 8px;
-    }
-
     .aircraft-title {
         font-size: 0.96rem;
         line-height: 1.15;
@@ -262,17 +262,11 @@
 
     .aircraft-maker {
         font-size: 0.6rem;
-        margin-bottom: 1px !important;
     }
 
     .aircraft-type-pill {
         font-size: 0.56rem;
         padding: 4px 7px;
-    }
-
-    .manual-badge-wrap {
-        gap: 4px;
-        margin-bottom: 9px;
     }
 
     .manual-badge {
@@ -284,31 +278,21 @@
         min-height: auto;
         font-size: 0.7rem;
         line-height: 1.35;
-        margin-bottom: 10px;
-    }
-
-    .card-button-group {
-        gap: 6px;
     }
 
     .card-button-group .app-card-btn {
         min-height: 34px;
         font-size: 0.76rem;
         padding: 6px 8px;
-        border-radius: 11px;
-    }
-
-    .row.g-3,
-    .row.g-md-4 {
-        --bs-gutter-y: 0.65rem;
     }
 }
 
-/* =========================
-   Small iPhone
-========================= */
+/* ========================================
+   SMALL IPHONE
+======================================== */
 
 @media (max-width: 390px) {
+
     .home-hero {
         padding: 12px;
     }
@@ -336,8 +320,10 @@
     }
 }
 
+/* ========================================
+   PAGE FIX
+======================================== */
 
-/* 바닥 여백 추가 및 main 최소 높이 제거 */
 body.home-page .app-container {
     padding-bottom: 18px;
 }

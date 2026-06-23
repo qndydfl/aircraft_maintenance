@@ -1,5 +1,17 @@
 /* dispatch_auto_search.css */
 
+body.dispatch-search-page .portal-hero {
+    margin-top: 12px;
+}
+
+body.dispatch-search-page .app-container {
+    padding-bottom: 8px;
+}
+
+body.dispatch-search-page .app-main {
+    min-height: auto;
+}
+
 .app-form-control {
     min-height: 42px;
     border-radius: 14px;
@@ -20,14 +32,24 @@
 }
 
 .dispatch-ref-card,
-.mel-result-card {
-    padding: 13px;
+.mel-result-card,
+.candidate-card {
     background: rgba(255,255,255,0.78);
     border: 1px solid rgba(255,255,255,0.82);
     border-radius: 16px;
     box-shadow:
         0 10px 26px rgba(15,23,42,0.07),
         inset 0 1px 1px rgba(255,255,255,0.9);
+}
+
+.dispatch-ref-card,
+.mel-result-card {
+    padding: 13px;
+}
+
+.candidate-card {
+    border-top: 0;
+    border-radius: 18px;
 }
 
 .dispatch-card-title {
@@ -43,18 +65,26 @@
     margin-bottom: 10px;
 }
 
-.dispatch-mini-grid div {
+.dispatch-mini-grid div,
+.mel-condition-box {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
+}
+
+.dispatch-mini-grid div {
     padding: 8px;
 }
 
-.dispatch-mini-grid span {
+.dispatch-mini-grid span,
+.mel-condition-box span {
     display: block;
     font-size: 0.64rem;
     font-weight: 850;
     color: #8e8e93;
+}
+
+.dispatch-mini-grid span {
     margin-bottom: 2px;
 }
 
@@ -71,18 +101,11 @@
 }
 
 .mel-condition-box {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
     padding: 9px;
     margin-bottom: 10px;
 }
 
 .mel-condition-box span {
-    display: block;
-    font-size: 0.64rem;
-    font-weight: 850;
-    color: #8e8e93;
     margin-bottom: 4px;
 }
 
@@ -90,13 +113,6 @@
     margin: 0;
     font-size: 0.76rem;
     color: #374151;
-}
-
-.candidate-card {
-    border-top: 0;
-    background: rgba(255,255,255,0.78);
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 18px;
 }
 
 .candidate-top {
@@ -126,21 +142,18 @@
     margin-top: 12px;
 }
 
-body.dispatch-search-page .app-container {
-    padding-bottom: 8px;
-}
-
-body.dispatch-search-page .app-main {
-    min-height: auto;
-}
-
 @media (max-width: 767.98px) {
+    body.dispatch-search-page .portal-hero {
+        margin-top: 10px;
+    }
+
     body.dispatch-search-page .app-container {
         padding-bottom: 0;
     }
 
-    .portal-card .card-body {
-        padding: 12px !important;
+    .portal-card .card-body,
+    .candidate-card .card-body {
+        padding: 10px !important;
     }
 
     .app-form-control {
@@ -162,47 +175,6 @@ body.dispatch-search-page .app-main {
         border-radius: 11px;
     }
 
-    .candidate-top {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .candidate-top .app-card-btn {
-        width: 100%;
-    }
-
-    .candidate-snippet {
-        max-height: 150px;
-        font-size: 0.74rem;
-        padding: 9px;
-    }
-
-    .candidate-pager {
-        gap: 6px;
-    }
-
-    .candidate-pager .app-card-btn {
-        min-height: 32px;
-        font-size: 0.72rem;
-        padding: 5px 8px;
-    }
-
-    .dispatch-mini-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-    }
-
-    .dispatch-card-actions .app-card-btn {
-        width: 100%;
-    }
-}
-
-@media (max-width: 767.98px) {
-
-    .candidate-card .card-body {
-        padding: 10px !important;
-    }
-
     .candidate-card {
         border-radius: 14px;
         margin-bottom: 10px !important;
@@ -217,6 +189,7 @@ body.dispatch-search-page .app-main {
     }
 
     .candidate-top {
+        flex-direction: column;
         gap: 6px;
     }
 
@@ -229,6 +202,7 @@ body.dispatch-search-page .app-main {
     }
 
     .candidate-top .app-card-btn {
+        width: 100%;
         min-height: 30px;
         font-size: 0.7rem;
         padding: 5px 8px;
@@ -259,6 +233,15 @@ body.dispatch-search-page .app-main {
     .candidate-pager .badge {
         font-size: 0.65rem;
         padding: 5px 7px;
+    }
+
+    .dispatch-mini-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .dispatch-card-actions .app-card-btn {
+        width: 100%;
     }
 
     .section-title {

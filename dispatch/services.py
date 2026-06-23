@@ -1,4 +1,4 @@
-import re, fitz, pdfplumber
+import re, fitz, pdfplumber, os, tempfile
 from django.db.models import Q
 
 from .models import DispatchKeywordDictionary, MelDispatchItem
@@ -665,6 +665,33 @@ def clean_condition(value):
     return value
 
 
+def storage_file_to_temp_file(django_file, suffix=""):
+    temp_file = tempfile.NamedTemporaryFile(
+        suffix=suffix,
+        delete=False,
+    )
+
+    try:
+        django_file.open("rb")
+
+        for chunk in django_file.chunks():
+            temp_file.write(chunk)
+
+        django_file.close()
+        temp_file.flush()
+        temp_file.close()
+
+        return temp_file.name
+
+    except Exception:
+        temp_file.close()
+
+        if os.path.exists(temp_file.name):
+            os.remove(temp_file.name)
+
+        raise
+
+
 def extract_mel_dispatch_items_from_pdf(manual_file):
 
     if not manual_file.file:
@@ -672,123 +699,133 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
 
     count = 0
 
-    MelDispatchItem.objects.filter(
-        aircraft=manual_file.aircraft,
-        manual_file=manual_file,
-    ).delete()
+    temp_pdf_path = storage_file_to_temp_file(
+        manual_file.file,
+        suffix=".pdf",
+    )
 
-    with pdfplumber.open(manual_file.file.path) as pdf:
+    try:
+        MelDispatchItem.objects.filter(
+            aircraft=manual_file.aircraft,
+            manual_file=manual_file,
+        ).delete()
 
-        for page_index, page in enumerate(pdf.pages):
+        with pdfplumber.open(temp_pdf_path) as pdf:
 
-            page_number = page_index + 1
-            tables = page.extract_tables()
+            for page_index, page in enumerate(pdf.pages):
 
-            for table in tables:
+                page_number = page_index + 1
+                tables = page.extract_tables()
 
-                if not table:
-                    continue
+                for table in tables:
 
-                current_message = ""
-                current_level = ""
-                current_condition = ""
-                current_mel_item = ""
-                current_adc = ""
-
-                for row in table:
-
-                    if not row:
+                    if not table:
                         continue
 
-                    raw_message = row[0] or ""
+                    current_message = ""
+                    current_level = ""
+                    current_condition = ""
+                    current_mel_item = ""
+                    current_adc = ""
 
-                    message_line_count = len(
-                        [line for line in raw_message.splitlines() if line.strip()]
-                    )
+                    for row in table:
 
-                    row = [clean_cell(cell) for cell in row]
+                        if not row:
+                            continue
 
-                    if len(row) < 5:
-                        continue
+                        raw_message = row[0] or ""
 
-                    message = clean_message(row[0])
-                    level = extract_level(row[1])
-                    condition = clean_condition(row[2])
-                    mel_item = extract_mel_item(row[3])
-                    adc = extract_adc(row[4])
+                        message_line_count = len(
+                            [line for line in raw_message.splitlines() if line.strip()]
+                        )
 
-                    if level in ["A", "S"] and message_line_count >= 2:
-                        level = level + level
+                        row = [clean_cell(cell) for cell in row]
 
-                    if (
-                        message == "Message"
-                        or level == "L"
-                        or condition == "Condition"
-                        or mel_item == "MEL Item"
-                        or adc == "A/D/C"
-                    ):
-                        continue
+                        if len(row) < 5:
+                            continue
 
-                    if message:
-                        current_message = message
-                    else:
-                        message = current_message
+                        message = clean_message(row[0])
+                        level = extract_level(row[1])
+                        condition = clean_condition(row[2])
+                        mel_item = extract_mel_item(row[3])
+                        adc = extract_adc(row[4])
 
-                    if level:
-                        current_level = level
-                    else:
-                        level = current_level
+                        if level in ["A", "S"] and message_line_count >= 2:
+                            level = level + level
 
-                    for cell in row[2:]:
-                        found_mel = extract_mel_item(cell)
-                        if found_mel:
-                            mel_item = found_mel
-                            break
+                        if (
+                            message == "Message"
+                            or level == "L"
+                            or condition == "Condition"
+                            or mel_item == "MEL Item"
+                            or adc == "A/D/C"
+                        ):
+                            continue
 
-                    for cell in row[2:]:
-                        found_adc = extract_adc(cell)
-                        if found_adc:
-                            adc = found_adc
-                            break
+                        if message:
+                            current_message = message
+                        else:
+                            message = current_message
 
-                    condition = normalize_dash(condition)
+                        if level:
+                            current_level = level
+                        else:
+                            level = current_level
 
-                    if condition:
-                        current_condition = condition
-                    else:
-                        condition = current_condition
+                        for cell in row[2:]:
+                            found_mel = extract_mel_item(cell)
+                            if found_mel:
+                                mel_item = found_mel
+                                break
 
-                    if mel_item:
-                        current_mel_item = mel_item
-                    else:
-                        mel_item = current_mel_item
+                        for cell in row[2:]:
+                            found_adc = extract_adc(cell)
+                            if found_adc:
+                                adc = found_adc
+                                break
 
-                    if adc:
-                        current_adc = adc
-                    else:
-                        adc = current_adc
+                        condition = normalize_dash(condition)
 
-                    if not message:
-                        continue
+                        if condition:
+                            current_condition = condition
+                        else:
+                            condition = current_condition
 
-                    if not condition and not mel_item and not adc:
-                        continue
+                        if mel_item:
+                            current_mel_item = mel_item
+                        else:
+                            mel_item = current_mel_item
 
-                    obj, created = MelDispatchItem.objects.get_or_create(
-                        aircraft=manual_file.aircraft,
-                        manual_file=manual_file,
-                        message=message,
-                        level=level,
-                        condition=condition,
-                        mel_item=mel_item,
-                        adc=adc,
-                        page_number=page_number,
-                    )
+                        if adc:
+                            current_adc = adc
+                        else:
+                            adc = current_adc
 
-                    if created:
-                        count += 1
+                        if not message:
+                            continue
 
-    return count
+                        if not condition and not mel_item and not adc:
+                            continue
+
+                        obj, created = MelDispatchItem.objects.get_or_create(
+                            aircraft=manual_file.aircraft,
+                            manual_file=manual_file,
+                            message=message,
+                            level=level,
+                            condition=condition,
+                            mel_item=mel_item,
+                            adc=adc,
+                            page_number=page_number,
+                        )
+
+                        if created:
+                            count += 1
+
+        return count
+
+    finally:
+        if os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
 
 
 def is_fault_code_query(query):

@@ -83,6 +83,41 @@ def storage_file_to_temp_file(django_file, suffix=""):
         raise
 
 
+def extract_clean_text(page):
+    words = page.get_text("words")
+
+    seen = set()
+    clean_words = []
+
+    for word in words:
+        x0, y0, x1, y1, text, block, line, word_no = word
+
+        clean = " ".join((text or "").split())
+
+        if not clean:
+            continue
+
+        key = (
+            round(x0, 1),
+            round(y0, 1),
+            clean,
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        clean_words.append(
+            (block, line, word_no, clean)
+        )
+
+    clean_words.sort()
+
+    return " ".join(
+        item[3] for item in clean_words
+    )
+
+
 def safe_extract_zip(zip_file_path, extract_to):
     os.makedirs(extract_to, exist_ok=True)
 
@@ -252,7 +287,7 @@ def index_pdf_pages_for_chapter(chapter):
         for page_index in range(document.page_count):
             page = document.load_page(page_index)
 
-            text = page.get_text("text")
+            text = extract_clean_text(page)
 
             ManualPDFPage.objects.create(
                 chapter=chapter, page_number=page_index + 1, text=text
@@ -686,7 +721,8 @@ def index_pdf_pages_for_manual_file(manual_file):
         try:
             for page_index in range(document.page_count):
                 page = document.load_page(page_index)
-                text = page.get_text("text")
+
+                text = extract_clean_text(page)
 
                 ManualFilePDFPage.objects.create(
                     manual_file=manual_file,
@@ -770,7 +806,7 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
         try:
             for page_index in range(document.page_count):
                 page = document.load_page(page_index)
-                text = page.get_text("text")
+                text = extract_clean_text(page)
 
                 new_pages.append(
                     CommonManualPDFPage(

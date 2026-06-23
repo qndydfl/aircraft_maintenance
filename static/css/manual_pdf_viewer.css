@@ -224,12 +224,12 @@ body {
 
 
 /* ==========================================================================
-   4. OUTLINE PANEL
+   4. OUTLINE PANEL (PC & Tablet Default)
 ========================================================================== */
 
 .outline-panel {
-    width: 280px;
-    flex-shrink: 0;
+    width: 100%;
+    flex-shrink: 1;
 
     background: rgba(255,255,255,0.86);
     backdrop-filter: blur(18px) saturate(170%);
@@ -361,14 +361,18 @@ body {
 }
 
 .outline-resizer {
-    width: 5px;
-    flex-shrink: 0;
+    width: 10px;
+    min-width: 10px;
     cursor: col-resize;
-    background: rgba(229,231,235,0.8);
+    touch-action: none;
 }
 
 .outline-hidden .outline-resizer {
     display: none;
+}
+
+.outline-resizer.is-dragging {
+    background: rgba(13, 110, 253, 0.18);
 }
 
 
@@ -496,21 +500,28 @@ body {
 
 
 /* ==========================================================================
-   7. TABLET
+   7. TABLET RESPONSIVE (991px)
 ========================================================================== */
 
 @media (max-width: 991.98px) {
+    .outline-resizer {
+        width: 14px;
+        min-width: 14px;
+        touch-action: none;
+    }
+
     .outline-panel {
-        width: 240px;
+        min-width: 170px;
+        max-width: 82vw;
     }
 }
 
 
 /* ==========================================================================
-   8. MOBILE
+   8. MOBILE RESPONSIVE (567px) - [★ 여기서부터 전면 수정 및 최적화]
 ========================================================================== */
 
-@media (max-width: 767.98px) {
+@media (max-width: 567px) {
     body.pdf-viewer-page {
         padding-bottom: 82px !important;
     }
@@ -592,11 +603,9 @@ body {
         display: flex !important;
         flex: 1;
         min-width: 0;
-
         position: static !important;
         padding: 0 !important;
         margin: 0 !important;
-
         background: transparent !important;
         border: 0 !important;
         box-shadow: none !important;
@@ -607,15 +616,10 @@ body {
         align-items: center;
         gap: 4px;
         width: 100%;
-
         overflow-x: auto;
         white-space: nowrap;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
-    }
-
-    .viewer-search-row::-webkit-scrollbar {
-        display: none;
     }
 
     .viewer-search-input {
@@ -633,40 +637,62 @@ body {
         font-size: 0.62rem;
     }
 
+    /* [수정] 부모 컨테이너 기준점 변경 (flex 해제) */
     .manual-pdf-layout {
+        display: block; 
+        width: 100%;
+        position: relative;
+        overflow: hidden;
         margin: 5px;
         margin-bottom: 72px;
         border-radius: 14px;
     }
 
+    /* [수정] 목차 패널을 절대좌표 오버레이 레이어로 변환 */
     .outline-panel {
         position: absolute;
         top: 0;
         left: 0;
         bottom: 0;
-
-        width: 82%;
-        max-width: 300px;
-
-        z-index: 60;
-        display: block;
-
-        background: rgba(255,255,255,0.94);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-
-        box-shadow: 8px 0 24px rgba(15, 23, 42, 0.2);
-        transition: transform 0.2s ease;
+        z-index: 100; /* PDF보다 무조건 앞에 노출 */
+        
+        width: 80% !important; /* 모바일에서 시원하게 보이도록 확장 */
+        min-width: 80% !important;
+        max-width: 85% !important;
+        flex: none !important;
+        
+        background: rgba(255, 255, 255, 0.97); /* 가독성을 위한 불투명 백그라운드 */
+        box-shadow: 8px 0 24px rgba(15, 23, 42, 0.15);
+        
+        /* 열고 닫힐 때 슬라이딩 효과 적용 */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(0); /* 오픈 상태 기준점 */
     }
 
+    /* [수정] 목차가 숨김 상태일 때 왼쪽 바깥 화면으로 완전히 밀어버림 */
     .outline-hidden .outline-panel {
-        display: block;
-        transform: translateX(-105%);
+        display: block !important; /* display:none 대신 transform 사용 */
+        transform: translateX(-100%);
     }
 
-    .outline-hidden .outline-resizer,
+    /* [수정] 모바일 구분선 드래그 핸들 차단 */
     .outline-resizer {
-        display: none;
+        display: none !important;
+    }
+
+    /* [수정] PDF 영역: 목차 상태와 무관하게 무조건 100% 꽉 찬 전체 화면 유지 */
+    .pdf-viewer-scroll {
+        width: 100% !important;
+        height: 100%;
+        padding: 6px;
+        padding-bottom: 72px;
+        flex: none !important; 
+    }    
+
+    /* [초기화] 기존 상태 전이 시 왜곡 유발 코드 무효화 */
+    .outline-hidden .pdf-viewer-scroll {
+        width: 100% !important;
+        flex: none !important;
     }
 
     .outline-title {
@@ -679,11 +705,6 @@ body {
 
     .outline-tree-link {
         font-size: 0.76rem;
-    }
-
-    .pdf-viewer-scroll {
-        padding: 6px;
-        padding-bottom: 72px;
     }
 
     .pdf-viewer-wrap {
@@ -716,7 +737,7 @@ body {
 
 
 /* ==========================================================================
-   9. SMALL MOBILE
+   9. SMALL MOBILE RESPONSIVE (420px)
 ========================================================================== */
 
 @media (max-width: 420px) {
@@ -736,8 +757,10 @@ body {
         min-width: 115px;
     }
 
+    /* [수정] 초소형 모바일에서도 동일하게 오버레이 비율 고정 */
     .outline-panel {
-        width: 86%;
+        width: 80% !important;
+        min-width: 80% !important;
     }
 
     .mobile-page-btn {

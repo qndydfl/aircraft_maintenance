@@ -387,6 +387,11 @@ function createOutlineTree(items, depth = 0) {
 
             row.classList.add("is-active");
 
+            if (window.innerWidth <= 567 && manualPdfLayout) {
+                manualPdfLayout.classList.add("outline-hidden");
+                sessionStorage.setItem(outlineStorageKey, "true");
+            }
+
             resolveDestination(item.dest).then(function (dest) {
                 goToDestination(dest);
             });
@@ -615,45 +620,53 @@ if (window.visualViewport) {
 window.addEventListener("resize", rerenderOnResize);
 
 (function initOutlineResizer() {
-    if (!outlineResizer || !outlinePanel || isMobileViewport()) {
+    if (!outlineResizer || !outlinePanel || !manualPdfLayout) {
         return;
     }
 
     const savedWidth = localStorage.getItem(OUTLINE_WIDTH_KEY);
-    if (savedWidth) {
+
+    if (savedWidth && window.innerWidth > 567) {
         outlinePanel.style.width = savedWidth + "px";
+        outlinePanel.style.flexBasis = savedWidth + "px";
     }
 
     let dragging = false;
-    let startX = 0;
-    let startWidth = 0;
+    let activePointerId = null;
     let resizeRenderTimer = null;
 
-    outlineResizer.addEventListener("mousedown", function (event) {
+    outlineResizer.addEventListener("pointerdown", function (event) {
         event.preventDefault();
 
         dragging = true;
-        startX = event.clientX;
-        startWidth = outlinePanel.getBoundingClientRect().width;
+        activePointerId = event.pointerId;
 
+        outlineResizer.setPointerCapture(event.pointerId);
         outlineResizer.classList.add("is-dragging");
+
         document.body.style.cursor = "col-resize";
         document.body.style.userSelect = "none";
     });
 
-    document.addEventListener("mousemove", function (event) {
-        if (!dragging) {
+    outlineResizer.addEventListener("pointermove", function (event) {
+        if (!dragging || event.pointerId !== activePointerId) {
             return;
         }
 
-        const delta = event.clientX - startX;
+        event.preventDefault();
 
-        const newWidth = Math.min(
-            Math.max(startWidth + delta, 160),
-            window.innerWidth * 0.6
-        );
+        const layoutRect = manualPdfLayout.getBoundingClientRect();
+        let newWidth = event.clientX - layoutRect.left;
+
+        const minWidth = window.innerWidth <= 991 ? 170 : 220;
+        const maxWidth = window.innerWidth <= 991
+            ? window.innerWidth * 0.82
+            : window.innerWidth * 0.6;
+
+        newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
 
         outlinePanel.style.width = newWidth + "px";
+        outlinePanel.style.flexBasis = newWidth + "px";
 
         if (resizeRenderTimer) {
             clearTimeout(resizeRenderTimer);
@@ -666,14 +679,17 @@ window.addEventListener("resize", rerenderOnResize);
         }, 80);
     });
 
-    document.addEventListener("mouseup", function () {
-        if (!dragging) {
+    outlineResizer.addEventListener("pointerup", function (event) {
+        if (!dragging || event.pointerId !== activePointerId) {
             return;
         }
 
         dragging = false;
+        activePointerId = null;
 
+        outlineResizer.releasePointerCapture(event.pointerId);
         outlineResizer.classList.remove("is-dragging");
+
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
 
@@ -685,6 +701,16 @@ window.addEventListener("resize", rerenderOnResize);
         if (scaleMode !== "custom") {
             queueRenderPage(currentPage);
         }
+    });
+
+    outlineResizer.addEventListener("pointercancel", function () {
+        dragging = false;
+        activePointerId = null;
+
+        outlineResizer.classList.remove("is-dragging");
+
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
     });
 })();
 
@@ -1103,62 +1129,6 @@ pdfContainer.addEventListener(
 pdfContainer.addEventListener("touchend", function () {
     touchStartDistance = null;
 });
-
-// let swipeStartX = null;
-// let swipeStartY = null;
-// let swipeStartTime = 0;
-
-// pdfContainer.addEventListener(
-//     "touchstart",
-//     function (event) {
-//         if (event.touches.length !== 1) {
-//             return;
-//         }
-
-//         swipeStartX = event.touches[0].clientX;
-//         swipeStartY = event.touches[0].clientY;
-//         swipeStartTime = Date.now();
-//     },
-//     { passive: true }
-// );
-
-// pdfContainer.addEventListener(
-//     "touchend",
-//     function (event) {
-//         if (swipeStartX === null || swipeStartY === null) {
-//             return;
-//         }
-
-//         const endX = event.changedTouches[0].clientX;
-//         const endY = event.changedTouches[0].clientY;
-
-//         const deltaX = endX - swipeStartX;
-//         const deltaY = endY - swipeStartY;
-//         const elapsed = Date.now() - swipeStartTime;
-
-//         swipeStartX = null;
-//         swipeStartY = null;
-
-//         if (elapsed > 600) {
-//             return;
-//         }
-
-//         if (Math.abs(deltaX) < 80) {
-//             return;
-//         }
-
-//         if (Math.abs(deltaX) < Math.abs(deltaY)) {
-//             return;
-//         }
-
-//         if (deltaX < 0) {
-//             goToPage(currentPage + 1);
-//         } else {
-//             goToPage(currentPage - 1);
-//         }
-//     },
-//     { passive: true }
-// );
 
 const mobilePrev =
     document.getElementById("mobile-prev-page");
