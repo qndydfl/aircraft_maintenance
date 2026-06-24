@@ -11,20 +11,20 @@ dispatch-detail-page
 
 {% block content %}
 
-<div class="portal-hero mb-4">
+<div class="page-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">DISPATCH</p>
+        <p class="page-eyebrow mb-1">DISPATCH</p>
 
         <h2 class="page-title mb-2">
             Dispatch Detail
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             EICAS Message / Fault Code / MEL / FIM / AMM Reference
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         <a href="{% url 'dispatch_detail_print' dispatch.pk %}"
             target="_blank"
             class="btn btn-outline-dark app-action-btn">

@@ -11,10 +11,10 @@ delete-confirm-page
 
 {% block content %}
 
-<div class="detail-hero mb-4">
+<div class="page-hero mb-4">
 
     <div>
-        <p class="home-eyebrow mb-1">
+        <p class="page-eyebrow mb-1">
             MANUAL FILE
         </p>
 
@@ -22,12 +22,12 @@ delete-confirm-page
             Delete Manual File
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             PDF 매뉴얼 파일을 삭제합니다.
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
             class="btn btn-outline-secondary app-action-btn">
             Back

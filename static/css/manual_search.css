@@ -1,30 +1,9 @@
-/* manual_search.css */
-
-.app-form-control {
-    min-height: 42px;
-    border-radius: 14px;
-    font-size: 0.92rem;
+body.manual-search-page .app-main {
+    min-height: auto;
 }
 
-.detail-hero {
-    display: flex;
-    justify-content: space-between;
-    align-items: center !important;
-    gap: 18px;
-    margin-top: 14px;
-    margin-bottom: 20px;
-}
-
-.hero-back-btn {
-    flex-shrink: 0;
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.portal-card {
-    border-radius: 20px;
+body.manual-search-page .app-container {
+    padding-bottom: 8px;
 }
 
 .search-summary {
@@ -34,73 +13,23 @@
 }
 
 .search-summary > div {
-    background: rgba(255,255,255,0.78);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    border: 1px solid rgba(255,255,255,0.82);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.84);
     border-radius: 999px;
     padding: 7px 13px;
-    box-shadow:
-        0 8px 22px rgba(15,23,42,0.06),
-        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .search-summary-label {
     color: #6b7280;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     margin-right: 5px;
 }
 
-.manual-group-card,
-.search-result-card,
-.pdf-result-card,
-.common-result-card {
-    border-top: 0;
-}
-
-.manual-group-card {
-    background: rgba(255,255,255,0.78);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 22px;
-    box-shadow:
-        0 14px 34px rgba(15,23,42,0.07),
-        inset 0 1px 1px rgba(255,255,255,0.9);
-}
-
-.manual-group-header,
-.search-result-header {
+.manual-group-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 14px;
-}
-
-.aircraft-maker {
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: #8e8e93;
-}
-
-.section-title {
-    font-size: 1.15rem;
-    font-weight: 850;
-    letter-spacing: -0.03em;
-    color: #1d1d1f;
-}
-
-.section-description,
-.search-meta {
-    color: #6b7280;
-    font-size: 0.82rem;
-}
-
-.manual-badge {
-    border-radius: 999px;
-    font-size: 0.72rem;
-    padding: 6px 9px;
 }
 
 .manual-group-info {
@@ -110,16 +39,13 @@
 }
 
 .manual-group-info div {
-    background: rgba(248,250,252,0.82);
-    border: 1px solid rgba(229,231,235,0.9);
-    border-radius: 15px;
     padding: 10px;
 }
 
 .manual-group-info span {
     display: block;
     color: #8e8e93;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 850;
     margin-bottom: 4px;
 }
@@ -127,272 +53,73 @@
 .manual-group-info strong {
     display: block;
     color: #1d1d1f;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     word-break: break-word;
 }
 
-.manual-group-actions,
-.search-result-actions {
+.manual-group-actions {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-.manual-group-actions .btn {
+.common-result-snippet {
+    padding: 12px 14px;
     border-radius: 13px;
-    font-weight: 800;
-}
-
-.search-result-title {
-    font-weight: 850;
-    color: #111827;
-}
-
-.search-snippet {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 12px;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     line-height: 1.55;
-    max-height: 180px;
-    overflow-y: auto;
+    color: #334155;
+    background: rgba(25, 135, 84, 0.06);
+    border: 1px solid rgba(25, 135, 84, 0.16);
 }
 
-.search-snippet mark,
-.search-snippet .highlight {
+.common-result-snippet mark,
+.common-result-snippet .highlight {
     background: #fff3cd;
     color: #111827;
     padding: 0 2px;
     border-radius: 3px;
 }
 
-body.manual-search-page .app-container {
-    padding-bottom: 8px;
-}
-
-body.manual-search-page .app-main {
-    min-height: auto;
-}
-
-
-/* Common Manual Result */
 .common-result-card {
     border-left: 5px solid #198754;
 }
 
-.common-result-snippet {
-    padding: 12px 14px;
-    background: rgba(25, 135, 84, 0.06);
-    border: 1px solid rgba(25, 135, 84, 0.16);
-    border-radius: 14px;
-    font-size: 0.86rem;
-    line-height: 1.55;
-    color: #334155;
-}
-
-
-/* ========================================
-   Tablet
-   568px ~ 991px
-======================================== */
-
-@media (max-width: 991.98px) {
-
-    .detail-hero {
-        margin-top: 14px;
-        margin-bottom: 18px;
-    }
-
-    .detail-hero .page-title {
-        font-size: 1.35rem;
-    }
-
-    .detail-hero .home-subtitle {
-        font-size: 0.82rem;
-    }
-
-    .manual-group-info {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+@media (max-width: 767.98px) {
+    body.manual-search-page {
+        padding-bottom: 82px;
     }
 
     .search-summary {
-        gap: 7px;
-    }
-
-    .search-summary > div {
-        padding: 6px 10px;
-    }
-
-    .section-title {
-        font-size: 1.05rem;
-    }
-
-    .search-snippet {
-        font-size: 0.8rem;
-    }
-}
-
-
-/* Mobile */
-@media (max-width: 567px) {
-    .detail-hero {
-        padding: 14px 15px;
-        border-radius: 18px;
-        margin-bottom: 14px !important;
-        flex-direction: row;
-        align-items: flex-start;
-    }
-
-    .hero-back-btn {
-        margin-left: auto;
-        white-space: nowrap;
-    }
-
-    .detail-hero .page-title {
-        font-size: 1.12rem;
-        margin-bottom: 3px !important;
-    }
-
-    .detail-hero .home-eyebrow {
-        font-size: 0.68rem;
-    }
-
-    .detail-hero .home-subtitle {
-        font-size: 0.73rem;
-    }
-
-    .detail-hero .app-action-btn {
-        width: auto;
-        min-height: 30px;
-        padding: 5px 11px;
-        font-size: 0.74rem;
-        border-radius: 999px;
-    }
-
-    .portal-card .card-body {
-        padding: 13px !important;
-    }
-
-    .app-form-control {
-        min-height: 38px;
-        font-size: 0.8rem;
-        border-radius: 11px;
-    }
-
-    .form-label {
-        font-size: 0.72rem;
-        font-weight: 800;
-        margin-bottom: 4px;
-    }
-
-    .row.g-3 {
-        --bs-gutter-y: 0.65rem;
-    }
-
-    .app-card-btn {
-        min-height: 36px;
-        font-size: 0.78rem;
-        padding: 6px 8px;
-        border-radius: 11px;
-    }
-
-    .search-summary {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 7px;
-    }
-
-    .search-summary > div {
-        border-radius: 14px;
-        text-align: center;
-        padding: 7px 8px;
-    }
-
-    .search-summary-label {
-        display: block;
-        font-size: 0.68rem;
-        margin-right: 0;
-    }
-
-    .search-summary strong {
-        font-size: 0.88rem;
-    }
-
-    .manual-group-card {
-        border-radius: 16px;
-        margin-bottom: 10px !important;
-    }
-
-    .manual-group-header {
-        gap: 8px;
-        align-items: center;
-    }
-
-    .aircraft-maker {
-        font-size: 0.62rem;
-        margin-bottom: 1px !important;
-    }
-
-    .section-title {
-        font-size: 0.95rem;
-        margin-bottom: 2px !important;
-    }
-
-    .section-description {
-        font-size: 0.7rem;
-    }
-
-    .manual-badge {
-        font-size: 0.62rem;
-        padding: 5px 7px;
+        display: none !important;
     }
 
     .manual-group-info {
         grid-template-columns: 1fr;
         gap: 6px;
-        margin-top: 9px !important;
     }
 
     .manual-group-info div {
         padding: 8px 9px;
-        border-radius: 12px;
+        border-radius: 11px;
     }
 
     .manual-group-info span {
-        font-size: 0.64rem;
-        margin-bottom: 2px;
+        font-size: 0.62rem;
     }
 
     .manual-group-info strong {
-        font-size: 0.76rem;
+        font-size: 0.72rem;
     }
 
     .manual-group-actions {
         display: grid;
         grid-template-columns: 1fr;
         gap: 6px;
-        margin-top: 9px !important;
     }
 
     .manual-group-actions .btn {
         width: 100%;
-        min-height: 34px;
-        font-size: 0.76rem;
-        padding: 6px 8px;
-        border-radius: 11px;
-    }
-
-    .app-alert {
-        font-size: 0.78rem;
-        padding: 10px 12px;
-    }
-
-    .search-snippet {
-        max-height: 180px;
-        font-size: 0.76rem;
-        padding: 9px;
     }
 
     .common-result-card {
@@ -401,34 +128,9 @@ body.manual-search-page .app-main {
     }
 
     .common-result-snippet {
-        font-size: 0.75rem;
-        padding: 10px 11px;
-        border-radius: 12px;
         max-height: 96px;
         overflow: hidden;
-    }
-
-    body.manual-search-page {
-        padding-bottom: 82px;
-    }
-}
-
-@media (max-width: 390px) {
-    .detail-hero .page-title {
-        font-size: 1.04rem;
-    }
-
-    .app-form-control {
-        min-height: 36px;
-        font-size: 0.76rem;
-    }
-
-    .manual-group-info strong {
         font-size: 0.72rem;
-    }
-
-    .manual-group-actions .btn {
-        min-height: 32px;
-        font-size: 0.72rem;
+        padding: 10px 11px;
     }
 }

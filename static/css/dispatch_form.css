@@ -1,22 +1,9 @@
-/* dispatch_form.css */
+body.dispatch-form-page .app-main {
+    min-height: auto;
+}
 
-.detail-hero {
-    background: rgba(255,255,255,0.76);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 24px;
-    padding: 24px;
-
-    box-shadow:
-        0 18px 45px rgba(15,23,42,0.08),
-        inset 0 1px 1px rgba(255,255,255,0.9);
-
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 18px;
+body.dispatch-form-page .app-container {
+    padding-bottom: 8px;
 }
 
 .dispatch-form {
@@ -26,34 +13,21 @@
 }
 
 .dispatch-form-section {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    padding: 18px;
+    background: rgba(248, 250, 252, 0.88);
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 16px;
+    padding: 16px;
 }
 
 .dispatch-form-section-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 850;
     color: #111827;
-    margin-bottom: 16px;
-}
-
-.dispatch-form .form-label {
-    font-size: 0.82rem;
-    font-weight: 800;
-    color: #4b5563;
-    margin-bottom: 6px;
-}
-
-.dispatch-form input,
-.dispatch-form select,
-.dispatch-form textarea {
-    border-radius: 14px;
+    margin-bottom: 14px;
 }
 
 .dispatch-form textarea {
-    min-height: 110px;
+    min-height: 105px;
 }
 
 .dispatch-form-actions {
@@ -66,42 +40,8 @@
 }
 
 @media (max-width: 767.98px) {
-    body.dispatch-form-page .app-main {
-        min-height: auto;
-    }
-
     body.dispatch-form-page .app-container {
         padding-bottom: 0;
-    }
-
-    .detail-hero {
-        padding: 14px 15px;
-        border-radius: 18px;
-        gap: 10px;
-    }
-
-    .detail-hero .page-title {
-        font-size: 1.12rem;
-        margin-bottom: 3px !important;
-    }
-
-    .detail-hero .home-eyebrow {
-        font-size: 0.68rem;
-    }
-
-    .detail-hero .home-subtitle {
-        font-size: 0.73rem;
-    }
-
-    .detail-hero .app-action-btn {
-        min-height: 32px;
-        padding: 5px 11px;
-        font-size: 0.74rem;
-        border-radius: 999px;
-    }
-
-    .portal-card .card-body {
-        padding: 13px !important;
     }
 
     .dispatch-form {
@@ -110,27 +50,16 @@
 
     .dispatch-form-section {
         padding: 12px;
-        border-radius: 14px;
+        border-radius: 13px;
     }
 
     .dispatch-form-section-title {
-        font-size: 0.85rem;
+        font-size: 0.84rem;
         margin-bottom: 10px;
     }
 
-    .dispatch-form .form-label {
-        font-size: 0.72rem;
-    }
-
-    .dispatch-form input,
-    .dispatch-form select,
     .dispatch-form textarea {
-        font-size: 0.8rem;
-        border-radius: 11px;
-    }
-
-    .dispatch-form textarea {
-        min-height: 85px;
+        min-height: 84px;
     }
 
     .dispatch-form-actions {
@@ -141,25 +70,5 @@
 
     .dispatch-form-actions .btn {
         width: 100%;
-        min-height: 36px;
-        font-size: 0.78rem;
-        border-radius: 11px;
-    }
-}
-
-@media (max-width: 390px) {
-    .detail-hero .page-title {
-        font-size: 1.04rem;
-    }
-
-    .dispatch-form input,
-    .dispatch-form select,
-    .dispatch-form textarea {
-        font-size: 0.76rem;
-    }
-
-    .dispatch-form-actions .btn {
-        min-height: 34px;
-        font-size: 0.74rem;
     }
 }

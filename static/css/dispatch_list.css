@@ -1,30 +1,24 @@
-/* dispatch_list.css */
-
-/* Dispatch 상태 Badge */
-
 .dispatch-status-badge {
     border-radius: 999px;
     padding: 5px 10px;
-    font-size: 0.7rem;
-    font-weight: 800;
+    font-size: 0.68rem;
+    font-weight: 850;
 }
 
 .dispatch-status-complete {
-    background: rgba(52,199,89,.15);
+    background: rgba(52, 199, 89, 0.14);
     color: #198754;
 }
 
 .dispatch-status-partial {
-    background: rgba(255,193,7,.18);
+    background: rgba(255, 193, 7, 0.18);
     color: #b58105;
 }
 
 .dispatch-status-empty {
-    background: rgba(108,117,125,.14);
+    background: rgba(108, 117, 125, 0.14);
     color: #6c757d;
 }
-
-/* 카드 정보 */
 
 .dispatch-list-info {
     display: grid;
@@ -35,66 +29,55 @@
 .dispatch-list-info div {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 10px;
 }
 
 .dispatch-list-info span {
-    font-size: .72rem;
+    font-size: 0.7rem;
     color: #8e8e93;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .dispatch-list-info strong {
-    font-size: .82rem;
+    font-size: 0.8rem;
     color: #1d1d1f;
     text-align: right;
+    word-break: break-word;
 }
-
-/* 검색 영역 */
 
 .dispatch-search-card {
-    border-radius: 18px;
+    overflow: hidden;
 }
 
-.dispatch-search-card .form-control,
-.dispatch-search-card .form-select {
-    border-radius: 14px;
+.dispatch-search-card .card-body {
+    padding: 16px;
 }
-
-/* 모바일 */
 
 @media (max-width: 767.98px) {
-
     .dispatch-search-card .card-body {
         padding: 12px !important;
     }
 
-    .dispatch-search-card .row {
-        --bs-gutter-y: 8px;
-    }
-
     .dispatch-list-info {
         gap: 4px;
+        margin-top: 6px;
     }
 
     .dispatch-list-info span {
-        font-size: .66rem;
+        font-size: 0.62rem;
     }
 
     .dispatch-list-info strong {
-        font-size: .74rem;
+        font-size: 0.72rem;
     }
 
     .dispatch-status-badge {
-        font-size: .62rem;
+        font-size: 0.58rem;
         padding: 4px 7px;
     }
 
     .portal-list-card-actions {
         grid-template-columns: 1fr;
-    }
-
-    .portal-list-card-actions .btn {
-        width: 100%;
     }
 }

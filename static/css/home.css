@@ -1,101 +1,19 @@
-/* ========================================
-   HOME HERO
-======================================== */
-
-.home-hero {
-    background: rgba(255,255,255,0.76);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 26px;
-
-    padding: 24px;
-
-    box-shadow:
-        0 18px 45px rgba(15,23,42,0.08),
-        inset 0 1px 1px rgba(255,255,255,0.9);
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 18px;
-
-    margin-top: 12px;
-}
-
-.home-eyebrow {
-    color: var(--app-primary);
-    font-size: 0.76rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.page-title {
-    font-size: 2rem;
-    font-weight: 850;
-    letter-spacing: -0.04em;
-    color: #1d1d1f;
-}
-
-.home-subtitle {
-    font-size: 0.92rem;
-    color: #6b7280;
-}
-
-.home-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 9px;
-}
-
-/* ========================================
-   SECTION
-======================================== */
-
 .manual-section {
     position: relative;
 }
 
 .section-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: end;
     gap: 16px;
     margin-bottom: 14px;
+    text-align: center;
 }
-
-.section-title {
-    color: #1d1d1f;
-    font-weight: 850;
-    letter-spacing: -0.03em;
-}
-
-.section-description {
-    color: var(--app-muted);
-    font-size: 0.86rem;
-}
-
-/* ========================================
-   CARD
-======================================== */
 
 .boeing-card,
 .airbus-card {
     border-top: 0;
-
-    background: rgba(255,255,255,0.78);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 22px;
-
-    box-shadow:
-        0 14px 34px rgba(15,23,42,0.07),
-        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .aircraft-card-header {
@@ -106,35 +24,28 @@
     margin-bottom: 14px;
 }
 
-.aircraft-maker {
-    color: var(--app-primary);
-    font-size: 0.68rem;
-    font-weight: 850;
-    letter-spacing: 0.1em;
-}
-
 .airbus-maker {
     color: #087990;
 }
 
 .aircraft-title {
     color: #1d1d1f;
-    font-size: 1.28rem;
+    font-size: 1.08rem;
     font-weight: 850;
     letter-spacing: -0.03em;
 }
 
 .aircraft-type-pill {
-    background: rgba(13,110,253,0.1);
+    background: rgba(13, 110, 253, 0.1);
     color: #0d6efd;
     border-radius: 999px;
     padding: 0.28rem 0.62rem;
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-weight: 850;
 }
 
 .airbus-pill {
-    background: rgba(13,202,240,0.18);
+    background: rgba(13, 202, 240, 0.18);
     color: #087990;
 }
 
@@ -145,17 +56,10 @@
     margin-bottom: 12px;
 }
 
-.manual-badge {
-    font-size: 0.68rem;
-    border-radius: 999px;
-    padding: 0.42em 0.58em;
-    font-weight: 750;
-}
-
 .manual-card-note {
-    min-height: 36px;
+    min-height: 34px;
     color: var(--app-muted);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     line-height: 1.4;
     margin-bottom: 14px;
 }
@@ -164,165 +68,6 @@
     display: grid;
     gap: 7px;
 }
-
-/* ========================================
-   TABLET
-   568 ~ 991
-======================================== */
-
-@media (max-width: 991.98px) {
-
-    .home-hero {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .home-actions {
-        justify-content: flex-start;
-    }
-
-    .page-title {
-        font-size: 1.6rem;
-    }
-
-    .aircraft-title {
-        font-size: 1.08rem;
-    }
-}
-
-/* ========================================
-   MOBILE
-   567 이하
-======================================== */
-
-@media (max-width: 567px) {
-
-    .home-hero {
-        border-radius: 18px;
-        padding: 14px 15px;
-        margin-top: 12px;
-        margin-bottom: 14px !important;
-
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-
-    .page-title {
-        font-size: 1.18rem;
-        line-height: 1.22;
-        margin-bottom: 3px !important;
-    }
-
-    .home-eyebrow {
-        font-size: 0.66rem;
-        margin-bottom: 2px !important;
-    }
-
-    .home-subtitle {
-        font-size: 0.72rem;
-    }
-
-    .home-actions {
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 7px;
-    }
-
-    .home-actions .app-action-btn {
-        min-height: 34px;
-        padding: 6px 8px;
-        font-size: 0.76rem;
-        border-radius: 11px;
-    }
-
-    .section-title {
-        font-size: 0.98rem;
-    }
-
-    .section-description {
-        font-size: 0.7rem;
-    }
-
-    .portal-card .card-body {
-        padding: 12px !important;
-    }
-
-    .boeing-card,
-    .airbus-card {
-        border-radius: 16px;
-    }
-
-    .aircraft-title {
-        font-size: 0.96rem;
-        line-height: 1.15;
-    }
-
-    .aircraft-maker {
-        font-size: 0.6rem;
-    }
-
-    .aircraft-type-pill {
-        font-size: 0.56rem;
-        padding: 4px 7px;
-    }
-
-    .manual-badge {
-        font-size: 0.58rem;
-        padding: 4px 6px;
-    }
-
-    .manual-card-note {
-        min-height: auto;
-        font-size: 0.7rem;
-        line-height: 1.35;
-    }
-
-    .card-button-group .app-card-btn {
-        min-height: 34px;
-        font-size: 0.76rem;
-        padding: 6px 8px;
-    }
-}
-
-/* ========================================
-   SMALL IPHONE
-======================================== */
-
-@media (max-width: 390px) {
-
-    .home-hero {
-        padding: 12px;
-    }
-
-    .page-title {
-        font-size: 1.08rem;
-    }
-
-    .home-actions .app-action-btn {
-        min-height: 32px;
-        font-size: 0.72rem;
-    }
-
-    .aircraft-title {
-        font-size: 0.9rem;
-    }
-
-    .manual-card-note {
-        font-size: 0.67rem;
-    }
-
-    .card-button-group .app-card-btn {
-        min-height: 32px;
-        font-size: 0.72rem;
-    }
-}
-
-/* ========================================
-   PAGE FIX
-======================================== */
 
 body.home-page .app-container {
     padding-bottom: 18px;
@@ -334,4 +79,59 @@ body.home-page .app-main {
 
 body.home-page .manual-section:last-child {
     margin-bottom: 0 !important;
+}
+
+@media (max-width: 567px) {
+    .home-page .page-hero {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .home-page .page-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .home-page .page-actions .app-action-btn {
+        width: 100% !important;
+        min-height: 34px;
+        font-size: 0.74rem;
+        border-radius: 11px !important;
+    }
+
+    .section-header {
+        margin-bottom: 10px;
+    }
+
+    .aircraft-card-header {
+        margin-bottom: 10px;
+    }
+
+    .aircraft-title {
+        font-size: 0.94rem;
+        line-height: 1.15;
+    }
+
+    .aircraft-type-pill {
+        font-size: 0.56rem;
+        padding: 4px 7px;
+    }
+
+    .manual-badge-wrap {
+        gap: 4px;
+        margin-bottom: 9px;
+    }
+
+    .manual-card-note {
+        min-height: auto;
+        font-size: 0.68rem;
+        line-height: 1.35;
+        margin-bottom: 10px;
+    }
+
+    .card-button-group {
+        gap: 6px;
+    }
 }

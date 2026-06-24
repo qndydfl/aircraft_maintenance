@@ -49,8 +49,10 @@ let viewerSearchQuery = searchQuery || "";
 let viewerSearchMatches = [];
 let viewerSearchIndex = -1;
 
+
 let scale = 1.0;
 let scaleMode = isMobileViewport() ? "width" : "page";
+let renderRequestId = 0;
 
 function isMobileViewport() {
     return window.innerWidth < 768;
@@ -114,7 +116,13 @@ function escapeRegExp(value) {
 }
 
 function clearTextLayer() {
+    if (!textLayer) {
+        return;
+    }
+
     textLayer.innerHTML = "";
+    textLayer.style.width = "0px";
+    textLayer.style.height = "0px";
 }
 
 function normalizeText(value) {
@@ -176,13 +184,22 @@ function updateZoomLabel(value) {
     zoomLevelSpan.textContent = Math.round(value * 100) + "%";
 }
 
-function renderTextLayer(page, viewport) {
-    clearTextLayer();
+function renderTextLayer(page, viewport, requestId) {
+    if (!textLayer || requestId !== renderRequestId) {
+        return;
+    }
 
+    textLayer.innerHTML = "";
     textLayer.style.width = viewport.width + "px";
     textLayer.style.height = viewport.height + "px";
+    textLayer.style.left = "0";
+    textLayer.style.top = "0";
 
     page.getTextContent().then(function (textContent) {
+        if (requestId !== renderRequestId) {
+            return;
+        }
+
         textContent.items.forEach(function (item) {
             const span = document.createElement("span");
             const text = item.str || "";
@@ -194,15 +211,14 @@ function renderTextLayer(page, viewport) {
                 item.transform
             );
 
-            const x = transform[4];
-            const y = transform[5];
+            const fontHeight = Math.hypot(transform[2], transform[3]);
+            const fontWidthScale =
+                Math.hypot(transform[0], transform[1]) / Math.max(fontHeight, 1);
 
-            span.style.left = x + "px";
-            span.style.top = y + "px";
-            span.style.fontSize = Math.abs(transform[0]) + "px";
-
-            span.style.transform =
-                "scaleX(" + transform[0] / Math.abs(transform[0] || 1) + ")";
+            span.style.left = transform[4] + "px";
+            span.style.top = transform[5] - fontHeight + "px";
+            span.style.fontSize = fontHeight + "px";
+            span.style.transform = "scaleX(" + fontWidthScale + ")";
 
             if (isMatchedText(text)) {
                 span.classList.add("highlight-text");
@@ -215,9 +231,15 @@ function renderTextLayer(page, viewport) {
 
 function renderPage(pageNumber) {
     pageRendering = true;
+
+    const requestId = ++renderRequestId;
     clearTextLayer();
 
     pdfDoc.getPage(pageNumber).then(function (page) {
+        if (requestId !== renderRequestId) {
+            return;
+        }
+
         const pageScale = getFitScale(page);
         const viewport = page.getViewport({ scale: pageScale });
 
@@ -226,6 +248,9 @@ function renderPage(pageNumber) {
 
         canvas.style.width = viewport.width + "px";
         canvas.style.height = viewport.height + "px";
+
+        singlePageViewer.style.width = viewport.width + "px";
+        singlePageViewer.style.height = viewport.height + "px";
 
         textLayer.style.width = viewport.width + "px";
         textLayer.style.height = viewport.height + "px";
@@ -236,7 +261,11 @@ function renderPage(pageNumber) {
         });
 
         renderTask.promise.then(function () {
-            renderTextLayer(page, viewport);
+            if (requestId !== renderRequestId) {
+                return;
+            }
+
+            renderTextLayer(page, viewport, requestId);
             updateZoomLabel(pageScale);
 
             pageRendering = false;
@@ -250,8 +279,8 @@ function renderPage(pageNumber) {
     });
 
     pageNumberInput.value = pageNumber;
-    const mobilePageCurrent =
-        document.getElementById("mobile-page-current");
+
+    const mobilePageCurrent = document.getElementById("mobile-page-current");
 
     if (mobilePageCurrent) {
         mobilePageCurrent.textContent = pageNumber;
@@ -803,8 +832,9 @@ function createTextLayerForPage(page, viewport, wrapper) {
     layer.style.width = viewport.width + "px";
     layer.style.height = viewport.height + "px";
     layer.style.zIndex = "2";
-    layer.style.opacity = "0.25";
+    layer.style.opacity = "1";
     layer.style.lineHeight = "1";
+    layer.style.overflow = "hidden";
 
     wrapper.appendChild(layer);
 
@@ -820,15 +850,18 @@ function createTextLayerForPage(page, viewport, wrapper) {
                 item.transform
             );
 
+            const fontHeight = Math.hypot(transform[2], transform[3]);
+            const fontWidthScale =
+                Math.hypot(transform[0], transform[1]) / Math.max(fontHeight, 1);
+
             span.style.position = "absolute";
             span.style.whiteSpace = "pre";
-            span.style.transformOrigin = "0% 0%";
+            span.style.transformOrigin = "0 0";
             span.style.color = "transparent";
             span.style.left = transform[4] + "px";
-            span.style.top = transform[5] + "px";
-            span.style.fontSize = Math.abs(transform[0]) + "px";
-            span.style.transform =
-                "scaleX(" + transform[0] / Math.abs(transform[0] || 1) + ")";
+            span.style.top = transform[5] - fontHeight + "px";
+            span.style.fontSize = fontHeight + "px";
+            span.style.transform = "scaleX(" + fontWidthScale + ")";
 
             if (isMatchedText(text)) {
                 span.classList.add("highlight-text");

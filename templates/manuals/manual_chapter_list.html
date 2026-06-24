@@ -15,9 +15,9 @@ chapter-page
 
 {% block content %}
 
-<div class="portal-chapter-hero">
+<div class="page-hero">
     <div class="portal-chapter-hero-content">
-        <p class="home-eyebrow text-uppercase text-primary fw-bold mb-1 small">
+        <p class="page-eyebrow text-uppercase text-primary fw-bold mb-1 small">
             {{ package.manual_type }}
         </p>
 
@@ -25,12 +25,12 @@ chapter-page
             {{ package.aircraft.name }} Chapters
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle small">
+        <p class="text-muted mb-0 page-subtitle small">
             ZIP index.html에서 추출된 chapter 목록입니다.
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         <a href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
             class="btn btn-outline-secondary app-action-btn">
             Back

@@ -1,0 +1,206 @@
+.page-hero {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 22px;
+    padding: 18px 20px;
+    box-shadow:
+        0 14px 34px rgba(15, 23, 42, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.page-eyebrow {
+    color: var(--app-primary);
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.page-title {
+    font-size: 1.45rem;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    color: #1d1d1f;
+}
+
+.page-subtitle {
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+.page-actions {
+    margin-left: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.portal-card,
+.portal-detail-card,
+.manual-group-card,
+.candidate-card,
+.portal-list-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 18px;
+    box-shadow:
+        0 10px 26px rgba(15, 23, 42, 0.07),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+}
+
+.portal-card:hover {
+    transform: none;
+}
+
+.portal-card .card-body {
+    padding: 16px;
+}
+
+.app-action-btn {
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 750;
+    padding: 0.45rem 0.85rem;
+    white-space: nowrap;
+}
+
+.app-card-btn {
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 780;
+    padding: 0.5rem 0.8rem;
+}
+
+.app-form-control,
+.form-control,
+.form-select {
+    border-radius: 13px;
+    font-size: 0.88rem;
+}
+
+.form-label {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #4b5563;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+    color: #1d1d1f;
+}
+
+.section-description {
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+.manual-badge,
+.portal-list-badge,
+.portal-detail-pill {
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    padding: 5px 8px;
+}
+
+.dispatch-mini-grid div,
+.manual-group-info div,
+.dispatch-info-item,
+.dispatch-reference-item,
+.portal-detail-info > div,
+.delete-info div {
+    background: rgba(248, 250, 252, 0.86);
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    border-radius: 13px;
+}
+
+@media (max-width: 767.98px) {
+    .page-hero {
+        padding: 13px 14px;
+        border-radius: 17px;
+        gap: 10px;
+        margin-top: 8px;
+        margin-bottom: 12px !important;
+    }
+
+    .page-title {
+        font-size: 1.08rem;
+        line-height: 1.2;
+        margin-bottom: 3px !important;
+    }
+
+    .page-eyebrow {
+        font-size: 0.62rem;
+        margin-bottom: 2px !important;
+    }
+
+    .page-subtitle,
+    .section-description {
+        font-size: 0.7rem;
+    }
+
+    .page-actions {
+        width: auto;
+        flex: 0 0 auto;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    .page-actions .app-action-btn {
+        width: auto !important;
+        min-height: 30px;
+        padding: 5px 10px !important;
+        font-size: 0.72rem;
+        border-radius: 999px !important;
+    }
+
+    .portal-card,
+    .portal-detail-card,
+    .manual-group-card,
+    .candidate-card,
+    .portal-list-card {
+        border-radius: 15px;
+    }
+
+    .portal-card .card-body {
+        padding: 12px !important;
+    }
+
+    .app-card-btn {
+        min-height: 34px;
+        font-size: 0.74rem;
+        padding: 6px 8px;
+        border-radius: 10px;
+    }
+
+    .app-form-control,
+    .form-control,
+    .form-select {
+        min-height: 38px;
+        font-size: 0.78rem;
+        border-radius: 11px;
+    }
+
+    .form-label {
+        font-size: 0.7rem;
+        margin-bottom: 4px;
+    }
+
+    .section-title {
+        font-size: 0.94rem;
+    }
+}

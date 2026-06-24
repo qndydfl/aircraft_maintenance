@@ -12,10 +12,10 @@ list-page dispatch-list-page
 
 {% block content %}
 
-<div class="portal-list-hero mb-4">
+<div class="page-hero mb-4">
 
     <div>
-        <p class="home-eyebrow mb-1">
+        <p class="page-eyebrow mb-1">
             DISPATCH
         </p>
 
@@ -23,12 +23,12 @@ list-page dispatch-list-page
             Dispatch List
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             등록된 Dispatch Reference 목록
         </p>
     </div>
 
-    <div class="portal-list-actions">
+    <div class="page-actions">
 
         {% if user.is_staff %}
         <a href="{% url 'dispatch_create' %}"

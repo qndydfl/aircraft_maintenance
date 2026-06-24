@@ -24,44 +24,20 @@ class DispatchReference(models.Model):
     description = models.TextField(blank=True, default="")
     note = models.TextField(blank=True, default="")
 
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    updated_at = models.DateTimeField(auto_now=True)
-
     mel_page_number = models.PositiveIntegerField(null=True, blank=True)
-
     fim_page_number = models.PositiveIntegerField(null=True, blank=True)
-
     amm_page_number = models.PositiveIntegerField(null=True, blank=True)
 
     mel_manual_file_id = models.PositiveIntegerField(null=True, blank=True)
-
     fim_chapter_id = models.PositiveIntegerField(null=True, blank=True)
-
     amm_chapter_id = models.PositiveIntegerField(null=True, blank=True)
 
-    amm_task_ref = models.CharField(max_length=100, blank=True)
-
-    fim_task_ref = models.CharField(max_length=100, blank=True)
-
-    mel_ref = models.CharField(max_length=100, blank=True)
-
-    status_message = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = [
-            "aircraft",
-            "eicas_message",
-            "fault_code",
-        ]
-
-        unique_together = [
-            [
-                "aircraft",
-                "eicas_message",
-                "fault_code",
-            ]
-        ]
+        ordering = ["aircraft", "eicas_message", "fault_code"]
+        unique_together = [["aircraft", "eicas_message", "fault_code"]]
 
     def __str__(self):
         if self.eicas_message:
@@ -79,18 +55,21 @@ class DispatchKeywordDictionary(models.Model):
 
     keyword = models.CharField(max_length=255)
     related_keywords = models.TextField(
-        blank=True, help_text="쉼표로 구분: PACK, AIR CONDITIONING, BLEED"
+        blank=True,
+        help_text="쉼표로 구분: PACK, AIR CONDITIONING, BLEED",
     )
-
     category = models.CharField(
-        max_length=20, choices=CATEGORY_CHOICES, default="EICAS"
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default="EICAS",
     )
-
     description = models.TextField(blank=True)
 
     def get_related_list(self):
         return [
-            item.strip() for item in self.related_keywords.split(",") if item.strip()
+            item.strip()
+            for item in self.related_keywords.split(",")
+            if item.strip()
         ]
 
     def __str__(self):
@@ -98,7 +77,6 @@ class DispatchKeywordDictionary(models.Model):
 
 
 class MelDispatchItem(models.Model):
-
     aircraft = models.ForeignKey(
         Aircraft,
         on_delete=models.CASCADE,
@@ -115,46 +93,18 @@ class MelDispatchItem(models.Model):
 
     message = models.CharField(max_length=255, db_index=True)
 
-    level = models.CharField(
-        max_length=10,
-        blank=True,
-        default="",
-    )
+    level = models.CharField(max_length=10, blank=True, default="")
+    condition = models.TextField(blank=True, default="")
+    mel_item = models.CharField(max_length=50, blank=True, default="", db_index=True)
+    adc = models.CharField(max_length=50, blank=True, default="")
 
-    condition = models.TextField(
-        blank=True,
-        default="",
-    )
-
-    mel_item = models.CharField(
-        max_length=50,
-        blank=True,
-        default="",
-        db_index=True,
-    )
-
-    adc = models.CharField(
-        max_length=50,
-        blank=True,
-        default="",
-    )
-
-    page_number = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-    )
+    page_number = models.PositiveIntegerField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = [
-            "message",
-            "mel_item",
-            "page_number",
-        ]
-
+        ordering = ["message", "mel_item", "page_number"]
         constraints = [
             models.UniqueConstraint(
                 fields=[

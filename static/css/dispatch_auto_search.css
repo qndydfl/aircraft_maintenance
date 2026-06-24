@@ -1,28 +1,9 @@
-/* dispatch_auto_search.css */
-
-body.dispatch-search-page .portal-hero {
-    margin-top: 12px;
-}
-
-body.dispatch-search-page .app-container {
-    padding-bottom: 8px;
-}
-
 body.dispatch-search-page .app-main {
     min-height: auto;
 }
 
-.app-form-control {
-    min-height: 42px;
-    border-radius: 14px;
-    font-size: 0.92rem;
-}
-
-.dispatch-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-end;
+body.dispatch-search-page .app-container {
+    padding-bottom: 8px;
 }
 
 .dispatch-ref-list,
@@ -32,28 +13,18 @@ body.dispatch-search-page .app-main {
 }
 
 .dispatch-ref-card,
-.mel-result-card,
-.candidate-card {
-    background: rgba(255,255,255,0.78);
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 16px;
-    box-shadow:
-        0 10px 26px rgba(15,23,42,0.07),
-        inset 0 1px 1px rgba(255,255,255,0.9);
-}
-
-.dispatch-ref-card,
 .mel-result-card {
     padding: 13px;
-}
-
-.candidate-card {
-    border-top: 0;
-    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 15px;
+    box-shadow:
+        0 8px 22px rgba(15, 23, 42, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 .dispatch-card-title {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 850;
     color: #1d1d1f;
 }
@@ -63,13 +34,6 @@ body.dispatch-search-page .app-main {
     grid-template-columns: repeat(2, 1fr);
     gap: 7px;
     margin-bottom: 10px;
-}
-
-.dispatch-mini-grid div,
-.mel-condition-box {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
 }
 
 .dispatch-mini-grid div {
@@ -82,10 +46,6 @@ body.dispatch-search-page .app-main {
     font-size: 0.64rem;
     font-weight: 850;
     color: #8e8e93;
-}
-
-.dispatch-mini-grid span {
-    margin-bottom: 2px;
 }
 
 .dispatch-mini-grid strong {
@@ -105,10 +65,6 @@ body.dispatch-search-page .app-main {
     margin-bottom: 10px;
 }
 
-.mel-condition-box span {
-    margin-bottom: 4px;
-}
-
 .mel-condition-box p {
     margin: 0;
     font-size: 0.76rem;
@@ -123,15 +79,16 @@ body.dispatch-search-page .app-main {
 }
 
 .candidate-snippet {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 12px;
-    font-size: 0.84rem;
-    line-height: 1.55;
+    margin-top: 10px;
     max-height: 180px;
     overflow-y: auto;
-    margin-top: 10px;
+    background: rgba(248, 250, 252, 0.9);
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    border-radius: 13px;
+    padding: 12px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #334155;
 }
 
 .candidate-pager {
@@ -142,50 +99,33 @@ body.dispatch-search-page .app-main {
     margin-top: 12px;
 }
 
-@media (max-width: 767.98px) {
-    body.dispatch-search-page .portal-hero {
-        margin-top: 10px;
-    }
+.candidate-pager .badge {
+    border-radius: 999px;
+    font-weight: 800;
+}
 
+body.dispatch-search-page table {
+    font-size: 0.88rem;
+}
+
+body.dispatch-search-page table th {
+    color: #6b7280;
+    font-size: 0.76rem;
+    font-weight: 850;
+}
+
+.mel-condition {
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 767.98px) {
     body.dispatch-search-page .app-container {
         padding-bottom: 0;
     }
 
-    .portal-card .card-body,
-    .candidate-card .card-body {
-        padding: 10px !important;
-    }
-
-    .app-form-control {
-        min-height: 38px;
-        font-size: 0.8rem;
-        border-radius: 11px;
-    }
-
-    .form-label {
-        font-size: 0.72rem;
-        font-weight: 800;
-        margin-bottom: 4px;
-    }
-
-    .app-card-btn {
-        min-height: 34px;
-        font-size: 0.76rem;
-        padding: 6px 8px;
-        border-radius: 11px;
-    }
-
-    .candidate-card {
-        border-radius: 14px;
-        margin-bottom: 10px !important;
-    }
-
-    .candidate-card .form-check {
-        margin-bottom: 6px !important;
-    }
-
-    .candidate-card .form-check-label {
-        font-size: 0.72rem;
+    body.dispatch-search-page .portal-card {
+        margin-bottom: 12px !important;
     }
 
     .candidate-top {
@@ -203,24 +143,14 @@ body.dispatch-search-page .app-main {
 
     .candidate-top .app-card-btn {
         width: 100%;
-        min-height: 30px;
-        font-size: 0.7rem;
-        padding: 5px 8px;
-        border-radius: 10px;
     }
 
     .candidate-snippet {
-        max-height: 90px;
+        max-height: 96px;
         font-size: 0.68rem;
         line-height: 1.4;
         padding: 8px;
-        margin-top: 7px;
         border-radius: 10px;
-    }
-
-    .candidate-pager {
-        margin-top: 8px;
-        gap: 5px;
     }
 
     .candidate-pager .app-card-btn {
@@ -235,17 +165,61 @@ body.dispatch-search-page .app-main {
         padding: 5px 7px;
     }
 
-    .dispatch-mini-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
+    
+    .mel-compact-card {
+        padding: 8px 9px;
+        border-radius: 12px;
     }
 
-    .dispatch-card-actions .app-card-btn {
-        width: 100%;
+    .mel-compact-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
     }
 
-    .section-title {
-        font-size: 1rem;
-        margin-bottom: 8px !important;
+    .mel-compact-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .mel-compact-meta span {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        padding: 3px 7px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        color: #374151;
+    }
+
+    .mel-open-btn {
+        flex: 0 0 auto;
+        min-height: 28px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 800;
+    }
+
+    .mel-condition-details {
+        margin-top: 6px;
+        font-size: 0.68rem;
+    }
+
+    .mel-condition-details summary {
+        color: #6b7280;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .mel-condition-details p {
+        margin: 6px 0 0;
+        padding: 8px;
+        background: #f8fafc;
+        border-radius: 10px;
+        color: #374151;
+        line-height: 1.4;
     }
 }

@@ -23,6 +23,9 @@ from .models import (
     CommonManualCategory,
     CommonManualFile,
     CommonManualPDFPage,
+    OtherManualFile,
+    OtherManualCategory,
+    OtherManualPDFPage,
 )
 from .forms import (
     ManualFileForm,
@@ -30,6 +33,8 @@ from .forms import (
     ManualPackageForm,
     CommonManualCategoryForm,
     CommonManualFileForm,
+    OtherManualCategoryForm,
+    OtherManualFileForm,
 )
 
 from django.contrib import messages
@@ -46,12 +51,14 @@ from .services import (
     parse_manual_search_query,
     build_manual_text_regex,
     index_pdf_pages_for_common_manual_file_safely,
+    index_pdf_pages_for_other_manual_file_safely,
 )
 from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.views import View
+from urllib.parse import urlencode
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -69,13 +76,23 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context["boeing_aircrafts"] = (
             Aircraft.objects.filter(maker="BOEING")
             .order_by("name")
-            .prefetch_related("manuals", "manual_packages")
+            .prefetch_related(
+                "manuals",
+                "manual_packages",
+                "other_categories",
+                "other_categories__files",
+            )
         )
 
         context["airbus_aircrafts"] = (
             Aircraft.objects.filter(maker="AIRBUS")
             .order_by("name")
-            .prefetch_related("manuals", "manual_packages")
+            .prefetch_related(
+                "manuals",
+                "manual_packages",
+                "other_categories",
+                "other_categories__files",
+            )
         )
 
         context["common_categories"] = CommonManualCategory.objects.prefetch_related(
@@ -99,6 +116,8 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
         return Aircraft.objects.order_by("name").prefetch_related(
             "manuals",
             Prefetch("manual_packages", queryset=package_queryset),
+            "other_categories",
+            "other_categories__files",
         )
 
 
@@ -107,8 +126,34 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
     form_class = ManualFileForm
     template_name = "manuals/manual_file_form.html"
 
+    def get_initial(self):
+        initial = super().get_initial()
+
+        aircraft_id = self.request.GET.get("aircraft")
+        manual_type = self.request.GET.get("manual_type")
+
+        if aircraft_id:
+            initial["aircraft"] = aircraft_id
+
+        if manual_type:
+            initial["manual_type"] = manual_type
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.request.GET.get("aircraft"):
+            form.fields["aircraft"].disabled = True
+
+        if self.request.GET.get("manual_type"):
+            form.fields["manual_type"].disabled = True
+
+        return form
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         aircraft_id = self.request.GET.get("aircraft")
 
         if aircraft_id:
@@ -127,7 +172,14 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
         try:
             page_count = index_pdf_pages_for_manual_file_safely(self.object)
 
-            if page_count:
+            if self.object.manual_type == "MEL":
+                mel_count = extract_mel_dispatch_items_from_pdf(self.object)
+
+                messages.success(
+                    self.request,
+                    f"MEL PDF Page {page_count}개 인덱싱, Dispatch Item {mel_count}개 추출 완료",
+                )
+            elif page_count:
                 messages.success(
                     self.request,
                     f"{self.object.manual_type} PDF Page {page_count}개 인덱싱 완료",
@@ -498,6 +550,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         package_pages = []
         file_pages = []
         common_pages = []
+        other_pages = []
 
         if query:
             package_pages_qs = ManualPDFPage.objects.select_related(
@@ -516,12 +569,21 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 "common_file__category",
             )
 
+            other_pages_qs = OtherManualPDFPage.objects.select_related(
+                "other_file",
+                "other_file__category",
+                "other_file__category__aircraft",
+            )
+
             if aircraft_id:
                 package_pages_qs = package_pages_qs.filter(
                     chapter__package__aircraft_id=aircraft_id
                 )
                 file_pages_qs = file_pages_qs.filter(
                     manual_file__aircraft_id=aircraft_id
+                )
+                other_pages_qs = other_pages_qs.filter(
+                    other_file__category__aircraft_id=aircraft_id
                 )
 
             if manual_type:
@@ -531,18 +593,25 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     )
                     file_pages_qs = ManualFilePDFPage.objects.none()
                     common_pages_qs = CommonManualPDFPage.objects.none()
+                    other_pages_qs = OtherManualPDFPage.objects.none()
 
-                elif manual_type in ["MEL", "CDL", "OTHER"]:
+                elif manual_type in ["MEL", "CDL"]:
                     file_pages_qs = file_pages_qs.filter(
                         manual_file__manual_type=manual_type
                     )
                     package_pages_qs = ManualPDFPage.objects.none()
                     common_pages_qs = CommonManualPDFPage.objects.none()
+                    other_pages_qs = OtherManualPDFPage.objects.none()
 
-                elif manual_type == "COMMON":
-                    common_pages_qs = common_pages_qs
+                elif manual_type == "OTHER":
                     package_pages_qs = ManualPDFPage.objects.none()
                     file_pages_qs = ManualFilePDFPage.objects.none()
+                    common_pages_qs = CommonManualPDFPage.objects.none()
+
+                elif manual_type == "COMMON":
+                    package_pages_qs = ManualPDFPage.objects.none()
+                    file_pages_qs = ManualFilePDFPage.objects.none()
+                    other_pages_qs = OtherManualPDFPage.objects.none()
 
             search_value, match_mode = parse_manual_search_query(query)
 
@@ -553,22 +622,39 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     package_pages_qs = package_pages_qs.filter(
                         text__icontains=search_value
                     )
-                    file_pages_qs = file_pages_qs.filter(text__icontains=search_value)
+                    file_pages_qs = file_pages_qs.filter(
+                        text__icontains=search_value
+                    )
                     common_pages_qs = common_pages_qs.filter(
+                        text__icontains=search_value
+                    )
+                    other_pages_qs = other_pages_qs.filter(
                         text__icontains=search_value
                     )
 
                 else:
-                    package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
-                    file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
-                    common_pages_qs = common_pages_qs.filter(text__iregex=text_regex)
+                    package_pages_qs = package_pages_qs.filter(
+                        text__iregex=text_regex
+                    )
+                    file_pages_qs = file_pages_qs.filter(
+                        text__iregex=text_regex
+                    )
+                    common_pages_qs = common_pages_qs.filter(
+                        text__iregex=text_regex
+                    )
+                    other_pages_qs = other_pages_qs.filter(
+                        text__iregex=text_regex
+                    )
 
                 package_pages = list(package_pages_qs)
                 file_pages = list(file_pages_qs)
                 common_pages = list(common_pages_qs)
+                other_pages = list(other_pages_qs)
 
                 highlight_query = " ".join(
-                    part.strip() for part in search_value.split("*") if part.strip()
+                    part.strip()
+                    for part in search_value.split("*")
+                    if part.strip()
                 )
 
                 for page in package_pages:
@@ -580,6 +666,10 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     page.score = calculate_file_score(page, highlight_query)
 
                 for page in common_pages:
+                    page.snippet = page.get_snippet(highlight_query)
+                    page.score = 50
+
+                for page in other_pages:
                     page.snippet = page.get_snippet(highlight_query)
                     page.score = 50
 
@@ -612,6 +702,16 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     ),
                 )
 
+                other_pages = sorted(
+                    other_pages,
+                    key=lambda page: (
+                        page.other_file.category.aircraft.name,
+                        page.other_file.category.name,
+                        page.other_file.title,
+                        page.page_number,
+                    ),
+                )
+
         grouped_results = {
             "AMM": [],
             "FIM": [],
@@ -633,9 +733,13 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
             if page_manual_type in grouped_results:
                 grouped_results[page_manual_type].append(page)
 
+        for page in other_pages:
+            grouped_results["OTHER"].append(page)
+
         context["package_pages"] = package_pages
         context["file_pages"] = file_pages
         context["common_pages"] = common_pages
+        context["other_pages"] = other_pages
         context["grouped_results"] = grouped_results
 
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
@@ -677,11 +781,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
             f"{chapter.task}"
         )
         context["viewer_subtitle"] = chapter.title or "PDF Viewer"
-
-        context["pdf_url"] = reverse(
-            "manual_chapter_pdf",
-            kwargs={"pk": chapter.pk},
-        )
+        context["pdf_url"] = reverse("manual_chapter_pdf", kwargs={"pk": chapter.pk})
 
         if back_url:
             context["back_url"] = back_url
@@ -693,6 +793,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
 
         back_url_lower = (back_url or "").lower()
         from_search_flag = self.request.GET.get("from_search_page", "").lower()
+
         context["from_search_page"] = (
             from_search_flag in {"1", "true", "yes"}
             or "manual-search" in back_url_lower
@@ -712,6 +813,23 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
 
+        def build_viewer_query_params(page):
+            params = {
+                "page": page,
+                "mode": view_mode,
+            }
+
+            if query:
+                params["q"] = query
+
+            if context["from_search_page"]:
+                params["from_search_page"] = "1"
+
+            if back_url:
+                params["back"] = back_url
+
+            return urlencode(params)
+
         all_chapters = ManualChapter.objects.filter(package=chapter.package).order_by(
             "task", "subtask"
         )
@@ -726,12 +844,9 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                     "subtask": ch.subtask or "",
                     "title": ch.title or "",
                     "viewer_url": (
-                        reverse(
-                            "manual_chapter_pdf_viewer",
-                            kwargs={"pk": ch.pk},
-                        )
-                        + "?page=1"
-                        + (f"&q={query}" if query else "")
+                        reverse("manual_chapter_pdf_viewer", kwargs={"pk": ch.pk})
+                        + "?"
+                        + build_viewer_query_params(1)
                     ),
                 }
             )
@@ -786,6 +901,9 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                             current_index = index
                             break
 
+                if current_index is None and matches:
+                    current_index = 0
+
                 if current_index is not None:
                     context["current_match_index"] = current_index + 1
 
@@ -796,7 +914,8 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                                 "manual_chapter_pdf_viewer",
                                 kwargs={"pk": prev_item["chapter_id"]},
                             )
-                            + f"?page={prev_item['page_number']}&q={query}&mode={view_mode}"
+                            + "?"
+                            + build_viewer_query_params(prev_item["page_number"])
                         )
 
                     if current_index < len(matches) - 1:
@@ -806,7 +925,8 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                                 "manual_chapter_pdf_viewer",
                                 kwargs={"pk": next_item["chapter_id"]},
                             )
-                            + f"?page={next_item['page_number']}&q={query}&mode={view_mode}"
+                            + "?"
+                            + build_viewer_query_params(next_item["page_number"])
                         )
 
                 matching_pages_list = [
@@ -848,6 +968,7 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
 
         back_url_lower = (back_url or "").lower()
         from_search_flag = self.request.GET.get("from_search_page", "").lower()
+
         context["from_search_page"] = (
             from_search_flag in {"1", "true", "yes"}
             or "manual-search" in back_url_lower
@@ -867,6 +988,23 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
         context["package_chapters_json"] = json.dumps([])
+
+        def build_viewer_query_params(page):
+            params = {
+                "page": page,
+                "mode": view_mode,
+            }
+
+            if query:
+                params["q"] = query
+
+            if context["from_search_page"]:
+                params["from_search_page"] = "1"
+
+            if back_url:
+                params["back"] = back_url
+
+            return urlencode(params)
 
         if query:
             search_value, match_mode = parse_manual_search_query(query)
@@ -916,7 +1054,8 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                                 "manual_file_pdf_viewer",
                                 kwargs={"pk": manual.pk},
                             )
-                            + f"?page={prev_page_number}&q={query}&mode={view_mode}"
+                            + "?"
+                            + build_viewer_query_params(prev_page_number)
                         )
 
                     if current_index < len(matching_pages_list) - 1:
@@ -926,7 +1065,8 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                                 "manual_file_pdf_viewer",
                                 kwargs={"pk": manual.pk},
                             )
-                            + f"?page={next_page_number}&q={query}&mode={view_mode}"
+                            + "?"
+                            + build_viewer_query_params(next_page_number)
                         )
 
         return context
@@ -1460,3 +1600,483 @@ class CommonManualCategoryDeleteView(
 
     def get_success_url(self):
         return reverse("home")
+
+class OtherManualCategoryCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+    model = OtherManualCategory
+    form_class = OtherManualCategoryForm
+    template_name = "manuals/other_manual_category_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        aircraft_id = request.GET.get("aircraft")
+
+        if aircraft_id:
+            existing_category = OtherManualCategory.objects.filter(
+                aircraft_id=aircraft_id
+            ).first()
+
+            if existing_category:
+                return redirect(
+                    "other_manual_category_detail",
+                    pk=existing_category.pk,
+                )
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        aircraft_id = self.request.GET.get("aircraft")
+
+        if aircraft_id:
+            initial["aircraft"] = aircraft_id
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.request.GET.get("aircraft"):
+            form.fields["aircraft"].disabled = True
+
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        aircraft_id = self.request.GET.get("aircraft")
+
+        if aircraft_id:
+            context["back_url"] = reverse_lazy(
+                "aircraft_manual_detail",
+                kwargs={"pk": aircraft_id},
+            )
+        else:
+            context["back_url"] = reverse_lazy("home")
+
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.pk},
+        )
+
+
+class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
+    model = OtherManualCategory
+    template_name = "manuals/other_manual_category_detail.html"
+    context_object_name = "category"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["files"] = OtherManualFile.objects.filter(
+            category=self.object
+        ).order_by("title")
+
+        context["back_url"] = reverse_lazy(
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
+        )
+
+        return context
+
+
+class OtherManualCategoryUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+    model = OtherManualCategory
+    form_class = OtherManualCategoryForm
+    template_name = "manuals/other_manual_category_form.html"
+    context_object_name = "category"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["back_url"] = reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.pk},
+        )
+
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.pk},
+        )
+
+
+class OtherManualCategoryDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
+    model = OtherManualCategory
+    template_name = "common/delete_confirm.html"
+    context_object_name = "category"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            "delete_type": "OTHER FOLDER",
+            "delete_title": self.object.name,
+            "delete_message": "OTHER 폴더를 삭제하시겠습니까?",
+            "warning_message": "폴더 안의 업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
+            "back_url": reverse(
+                "aircraft_manual_detail",
+                kwargs={"pk": self.object.aircraft.pk},
+            ),
+        })
+
+        return context
+
+    def form_valid(self, form):
+        for other_file in self.object.files.all():
+            if other_file.file:
+                other_file.file.delete(save=False)
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "aircraft_manual_detail",
+            kwargs={"pk": self.object.aircraft.pk},
+        )
+
+
+class OtherManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+    model = OtherManualFile
+    form_class = OtherManualFileForm
+    template_name = "manuals/other_manual_file_form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        category_id = self.request.GET.get("category")
+
+        if category_id:
+            initial["category"] = category_id
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.request.GET.get("category"):
+            form.fields["category"].disabled = True
+
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        category_id = self.request.GET.get("category")
+
+        if category_id:
+            context["back_url"] = reverse_lazy(
+                "other_manual_category_detail",
+                kwargs={"pk": category_id},
+            )
+        else:
+            context["back_url"] = reverse_lazy("home")
+
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        try:
+            page_count = index_pdf_pages_for_other_manual_file_safely(self.object)
+
+            if page_count:
+                messages.success(
+                    self.request,
+                    f"OTHER PDF Page {page_count}개 인덱싱 완료",
+                )
+            else:
+                messages.info(
+                    self.request,
+                    "업로드는 완료되었지만 인덱싱할 PDF 페이지가 없습니다.",
+                )
+
+        except Exception as error:
+            messages.warning(
+                self.request,
+                f"업로드는 완료되었지만 PDF 인덱싱 실패: {error}",
+            )
+
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+
+class OtherManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+    model = OtherManualFile
+    form_class = OtherManualFileForm
+    template_name = "manuals/other_manual_file_form.html"
+    context_object_name = "other_file"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["back_url"] = reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+        return context
+
+    def form_valid(self, form):
+        old_file = None
+
+        if self.object.pk:
+            old_instance = OtherManualFile.objects.get(pk=self.object.pk)
+            old_file = old_instance.file
+
+        response = super().form_valid(form)
+
+        if old_file and self.object.file and old_file.name != self.object.file.name:
+            old_file.delete(save=False)
+
+        try:
+            page_count = index_pdf_pages_for_other_manual_file_safely(self.object)
+
+            if page_count:
+                messages.success(
+                    self.request,
+                    f"OTHER PDF Page {page_count}개 재인덱싱 완료",
+                )
+            else:
+                messages.info(
+                    self.request,
+                    "수정은 완료되었지만 인덱싱할 PDF 페이지가 없습니다.",
+                )
+
+        except Exception as error:
+            messages.warning(
+                self.request,
+                f"수정은 완료되었지만 PDF 인덱싱 실패: {error}",
+            )
+
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+
+
+class OtherManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
+    model = OtherManualFile
+    template_name = "common/delete_confirm.html"
+    context_object_name = "other_file"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            "delete_type": "OTHER FILE",
+            "delete_title": self.object.title,
+            "delete_message": "OTHER 파일을 삭제하시겠습니까?",
+            "warning_message": "업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
+            "back_url": reverse(
+                "other_manual_category_detail",
+                kwargs={"pk": self.object.category.pk},
+            ),
+        })
+
+        return context
+
+    def form_valid(self, form):
+        if self.object.file:
+            self.object.file.delete(save=False)
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "other_manual_category_detail",
+            kwargs={"pk": self.object.category.pk},
+        )
+    
+
+class OtherManualFilePDFView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        other_file = get_object_or_404(
+            OtherManualFile.objects.select_related(
+                "category",
+                "category__aircraft",
+            ),
+            pk=kwargs["pk"],
+        )
+
+        pdf_file = other_file.pdf_file
+
+        if not pdf_file:
+            raise Http404("PDF file is not available")
+
+        return FileResponse(
+            pdf_file.open("rb"),
+            content_type="application/pdf",
+        )
+
+
+class OtherManualFilePDFViewerView(LoginRequiredMixin, DetailView):
+    model = OtherManualFile
+    template_name = "manuals/manual_pdf_viewer.html"
+    context_object_name = "other_file"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        other_file = self.object
+        page_number = safe_int(self.request.GET.get("page", "1"), default=1)
+        query = self.request.GET.get("q", "").strip()
+        view_mode = self.request.GET.get("mode", "single")
+        back_url = self.request.GET.get("back", "")
+
+        context["viewer_title"] = (
+            f"OTHER / {other_file.category.aircraft.name} / {other_file.category.name}"
+        )
+        context["viewer_subtitle"] = other_file.title
+        context["pdf_url"] = reverse(
+            "other_manual_file_pdf",
+            kwargs={"pk": other_file.pk},
+        )
+
+        back_url_lower = (back_url or "").lower()
+        from_search_flag = self.request.GET.get("from_search_page", "").lower()
+
+        if back_url:
+            context["back_url"] = back_url
+        else:
+            context["back_url"] = reverse(
+                "other_manual_category_detail",
+                kwargs={"pk": other_file.category.pk},
+            )
+
+        context["from_search_page"] = (
+            from_search_flag in {"1", "true", "yes"}
+            or "manual-search" in back_url_lower
+            or "manual_search" in back_url_lower
+            or "dispatch_auto_search" in back_url_lower
+            or "/dispatch/" in back_url_lower
+        )
+        context["page_number"] = page_number
+        context["query"] = query
+        context["viewer_type"] = "other"
+        context["view_mode"] = view_mode
+
+        context["prev_match_url"] = None
+        context["next_match_url"] = None
+        context["current_match_index"] = 0
+        context["match_count"] = 0
+        context["matching_pages_json"] = json.dumps([])
+        context["package_chapters_json"] = json.dumps([])
+
+        if query:
+            search_value, match_mode = parse_manual_search_query(query)
+
+            if search_value:
+                text_regex = build_manual_text_regex(search_value, match_mode)
+
+                if match_mode == "contains":
+                    page_filter = Q(text__icontains=search_value)
+                else:
+                    page_filter = Q(text__iregex=text_regex)
+
+                matching_pages_list = list(
+                    OtherManualPDFPage.objects.filter(other_file=other_file)
+                    .filter(page_filter)
+                    .order_by("page_number")
+                    .values_list("page_number", flat=True)
+                    .distinct()
+                )
+
+                context["match_count"] = len(matching_pages_list)
+                context["matching_pages_json"] = json.dumps(matching_pages_list)
+
+                current_index = None
+
+                def build_viewer_query_params(page):
+                    params = {
+                        "page": page,
+                        "mode": view_mode,
+                    }
+
+                    if query:
+                        params["q"] = query
+
+                    if context["from_search_page"]:
+                        params["from_search_page"] = "1"
+
+                    if back_url:
+                        params["back"] = back_url
+
+                    return urlencode(params)
+
+                for index, matched_page_number in enumerate(matching_pages_list):
+                    if matched_page_number == page_number:
+                        current_index = index
+                        break
+
+                if current_index is None:
+                    for index, matched_page_number in enumerate(matching_pages_list):
+                        if matched_page_number >= page_number:
+                            current_index = index
+                            break
+
+                if current_index is None and matching_pages_list:
+                    current_index = 0
+
+                if current_index is not None:
+                    context["current_match_index"] = current_index + 1
+
+                    if current_index > 0:
+                        prev_page_number = matching_pages_list[current_index - 1]
+                        context["prev_match_url"] = (
+                            reverse(
+                                "other_manual_file_pdf_viewer",
+                                kwargs={"pk": other_file.pk},
+                            )
+                            + "?"
+                            + build_viewer_query_params(prev_page_number)
+                        )
+
+                    if current_index < len(matching_pages_list) - 1:
+                        next_page_number = matching_pages_list[current_index + 1]
+                        context["next_match_url"] = (
+                            reverse(
+                                "other_manual_file_pdf_viewer",
+                                kwargs={"pk": other_file.pk},
+                            )
+                            + "?"
+                            + build_viewer_query_params(next_page_number)
+                        )
+
+        return context
+    
+
+class OtherManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        other_file = get_object_or_404(OtherManualFile, pk=kwargs["pk"])
+
+        try:
+            page_count = index_pdf_pages_for_other_manual_file_safely(other_file)
+
+            messages.success(
+                request,
+                f"OTHER PDF Page {page_count}개 재인덱싱 완료",
+            )
+
+        except Exception as error:
+            messages.error(
+                request,
+                f"OTHER PDF 재인덱싱 실패: {error}",
+            )
+
+        return redirect(
+            "other_manual_category_detail",
+            pk=other_file.category.pk,
+        )

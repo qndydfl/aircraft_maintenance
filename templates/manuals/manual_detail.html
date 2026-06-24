@@ -11,9 +11,9 @@ detail-page manual-detail-page
 
 {% block content %}
 
-<div class="portal-detail-hero mb-4">
+<div class="page-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">
+        <p class="page-eyebrow mb-1">
             MANUAL FILE
         </p>
 
@@ -21,12 +21,12 @@ detail-page manual-detail-page
             {{ manual.aircraft.name }} - {{ manual.manual_type }}
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             {{ manual.description|default:"Manual file detail" }}
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         <a href="{% url 'aircraft_manual_detail' manual.aircraft.pk %}"
             class="btn btn-outline-secondary app-action-btn mobile-show-btn">
             Back

@@ -1,20 +1,20 @@
-/* portal_list.css */
+body.list-page .app-main {
+    min-height: auto;
+}
 
-.portal-list-badge {
-    border-radius: 999px;
-    font-size: 0.72rem;
-    padding: 6px 9px;
-    font-weight: 800;
+body.list-page .app-container {
+    padding-bottom: 8px;
 }
 
 .portal-list-table {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
 }
 
 .portal-list-table th {
     color: #6b7280;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 850;
+    white-space: nowrap;
 }
 
 .portal-list-table td {
@@ -28,14 +28,6 @@
 
 .portal-list-card {
     padding: 13px;
-    background: rgba(255,255,255,0.78);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    border: 1px solid rgba(255,255,255,0.82);
-    border-radius: 16px;
-    box-shadow:
-        0 10px 26px rgba(15,23,42,0.07),
-        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .portal-list-card-header {
@@ -43,15 +35,15 @@
 }
 
 .portal-list-card-title {
-    font-size: 0.98rem;
+    font-size: 0.94rem;
     font-weight: 850;
-    letter-spacing: -0.03em;
     color: #1d1d1f;
 }
 
 .portal-list-card-desc {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     color: #6b7280;
+    line-height: 1.4;
 }
 
 .portal-list-card-actions {
@@ -60,21 +52,20 @@
     gap: 7px;
 }
 
-.portal-list-card-actions .app-card-btn {
-    min-height: 34px;
-    padding: 6px 8px;
-    border-radius: 11px;
-    font-size: 0.76rem;
-    font-weight: 800;
-}
-
 @media (max-width: 767.98px) {
-    .portal-card .card-body {
-        padding: 12px !important;
+    body.list-page .app-container {
+        padding-bottom: 0;
     }
 
-    .portal-list-badge {
-        font-size: 0.62rem;
-        padding: 5px 7px;
+    .portal-list-card {
+        padding: 11px;
+    }
+
+    .portal-list-card-title {
+        font-size: 0.86rem;
+    }
+
+    .portal-list-card-desc {
+        font-size: 0.68rem;
     }
 }

@@ -11,16 +11,16 @@
 
 {% block content %}
 
-<div class="home-hero mb-4">
+<div class="page-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">Aircraft Manual Portal</p>
+        <p class="page-eyebrow mb-1">Aircraft Manual Portal</p>
         <h2 class="page-title mb-2">Manual Portal</h2>
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             Boeing PDF / ZIP manuals and Airbus manual links
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         {% if user.is_staff %}
         <a
             href="{% url 'aircraft_manage' %}"
@@ -51,7 +51,7 @@
         <div>
             <h4 class="section-title mb-1">Boeing Manuals</h4>
             <p class="section-description mb-0">
-                AMM / FIM / IPC는 ZIP, MEL / CDL은 PDF 방식입니다.
+                AMM / FIM / IPC는 ZIP, MEL / CDL은 PDF, OTHER는 폴더 방식입니다.
             </p>
         </div>
     </div>
@@ -92,6 +92,14 @@
                             class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
                             >CDL</span
                         >
+                        {% with other_folder=aircraft.other_categories.first %}
+                            <span
+                                class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
+                            >
+                                OTHER
+                            </span>
+                        {% endwith %}
+
                     </div>
 
                     <p class="manual-card-note">
@@ -133,7 +141,7 @@
         <div>
             <h4 class="section-title mb-1">Airbus Manuals</h4>
             <p class="section-description mb-0">
-                AMM / IPC는 Airbus World, MEL / CDL은 PDF 방식입니다.
+                AMM / IPC는 Airbus World, MEL / CDL은 PDF, OTHER는 폴더 방식입니다.
             </p>
         </div>
     </div>
@@ -167,10 +175,18 @@
                             class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
                             >CDL</span
                         >
+                        {% with other_folder=aircraft.other_categories.first %}
+                            <span
+                                class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
+                            >
+                                OTHER
+                            </span>
+                        {% endwith %}
+
                     </div>
 
                     <p class="manual-card-note">
-                        AMM / IPC는 외부 링크, MEL / CDL은 PDF 방식입니다.
+                        AMM / IPC는 외부 링크, MEL / CDL은 PDF, OTHER는 폴더 방식입니다.
                     </p>
 
                     <div class="card-button-group">

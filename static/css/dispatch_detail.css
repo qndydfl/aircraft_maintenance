@@ -1,13 +1,19 @@
-/* dispatch_detail.css */
+body.dispatch-detail-page .app-main {
+    min-height: auto;
+}
+
+body.dispatch-detail-page .app-container {
+    padding-bottom: 8px;
+}
 
 .dispatch-detail-card {
     overflow: hidden;
 }
 
 .dispatch-card-header {
-    padding: 12px 16px;
-    font-size: 0.85rem;
-    font-weight: 800;
+    padding: 11px 15px;
+    font-size: 0.82rem;
+    font-weight: 850;
     color: #fff;
 }
 
@@ -37,18 +43,15 @@
 
 .dispatch-info-item,
 .dispatch-reference-item {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
     padding: 12px;
 }
 
 .dispatch-info-item span,
 .dispatch-reference-item span {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: #8e8e93;
-    font-weight: 800;
+    font-weight: 850;
     margin-bottom: 4px;
 }
 
@@ -64,31 +67,32 @@
     color: #6b7280;
 }
 
-.dispatch-open-actions {
+.dispatch-open-actions,
+.dispatch-staff-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.dispatch-open-actions {
     margin-top: 14px;
 }
 
 .dispatch-text-body {
+    font-size: 0.9rem;
     line-height: 1.7;
 }
 
-.dispatch-staff-actions {
-    display: flex;
-    gap: 8px;
-}
-
-body.dispatch-detail-page .app-main {
-    min-height: auto;
-}
-
-body.dispatch-detail-page .app-container {
-    padding-bottom: 0;
-}
-
 @media (max-width: 767.98px) {
+    body.dispatch-detail-page .app-container {
+        padding-bottom: 0;
+    }
+
+    .dispatch-card-header {
+        padding: 9px 12px;
+        font-size: 0.74rem;
+    }
+
     .dispatch-info-grid,
     .dispatch-reference-grid {
         grid-template-columns: 1fr;
@@ -98,39 +102,33 @@ body.dispatch-detail-page .app-container {
     .dispatch-info-item,
     .dispatch-reference-item {
         padding: 9px;
-        border-radius: 12px;
+        border-radius: 11px;
     }
 
     .dispatch-info-item span,
     .dispatch-reference-item span {
-        font-size: 0.64rem;
+        font-size: 0.62rem;
     }
 
     .dispatch-info-item strong,
     .dispatch-reference-item strong {
-        font-size: 0.76rem;
+        font-size: 0.74rem;
     }
 
-    .dispatch-open-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-    }
-
-    .dispatch-open-actions .btn,
-    .dispatch-staff-actions .btn {
-        width: 100%;
-        min-height: 36px;
-        font-size: 0.76rem;
-        border-radius: 11px;
-    }
-
+    .dispatch-open-actions,
     .dispatch-staff-actions {
         display: grid;
         grid-template-columns: 1fr;
         gap: 6px;
     }
 
+    .dispatch-open-actions .btn,
+    .dispatch-staff-actions .btn {
+        width: 100%;
+    }
+
     .dispatch-text-body {
-        font-size: 0.8rem;
+        font-size: 0.76rem;
+        line-height: 1.55;
     }
 }

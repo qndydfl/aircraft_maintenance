@@ -36,6 +36,16 @@ from .views import (
     CommonManualCategoryCreateView,
     CommonManualCategoryUpdateView,
     CommonManualCategoryDeleteView,
+    OtherManualCategoryCreateView,
+    OtherManualCategoryDetailView,
+    OtherManualCategoryUpdateView,
+    OtherManualCategoryDeleteView,
+    OtherManualFileCreateView,
+    OtherManualFileUpdateView,
+    OtherManualFileDeleteView,
+    OtherManualFilePDFView,
+    OtherManualFilePDFViewerView,
+    OtherManualFileReindexView,
 )
 
 urlpatterns = [
@@ -188,5 +198,54 @@ urlpatterns = [
         CommonManualCategoryDeleteView.as_view(),
         name="common_manual_category_delete",
     ),
-
+    path(
+        "other/category/add/",
+        OtherManualCategoryCreateView.as_view(),
+        name="other_manual_category_create",
+    ),
+    path(
+        "other/category/<int:pk>/",
+        OtherManualCategoryDetailView.as_view(),
+        name="other_manual_category_detail",
+    ),
+    path(
+        "other/category/<int:pk>/edit/",
+        OtherManualCategoryUpdateView.as_view(),
+        name="other_manual_category_update",
+    ),
+    path(
+        "other/category/<int:pk>/delete/",
+        OtherManualCategoryDeleteView.as_view(),
+        name="other_manual_category_delete",
+    ),
+    path(
+        "other/file/add/",
+        OtherManualFileCreateView.as_view(),
+        name="other_manual_file_create",
+    ),
+    path(
+        "other/file/<int:pk>/edit/",
+        OtherManualFileUpdateView.as_view(),
+        name="other_manual_file_update",
+    ),
+    path(
+        "other/file/<int:pk>/delete/",
+        OtherManualFileDeleteView.as_view(),
+        name="other_manual_file_delete",
+    ),
+    path(
+        "other/file/<int:pk>/pdf/",
+        OtherManualFilePDFView.as_view(),
+        name="other_manual_file_pdf",
+    ),
+    path(
+        "other/file/<int:pk>/viewer/",
+        OtherManualFilePDFViewerView.as_view(),
+        name="other_manual_file_pdf_viewer",
+    ),
+    path(
+        "other/file/<int:pk>/reindex/",
+        OtherManualFileReindexView.as_view(),
+        name="other_manual_file_reindex",
+    ),
 ]

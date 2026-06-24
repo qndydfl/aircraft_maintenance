@@ -178,7 +178,7 @@ class ManualFile(models.Model):
         ("IPC", "IPC"),
         ("MEL", "MEL"),
         ("CDL", "CDL"),
-        ("OTHER", "Other PDF"),
+        ("OTHER", "Other"),
     ]
 
     aircraft = models.ForeignKey(
@@ -226,7 +226,7 @@ class AirbusManualLink(models.Model):
         ("AMM", "AMM"),
         ("FIM", "FIM"),
         ("IPC", "IPC"),
-        ("OTHER", "Other PDF"),
+        ("OTHER", "Other"),
     ]
 
     aircraft = models.ForeignKey(
@@ -255,7 +255,7 @@ class ManualPackage(models.Model):
         ("AMM", "AMM"),
         ("FIM", "FIM"),
         ("IPC", "IPC"),
-        ("OTHER", "Other PDF"),
+        ("OTHER", "Other"),
     ]
 
     aircraft = models.ForeignKey(
@@ -445,3 +445,114 @@ class CommonManualPDFPage(models.Model):
 
     def __str__(self):
         return f"{self.common_file} - Page {self.page_number}"
+    
+
+class OtherManualCategory(models.Model):
+    aircraft = models.ForeignKey(
+        Aircraft,
+        on_delete=models.CASCADE,
+        related_name="other_categories",
+    )
+    name = models.CharField(max_length=100, default="OTHER")
+    code = models.CharField(max_length=60, blank=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["aircraft__name", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["aircraft"],
+                name="unique_other_folder_per_aircraft",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.aircraft.name} / OTHER"
+
+
+class OtherManualFile(models.Model):
+    category = models.ForeignKey(
+        OtherManualCategory,
+        on_delete=models.CASCADE,
+        related_name="files",
+    )
+    title = models.CharField(max_length=200)
+    file = models.FileField(upload_to="manuals/other/")
+    converted_pdf = models.FileField(
+        upload_to="manuals/other/converted/",
+        blank=True,
+        null=True,
+    )
+    description = models.TextField(blank=True)
+    revision_no = models.CharField(max_length=50, blank=True)
+    revision_date_text = models.CharField(max_length=100, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["title"]
+
+    def __str__(self):
+        return f"{self.category} / {self.title}"
+
+    @property
+    def is_pdf(self):
+        if self.converted_pdf:
+            return True
+
+        if not self.file:
+            return False
+
+        return self.file.name.lower().endswith(".pdf")
+
+    @property
+    def pdf_file(self):
+        if self.converted_pdf:
+            return self.converted_pdf
+
+        if self.file and self.file.name.lower().endswith(".pdf"):
+            return self.file
+
+        return None
+
+    @property
+    def indexed_page_count(self):
+        return self.pages.count()
+
+    @property
+    def is_indexed_pdf(self):
+        return self.is_pdf and self.indexed_page_count > 0
+
+
+class OtherManualPDFPage(models.Model):
+    other_file = models.ForeignKey(
+        OtherManualFile,
+        on_delete=models.CASCADE,
+        related_name="pages",
+    )
+    page_number = models.PositiveIntegerField()
+    text = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["other_file", "page_number"]
+        unique_together = ("other_file", "page_number")
+
+    def __str__(self):
+        return f"{self.other_file.title} - Page {self.page_number}"
+
+    def get_snippet(self, query, radius=80):
+        if not self.text or not query:
+            return ""
+
+        text_lower = self.text.lower()
+        query_lower = query.lower()
+
+        index = text_lower.find(query_lower)
+
+        if index == -1:
+            return self.text[:radius * 2]
+
+        start = max(index - radius, 0)
+        end = min(index + len(query) + radius, len(self.text))
+
+        return self.text[start:end]

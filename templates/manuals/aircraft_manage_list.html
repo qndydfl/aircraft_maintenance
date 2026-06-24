@@ -11,18 +11,18 @@ list-page aircraft-manage-page
 
 {% block content %}
 
-<div class="portal-list-hero mb-4">
+<div class="page-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">MANAGE</p>
+        <p class="page-eyebrow mb-1">MANAGE</p>
 
         <h2 class="page-title mb-2">Aircraft Manage</h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             Boeing / Airbus 기종을 관리합니다.
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         {% if user.is_staff %}
             <a href="{% url 'aircraft_create' %}"
                 class="btn btn-primary app-action-btn d-none d-md-inline-flex">
@@ -163,13 +163,13 @@ list-page aircraft-manage-page
     </div>
 </div>
 
-<div class="portal-list-hero mb-4 mt-4">
+<div class="page-hero mb-4 mt-4">
     <div>
-        <p class="home-eyebrow mb-1">COMMON</p>
+        <p class="page-eyebrow mb-1">COMMON</p>
 
         <h2 class="page-title mb-2">Common Manuals</h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             Boeing / Airbus 공통 문서 카테고리와 업로드 항목을 관리합니다.
         </p>
     </div>

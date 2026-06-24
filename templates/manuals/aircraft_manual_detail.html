@@ -15,10 +15,10 @@ detail-page aircraft-manual-detail-page
 
 {% block content %}
 
-<div class="portal-detail-hero mb-4">
+<div class="page-hero mb-4">
 
     <div>
-        <p class="home-eyebrow mb-1">
+        <p class="page-eyebrow mb-1">
             {{ aircraft.maker }}
         </p>
 
@@ -26,12 +26,12 @@ detail-page aircraft-manual-detail-page
             {{ aircraft.name }} Manuals
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             AMM / FIM / IPC / MEL / CDL / OTHER
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         {% if user.is_staff %}
             <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}"
                 class="btn btn-primary app-action-btn desktop-only-btn">
@@ -62,9 +62,9 @@ detail-page aircraft-manual-detail-page
 
     {% for item in aircraft.get_manual_status_list %}
 
-        <div class="col-12 col-sm-6 col-lg-4">
+        <div class="col-12 col-sm-6 col-lg-3">
 
-            <div class="card portal-card portal-detail-card h-100 shadow-sm {% if not item.file and not item.package %}portal-detail-empty-card{% endif %}">
+            <div class="card portal-card portal-detail-card h-100 shadow-sm {% if not item.file and not item.package and item.type != 'OTHER' %}portal-detail-empty-card{% endif %}">
 
                 <div class="card-body">
 
@@ -80,7 +80,19 @@ detail-page aircraft-manual-detail-page
                             </h5>
                         </div>
 
-                        {% if item.package or item.file %}
+                        {% if item.type == "OTHER" %}
+                            {% with folder=aircraft.other_categories.first %}
+                                {% if folder and folder.files.count %}
+                                    <span class="portal-detail-pill ready-pill">
+                                        READY
+                                    </span>
+                                {% else %}
+                                    <span class="portal-detail-pill empty-pill">
+                                        EMPTY
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                        {% elif item.package or item.file %}
                             <span class="portal-detail-pill ready-pill">
                                 READY
                             </span>
@@ -92,7 +104,53 @@ detail-page aircraft-manual-detail-page
 
                     </div>
 
-                    {% if item.package %}
+                    {% if item.type == "OTHER" %}
+
+                        {% with folder=aircraft.other_categories.first %}
+
+                            {% if folder %}
+
+                                {% if folder.files.count %}
+                                    <p class="small mb-3">
+                                        <span class="badge bg-success manual-badge">
+                                            READY
+                                        </span>
+                                        {{ folder.files.count }} file(s)
+                                    </p>
+                                {% else %}
+                                    <p class="small mb-3">
+                                        <span class="badge bg-warning text-dark manual-badge">
+                                            EMPTY
+                                        </span>
+                                        No files in OTHER folder
+                                    </p>
+                                {% endif %}
+
+                                <div class="portal-detail-button-group">
+                                    <a href="{% url 'other_manual_category_detail' folder.pk %}"
+                                        class="btn btn-primary w-100 app-card-btn">
+                                        Open OTHER Folder
+                                    </a>
+                                </div>
+
+                            {% else %}
+
+                                {% if user.is_staff %}
+                                    <a href="{% url 'other_manual_category_create' %}?aircraft={{ aircraft.pk }}"
+                                        class="btn btn-primary w-100 app-card-btn">
+                                        Open OTHER Folder
+                                    </a>
+                                {% else %}
+                                    <p class="portal-detail-note mb-0">
+                                        OTHER Manual Not Available
+                                    </p>
+                                {% endif %}
+
+                            {% endif %}
+
+                        {% endwith %}
+
+                    {% elif item.package %}
 
                         {% if item.package.revision_no or item.package.revision_date_text %}
                             <p class="revision-info">
@@ -194,8 +252,7 @@ detail-page aircraft-manual-detail-page
                             </p>
                         {% endif %}
 
-                        {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" or item.file.manual_type == "OTHER" %}
-
+                        {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
                             <p class="small mb-3">
                                 {% if item.file.is_indexed_pdf %}
                                     <span class="badge bg-success manual-badge">
@@ -213,7 +270,7 @@ detail-page aircraft-manual-detail-page
                         <div class="portal-detail-button-group">
 
                             <div class="portal-detail-button-grid">
-                                {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" or item.file.manual_type == "OTHER" %}
+                                {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
                                     <a href="{% url 'manual_file_pdf_viewer' item.file.pk %}?back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-primary app-card-btn mobile-show-btn">
                                         Open
@@ -259,7 +316,7 @@ detail-page aircraft-manual-detail-page
                                     </button>
                                 </form>
 
-                                {% if item.file.manual_type == "MEL" %}
+                                {% comment %} {% if item.file.manual_type == "MEL" %}
                                     <form method="post"
                                         action="{% url 'extract_mel_dispatch_items' item.file.pk %}"
                                         class="desktop-only-btn-group"
@@ -272,7 +329,7 @@ detail-page aircraft-manual-detail-page
                                             Extract MEL Items
                                         </button>
                                     </form>
-                                {% endif %}
+                                {% endif %} {% endcomment %}
                             {% endif %}
 
                         </div>
@@ -286,18 +343,7 @@ detail-page aircraft-manual-detail-page
                         {% if user.is_staff %}
                             <div class="desktop-only-btn-group mt-2">
 
-                                {% if item.type == "OTHER" %}
-                                    <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type=OTHER"
-                                        class="btn btn-outline-primary w-100 app-card-btn">
-                                        Upload Other PDF
-                                    </a>
-
-                                    <a href="{% url 'manual_package_create' %}?aircraft={{ aircraft.pk }}&manual_type=OTHER"
-                                        class="btn btn-outline-secondary w-100 app-card-btn mt-2">
-                                        Upload Folder ZIP
-                                    </a>
-
-                                {% elif aircraft.maker == "AIRBUS" %}
+                                {% if aircraft.maker == "AIRBUS" %}
 
                                     {% if item.type == "MEL" or item.type == "CDL" %}
                                         <a href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"

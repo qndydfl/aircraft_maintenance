@@ -11,9 +11,9 @@ dispatch-form-page
 
 {% block content %}
 
-<div class="detail-hero mb-4">
+<div class="page-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">DISPATCH</p>
+        <p class="page-eyebrow mb-1">DISPATCH</p>
 
         <h2 class="page-title mb-2">
             {% if dispatch %}
@@ -23,12 +23,12 @@ dispatch-form-page
             {% endif %}
         </h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             EICAS / Fault Code / MEL / FIM / AMM Reference
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         {% if dispatch %}
             <a href="{% url 'dispatch_detail' dispatch.pk %}"
                 class="btn btn-outline-secondary app-action-btn">

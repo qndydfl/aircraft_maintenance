@@ -1,50 +1,28 @@
-/* portal_detail.css */
+body.detail-page .app-main {
+    min-height: auto;
+}
+
+body.detail-page .app-container {
+    padding-bottom: 8px;
+}
 
 .portal-detail-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    width: 100%;
     margin-bottom: 12px;
-}
-
-.portal-detail-card {
-    border: 1px solid rgba(255,255,255,0.82);
-    border-top: 0;
-    background: rgba(255,255,255,0.78);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    border-radius: 22px;
-    box-shadow:
-        0 14px 34px rgba(15, 23, 42, 0.07),
-        inset 0 1px 1px rgba(255,255,255,0.9);
 }
 
 .portal-detail-empty-card {
     opacity: 0.72;
 }
 
-.portal-detail-eyebrow {
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: #8e8e93;
-}
-
 .portal-detail-title {
-    font-weight: 800;
+    font-size: 1.05rem;
+    font-weight: 850;
     letter-spacing: -0.03em;
     color: #1d1d1f;
-}
-
-.portal-detail-pill {
-    display: inline-block;
-    font-size: 0.68rem;
-    font-weight: 800;
-    padding: 5px 9px;
-    border-radius: 999px;
-    white-space: nowrap;
 }
 
 .ready-pill {
@@ -57,12 +35,6 @@
     color: #6c757d;
 }
 
-.manual-badge {
-    border-radius: 999px;
-    font-size: 0.68rem;
-    padding: 5px 8px;
-}
-
 .portal-detail-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -70,15 +42,12 @@
 }
 
 .portal-detail-info > div {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
     padding: 14px;
 }
 
 .portal-detail-info span {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #6b7280;
     font-weight: 800;
     margin-bottom: 4px;
@@ -89,10 +58,16 @@
     color: #111827;
 }
 
-.portal-detail-button-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+.portal-detail-note {
+    font-size: 0.84rem;
+    color: #6b7280;
+    line-height: 1.45;
+}
+
+.revision-info,
+.manual-uploaded {
+    font-size: 0.72rem;
+    color: #6b7280;
 }
 
 .portal-detail-button-group {
@@ -107,94 +82,39 @@
     margin: 0;
 }
 
-.portal-detail-note {
-    font-size: 0.88rem;
-    color: #6b7280;
-}
-
-.portal-detail-card .app-card-btn {
-    border-radius: 14px;
-    font-weight: 800;
-}
-
-.revision-info {
-    font-size: 0.76rem;
-    color: #6b7280;
-    margin-bottom: 6px;
-}
-
-.manual-uploaded {
-    font-size: 0.74rem;
-    margin-bottom: 8px;
-}
-
-body.detail-page .app-container {
-    padding-bottom: 8px;
-}
-
-body.detail-page .app-main {
-    min-height: auto;
+.portal-detail-button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
 }
 
 @media (max-width: 767.98px) {
-    .desktop-only-action,
-    .desktop-only-buttons,
-    .desktop-only-btn-group,
     .desktop-only-btn,
+    .desktop-only-btn-group,
     .portal-detail-button-group form,
     .portal-detail-button-grid a:not(.mobile-show-btn) {
         display: none !important;
     }
 
-    .row.g-3 {
-        --bs-gutter-y: 0.65rem;
-    }
-
-    .portal-detail-card {
-        border-radius: 16px;
-        box-shadow:
-            0 8px 22px rgba(15, 23, 42, 0.06),
-            inset 0 1px 1px rgba(255,255,255,0.9);
-    }
-
-    .portal-detail-card .card-body {
-        padding: 12px !important;
+    body.detail-page .app-container {
+        padding-bottom: 0;
     }
 
     .portal-detail-card-header {
-        margin-bottom: 8px;
         gap: 8px;
-    }
-
-    .portal-detail-eyebrow {
-        font-size: 0.62rem;
-        margin-bottom: 1px !important;
+        margin-bottom: 8px;
     }
 
     .portal-detail-title {
-        font-size: 0.95rem;
-        line-height: 1.1;
+        font-size: 0.92rem;
     }
 
-    .portal-detail-pill {
-        font-size: 0.58rem;
-        padding: 3px 7px;
-    }
-
-    .portal-detail-card .small,
-    .portal-detail-card .text-muted {
+    .portal-detail-card .text-muted.manual-uploaded {
         display: none !important;
     }
 
     .portal-detail-note {
-        font-size: 0.72rem;
-        margin-bottom: 8px;
-    }
-
-    .revision-info,
-    .manual-uploaded {
-        font-size: 0.68rem;
-        margin-bottom: 5px;
+        font-size: 0.7rem;
     }
 
     .portal-detail-info {
@@ -202,43 +122,18 @@ body.detail-page .app-main {
         gap: 8px;
     }
 
-    .portal-detail-button-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
+    .portal-detail-info > div {
+        padding: 9px;
     }
 
-    .portal-detail-button-group {
+    .portal-detail-button-grid {
         gap: 6px;
-        margin-top: 8px;
     }
 
     .portal-detail-card .app-card-btn.mobile-show-btn {
         display: block !important;
         width: 100%;
         min-height: 32px;
-        padding: 5px 8px;
-        font-size: 0.74rem;
-        border-radius: 10px;
-        text-align: center;
-    }
-
-    body.detail-page .app-container {
-        padding-bottom: 0;
-    }
-}
-
-@media (max-width: 390px) {
-    .portal-detail-card .card-body {
-        padding: 10px !important;
-    }
-
-    .portal-detail-title {
-        font-size: 0.9rem;
-    }
-
-    .portal-detail-card .app-card-btn.mobile-show-btn {
-        min-height: 32px;
-        font-size: 0.75rem;
-        padding: 5px 8px;
+        font-size: 0.72rem;
     }
 }

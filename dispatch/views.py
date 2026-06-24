@@ -28,6 +28,8 @@ from django.contrib.auth.mixins import (
 from django.http import JsonResponse, HttpResponse
 from .services import (
     build_text_regex,
+    build_structured_search_q,
+    exclude_noisy_mel_dispatch_rows,
     recommend_package_pages,
     recommend_file_pages,
     score_package_page,
@@ -82,8 +84,8 @@ class DispatchListView(LoginRequiredMixin, ListView):
         context["query"] = self.request.GET.get("q", "").strip()
 
         return context
-    
-    
+
+
 class DispatchSearchView(LoginRequiredMixin, ListView):
     model = DispatchReference
     template_name = "dispatch/dispatch_search.html"
@@ -105,38 +107,27 @@ class DispatchSearchView(LoginRequiredMixin, ListView):
             search_value, match_mode = parse_search_query(query)
 
             if search_value:
-                if match_mode == "contains":
-                    queryset = queryset.filter(
-                        Q(eicas_message__icontains=search_value)
-                        | Q(fault_code__icontains=search_value)
-                        | Q(mel_number__icontains=search_value)
-                        | Q(mel_search_keyword__icontains=search_value)
-                        | Q(mel_ref__icontains=search_value)
-                        | Q(fim_chapter__icontains=search_value)
-                        | Q(fim_search_keyword__icontains=search_value)
-                        | Q(fim_task_ref__icontains=search_value)
-                        | Q(amm_chapter__icontains=search_value)
-                        | Q(amm_search_keyword__icontains=search_value)
-                        | Q(amm_task_ref__icontains=search_value)
-                        | Q(description__icontains=search_value)
-                        | Q(note__icontains=search_value)
+                queryset = queryset.filter(
+                    build_structured_search_q(
+                        [
+                            "eicas_message",
+                            "fault_code",
+                            "mel_number",
+                            "mel_search_keyword",
+                            "mel_ref",
+                            "fim_chapter",
+                            "fim_search_keyword",
+                            "fim_task_ref",
+                            "amm_chapter",
+                            "amm_search_keyword",
+                            "amm_task_ref",
+                            "description",
+                            "note",
+                        ],
+                        search_value,
+                        match_mode,
                     )
-                else:
-                    queryset = queryset.filter(
-                        Q(eicas_message__iexact=search_value)
-                        | Q(fault_code__iexact=search_value)
-                        | Q(mel_number__iexact=search_value)
-                        | Q(mel_search_keyword__iexact=search_value)
-                        | Q(mel_ref__iexact=search_value)
-                        | Q(fim_chapter__iexact=search_value)
-                        | Q(fim_search_keyword__iexact=search_value)
-                        | Q(fim_task_ref__iexact=search_value)
-                        | Q(amm_chapter__iexact=search_value)
-                        | Q(amm_search_keyword__iexact=search_value)
-                        | Q(amm_task_ref__iexact=search_value)
-                        | Q(description__iexact=search_value)
-                        | Q(note__iexact=search_value)
-                    )
+                )
 
         if not query and not aircraft_id:
             return DispatchReference.objects.none()
@@ -810,10 +801,8 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
 
         if search_type in ["keyword", "all", "전체"]:
             search_type = "all"
-
         elif search_type in ["message", "msg"]:
             search_type = "message"
-
         elif search_type in ["fault", "fault_code", "faultcode"]:
             search_type = "fault"
 
@@ -849,27 +838,42 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         if aircraft_id and not aircraft_qs.exists():
             return context
 
+        search_value, match_mode = parse_search_query(query)
+
+        if not search_value:
+            return context
+
         # 1. MEL Dispatch Table 결과
         if search_type == "fault":
             mel_dispatch_rows = MelDispatchItem.objects.none()
 
         elif search_type == "message":
-            mel_dispatch_rows = (
+            mel_dispatch_rows = exclude_noisy_mel_dispatch_rows(
                 MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
-                .filter(Q(message__icontains=query) | Q(condition__icontains=query))
-                .order_by("aircraft__name", "message", "page_number")[:100]
+            ).filter(
+                build_structured_search_q(
+                    ["message", "condition"],
+                    search_value,
+                    match_mode,
+                )
             )
+            mel_dispatch_rows = mel_dispatch_rows.order_by(
+                "aircraft__name", "message", "page_number"
+            )[:100]
 
         else:
-            mel_dispatch_rows = (
+            mel_dispatch_rows = exclude_noisy_mel_dispatch_rows(
                 MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
-                .filter(
-                    Q(message__icontains=query)
-                    | Q(condition__icontains=query)
-                    | Q(mel_item__icontains=query)
+            ).filter(
+                build_structured_search_q(
+                    ["message", "condition", "mel_item"],
+                    search_value,
+                    match_mode,
                 )
-                .order_by("aircraft__name", "message", "page_number")[:100]
             )
+            mel_dispatch_rows = mel_dispatch_rows.order_by(
+                "aircraft__name", "message", "page_number"
+            )[:100]
 
         context["mel_dispatch_rows"] = mel_dispatch_rows
 
@@ -880,34 +884,52 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
 
         if search_type == "message":
             saved_refs = saved_refs.filter(
-                Q(eicas_message__icontains=query)
-                | Q(status_message__icontains=query)
-                | Q(mel_search_keyword__icontains=query)
-                | Q(fim_search_keyword__icontains=query)
-                | Q(amm_search_keyword__icontains=query)
-                | Q(description__icontains=query)
-                | Q(note__icontains=query)
+                build_structured_search_q(
+                    [
+                        "eicas_message",
+                        "status_message",
+                        "mel_search_keyword",
+                        "fim_search_keyword",
+                        "amm_search_keyword",
+                        "description",
+                        "note",
+                    ],
+                    search_value,
+                    match_mode,
+                )
             )
 
         elif search_type == "fault":
-            saved_refs = saved_refs.filter(Q(fault_code__icontains=query))
+            saved_refs = saved_refs.filter(
+                build_structured_search_q(
+                    ["fault_code"],
+                    search_value,
+                    match_mode,
+                )
+            )
 
         else:
             saved_refs = saved_refs.filter(
-                Q(eicas_message__icontains=query)
-                | Q(status_message__icontains=query)
-                | Q(fault_code__icontains=query)
-                | Q(mel_number__icontains=query)
-                | Q(mel_search_keyword__icontains=query)
-                | Q(mel_ref__icontains=query)
-                | Q(fim_chapter__icontains=query)
-                | Q(fim_search_keyword__icontains=query)
-                | Q(fim_task_ref__icontains=query)
-                | Q(amm_chapter__icontains=query)
-                | Q(amm_search_keyword__icontains=query)
-                | Q(amm_task_ref__icontains=query)
-                | Q(description__icontains=query)
-                | Q(note__icontains=query)
+                build_structured_search_q(
+                    [
+                        "eicas_message",
+                        "status_message",
+                        "fault_code",
+                        "mel_number",
+                        "mel_search_keyword",
+                        "mel_ref",
+                        "fim_chapter",
+                        "fim_search_keyword",
+                        "fim_task_ref",
+                        "amm_chapter",
+                        "amm_search_keyword",
+                        "amm_task_ref",
+                        "description",
+                        "note",
+                    ],
+                    search_value,
+                    match_mode,
+                )
             )
 
         saved_dispatch_results = list(saved_refs[:20])
@@ -920,7 +942,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
 
         context["saved_dispatch_results"] = saved_dispatch_results
 
-        # 3. Manual PDF 검색 (all/message/fault 모두 수행)
+        # 3. Manual PDF 검색
         search_value, match_mode = parse_manual_search_query(query)
 
         if not search_value:
@@ -946,36 +968,51 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
             package_filter = Q(text__iregex=text_regex)
             file_filter = Q(text__iregex=text_regex)
 
+        # AMM
         context["amm_results"] = list(
             package_base.filter(chapter__package__manual_type="AMM")
             .filter(package_filter)
             .order_by("chapter__task", "chapter__subtask", "page_number")
         )
 
+        # FIM
         context["fim_results"] = list(
             package_base.filter(chapter__package__manual_type="FIM")
             .filter(package_filter)
             .order_by("chapter__task", "chapter__subtask", "page_number")
         )
 
+        # IPC
         context["ipc_results"] = list(
             package_base.filter(chapter__package__manual_type="IPC")
             .filter(package_filter)
             .order_by("chapter__task", "chapter__subtask", "page_number")
         )
 
-        context["mel_results"] = list(
-            file_base.filter(manual_file__manual_type="MEL")
-            .filter(file_filter)
-            .order_by("manual_file__description", "page_number")
+        # MEL - 점수 계산 후 점수순 정렬
+        mel_results = list(
+            file_base.filter(manual_file__manual_type="MEL").filter(file_filter)
         )
 
+        for page in mel_results:
+            page.recommend_score = score_file_page(page, search_value)
+            page.snippet = page.get_snippet(search_value)
+
+        mel_results.sort(
+            key=lambda page: page.recommend_score,
+            reverse=True,
+        )
+
+        context["mel_results"] = mel_results
+
+        # CDL
         context["cdl_results"] = list(
             file_base.filter(manual_file__manual_type="CDL")
             .filter(file_filter)
             .order_by("manual_file__description", "page_number")
         )
 
+        # AMM / FIM / IPC 점수 및 snippet
         for result_group in [
             context["amm_results"],
             context["fim_results"],
@@ -985,13 +1022,10 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
                 page.recommend_score = score_package_page(page, search_value)
                 page.snippet = page.get_snippet(search_value)
 
-        for result_group in [
-            context["mel_results"],
-            context["cdl_results"],
-        ]:
-            for page in result_group:
-                page.recommend_score = score_file_page(page, search_value)
-                page.snippet = page.get_snippet(search_value)
+        # CDL 점수 및 snippet
+        for page in context["cdl_results"]:
+            page.recommend_score = score_file_page(page, search_value)
+            page.snippet = page.get_snippet(search_value)
 
         context["amm_page_data"] = paginate_result_group(
             self.request, context["amm_results"], "amm"

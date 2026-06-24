@@ -1,6 +1,10 @@
 {% extends 'base.html' %} 
 {% load static %} 
 
+{% block body_class %}
+pdf-viewer-page
+{% endblock body_class %}
+
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/manual_pdf_viewer.css' %}" />
 {% endblock css %} 

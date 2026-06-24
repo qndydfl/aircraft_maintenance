@@ -3,7 +3,7 @@ from datetime import datetime
 
 from django.conf import settings
 from bs4 import BeautifulSoup
-from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage
+from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage, OtherManualPDFPage
 from django.db import transaction
 from pypdf import PdfReader, PdfWriter
 
@@ -57,6 +57,69 @@ def convert_office_to_pdf(input_path, output_dir):
         raise Exception("변환된 PDF 파일을 찾을 수 없습니다.")
 
     return converted_pdf_path
+
+
+def convert_other_manual_file_to_pdf(other_file):
+    if not other_file.file:
+        return None
+
+    original_name = other_file.file.name.lower()
+
+    if original_name.endswith(".pdf"):
+        return other_file.file
+
+    allowed_convert_extensions = [
+        ".doc",
+        ".docx",
+        ".xls",
+        ".xlsx",
+    ]
+
+    ext = os.path.splitext(original_name)[1]
+
+    if ext not in allowed_convert_extensions:
+        return None
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        input_path = os.path.join(temp_dir, os.path.basename(other_file.file.name))
+
+        with other_file.file.open("rb") as source:
+            with open(input_path, "wb") as target:
+                target.write(source.read())
+
+        command = [
+            "libreoffice",
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            temp_dir,
+            input_path,
+        ]
+
+        subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        pdf_filename = os.path.splitext(os.path.basename(input_path))[0] + ".pdf"
+        pdf_path = os.path.join(temp_dir, pdf_filename)
+
+        if not os.path.exists(pdf_path):
+            raise Exception("PDF 변환 파일을 찾을 수 없습니다.")
+
+        save_name = f"{os.path.splitext(os.path.basename(other_file.file.name))[0]}.pdf"
+
+        with open(pdf_path, "rb") as pdf_file:
+            other_file.converted_pdf.save(
+                save_name,
+                File(pdf_file),
+                save=True,
+            )
+
+    return other_file.converted_pdf
 
 
 def storage_file_to_temp_file(django_file, suffix=""):
@@ -312,8 +375,6 @@ def index_pdf_pages_for_package(package):
     return total_pages
 
 
-# mel: rev no, rev date, cdl: rev no, issue date, approved date
-# 이렇게 되어 있는데 cdl은 issue date와 approved date 중에 approved date가 있으면 approved date를 우선으로 하고, 없으면 issue date를 사용하도록 수정해야 함.
 def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
     manual_type = (manual_type or "").upper()
 
@@ -831,6 +892,47 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
 
         if temp_dir and os.path.exists(temp_dir):
             shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+def index_pdf_pages_for_other_manual_file_safely(other_file):
+    pdf_file = convert_other_manual_file_to_pdf(other_file)
+
+    if not pdf_file:
+        return 0
+
+    OtherManualPDFPage.objects.filter(
+        other_file=other_file
+    ).delete()
+
+    return index_pdf_pages_for_other_manual_file(other_file)
+
+
+def index_pdf_pages_for_other_manual_file(other_file):
+    import fitz
+
+    pdf_file = other_file.pdf_file
+
+    if not pdf_file:
+        return 0
+
+    page_count = 0
+
+    with pdf_file.open("rb") as file:
+        pdf_document = fitz.open(stream=file.read(), filetype="pdf")
+
+        for page_index in range(pdf_document.page_count):
+            page = pdf_document.load_page(page_index)
+            text = page.get_text("text") or ""
+
+            OtherManualPDFPage.objects.create(
+                other_file=other_file,
+                page_number=page_index + 1,
+                text=text,
+            )
+
+            page_count += 1
+
+    return page_count
 
 
 def process_manual_package_safely(package):

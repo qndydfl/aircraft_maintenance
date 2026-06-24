@@ -144,11 +144,12 @@ def parse_dispatch_search_query(query):
         }
 
     if trimmed.startswith("*") and trimmed.endswith("*") and len(trimmed) > 2:
-        keywords = [word.strip() for word in trimmed[1:-1].split() if word.strip()]
+        search_value = trimmed[1:-1].strip()
+
         return {
-            "query": trimmed[1:-1].strip(),
+            "query": search_value,
             "mode": "contains_words",
-            "keywords": keywords,
+            "keywords": [search_value],
         }
 
     if trimmed.endswith("*") and len(trimmed) > 1:
@@ -216,11 +217,22 @@ def text_matches_query(text, parsed):
     text_upper = text.upper()
     query_upper = parsed["query"].upper()
 
+    if not query_upper:
+        return False
+
     if parsed["mode"] == "exact_phrase":
         return query_upper in text_upper
 
     if parsed["mode"] == "contains_words":
-        return all(word.upper() in text_upper for word in parsed["keywords"])
+        return query_upper in text_upper
+
+    if parsed["mode"] == "startswith":
+        pattern = rf"\b{re.escape(query_upper)}[A-Z0-9/_-]*"
+        return bool(re.search(pattern, text_upper))
+
+    if parsed["mode"] == "exact":
+        pattern = rf"\b{re.escape(query_upper)}\b"
+        return bool(re.search(pattern, text_upper))
 
     return False
 
@@ -458,6 +470,30 @@ def build_text_regex(search_value, match_mode):
     return rf"\b{escaped}\b"
 
 
+def build_structured_search_q(fields, search_value, match_mode):
+    if not search_value:
+        return Q()
+
+    lookup_suffix = {
+        "contains": "icontains",
+        "startswith": "istartswith",
+        "exact": "iexact",
+    }.get(match_mode, "iexact")
+
+    filters = Q()
+
+    for field in fields:
+        filters |= Q(**{f"{field}__{lookup_suffix}": search_value})
+
+    return filters
+
+
+def exclude_noisy_mel_dispatch_rows(queryset):
+    return queryset.exclude(
+        Q(mel_item="", adc="") & (Q(condition="") | Q(condition__iregex=r"[A-Za-z]"))
+    )
+
+
 def resolve_saved_package_page(dispatch, manual_type):
     if manual_type == "AMM":
         task_ref = dispatch.amm_task_ref or dispatch.amm_chapter
@@ -662,7 +698,40 @@ def clean_condition(value):
     # 뒤에 붙은 단독 소문자 제거
     value = re.sub(r"\s+[a-z]$", "", value).strip()
 
+    if len(value) == 1 and value.isalpha():
+        return ""
+
     return value
+
+
+def merge_mel_row_with_context(message, level, condition, mel_item, adc, current_row):
+    has_message = bool(message)
+
+    if has_message:
+        current_row = {
+            "message": message,
+            "level": level or "",
+            "condition": condition or "",
+            "mel_item": mel_item or "",
+            "adc": adc or "",
+        }
+        return message, level, condition, mel_item, adc, current_row
+
+    message = current_row["message"]
+    level = level or current_row["level"]
+    condition = condition or current_row["condition"]
+    mel_item = mel_item or current_row["mel_item"]
+    adc = adc or current_row["adc"]
+
+    current_row = {
+        "message": message,
+        "level": level or "",
+        "condition": condition or "",
+        "mel_item": mel_item or "",
+        "adc": adc or "",
+    }
+
+    return message, level, condition, mel_item, adc, current_row
 
 
 def storage_file_to_temp_file(django_file, suffix=""):
@@ -722,11 +791,13 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
                     if not table:
                         continue
 
-                    current_message = ""
-                    current_level = ""
-                    current_condition = ""
-                    current_mel_item = ""
-                    current_adc = ""
+                    current_row = {
+                        "message": "",
+                        "level": "",
+                        "condition": "",
+                        "mel_item": "",
+                        "adc": "",
+                    }
 
                     for row in table:
 
@@ -762,16 +833,6 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
                         ):
                             continue
 
-                        if message:
-                            current_message = message
-                        else:
-                            message = current_message
-
-                        if level:
-                            current_level = level
-                        else:
-                            level = current_level
-
                         for cell in row[2:]:
                             found_mel = extract_mel_item(cell)
                             if found_mel:
@@ -786,20 +847,21 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
 
                         condition = normalize_dash(condition)
 
-                        if condition:
-                            current_condition = condition
-                        else:
-                            condition = current_condition
-
-                        if mel_item:
-                            current_mel_item = mel_item
-                        else:
-                            mel_item = current_mel_item
-
-                        if adc:
-                            current_adc = adc
-                        else:
-                            adc = current_adc
+                        (
+                            message,
+                            level,
+                            condition,
+                            mel_item,
+                            adc,
+                            current_row,
+                        ) = merge_mel_row_with_context(
+                            message,
+                            level,
+                            condition,
+                            mel_item,
+                            adc,
+                            current_row,
+                        )
 
                         if not message:
                             continue

@@ -15,18 +15,18 @@ detail-page common-manual-detail-page
 
 {% block content %}
 
-<div class="portal-detail-hero mb-4">
+<div class="page-hero mb-4">
     <div>
-        <p class="home-eyebrow mb-1">COMMON MANUAL</p>
+        <p class="page-eyebrow mb-1">COMMON MANUAL</p>
 
         <h2 class="page-title mb-2">{{ category.name }}</h2>
 
-        <p class="text-muted mb-0 home-subtitle">
+        <p class="text-muted mb-0 page-subtitle">
             Boeing / Airbus 공통 {{ category.name }} 문서입니다.
         </p>
     </div>
 
-    <div class="home-actions">
+    <div class="page-actions">
         {% if user.is_staff %}
             <a href="{% url 'common_manual_file_create' %}?category={{ category.pk }}"
                 class="btn btn-primary app-action-btn desktop-only-btn">

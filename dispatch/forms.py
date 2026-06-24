@@ -10,7 +10,6 @@ class DispatchCSVUploadForm(forms.Form):
 
 
 class DispatchReferenceForm(forms.ModelForm):
-
     class Meta:
         model = DispatchReference
 
@@ -41,12 +40,17 @@ class DispatchReferenceForm(forms.ModelForm):
         widgets = {
             "aircraft": forms.Select(attrs={"class": "form-select"}),
             "eicas_message": forms.TextInput(attrs={"class": "form-control"}),
+            "status_message": forms.TextInput(attrs={"class": "form-control"}),
             "fault_code": forms.TextInput(attrs={"class": "form-control"}),
             "mel_number": forms.TextInput(attrs={"class": "form-control"}),
             "fim_chapter": forms.TextInput(attrs={"class": "form-control"}),
             "amm_chapter": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
-            "note": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "description": forms.Textarea(
+                attrs={"class": "form-control", "rows": 4}
+            ),
+            "note": forms.Textarea(
+                attrs={"class": "form-control", "rows": 4}
+            ),
             "amm_search_keyword": forms.TextInput(attrs={"class": "form-control"}),
             "fim_search_keyword": forms.TextInput(attrs={"class": "form-control"}),
             "mel_search_keyword": forms.TextInput(attrs={"class": "form-control"}),
