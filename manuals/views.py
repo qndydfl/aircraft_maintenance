@@ -332,18 +332,20 @@ class AircraftDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            "delete_type": "AIRCRAFT",
-            "delete_title": self.object.name,
-            "delete_message": "기종을 삭제하시겠습니까?",
-            "warning_message": "연결된 매뉴얼도 함께 제거될 수 있습니다.",
-            "back_url": reverse("aircraft_manage"),
-        })
+        context.update(
+            {
+                "delete_type": "AIRCRAFT",
+                "delete_title": self.object.name,
+                "delete_message": "기종을 삭제하시겠습니까?",
+                "warning_message": "연결된 매뉴얼도 함께 제거될 수 있습니다.",
+                "back_url": reverse("aircraft_manage"),
+            }
+        )
         return context
 
     def get_success_url(self):
         return reverse("aircraft_manage")
-    
+
 
 class AircraftManualPrintView(LoginRequiredMixin, DetailView):
     model = Aircraft
@@ -622,29 +624,17 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     package_pages_qs = package_pages_qs.filter(
                         text__icontains=search_value
                     )
-                    file_pages_qs = file_pages_qs.filter(
-                        text__icontains=search_value
-                    )
+                    file_pages_qs = file_pages_qs.filter(text__icontains=search_value)
                     common_pages_qs = common_pages_qs.filter(
                         text__icontains=search_value
                     )
-                    other_pages_qs = other_pages_qs.filter(
-                        text__icontains=search_value
-                    )
+                    other_pages_qs = other_pages_qs.filter(text__icontains=search_value)
 
                 else:
-                    package_pages_qs = package_pages_qs.filter(
-                        text__iregex=text_regex
-                    )
-                    file_pages_qs = file_pages_qs.filter(
-                        text__iregex=text_regex
-                    )
-                    common_pages_qs = common_pages_qs.filter(
-                        text__iregex=text_regex
-                    )
-                    other_pages_qs = other_pages_qs.filter(
-                        text__iregex=text_regex
-                    )
+                    package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
+                    file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
+                    common_pages_qs = common_pages_qs.filter(text__iregex=text_regex)
+                    other_pages_qs = other_pages_qs.filter(text__iregex=text_regex)
 
                 package_pages = list(package_pages_qs)
                 file_pages = list(file_pages_qs)
@@ -652,9 +642,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 other_pages = list(other_pages_qs)
 
                 highlight_query = " ".join(
-                    part.strip()
-                    for part in search_value.split("*")
-                    if part.strip()
+                    part.strip() for part in search_value.split("*") if part.strip()
                 )
 
                 for page in package_pages:
@@ -1369,16 +1357,18 @@ class CommonManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteV
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            "delete_type": "MANUAL FILE",
-            "delete_title": self.object.manual_type,
-            "delete_message": "매뉴얼 파일을 삭제하시겠습니까?",
-            "warning_message": "PDF 인덱스 데이터도 함께 삭제됩니다.",
-            "back_url": reverse(
-                "aircraft_manual_detail",
-                kwargs={"pk": self.object.aircraft.pk},
-            ),
-        })
+        context.update(
+            {
+                "delete_type": "COMMON MANUAL FILE",
+                "delete_title": self.object.title,
+                "delete_message": "공통 매뉴얼 파일을 삭제하시겠습니까?",
+                "warning_message": "PDF 인덱스 데이터도 함께 삭제됩니다.",
+                "back_url": reverse(
+                    "common_manual_category_detail",
+                    kwargs={"pk": self.object.category.pk},
+                ),
+            }
+        )
         return context
 
     def get_success_url(self):
@@ -1585,21 +1575,24 @@ class CommonManualCategoryDeleteView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context.update({
-            "delete_type": "COMMON MANUAL",
-            "delete_title": self.object.name,
-            "delete_message": "공통 매뉴얼 카테고리를 삭제하시겠습니까?",
-            "warning_message": "카테고리에 연결된 파일도 함께 삭제될 수 있습니다.",
-            "back_url": reverse(
-                "common_manual_category_detail",
-                kwargs={"pk": self.object.pk},
-            ),
-        })
+        context.update(
+            {
+                "delete_type": "COMMON MANUAL",
+                "delete_title": self.object.name,
+                "delete_message": "공통 매뉴얼 카테고리를 삭제하시겠습니까?",
+                "warning_message": "카테고리에 연결된 파일도 함께 삭제될 수 있습니다.",
+                "back_url": reverse(
+                    "common_manual_category_detail",
+                    kwargs={"pk": self.object.pk},
+                ),
+            }
+        )
 
         return context
 
     def get_success_url(self):
         return reverse("home")
+
 
 class OtherManualCategoryCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
     model = OtherManualCategory
@@ -1713,16 +1706,18 @@ class OtherManualCategoryDeleteView(LoginRequiredMixin, StaffRequiredMixin, Dele
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context.update({
-            "delete_type": "OTHER FOLDER",
-            "delete_title": self.object.name,
-            "delete_message": "OTHER 폴더를 삭제하시겠습니까?",
-            "warning_message": "폴더 안의 업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
-            "back_url": reverse(
-                "aircraft_manual_detail",
-                kwargs={"pk": self.object.aircraft.pk},
-            ),
-        })
+        context.update(
+            {
+                "delete_type": "OTHER FOLDER",
+                "delete_title": self.object.name,
+                "delete_message": "OTHER 폴더를 삭제하시겠습니까?",
+                "warning_message": "폴더 안의 업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
+                "back_url": reverse(
+                    "aircraft_manual_detail",
+                    kwargs={"pk": self.object.aircraft.pk},
+                ),
+            }
+        )
 
         return context
 
@@ -1875,16 +1870,18 @@ class OtherManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteVi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context.update({
-            "delete_type": "OTHER FILE",
-            "delete_title": self.object.title,
-            "delete_message": "OTHER 파일을 삭제하시겠습니까?",
-            "warning_message": "업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
-            "back_url": reverse(
-                "other_manual_category_detail",
-                kwargs={"pk": self.object.category.pk},
-            ),
-        })
+        context.update(
+            {
+                "delete_type": "OTHER FILE",
+                "delete_title": self.object.title,
+                "delete_message": "OTHER 파일을 삭제하시겠습니까?",
+                "warning_message": "업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
+                "back_url": reverse(
+                    "other_manual_category_detail",
+                    kwargs={"pk": self.object.category.pk},
+                ),
+            }
+        )
 
         return context
 
@@ -1899,7 +1896,7 @@ class OtherManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteVi
             "other_manual_category_detail",
             kwargs={"pk": self.object.category.pk},
         )
-    
+
 
 class OtherManualFilePDFView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
@@ -2056,7 +2053,7 @@ class OtherManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                         )
 
         return context
-    
+
 
 class OtherManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
     def post(self, request, *args, **kwargs):

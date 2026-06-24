@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .forms import CommonManualCategoryForm
-from .models import Aircraft, ManualFile, CommonManualCategory
+from .models import Aircraft, ManualFile, CommonManualCategory, CommonManualFile
 
 
 class AircraftManualAccessTests(TestCase):
@@ -122,3 +122,45 @@ class CommonManualCategoryFormTests(TestCase):
         category = form.save()
 
         self.assertEqual(category.code, "FLIGHT_DECK_2")
+
+
+class CommonManualFileDeleteViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="commonuser",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.category = CommonManualCategory.objects.create(
+            name="Flight Deck",
+            code="FLIGHT_DECK",
+        )
+        self.common_file = CommonManualFile.objects.create(
+            category=self.category,
+            title="Checklist",
+            file=SimpleUploadedFile(
+                "checklist.pdf",
+                b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF",
+                content_type="application/pdf",
+            ),
+        )
+
+    def test_delete_page_is_accessible_for_common_manual_file(self):
+        self.client.login(username="commonuser", password="testpass123")
+
+        response = self.client.get(
+            reverse(
+                "common_manual_file_delete",
+                kwargs={"pk": self.common_file.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Checklist")
+        self.assertContains(
+            response,
+            reverse(
+                "common_manual_category_detail",
+                kwargs={"pk": self.category.pk},
+            ),
+        )
