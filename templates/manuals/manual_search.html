@@ -33,7 +33,17 @@ manual-search-page
     </div>
 </div>
 
-<div class="card portal-card shadow-sm mb-4">
+<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#manual-search-filter"
+    aria-expanded="false"
+    aria-controls="manual-search-filter">
+    Search Options
+</button>
+
+<div id="manual-search-filter"
+    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse d-md-block">
     <div class="card-body">
         <form method="get"
             data-loading-title="Searching Manuals"
@@ -125,65 +135,94 @@ manual-search-page
         </div>
     </div>
 
+    {% if result_groups %}
+        <div class="mobile-result-tabs d-md-none mb-3">
+            <div class="nav nav-pills mobile-tab-scroll"
+                role="tablist">
+                {% for group in result_groups %}
+                    <button class="nav-link {% if forloop.first %}active{% endif %}"
+                        id="manual-tab-{{ forloop.counter }}"
+                        data-bs-toggle="pill"
+                        data-bs-target="#manual-pane-{{ forloop.counter }}"
+                        type="button"
+                        role="tab"
+                        aria-controls="manual-pane-{{ forloop.counter }}"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                        {{ group.manual }}
+                        <span>{{ group.match_count }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="manual-result-tab-content tab-content">
     {% for group in result_groups %}
-        <div class="card portal-card manual-group-card shadow-sm mb-3">
-            <div class="card-body">
+        <div class="manual-result-pane tab-pane fade {% if forloop.first %}show active{% endif %}"
+            id="manual-pane-{{ forloop.counter }}"
+            role="tabpanel"
+            aria-labelledby="manual-tab-{{ forloop.counter }}"
+            tabindex="0">
+            <div class="card portal-card manual-group-card shadow-sm mb-3">
+                <div class="card-body">
 
-                <div class="manual-group-header">
-                    <div>
-                        <p class="aircraft-maker mb-1">
-                            {{ group.eyebrow }}
-                        </p>
+                    <div class="manual-group-header">
+                        <div>
+                            <p class="aircraft-maker mb-1">
+                                {{ group.eyebrow }}
+                            </p>
 
-                        <h4 class="section-title mb-1">
-                            {{ group.title }}
-                        </h4>
+                            <h4 class="section-title mb-1">
+                                {{ group.title }}
+                            </h4>
 
-                        <p class="section-description mb-0">
-                            검색된 페이지 {{ group.pages|length }}개
-                        </p>
+                            <p class="section-description mb-0">
+                                검색된 페이지 {{ group.match_count }}개
+                            </p>
+                        </div>
+
+                        <span class="badge {{ group.badge_class }} manual-badge">
+                            {{ group.match_count }} pages
+                        </span>
                     </div>
 
-                    <span class="badge {{ group.badge_class }} manual-badge">
-                        {{ group.pages|length }} pages
-                    </span>
-                </div>
+                    <div class="manual-group-info mt-3">
+                        {% if group.aircraft %}
+                            <div>
+                                <span>Aircraft</span>
+                                <strong>{{ group.aircraft }}</strong>
+                            </div>
+                        {% endif %}
 
-                <div class="manual-group-info mt-3">
-                    {% if group.aircraft %}
                         <div>
-                            <span>Aircraft</span>
-                            <strong>{{ group.aircraft }}</strong>
+                            <span>Manual</span>
+                            <strong>{{ group.manual }}</strong>
+                        </div>
+
+                        <div>
+                            <span>First Match</span>
+                            <strong>{{ group.first_match }}</strong>
+                        </div>
+                    </div>
+
+                    {% if group.first_page.snippet %}
+                        <div class="common-result-snippet mt-3">
+                            {{ group.first_page.snippet|highlight_query:query }}
                         </div>
                     {% endif %}
 
-                    <div>
-                        <span>Manual</span>
-                        <strong>{{ group.manual }}</strong>
+                    <div class="manual-group-actions mt-3">
+                        <a href="{{ group.viewer_url }}"
+                            class="btn {{ group.button_class }} app-card-btn">
+                            Open Viewer
+                        </a>
                     </div>
 
-                    <div>
-                        <span>First Match</span>
-                        <strong>{{ group.first_match }}</strong>
-                    </div>
                 </div>
-
-                {% if group.first_page.snippet %}
-                    <div class="common-result-snippet mt-3">
-                        {{ group.first_page.snippet|highlight_query:query }}
-                    </div>
-                {% endif %}
-
-                <div class="manual-group-actions mt-3">
-                    <a href="{{ group.viewer_url }}"
-                        class="btn {{ group.button_class }} app-card-btn">
-                        Open Viewer
-                    </a>
-                </div>
-
             </div>
         </div>
     {% endfor %}
+    </div>
 
     {% if not result_groups %}
         <div class="alert alert-warning app-alert">

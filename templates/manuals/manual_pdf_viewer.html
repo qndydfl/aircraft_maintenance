@@ -17,6 +17,8 @@ pdf-viewer-page
         searchQuery: "{{ query|escapejs }}".trim().toLowerCase(),
         viewerType: "{{ viewer_type }}",
         matchingPages: {{ matching_pages_json|default:"[]"|safe }},
+        currentMatchIndex: parseInt("{{ current_match_index|default:'0' }}", 10),
+        matchCount: parseInt("{{ match_count|default:'0' }}", 10),
         viewMode: "{{ view_mode|default:'single' }}",
 
         /* 🔄 [추가] 장고 서버에서 가져온 챕터/서브태스크 데이터를 JS 트리 생성기가 쓸 수 있도록 전달 */
@@ -183,21 +185,14 @@ pdf-viewer-page
                 <span class="badge bg-warning text-dark viewer-query-badge"
                     >{{ query }}
                 </span>
-                {% endif %} {% if query and match_count %} {% if prev_match_url %}
+                {% endif %} {% if query and match_count %} {% if match_count > 1 %}
                 <a
-                    href="{{ prev_match_url }}"
+                    href="{% if prev_match_url %}{{ prev_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
                     class="btn btn-outline-secondary viewer-tool-btn"
                     data-viewer-match-link="1"
                     data-viewer-match-direction="prev"
                     >Prev Match</a
                 >
-                {% else %}
-                <button
-                    class="btn btn-outline-secondary viewer-tool-btn"
-                    disabled
-                >
-                    Prev Match
-                </button>
                 {% endif %}
 
                 <span
@@ -206,21 +201,14 @@ pdf-viewer-page
                     >{{ current_match_index }} / {{ match_count }}</span
                 >
 
-                {% if next_match_url %}
+                {% if match_count > 1 %}
                 <a
-                    href="{{ next_match_url }}"
+                    href="{% if next_match_url %}{{ next_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
                     class="btn btn-outline-secondary viewer-tool-btn"
                     data-viewer-match-link="1"
                     data-viewer-match-direction="next"
                     >Next Match</a
                 >
-                {% else %}
-                <button
-                    class="btn btn-outline-secondary viewer-tool-btn"
-                    disabled
-                >
-                    Next Match
-                </button>
                 {% endif %} {% elif query %}
                 <span class="badge bg-secondary viewer-match-badge"
                     >No match</span

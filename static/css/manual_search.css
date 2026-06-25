@@ -85,6 +85,73 @@ body.manual-search-page .app-container {
     border-left: 5px solid #198754;
 }
 
+.mobile-filter-toggle {
+    width: 100%;
+    justify-content: center;
+}
+
+.mobile-tab-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 1px 8px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mobile-tab-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile-tab-scroll .nav-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    border-radius: 999px;
+    padding: 7px 12px;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    font-size: 0.72rem;
+    font-weight: 850;
+}
+
+.mobile-tab-scroll .nav-link span {
+    min-width: 20px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    color: #334155;
+    font-size: 0.62rem;
+}
+
+.mobile-tab-scroll .nav-link.active {
+    color: #fff;
+    background: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: 0 8px 18px rgba(13, 110, 253, 0.22);
+}
+
+.mobile-tab-scroll .nav-link.active span {
+    color: #0d6efd;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+@media (min-width: 768px) {
+    .mobile-filter-collapse.collapse {
+        display: block;
+        height: auto !important;
+        visibility: visible;
+    }
+
+    .manual-result-tab-content > .manual-result-pane {
+        display: block;
+        opacity: 1;
+    }
+}
+
 @media (max-width: 767.98px) {
     body.manual-search-page {
         padding-bottom: calc(70px + env(safe-area-inset-bottom));
@@ -92,6 +159,18 @@ body.manual-search-page .app-container {
 
     .search-summary {
         display: none !important;
+    }
+
+    .mobile-filter-toggle {
+        min-height: 38px;
+        margin-top: -2px;
+        background: rgba(13, 110, 253, 0.94);
+        border: 0;
+        box-shadow: 0 10px 22px rgba(13, 110, 253, 0.18);
+    }
+
+    .mobile-filter-collapse {
+        margin-top: -2px;
     }
 
     .manual-group-info {

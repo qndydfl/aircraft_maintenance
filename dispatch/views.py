@@ -999,8 +999,10 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
             page.snippet = page.get_snippet(search_value)
 
         mel_results.sort(
-            key=lambda page: page.recommend_score,
-            reverse=True,
+            key=lambda page: (
+                page.manual_file_id,
+                page.page_number,
+            ),
         )
 
         context["mel_results"] = mel_results

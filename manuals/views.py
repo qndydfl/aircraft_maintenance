@@ -739,9 +739,11 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     **group_data,
                     "pages": [],
                     "first_page": page,
+                    "match_count": 0,
                 }
 
             result_group_map[key]["pages"].append(page)
+            result_group_map[key]["match_count"] = len(result_group_map[key]["pages"])
 
         for page in package_pages:
             package = page.chapter.package
@@ -1272,10 +1274,21 @@ class ManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
 
         try:
             page_count = index_pdf_pages_for_manual_file_safely(manual)
+            mel_count = None
 
-            messages.success(
-                request, f"{manual.manual_type} PDF Page {page_count}개 재인덱싱 완료"
-            )
+            if manual.manual_type == "MEL":
+                mel_count = extract_mel_dispatch_items_from_pdf(manual)
+
+            if mel_count is not None:
+                messages.success(
+                    request,
+                    f"{manual.manual_type} PDF Page {page_count}개 재인덱싱, MEL EICAS Message {mel_count}개 추출 완료",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"{manual.manual_type} PDF Page {page_count}개 재인덱싱 완료",
+                )
 
         except Exception as error:
             messages.error(request, f"재인덱싱 실패: {error}")

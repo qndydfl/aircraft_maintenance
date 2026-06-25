@@ -10,6 +10,12 @@ const pdfUrl = config.pdfUrl;
 const initialPage = config.initialPage || 1;
 const searchQuery = config.searchQuery || "";
 const viewerType = config.viewerType || "file";
+const initialServerMatchIndex = Number.isFinite(config.currentMatchIndex)
+    ? config.currentMatchIndex
+    : parseInt(config.currentMatchIndex || "0", 10);
+const serverMatchTotal = Number.isFinite(config.matchCount)
+    ? config.matchCount
+    : parseInt(config.matchCount || matchingPages.length || "0", 10);
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = config.workerSrc;
 
@@ -52,6 +58,9 @@ const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
 let viewerSearchQuery = searchQuery || "";
 let viewerSearchMatches = [];
 let viewerSearchIndex = -1;
+let serverMatchIndex = Number.isFinite(initialServerMatchIndex)
+    ? initialServerMatchIndex
+    : 0;
 
 
 let scale = 1.0;
@@ -76,15 +85,15 @@ function parseViewerSearchQuery(query) {
     const tokenChars = "0-9a-z가-힣";
     const tokenBody = "[" + tokenChars + "/_-]*";
 
-    function buildWildcardTokenRegex(token, isFirstToken) {
+    function buildWildcardTokenRegex(token) {
         const parts = token.split("*").map(function (part) {
             return escapeRegExp(part);
         });
 
         let regexText = parts.join(tokenBody);
 
-        if (isFirstToken && !token.startsWith("*")) {
-            regexText = "(^|[^" + tokenChars + "])" + regexText;
+        if (!token.startsWith("*")) {
+            regexText = "(?<![" + tokenChars + "])" + regexText;
         }
 
         if (!token.endsWith("*")) {
@@ -122,8 +131,8 @@ function parseViewerSearchQuery(query) {
         }
 
         const regexText = tokens
-            .map(function (token, index) {
-                return buildWildcardTokenRegex(token, index === 0);
+            .map(function (token) {
+                return buildWildcardTokenRegex(token);
             })
             .join("\\s+");
 
@@ -138,10 +147,10 @@ function parseViewerSearchQuery(query) {
     const exactWords = splitQueryTokens(trimmed);
 
     const exactRegexText = exactWords
-        .map(function (word, index) {
-            const prefix = index === 0 ? "(^|[^0-9a-z가-힣])" : "";
-
-            return prefix + escapeRegExp(word) + "(?![0-9a-z가-힣])";
+        .map(function (word) {
+            return "(?<![0-9a-z가-힣])" +
+                escapeRegExp(word) +
+                "(?![0-9a-z가-힣])";
         })
         .join("\\s+");
 
@@ -212,6 +221,7 @@ viewerMatchLinks.forEach(function (link) {
         const targetUrl = new URL(href, window.location.href);
         const isSameViewer = targetUrl.pathname === window.location.pathname;
         const direction = link.dataset.viewerMatchDirection;
+        const targetPage = parseInt(targetUrl.searchParams.get("page") || "", 10);
 
         event.preventDefault();
         const globalLoading = document.getElementById("global-loading");
@@ -220,11 +230,19 @@ viewerMatchLinks.forEach(function (link) {
             globalLoading.classList.add("d-none");
         }
 
-        if (isSameViewer && matchingPages.length > 0 && direction) {
+        const canUseLocalMatchNavigation = matchingPages.length > 0 &&
+            (
+                !serverMatchTotal ||
+                serverMatchTotal === matchingPages.length ||
+                matchingPages.includes(targetPage)
+            );
+
+        if (isSameViewer && canUseLocalMatchNavigation && direction) {
             goToRelativeMatch(direction);
             return;
         }
 
+        showViewerLoading("Loading next match...");
         window.location.replace(targetUrl.href);
     });
 });
@@ -249,12 +267,24 @@ function getCurrentMatchingPageIndex() {
     return matchingPages.length - 1;
 }
 
-function updateServerMatchCount(index) {
-    if (!serverMatchCount || !matchingPages.length || index < 0) {
+function updateServerMatchCountByDirection(direction) {
+    if (!serverMatchCount || !serverMatchTotal || serverMatchIndex <= 0) {
         return;
     }
 
-    serverMatchCount.textContent = index + 1 + " / " + matchingPages.length;
+    if (direction === "prev") {
+        serverMatchIndex -= 1;
+    } else if (direction === "next") {
+        serverMatchIndex += 1;
+    }
+
+    serverMatchIndex = Math.max(
+        1,
+        Math.min(serverMatchIndex, serverMatchTotal)
+    );
+
+    serverMatchCount.textContent =
+        serverMatchIndex + " / " + serverMatchTotal;
 }
 
 function goToRelativeMatch(direction) {
@@ -279,7 +309,7 @@ function goToRelativeMatch(direction) {
     url.searchParams.set("page", pageNumber);
     window.history.replaceState({}, "", url.href);
 
-    updateServerMatchCount(nextIndex);
+    updateServerMatchCountByDirection(direction);
     goToPage(pageNumber);
 }
 

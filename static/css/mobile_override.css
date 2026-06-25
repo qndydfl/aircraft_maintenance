@@ -13,7 +13,8 @@
             radial-gradient(circle at 20% 0%, rgba(13,110,253,.10), transparent 28%),
             linear-gradient(180deg, #f7f8fb 0%, #f2f3f7 100%);
         padding-top: 56px;
-        font-size: 14px;
+        font-size: 13px;
+        line-height: 1.35;
     }
 
     .app-main {
@@ -24,6 +25,11 @@
         padding-left: 12px !important;
         padding-right: 12px !important;
         padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .row {
+        --bs-gutter-x: .65rem;
+        --bs-gutter-y: .65rem;
     }
 
     .app-navbar {
@@ -39,23 +45,31 @@
         font-weight: 850;
     }
 
+    .app-user-name {
+        display: none;
+    }
+
     .page-hero {
-        padding: 12px;
-        border-radius: 18px;
-        margin-top: 8px;
+        padding: 10px 11px;
+        border-radius: 17px;
+        margin-top: 6px;
+        margin-bottom: 10px !important;
         background: rgba(255,255,255,.72);
         backdrop-filter: blur(22px) saturate(180%);
         -webkit-backdrop-filter: blur(22px) saturate(180%);
         box-shadow: 0 10px 26px rgba(15,23,42,.07);
+        gap: 8px;
     }
 
     .page-title {
-        font-size: 1rem;
-        letter-spacing: -.04em;
+        font-size: .94rem;
+        line-height: 1.15;
+        letter-spacing: 0;
     }
 
     .page-eyebrow {
-        font-size: .55rem;
+        font-size: .52rem;
+        letter-spacing: .04em;
     }
 
     .page-subtitle,
@@ -92,19 +106,44 @@
     .app-action-btn,
     .app-card-btn,
     .btn {
-        min-height: 34px;
+        min-height: 32px;
         border-radius: 999px !important;
-        font-size: .68rem;
+        font-size: .66rem;
         font-weight: 800;
+        line-height: 1.2;
+        white-space: normal;
     }
 
     .form-control,
     .form-select,
     .app-form-control {
-        min-height: 40px;
+        min-height: 38px;
         border-radius: 14px !important;
-        font-size: .74rem;
+        font-size: .72rem;
         background: rgba(255,255,255,.82);
+    }
+
+    .form-label {
+        font-size: .6rem;
+        margin-bottom: 4px;
+    }
+
+    .section-title,
+    .portal-detail-title,
+    .portal-list-card-title,
+    .dispatch-card-title,
+    .dispatch-form-section-title,
+    .portal-form-section-title,
+    .common-form-section-title {
+        font-size: .78rem !important;
+        line-height: 1.2;
+        letter-spacing: 0;
+    }
+
+    h4.section-title,
+    h5,
+    h6 {
+        line-height: 1.22;
     }
 
     .manual-badge,
@@ -135,6 +174,23 @@
         border-radius: 13px !important;
     }
 
+    .portal-detail-info span,
+    .manual-group-info span,
+    .dispatch-info-item span,
+    .dispatch-reference-item span,
+    .dispatch-mini-grid span {
+        font-size: .54rem !important;
+    }
+
+    .portal-detail-info strong,
+    .manual-group-info strong,
+    .dispatch-info-item strong,
+    .dispatch-reference-item strong,
+    .dispatch-mini-grid strong {
+        font-size: .66rem !important;
+        line-height: 1.25;
+    }
+
     .portal-list-card-actions,
     .manual-group-actions,
     .dispatch-open-actions,
@@ -146,13 +202,86 @@
         gap: 7px !important;
     }
 
+    .mobile-filter-toggle {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        margin-bottom: 10px !important;
+        border: 0 !important;
+        background: rgba(13,110,253,.94) !important;
+        box-shadow: 0 10px 22px rgba(13,110,253,.18);
+    }
+
+    .mobile-tab-scroll {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        padding: 1px 1px 8px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mobile-tab-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mobile-tab-scroll .nav-link {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 32px;
+        border-radius: 999px !important;
+        padding: 6px 11px;
+        font-size: .66rem;
+        font-weight: 850;
+        color: #475569;
+        background: rgba(255,255,255,.76);
+        border: 1px solid rgba(203,213,225,.9);
+        white-space: nowrap;
+    }
+
+    .mobile-tab-scroll .nav-link span {
+        min-width: 19px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: rgba(15,23,42,.08);
+        color: #334155;
+        font-size: .58rem;
+        text-align: center;
+    }
+
+    .mobile-tab-scroll .nav-link.active {
+        color: #fff;
+        background: #0d6efd;
+        border-color: #0d6efd;
+        box-shadow: 0 8px 18px rgba(13,110,253,.22);
+    }
+
+    .mobile-tab-scroll .nav-link.active span {
+        color: #0d6efd;
+        background: rgba(255,255,255,.92);
+    }
+
+    .common-result-snippet,
+    .candidate-snippet,
+    .dispatch-text-body,
+    .portal-form-guide,
+    .common-upload-guide {
+        font-size: .64rem !important;
+        line-height: 1.4;
+    }
+
     .mobile-bottom-nav {
-        height: 64px;
-        margin: 0 10px 8px;
+        height: 62px;
+        margin: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        border-radius: 22px;
+        width: 100%;
+        border-radius: 0;
         background: rgba(255,255,255,.86);
         backdrop-filter: blur(24px) saturate(180%);
         -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -160,19 +289,150 @@
     }
 
     .mobile-nav-icon {
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
 
     .mobile-nav-text {
-        font-size: .58rem;
+        font-size: .56rem;
     }
 
     table {
-        font-size: .72rem !important;
+        font-size: .68rem !important;
     }
 
     .table-responsive {
         border-radius: 16px;
         overflow: hidden;
+    }
+
+    .badge {
+        white-space: normal;
+        line-height: 1.15;
+    }
+
+    .text-muted,
+    small,
+    .small {
+        font-size: .62rem !important;
+    }
+
+    input::placeholder {
+        font-size: .68rem;
+    }
+
+    body.pdf-viewer-page {
+        padding-top: 0 !important;
+        overflow: hidden;
+    }
+
+    body.pdf-viewer-page .app-main {
+        min-height: 100vh !important;
+    }
+
+    body.pdf-viewer-page .app-container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    body.pdf-viewer-page .viewer-page {
+        background:
+            radial-gradient(circle at 15% 12%, rgba(0,122,255,0.15), transparent 32%),
+            radial-gradient(circle at 85% 20%, rgba(175,82,222,0.12), transparent 34%),
+            linear-gradient(135deg, #f6f8fc, #eef1f7);
+    }
+
+    body.pdf-viewer-page .viewer-action-btn {
+        min-height: 34px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    body.pdf-viewer-page .viewer-tool-btn {
+        flex-shrink: 0;
+        min-height: 31px;
+        padding: 0.28rem 0.6rem;
+        font-size: 0.74rem;
+        white-space: nowrap;
+    }
+
+    body.pdf-viewer-page .viewer-search-input {
+        min-height: 31px;
+        border-radius: 999px !important;
+        font-size: 0.8rem;
+    }
+
+    body.pdf-viewer-page .viewer-zoom-badge,
+    body.pdf-viewer-page .viewer-query-badge,
+    body.pdf-viewer-page .viewer-match-badge {
+        border-radius: 999px;
+        padding: 0.35rem 0.55rem;
+        font-size: 0.74rem;
+        white-space: nowrap;
+        line-height: 1.15;
+    }
+
+    body.pdf-viewer-page .mobile-page-btn {
+        min-width: 72px;
+        height: 30px;
+        min-height: 30px;
+        padding: 4px 8px;
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    body.pdf-viewer-page .mobile-page-indicator {
+        min-width: 70px;
+        font-size: 0.76rem;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 567px) {
+    body.pdf-viewer-page {
+        padding-top: 0 !important;
+        padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+    }
+
+    body.pdf-viewer-page .viewer-action-btn {
+        min-height: 27px;
+        padding: 4px 7px;
+        font-size: 0.6rem;
+    }
+
+    body.pdf-viewer-page .viewer-tool-btn {
+        min-height: 27px;
+        padding: 4px 7px;
+        font-size: 0.6rem;
+    }
+
+    body.pdf-viewer-page .viewer-search-input {
+        height: 27px;
+        min-height: 27px;
+        font-size: 0.64rem;
+        padding: 4px 9px;
+    }
+
+    body.pdf-viewer-page .viewer-query-badge,
+    body.pdf-viewer-page .viewer-match-badge,
+    body.pdf-viewer-page .viewer-zoom-badge {
+        max-width: 128px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.56rem;
+        padding: 4px 6px;
+    }
+
+    body.pdf-viewer-page .mobile-page-btn {
+        min-width: 62px;
+        height: 30px;
+        min-height: 30px;
+        font-size: 0.6rem;
+    }
+
+    body.pdf-viewer-page .mobile-page-indicator {
+        min-width: 58px;
+        font-size: 0.66rem;
     }
 }

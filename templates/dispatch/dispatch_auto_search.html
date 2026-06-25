@@ -53,7 +53,17 @@ dispatch-search-page
     </div>
 </div>
 
-<div class="card portal-card shadow-sm mb-4">
+<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#dispatch-search-filter"
+    aria-expanded="false"
+    aria-controls="dispatch-search-filter">
+    Search Options
+</button>
+
+<div id="dispatch-search-filter"
+    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse d-md-block">
     <div class="card-body">
         <form method="get"
             data-loading-title="Searching Dispatch"
@@ -180,21 +190,21 @@ dispatch-search-page
                                 </a>
 
                                 {% if item.mel_page %}
-                                    <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                                    <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-danger">
                                         MEL
                                     </a>
                                 {% endif %}
 
                                 {% if item.fim_page %}
-                                    <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                                    <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-primary">
                                         FIM
                                     </a>
                                 {% endif %}
 
                                 {% if item.amm_page %}
-                                    <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                                    <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-outline-success">
                                         AMM
                                     </a>
@@ -230,21 +240,21 @@ dispatch-search-page
                     </a>
 
                     {% if item.mel_page %}
-                        <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                        <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-danger app-card-btn">
                             MEL
                         </a>
                     {% endif %}
 
                     {% if item.fim_page %}
-                        <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                        <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-primary app-card-btn">
                             FIM
                         </a>
                     {% endif %}
 
                     {% if item.amm_page %}
-                        <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                        <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-success app-card-btn">
                             AMM
                         </a>
@@ -285,7 +295,7 @@ dispatch-search-page
                         <td>{{ row.adc|default:"-" }}</td>
                         <td>
                             {% if row.manual_file and row.page_number %}
-                                <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&mode=matches&back={{ request.get_full_path|urlencode }}"
+                                <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                     class="btn btn-sm btn-outline-danger">
                                     Open
                                 </a>
@@ -316,7 +326,7 @@ dispatch-search-page
                     </div>
 
                     {% if row.manual_file and row.page_number %}
-                        <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                        <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                             class="btn btn-outline-danger mel-open-btn">
                             PDF
                         </a>
@@ -338,11 +348,87 @@ dispatch-search-page
 {% endif %}
 
 {% if query %}
-<div class="row g-4">
+{% if mel_page_data.item or fim_page_data.item or amm_page_data.item or ipc_page_data.item or cdl_page_data.item %}
+<div class="mobile-result-tabs d-md-none mb-3">
+    <div class="nav nav-pills mobile-tab-scroll"
+        role="tablist">
+        {% if mel_page_data.item %}
+            <button class="nav-link rounded-pill active"
+                id="dispatch-tab-mel"
+                data-bs-toggle="pill"
+                data-bs-target="#dispatch-pane-mel"
+                type="button"
+                role="tab"
+                aria-controls="dispatch-pane-mel"
+                aria-selected="true">
+                MEL <span>{{ mel_page_data.total }}</span>
+            </button>
+        {% endif %}
+
+        {% if fim_page_data.item %}
+            <button class="nav-link rounded-pill {% if not mel_page_data.item %}active{% endif %}"
+                id="dispatch-tab-fim"
+                data-bs-toggle="pill"
+                data-bs-target="#dispatch-pane-fim"
+                type="button"
+                role="tab"
+                aria-controls="dispatch-pane-fim"
+                aria-selected="{% if not mel_page_data.item %}true{% else %}false{% endif %}">
+                FIM <span>{{ fim_page_data.total }}</span>
+            </button>
+        {% endif %}
+
+        {% if amm_page_data.item %}
+            <button class="nav-link rounded-pill {% if not mel_page_data.item and not fim_page_data.item %}active{% endif %}"
+                id="dispatch-tab-amm"
+                data-bs-toggle="pill"
+                data-bs-target="#dispatch-pane-amm"
+                type="button"
+                role="tab"
+                aria-controls="dispatch-pane-amm"
+                aria-selected="{% if not mel_page_data.item and not fim_page_data.item %}true{% else %}false{% endif %}">
+                AMM <span>{{ amm_page_data.total }}</span>
+            </button>
+        {% endif %}
+
+        {% if ipc_page_data.item %}
+            <button class="nav-link rounded-pill {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}active{% endif %}"
+                id="dispatch-tab-ipc"
+                data-bs-toggle="pill"
+                data-bs-target="#dispatch-pane-ipc"
+                type="button"
+                role="tab"
+                aria-controls="dispatch-pane-ipc"
+                aria-selected="{% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}true{% else %}false{% endif %}">
+                IPC <span>{{ ipc_page_data.total }}</span>
+            </button>
+        {% endif %}
+
+        {% if cdl_page_data.item %}
+            <button class="nav-link rounded-pill {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}active{% endif %}"
+                id="dispatch-tab-cdl"
+                data-bs-toggle="pill"
+                data-bs-target="#dispatch-pane-cdl"
+                type="button"
+                role="tab"
+                aria-controls="dispatch-pane-cdl"
+                aria-selected="{% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}true{% else %}false{% endif %}">
+                CDL <span>{{ cdl_page_data.total }}</span>
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4 dispatch-candidate-tab-content tab-content">
 
     {% with page=mel_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade show active"
+                id="dispatch-pane-mel"
+                role="tabpanel"
+                aria-labelledby="dispatch-tab-mel"
+                tabindex="0">
                 <h4 class="section-title mb-3">MEL Candidates</h4>
 
                 <div class="card portal-card candidate-card candidate-mel shadow-sm mb-3">
@@ -361,7 +447,7 @@ dispatch-search-page
                                 {% endif %}
                             </div>
 
-                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 class="btn btn-danger app-card-btn">
                                 Open MEL Page
                             </a>
@@ -388,7 +474,7 @@ dispatch-search-page
                             {% endif %}
 
                             <span class="badge bg-danger">
-                                {{ mel_page_data.current }} / {{ mel_page_data.total }}
+                                Match {{ mel_page_data.current }} / {{ mel_page_data.total }}
                             </span>
 
                             {% if mel_page_data.has_next %}
@@ -410,7 +496,11 @@ dispatch-search-page
 
     {% with page=fim_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item %}show active{% endif %}"
+                id="dispatch-pane-fim"
+                role="tabpanel"
+                aria-labelledby="dispatch-tab-fim"
+                tabindex="0">
                 <h4 class="section-title mb-3">FIM Candidates</h4>
 
                 <div class="card portal-card candidate-card candidate-fim shadow-sm mb-3">
@@ -421,7 +511,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 class="btn btn-primary app-card-btn">
                                 Open FIM Page
                             </a>
@@ -448,7 +538,7 @@ dispatch-search-page
                             {% endif %}
 
                             <span class="badge bg-primary">
-                                {{ fim_page_data.current }} / {{ fim_page_data.total }}
+                                Match {{ fim_page_data.current }} / {{ fim_page_data.total }}
                             </span>
 
                             {% if fim_page_data.has_next %}
@@ -470,7 +560,11 @@ dispatch-search-page
 
     {% with page=amm_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item %}show active{% endif %}"
+                id="dispatch-pane-amm"
+                role="tabpanel"
+                aria-labelledby="dispatch-tab-amm"
+                tabindex="0">
                 <h4 class="section-title mb-3">AMM Candidates</h4>
 
                 <div class="card portal-card candidate-card candidate-amm shadow-sm mb-3">
@@ -481,7 +575,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 class="btn btn-success app-card-btn">
                                 Open AMM Page
                             </a>
@@ -508,7 +602,7 @@ dispatch-search-page
                             {% endif %}
 
                             <span class="badge bg-success">
-                                {{ amm_page_data.current }} / {{ amm_page_data.total }}
+                                Match {{ amm_page_data.current }} / {{ amm_page_data.total }}
                             </span>
 
                             {% if amm_page_data.has_next %}
@@ -530,7 +624,11 @@ dispatch-search-page
 
     {% with page=ipc_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}show active{% endif %}"
+                id="dispatch-pane-ipc"
+                role="tabpanel"
+                aria-labelledby="dispatch-tab-ipc"
+                tabindex="0">
                 <h4 class="section-title mb-3">IPC Candidates</h4>
 
                 <div class="card portal-card candidate-card candidate-ipc shadow-sm mb-3">
@@ -541,7 +639,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 class="btn btn-outline-info app-card-btn">
                                 Open IPC Page
                             </a>
@@ -568,7 +666,7 @@ dispatch-search-page
                             {% endif %}
 
                             <span class="badge bg-info text-dark">
-                                {{ ipc_page_data.current }} / {{ ipc_page_data.total }}
+                                Match {{ ipc_page_data.current }} / {{ ipc_page_data.total }}
                             </span>
 
                             {% if ipc_page_data.has_next %}
@@ -590,7 +688,11 @@ dispatch-search-page
 
     {% with page=cdl_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}show active{% endif %}"
+                id="dispatch-pane-cdl"
+                role="tabpanel"
+                aria-labelledby="dispatch-tab-cdl"
+                tabindex="0">
                 <h4 class="section-title mb-3">CDL Candidates</h4>
 
                 <div class="card portal-card candidate-card candidate-cdl shadow-sm mb-3">
@@ -605,7 +707,7 @@ dispatch-search-page
                                 {% endif %}
                             </div>
 
-                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 class="btn btn-outline-warning app-card-btn">
                                 Open CDL Page
                             </a>
@@ -632,7 +734,7 @@ dispatch-search-page
                             {% endif %}
 
                             <span class="badge bg-warning text-dark">
-                                {{ cdl_page_data.current }} / {{ cdl_page_data.total }}
+                                Match {{ cdl_page_data.current }} / {{ cdl_page_data.total }}
                             </span>
 
                             {% if cdl_page_data.has_next %}

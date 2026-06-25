@@ -119,6 +119,75 @@ body.dispatch-search-page table th {
     line-height: 1.45;
 }
 
+body.dispatch-search-page .mobile-filter-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.dispatch-search-page .mobile-tab-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 1px 8px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.dispatch-search-page .mobile-tab-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+body.dispatch-search-page .mobile-tab-scroll .nav-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    border-radius: 999px;
+    padding: 7px 12px;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    font-size: 0.72rem;
+    font-weight: 850;
+}
+
+body.dispatch-search-page .mobile-tab-scroll .nav-link span {
+    min-width: 20px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    color: #334155;
+    font-size: 0.62rem;
+}
+
+body.dispatch-search-page .mobile-tab-scroll .nav-link.active {
+    color: #fff;
+    background: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: 0 8px 18px rgba(13, 110, 253, 0.22);
+}
+
+body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
+    color: #0d6efd;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+@media (min-width: 768px) {
+    .mobile-filter-collapse.collapse {
+        display: block;
+        height: auto !important;
+        visibility: visible;
+    }
+
+    .dispatch-candidate-tab-content > .dispatch-candidate-pane {
+        display: block;
+        opacity: 1;
+    }
+}
+
 @media (max-width: 767.98px) {
     body.dispatch-search-page .app-container {
         padding-bottom: 0;
@@ -126,6 +195,22 @@ body.dispatch-search-page table th {
 
     body.dispatch-search-page .portal-card {
         margin-bottom: 9px !important;
+    }
+
+    body.dispatch-search-page .mobile-filter-toggle {
+        min-height: 38px;
+        margin-top: -2px;
+        background: rgba(13, 110, 253, 0.94);
+        border: 0;
+        box-shadow: 0 10px 22px rgba(13, 110, 253, 0.18);
+    }
+
+    .mobile-filter-collapse {
+        margin-top: -2px;
+    }
+
+    .dispatch-candidate-tab-content {
+        display: block;
     }
 
     .candidate-top {

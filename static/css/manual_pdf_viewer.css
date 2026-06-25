@@ -567,7 +567,7 @@ body {
 @media (max-width: 567px) {
     :root {
         --viewer-mobile-nav-height: 44px;
-        --viewer-bottom-nav-height: 62px;
+        --viewer-bottom-nav-height: calc(62px + env(safe-area-inset-bottom));
         --viewer-safe-bottom: env(safe-area-inset-bottom);
     }
 
@@ -602,7 +602,6 @@ body {
         right: 10px;
         bottom: calc(
             var(--viewer-bottom-nav-height)
-            + var(--viewer-safe-bottom)
             + 6px
         );
         height: var(--viewer-mobile-nav-height);

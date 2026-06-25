@@ -3,7 +3,12 @@ from django.test import TestCase
 from django.urls import reverse
 
 from dispatch.models import DispatchReference, MelDispatchItem
-from dispatch.services import clean_condition, merge_mel_row_with_context
+from dispatch.services import (
+    clean_condition,
+    extract_level,
+    extract_mel_item,
+    merge_mel_row_with_context,
+)
 from manuals.models import Aircraft
 
 
@@ -72,6 +77,46 @@ class DispatchAutoSearchViewTests(TestCase):
 
         self.assertEqual(len(rows), 2)
 
+    def test_message_search_uses_connected_wildcard_for_mel_rows(self):
+        MelDispatchItem.objects.create(
+            aircraft=self.aircraft,
+            message="RECIRC FANS OFF",
+            level="S",
+            condition="Valid condition",
+            mel_item="21-25-01-01",
+            adc="RTG",
+        )
+        MelDispatchItem.objects.create(
+            aircraft=self.aircraft,
+            message="RECIRC FAN ON",
+            level="S",
+            condition="Another condition",
+            mel_item="21-25-01-02",
+            adc="RTG",
+        )
+        MelDispatchItem.objects.create(
+            aircraft=self.aircraft,
+            message="RECIRCULATION FAN OFF",
+            level="S",
+            condition="Different condition",
+            mel_item="21-25-01-03",
+            adc="RTG",
+        )
+
+        response = self.client.get(
+            self.url,
+            {"q": "recirc fan*", "search_type": "message"},
+        )
+
+        messages = [
+            row.message
+            for row in response.context["mel_dispatch_rows"]
+        ]
+
+        self.assertIn("RECIRC FANS OFF", messages)
+        self.assertIn("RECIRC FAN ON", messages)
+        self.assertNotIn("RECIRCULATION FAN OFF", messages)
+
     def test_message_search_excludes_noisy_mel_rows(self):
         MelDispatchItem.objects.create(
             aircraft=self.aircraft,
@@ -113,6 +158,12 @@ class DispatchAutoSearchViewTests(TestCase):
 
 
 class DispatchServiceTests(TestCase):
+    def test_extract_level_keeps_mel_m_level(self):
+        self.assertEqual(extract_level("M"), "M")
+
+    def test_extract_mel_item_preserves_na_value(self):
+        self.assertEqual(extract_mel_item("N/A"), "N/A")
+
     def test_clean_condition_removes_single_letter_noise(self):
         self.assertEqual(clean_condition("r"), "")
 

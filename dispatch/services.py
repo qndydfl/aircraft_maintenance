@@ -119,13 +119,13 @@ def parse_search_query(query):
     if not query:
         return "", "exact"
 
-    trimmed = query.strip()
+    trimmed = " ".join(query.strip().split())
 
     if trimmed.startswith("*") and trimmed.endswith("*") and len(trimmed) > 2:
         return trimmed[1:-1].strip(), "contains"
 
-    if trimmed.endswith("*") and len(trimmed) > 1:
-        return trimmed[:-1].strip(), "startswith"
+    if "*" in trimmed:
+        return trimmed.lower(), "wildcard"
 
     return trimmed, "exact"
 
@@ -474,6 +474,19 @@ def build_structured_search_q(fields, search_value, match_mode):
     if not search_value:
         return Q()
 
+    if match_mode == "wildcard":
+        text_regex = build_manual_text_regex(search_value, match_mode)
+
+        if not text_regex:
+            return Q()
+
+        filters = Q()
+
+        for field in fields:
+            filters |= Q(**{f"{field}__iregex": text_regex})
+
+        return filters
+
     lookup_suffix = {
         "contains": "icontains",
         "startswith": "istartswith",
@@ -588,18 +601,17 @@ def paginate_result_group(request, results, prefix):
 
 
 def parse_manual_search_query(query):
+    query = (query or "").strip()
+
     if not query:
         return "", "exact"
 
-    value = query.strip()
+    query = " ".join(query.split())
 
-    if value.startswith("*") and value.endswith("*") and len(value) > 2:
-        return value[1:-1].strip(), "contains"
+    if "*" in query:
+        return query.lower(), "wildcard"
 
-    if value.endswith("*") and len(value) > 1:
-        return value[:-1].strip(), "startswith"
-
-    return value, "exact"
+    return query.lower(), "exact"
 
 
 def build_manual_text_regex(search_value, match_mode):
@@ -635,13 +647,7 @@ def build_manual_text_regex(search_value, match_mode):
     if not tokens:
         return ""
 
-    if match_mode == "contains":
-        return r".*".join(re.escape(token) for token in tokens)
-
-    if match_mode == "startswith":
-        return r"\s+".join(build_token_regex(token + "*") for token in tokens)
-
-    if "*" in search_value:
+    if match_mode == "wildcard":
         return r"\s+".join(build_token_regex(token) for token in tokens)
 
     exact_words = [
@@ -688,12 +694,17 @@ def clean_message(value):
 
 def extract_level(value):
     value = clean_cell(value).upper()
-    levels = re.findall(r"[AS]", value)
+    levels = re.findall(r"[ASML]", value)
     return "".join(levels)
 
 
 def extract_mel_item(value):
     value = clean_cell(value)
+    normalized = normalize_dash(value).upper()
+
+    if normalized in ["N/A", "NA"]:
+        return "N/A"
+
     match = re.search(r"\d{2}-\d{2}-\d{2}(?:-\d{2})?[A-Z]?", value)
     return match.group(0) if match else ""
 
