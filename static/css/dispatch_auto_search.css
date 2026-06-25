@@ -125,7 +125,7 @@ body.dispatch-search-page table th {
     }
 
     body.dispatch-search-page .portal-card {
-        margin-bottom: 12px !important;
+        margin-bottom: 9px !important;
     }
 
     .candidate-top {
@@ -134,11 +134,11 @@ body.dispatch-search-page table th {
     }
 
     .candidate-top strong {
-        font-size: 0.78rem;
+        font-size: 0.7rem;
     }
 
     .candidate-top .small {
-        font-size: 0.68rem;
+        font-size: 0.6rem;
     }
 
     .candidate-top .app-card-btn {
@@ -146,28 +146,28 @@ body.dispatch-search-page table th {
     }
 
     .candidate-snippet {
-        max-height: 96px;
-        font-size: 0.68rem;
+        max-height: 58px;
+        font-size: 0.62rem;
         line-height: 1.4;
-        padding: 8px;
+        padding: 7px;
         border-radius: 10px;
     }
 
     .candidate-pager .app-card-btn {
-        min-height: 28px;
-        font-size: 0.68rem;
+        min-height: 26px;
+        font-size: 0.6rem;
         padding: 4px 7px;
         border-radius: 9px;
     }
 
     .candidate-pager .badge {
-        font-size: 0.65rem;
-        padding: 5px 7px;
+        font-size: 0.58rem;
+        padding: 4px 6px;
     }
 
     
     .mel-compact-card {
-        padding: 8px 9px;
+        padding: 7px 8px;
         border-radius: 12px;
     }
 
@@ -189,23 +189,23 @@ body.dispatch-search-page table th {
         border: 1px solid #e5e7eb;
         border-radius: 999px;
         padding: 3px 7px;
-        font-size: 0.62rem;
+        font-size: 0.56rem;
         font-weight: 800;
         color: #374151;
     }
 
     .mel-open-btn {
         flex: 0 0 auto;
-        min-height: 28px;
+        min-height: 26px;
         padding: 4px 8px;
         border-radius: 999px;
-        font-size: 0.68rem;
+        font-size: 0.6rem;
         font-weight: 800;
     }
 
     .mel-condition-details {
         margin-top: 6px;
-        font-size: 0.68rem;
+        font-size: 0.6rem;
     }
 
     .mel-condition-details summary {

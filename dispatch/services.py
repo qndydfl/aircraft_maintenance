@@ -603,15 +603,52 @@ def parse_manual_search_query(query):
 
 
 def build_manual_text_regex(search_value, match_mode):
-    escaped = re.escape(search_value)
+    search_value = (search_value or "").strip().lower()
+
+    if not search_value:
+        return ""
+
+    token_chars = r"0-9A-Za-z가-힣"
+    token_body = rf"[{token_chars}/_-]*"
+
+    def build_token_regex(token):
+        escaped_parts = [
+            re.escape(part)
+            for part in token.split("*")
+        ]
+        body = token_body.join(escaped_parts)
+
+        if not token.startswith("*"):
+            body = rf"(?<![{token_chars}])" + body
+
+        if not token.endswith("*"):
+            body = body + rf"(?![{token_chars}])"
+
+        return body
+
+    tokens = [
+        token
+        for token in search_value.split()
+        if token.strip()
+    ]
+
+    if not tokens:
+        return ""
 
     if match_mode == "contains":
-        return escaped
+        return r".*".join(re.escape(token) for token in tokens)
 
     if match_mode == "startswith":
-        return rf"\b{escaped}[A-Za-z0-9/_-]*"
+        return r"\s+".join(build_token_regex(token + "*") for token in tokens)
 
-    return rf"\b{escaped}\b"
+    if "*" in search_value:
+        return r"\s+".join(build_token_regex(token) for token in tokens)
+
+    exact_words = [
+        rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
+        for token in tokens
+    ]
+    return r"\s+".join(exact_words)
 
 
 def clean_cell(value):

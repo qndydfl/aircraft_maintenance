@@ -302,6 +302,30 @@ body {
     box-shadow: 0 8px 26px rgba(15, 23, 42, 0.2);
 }
 
+.viewer-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    min-width: 260px;
+    min-height: 180px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #334155;
+    font-weight: 700;
+}
+
+.viewer-loading.d-none {
+    display: none;
+}
+
+.viewer-loading-title {
+    font-size: 0.95rem;
+}
+
 #pdf-canvas {
     display: block;
     max-width: none;
@@ -384,7 +408,7 @@ body {
 
 @media (max-width: 567px) {
     body.pdf-viewer-page {
-        padding-bottom: 82px !important;
+        padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
     }
 
     body.pdf-viewer-page .viewer-page {
@@ -394,15 +418,17 @@ body {
 
     .viewer-topbar {
         margin: 5px 5px 0;
-        padding: 6px 8px;
-        border-radius: 14px;
-        gap: 6px;
+        padding: 6px 7px;
+        border-radius: 13px;
+        gap: 8px;
         min-height: auto;
+        align-items: flex-start;
     }
 
     .viewer-title {
-        font-size: 0.72rem;
-        max-width: 150px;
+        font-size: 0.7rem;
+        max-width: none;
+        line-height: 1.18;
     }
 
     .viewer-subtitle {
@@ -412,52 +438,65 @@ body {
     .viewer-top-actions {
         margin-left: auto;
         gap: 4px;
+        flex-shrink: 0;
     }
 
     .viewer-action-btn {
-        min-height: 28px;
-        padding: 4px 8px;
-        font-size: 0.62rem;
+        min-height: 27px;
+        padding: 4px 7px;
+        font-size: 0.6rem;
     }
 
     .viewer-toolbar {
         margin: 5px 5px 0;
         padding: 5px;
-        gap: 4px;
-        border-radius: 14px;
+        gap: 5px;
+        border-radius: 13px;
+        flex-wrap: wrap;
+        overflow-x: visible;
+        white-space: normal;
     }
 
     .viewer-tool-btn {
-        min-height: 28px;
+        min-height: 27px;
         padding: 4px 7px;
-        font-size: 0.62rem;
+        font-size: 0.6rem;
     }
 
     .viewer-search-panel {
         display: flex !important;
-        flex: 1;
+        flex: 1 0 100%;
         min-width: 0;
+        order: 2;
     }
 
     .viewer-search-row {
         gap: 4px;
         width: 100%;
+        overflow-x: auto;
+        padding-bottom: 1px;
     }
 
     .viewer-search-input {
-        width: 115px;
-        min-width: 115px;
-        height: 28px;
-        min-height: 28px;
-        font-size: 0.66rem;
+        flex: 1 0 118px;
+        width: auto;
+        min-width: 118px;
+        height: 27px;
+        min-height: 27px;
+        font-size: 0.64rem;
         padding: 4px 9px;
     }
 
     .viewer-query-badge,
     .viewer-match-badge,
     .viewer-zoom-badge {
-        font-size: 0.58rem;
-        padding: 5px 6px;
+        align-items: center;
+        display: inline-flex;
+        max-width: 128px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.56rem;
+        padding: 4px 6px;
     }
 
     .manual-pdf-layout {
@@ -513,13 +552,13 @@ body {
     }
 
     .mobile-page-btn {
-        min-width: 68px;
-        font-size: 0.64rem;
+        min-width: 62px;
+        font-size: 0.6rem;
     }
 
     .mobile-page-indicator {
-        min-width: 64px;
-        font-size: 0.72rem;
+        min-width: 58px;
+        font-size: 0.66rem;
     }
 }
 
@@ -527,8 +566,8 @@ body {
 /* prev next 부분 */
 @media (max-width: 567px) {
     :root {
-        --viewer-mobile-nav-height: 48px;
-        --viewer-bottom-nav-height: 68px;
+        --viewer-mobile-nav-height: 44px;
+        --viewer-bottom-nav-height: 62px;
         --viewer-safe-bottom: env(safe-area-inset-bottom);
     }
 

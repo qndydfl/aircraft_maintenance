@@ -150,31 +150,75 @@ body {
 
 @media (max-width: 767.98px) {
     body {
-        padding-top: 66px;
-        padding-bottom: 82px;
+        padding-top: 58px;
+        padding-bottom: calc(70px + env(safe-area-inset-bottom));
     }
 
     .app-navbar {
-        min-height: 56px;
-    }
-
-    .app-navbar-container {
         min-height: 52px;
     }
 
+    .app-navbar-container {
+        min-height: 48px;
+    }
+
     .app-brand {
-        font-size: 1.02rem;
+        font-size: 0.94rem;
     }
 
     .app-user-name {
-        max-width: 96px;
-        font-size: 0.78rem;
+        max-width: 82px;
+        font-size: 0.7rem;
     }
 
     .app-container {
-        padding-left: 14px;
-        padding-right: 14px;
-        padding-bottom: 24px;
+        max-width: 100%;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+
+    .app-message-area {
+        margin-top: 8px;
+    }
+
+    .app-alert {
+        padding: 8px 10px;
+        font-size: 0.72rem;
+        border-radius: 10px;
+    }
+
+    .loading-box {
+        min-width: 210px;
+        max-width: calc(100vw - 48px);
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+
+    .loading-title {
+        font-size: 0.86rem;
+    }
+
+    .loading-message {
+        font-size: 0.72rem;
+    }
+
+    .mobile-bottom-nav {
+        height: 62px;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .mobile-nav-item {
+        gap: 1px;
+    }
+
+    .mobile-nav-icon {
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .mobile-nav-text {
+        font-size: 0.62rem;
     }
 
     .admin-only-action {

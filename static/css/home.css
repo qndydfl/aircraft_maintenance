@@ -96,42 +96,39 @@ body.home-page .manual-section:last-child {
 
     .home-page .page-actions .app-action-btn {
         width: 100% !important;
-        min-height: 34px;
-        font-size: 0.74rem;
-        border-radius: 11px !important;
+        min-height: 30px;
+        font-size: 0.68rem;
+        border-radius: 10px !important;
     }
 
     .section-header {
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .aircraft-card-header {
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .aircraft-title {
-        font-size: 0.94rem;
+        font-size: 0.84rem;
         line-height: 1.15;
     }
 
     .aircraft-type-pill {
-        font-size: 0.56rem;
-        padding: 4px 7px;
+        font-size: 0.52rem;
+        padding: 3px 6px;
     }
 
     .manual-badge-wrap {
         gap: 4px;
-        margin-bottom: 9px;
+        margin-bottom: 7px;
     }
 
     .manual-card-note {
-        min-height: auto;
-        font-size: 0.68rem;
-        line-height: 1.35;
-        margin-bottom: 10px;
+        display: none;
     }
 
     .card-button-group {
-        gap: 6px;
+        gap: 5px;
     }
 }

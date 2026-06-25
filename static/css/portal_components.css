@@ -130,27 +130,28 @@
 
 @media (max-width: 767.98px) {
     .page-hero {
-        padding: 13px 14px;
-        border-radius: 17px;
-        gap: 10px;
-        margin-top: 8px;
-        margin-bottom: 12px !important;
+        align-items: flex-start;
+        padding: 10px 11px;
+        border-radius: 14px;
+        gap: 8px;
+        margin-top: 6px;
+        margin-bottom: 10px !important;
     }
 
     .page-title {
-        font-size: 1.08rem;
-        line-height: 1.2;
+        font-size: 0.98rem;
+        line-height: 1.15;
         margin-bottom: 3px !important;
     }
 
     .page-eyebrow {
-        font-size: 0.62rem;
+        font-size: 0.56rem;
         margin-bottom: 2px !important;
     }
 
     .page-subtitle,
     .section-description {
-        font-size: 0.7rem;
+        display: none !important;
     }
 
     .page-actions {
@@ -160,11 +161,15 @@
         gap: 6px;
     }
 
+    .page-actions:empty {
+        display: none;
+    }
+
     .page-actions .app-action-btn {
         width: auto !important;
-        min-height: 30px;
-        padding: 5px 10px !important;
-        font-size: 0.72rem;
+        min-height: 28px;
+        padding: 4px 9px !important;
+        font-size: 0.66rem;
         border-radius: 999px !important;
     }
 
@@ -177,30 +182,43 @@
     }
 
     .portal-card .card-body {
-        padding: 12px !important;
+        padding: 10px !important;
+    }
+
+    .portal-card .card-title,
+    .portal-detail-card .card-title {
+        line-height: 1.25;
     }
 
     .app-card-btn {
-        min-height: 34px;
-        font-size: 0.74rem;
-        padding: 6px 8px;
+        min-height: 31px;
+        font-size: 0.68rem;
+        padding: 5px 8px;
         border-radius: 10px;
+        line-height: 1.25;
     }
 
     .app-form-control,
     .form-control,
     .form-select {
         min-height: 38px;
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         border-radius: 11px;
     }
 
     .form-label {
-        font-size: 0.7rem;
+        font-size: 0.64rem;
         margin-bottom: 4px;
     }
 
     .section-title {
-        font-size: 0.94rem;
+        font-size: 0.86rem;
+    }
+
+    .manual-badge,
+    .portal-list-badge,
+    .portal-detail-pill {
+        font-size: 0.58rem;
+        padding: 4px 7px;
     }
 }

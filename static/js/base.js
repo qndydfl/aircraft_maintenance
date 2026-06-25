@@ -15,6 +15,13 @@ document.addEventListener("DOMContentLoaded", function () {
         loading.classList.remove("d-none");
     }
 
+    function hideLoading() {
+        loading.classList.add("d-none");
+    }
+
+    window.addEventListener("pageshow", hideLoading);
+    window.addEventListener("popstate", hideLoading);
+
     document.querySelectorAll("form").forEach(function (form) {
         form.addEventListener("submit", function () {
             const title = form.dataset.loadingTitle || "Processing...";
@@ -30,6 +37,37 @@ document.addEventListener("DOMContentLoaded", function () {
             const message = link.dataset.loadingMessage || "Please wait.";
 
             showLoading(title, message);
+        });
+    });
+
+    document.querySelectorAll("a[href]").forEach(function (link) {
+        link.addEventListener("click", function () {
+            const href = link.getAttribute("href") || "";
+
+            if (
+                link.dataset.loading ||
+                link.dataset.viewerMatchLink ||
+                link.target === "_blank" ||
+                link.hasAttribute("download") ||
+                href.startsWith("#") ||
+                href.startsWith("javascript:")
+            ) {
+                return;
+            }
+
+            const targetUrl = new URL(href, window.location.href);
+            const isViewerLink =
+                targetUrl.pathname.includes("/pdf/viewer/") ||
+                targetUrl.pathname.includes("/viewer/");
+
+            if (!isViewerLink || targetUrl.origin !== window.location.origin) {
+                return;
+            }
+
+            showLoading(
+                link.dataset.loadingTitle || "Opening Viewer",
+                link.dataset.loadingMessage || "Loading PDF viewer..."
+            );
         });
     });
 });

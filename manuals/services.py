@@ -1203,19 +1203,71 @@ def build_manual_text_regex(search_value, match_mode):
     if not search_value:
         return ""
 
-    if match_mode == "wildcard":
-        parts = [
-            re.escape(part.strip()) for part in search_value.split("*") if part.strip()
+    token_chars = r"0-9A-Za-z가-힣"
+    token_body = rf"[{token_chars}/_-]*"
+
+    def build_token_regex(token):
+        escaped_parts = [
+            re.escape(part)
+            for part in token.split("*")
         ]
+        body = token_body.join(escaped_parts)
 
-        if not parts:
-            return ""
+        if not token.startswith("*"):
+            body = rf"(?<![{token_chars}])" + body
 
-        return r".*".join(parts)
+        if not token.endswith("*"):
+            body = body + rf"(?![{token_chars}])"
 
-    escaped = re.escape(search_value)
+        return body
 
-    return r"\b" + escaped + r"\b"
+    tokens = [
+        token
+        for token in search_value.split()
+        if token.strip()
+    ]
+
+    if not tokens:
+        return ""
+
+    if match_mode == "wildcard":
+        return r"\s+".join(build_token_regex(token) for token in tokens)
+
+    exact_words = [
+        rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
+        for token in tokens
+    ]
+    return r"\s+".join(exact_words)
+
+
+def build_snippet_from_regex(text, text_regex, length=180):
+    if not text:
+        return ""
+
+    if not text_regex:
+        return text[:length]
+
+    match = re.search(text_regex, text, re.IGNORECASE)
+
+    if not match:
+        return text[:length]
+
+    start = max(match.start() - 80, 0)
+    end = min(start + length, len(text))
+
+    if end < match.end():
+        end = min(match.end() + 40, len(text))
+        start = max(end - length, 0)
+
+    snippet = text[start:end]
+
+    if start > 0:
+        snippet = "..." + snippet
+
+    if end < len(text):
+        snippet = snippet + "..."
+
+    return snippet
 
 
 def extract_package_revision_info(package_dir):

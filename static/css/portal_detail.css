@@ -106,7 +106,7 @@ body.detail-page .app-container {
     }
 
     .portal-detail-title {
-        font-size: 0.92rem;
+        font-size: 0.78rem;
     }
 
     .portal-detail-card .text-muted.manual-uploaded {
@@ -114,7 +114,7 @@ body.detail-page .app-container {
     }
 
     .portal-detail-note {
-        font-size: 0.7rem;
+        display: none;
     }
 
     .portal-detail-info {
@@ -123,7 +123,15 @@ body.detail-page .app-container {
     }
 
     .portal-detail-info > div {
-        padding: 9px;
+        padding: 7px 8px;
+    }
+
+    .portal-detail-info span {
+        font-size: 0.56rem;
+    }
+
+    .portal-detail-info strong {
+        font-size: 0.66rem;
     }
 
     .portal-detail-button-grid {
@@ -133,7 +141,7 @@ body.detail-page .app-container {
     .portal-detail-card .app-card-btn.mobile-show-btn {
         display: block !important;
         width: 100%;
-        min-height: 32px;
-        font-size: 0.72rem;
+        min-height: 29px;
+        font-size: 0.64rem;
     }
 }

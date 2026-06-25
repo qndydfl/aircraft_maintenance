@@ -62,8 +62,10 @@ pdf-viewer-page
             </a>
 
             <a
+                id="viewer-back-link"
                 href="{{ back_url }}"
                 class="btn btn-outline-primary viewer-action-btn"
+                data-fallback-url="{{ back_url }}"
             >
                 Back
             </a>
@@ -185,6 +187,8 @@ pdf-viewer-page
                 <a
                     href="{{ prev_match_url }}"
                     class="btn btn-outline-secondary viewer-tool-btn"
+                    data-viewer-match-link="1"
+                    data-viewer-match-direction="prev"
                     >Prev Match</a
                 >
                 {% else %}
@@ -196,7 +200,9 @@ pdf-viewer-page
                 </button>
                 {% endif %}
 
-                <span class="badge bg-primary viewer-match-badge"
+                <span
+                    id="server-match-count"
+                    class="badge bg-primary viewer-match-badge"
                     >{{ current_match_index }} / {{ match_count }}</span
                 >
 
@@ -204,6 +210,8 @@ pdf-viewer-page
                 <a
                     href="{{ next_match_url }}"
                     class="btn btn-outline-secondary viewer-tool-btn"
+                    data-viewer-match-link="1"
+                    data-viewer-match-direction="next"
                     >Next Match</a
                 >
                 {% else %}
@@ -238,6 +246,10 @@ pdf-viewer-page
 
         <div class="pdf-viewer-scroll">
             <div id="single-page-viewer" class="pdf-viewer-wrap">
+                <div id="viewer-loading" class="viewer-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="viewer-loading-title">Loading PDF...</div>
+                </div>
                 <canvas id="pdf-canvas"></canvas>
                 <div id="text-layer"></div>
             </div>

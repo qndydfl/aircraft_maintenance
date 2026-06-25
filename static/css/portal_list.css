@@ -58,14 +58,18 @@ body.list-page .app-container {
     }
 
     .portal-list-card {
-        padding: 11px;
+        padding: 9px;
     }
 
     .portal-list-card-title {
-        font-size: 0.86rem;
+        font-size: 0.74rem;
     }
 
     .portal-list-card-desc {
-        font-size: 0.68rem;
+        display: none;
+    }
+
+    .portal-list-card-actions {
+        gap: 5px;
     }
 }

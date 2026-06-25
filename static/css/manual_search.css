@@ -87,7 +87,7 @@ body.manual-search-page .app-container {
 
 @media (max-width: 767.98px) {
     body.manual-search-page {
-        padding-bottom: 82px;
+        padding-bottom: calc(70px + env(safe-area-inset-bottom));
     }
 
     .search-summary {
@@ -99,17 +99,30 @@ body.manual-search-page .app-container {
         gap: 6px;
     }
 
+    .manual-group-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .manual-group-header .manual-badge {
+        justify-self: start;
+        max-width: 100%;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
     .manual-group-info div {
-        padding: 8px 9px;
-        border-radius: 11px;
+        padding: 7px 8px;
+        border-radius: 10px;
     }
 
     .manual-group-info span {
-        font-size: 0.62rem;
+        font-size: 0.56rem;
     }
 
     .manual-group-info strong {
-        font-size: 0.72rem;
+        font-size: 0.66rem;
     }
 
     .manual-group-actions {
@@ -128,9 +141,10 @@ body.manual-search-page .app-container {
     }
 
     .common-result-snippet {
-        max-height: 96px;
+        max-height: 54px;
         overflow: hidden;
-        font-size: 0.72rem;
-        padding: 10px 11px;
+        font-size: 0.66rem;
+        padding: 8px 9px;
+        line-height: 1.35;
     }
 }

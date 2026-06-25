@@ -36,11 +36,15 @@ const manualPdfLayout = document.getElementById("manual-pdf-layout");
 const outlineResizer = document.getElementById("outline-resizer");
 const singlePageViewer = document.getElementById("single-page-viewer");
 const multiPageViewer = document.getElementById("multi-page-viewer");
+const viewerLoading = document.getElementById("viewer-loading");
 const viewerSearchInput = document.getElementById("viewer-search-input");
 const viewerSearchBtn = document.getElementById("viewer-search-btn");
 const viewerSearchPrevBtn = document.getElementById("viewer-search-prev");
 const viewerSearchNextBtn = document.getElementById("viewer-search-next");
 const viewerSearchCount = document.getElementById("viewer-search-count");
+const viewerBackLink = document.getElementById("viewer-back-link");
+const viewerMatchLinks = document.querySelectorAll("[data-viewer-match-link]");
+const serverMatchCount = document.getElementById("server-match-count");
 
 const outlineStorageKey = "manualPdfOutlineHiddenV3";
 const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
@@ -69,16 +73,46 @@ function parseViewerSearchQuery(query) {
     }
 
     const trimmed = query.trim().toLowerCase();
+    const tokenChars = "0-9a-z가-힣";
+    const tokenBody = "[" + tokenChars + "/_-]*";
+
+    function buildWildcardTokenRegex(token, isFirstToken) {
+        const parts = token.split("*").map(function (part) {
+            return escapeRegExp(part);
+        });
+
+        let regexText = parts.join(tokenBody);
+
+        if (isFirstToken && !token.startsWith("*")) {
+            regexText = "(^|[^" + tokenChars + "])" + regexText;
+        }
+
+        if (!token.endsWith("*")) {
+            regexText = regexText + "(?![" + tokenChars + "])";
+        }
+
+        return regexText;
+    }
+
+    function splitQueryTokens(value) {
+        return value
+            .split(/\s+/)
+            .map(function (word) {
+                return word.trim();
+            })
+            .filter(Boolean);
+    }
 
     if (trimmed.includes("*")) {
+        const tokens = splitQueryTokens(trimmed);
         const words = trimmed
-            .split("*")
+            .split(/[\s*]+/)
             .map(function (word) {
                 return word.trim();
             })
             .filter(Boolean);
 
-        if (!words.length) {
+        if (!tokens.length) {
             return {
                 value: "",
                 mode: "exact",
@@ -87,11 +121,11 @@ function parseViewerSearchQuery(query) {
             };
         }
 
-        const regexText = words
-            .map(function (word) {
-                return escapeRegExp(word);
+        const regexText = tokens
+            .map(function (token, index) {
+                return buildWildcardTokenRegex(token, index === 0);
             })
-            .join(".*");
+            .join("\\s+");
 
         return {
             value: trimmed,
@@ -101,15 +135,153 @@ function parseViewerSearchQuery(query) {
         };
     }
 
+    const exactWords = splitQueryTokens(trimmed);
+
+    const exactRegexText = exactWords
+        .map(function (word, index) {
+            const prefix = index === 0 ? "(^|[^0-9a-z가-힣])" : "";
+
+            return prefix + escapeRegExp(word) + "(?![0-9a-z가-힣])";
+        })
+        .join("\\s+");
+
     return {
         value: trimmed,
         mode: "exact",
-        words: [trimmed],
-        regex: null,
+        words: exactWords,
+        regex: exactRegexText ? new RegExp(exactRegexText, "i") : null,
     };
 }
 
 let parsedSearch = parseViewerSearchQuery(searchQuery);
+
+function showViewerLoading(message) {
+    if (!viewerLoading) {
+        return;
+    }
+
+    const title = viewerLoading.querySelector(".viewer-loading-title");
+
+    if (title && message) {
+        title.textContent = message;
+    }
+
+    viewerLoading.classList.remove("d-none");
+}
+
+function hideViewerLoading() {
+    if (!viewerLoading) {
+        return;
+    }
+
+    viewerLoading.classList.add("d-none");
+}
+
+if (viewerBackLink) {
+    const fallbackUrl = viewerBackLink.dataset.fallbackUrl || viewerBackLink.href;
+
+    viewerBackLink.addEventListener("click", function (event) {
+        event.preventDefault();
+        const globalLoading = document.getElementById("global-loading");
+
+        if (globalLoading) {
+            globalLoading.classList.add("d-none");
+        }
+
+        const hasSameSiteReferrer =
+            document.referrer &&
+            new URL(document.referrer).origin === window.location.origin;
+
+        if (window.history.length > 1 && hasSameSiteReferrer) {
+            window.history.back();
+            return;
+        }
+
+        window.location.href = fallbackUrl || "/";
+    });
+}
+
+viewerMatchLinks.forEach(function (link) {
+    link.addEventListener("click", function (event) {
+        const href = link.getAttribute("href");
+
+        if (!href) {
+            return;
+        }
+
+        const targetUrl = new URL(href, window.location.href);
+        const isSameViewer = targetUrl.pathname === window.location.pathname;
+        const direction = link.dataset.viewerMatchDirection;
+
+        event.preventDefault();
+        const globalLoading = document.getElementById("global-loading");
+
+        if (globalLoading) {
+            globalLoading.classList.add("d-none");
+        }
+
+        if (isSameViewer && matchingPages.length > 0 && direction) {
+            goToRelativeMatch(direction);
+            return;
+        }
+
+        window.location.replace(targetUrl.href);
+    });
+});
+
+function getCurrentMatchingPageIndex() {
+    if (!matchingPages.length) {
+        return -1;
+    }
+
+    let index = matchingPages.indexOf(currentPage);
+
+    if (index !== -1) {
+        return index;
+    }
+
+    for (let i = 0; i < matchingPages.length; i += 1) {
+        if (matchingPages[i] >= currentPage) {
+            return i;
+        }
+    }
+
+    return matchingPages.length - 1;
+}
+
+function updateServerMatchCount(index) {
+    if (!serverMatchCount || !matchingPages.length || index < 0) {
+        return;
+    }
+
+    serverMatchCount.textContent = index + 1 + " / " + matchingPages.length;
+}
+
+function goToRelativeMatch(direction) {
+    const currentIndex = getCurrentMatchingPageIndex();
+
+    if (currentIndex === -1) {
+        return;
+    }
+
+    let nextIndex = direction === "prev"
+        ? currentIndex - 1
+        : currentIndex + 1;
+
+    nextIndex = Math.max(0, Math.min(nextIndex, matchingPages.length - 1));
+
+    if (nextIndex === currentIndex && matchingPages[nextIndex] === currentPage) {
+        return;
+    }
+
+    const pageNumber = matchingPages[nextIndex];
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", pageNumber);
+    window.history.replaceState({}, "", url.href);
+
+    updateServerMatchCount(nextIndex);
+    goToPage(pageNumber);
+}
 
 function escapeRegExp(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -132,6 +304,48 @@ function normalizeText(value) {
         .trim();
 }
 
+function isSearchTokenChar(char) {
+    return /[0-9a-z가-힣]/i.test(char || "");
+}
+
+function containsExactSearchValue(text, searchValue) {
+    if (!text || !searchValue) {
+        return false;
+    }
+
+    let startIndex = text.indexOf(searchValue);
+
+    while (startIndex !== -1) {
+        const before = text[startIndex - 1] || "";
+        const after = text[startIndex + searchValue.length] || "";
+
+        if (!isSearchTokenChar(before) && !isSearchTokenChar(after)) {
+            return true;
+        }
+
+        startIndex = text.indexOf(searchValue, startIndex + 1);
+    }
+
+    return false;
+}
+
+function containsExactSearchWord(text, searchWord) {
+    return containsExactSearchValue(text, searchWord);
+}
+
+function containsWildcardSearchWord(text, searchWord) {
+    if (!text || !searchWord) {
+        return false;
+    }
+
+    const regex = new RegExp(
+        "(^|[^0-9a-z가-힣])" + escapeRegExp(searchWord) + "[0-9a-z가-힣/_-]*",
+        "i"
+    );
+
+    return regex.test(text);
+}
+
 function isMatchedText(text) {
     if (!parsedSearch.value) {
         return false;
@@ -140,15 +354,69 @@ function isMatchedText(text) {
     const normalizedText = normalizeText(text);
 
     if (parsedSearch.mode === "wildcard") {
-        return parsedSearch.words.some(function (word) {
-            return normalizedText.includes(word);
-        });
+        return parsedSearch.regex
+            ? parsedSearch.regex.test(normalizedText)
+            : false;
     }
 
-    const escaped = escapeRegExp(parsedSearch.value);
-    const regex = new RegExp("\\b" + escaped + "\\b", "i");
+    return parsedSearch.regex
+        ? parsedSearch.regex.test(normalizedText)
+        : containsExactSearchValue(normalizedText, parsedSearch.value);
+}
 
-    return regex.test(normalizedText);
+function buildTextItemMatchIndexes(textItems, parsed) {
+    if (!parsed || !parsed.regex || !textItems.length) {
+        return new Set();
+    }
+
+    const ranges = [];
+    let pageText = "";
+
+    textItems.forEach(function (item, index) {
+        const itemText = normalizeText(item.str || "");
+
+        if (!itemText) {
+            return;
+        }
+
+        if (pageText) {
+            pageText += " ";
+        }
+
+        const start = pageText.length;
+        pageText += itemText;
+        const end = pageText.length;
+
+        ranges.push({
+            index: index,
+            start: start,
+            end: end,
+        });
+    });
+
+    const matchedIndexes = new Set();
+    const regexFlags = parsed.regex.flags.includes("g")
+        ? parsed.regex.flags
+        : parsed.regex.flags + "g";
+    const regex = new RegExp(parsed.regex.source, regexFlags);
+    let match;
+
+    while ((match = regex.exec(pageText)) !== null) {
+        const matchStart = match.index;
+        const matchEnd = match.index + match[0].length;
+
+        ranges.forEach(function (range) {
+            if (range.end > matchStart && range.start < matchEnd) {
+                matchedIndexes.add(range.index);
+            }
+        });
+
+        if (match.index === regex.lastIndex) {
+            regex.lastIndex += 1;
+        }
+    }
+
+    return matchedIndexes;
 }
 
 function getFitScale(page) {
@@ -189,6 +457,11 @@ function renderTextLayer(page, viewport, requestId) {
         return;
     }
 
+    if (!parsedSearch.value) {
+        clearTextLayer();
+        return;
+    }
+
     textLayer.innerHTML = "";
     textLayer.style.width = viewport.width + "px";
     textLayer.style.height = viewport.height + "px";
@@ -200,7 +473,12 @@ function renderTextLayer(page, viewport, requestId) {
             return;
         }
 
-        textContent.items.forEach(function (item) {
+        const matchedItemIndexes = buildTextItemMatchIndexes(
+            textContent.items,
+            parsedSearch
+        );
+
+        textContent.items.forEach(function (item, index) {
             const span = document.createElement("span");
             const text = item.str || "";
 
@@ -220,7 +498,7 @@ function renderTextLayer(page, viewport, requestId) {
             span.style.fontSize = fontHeight + "px";
             span.style.transform = "scaleX(" + fontWidthScale + ")";
 
-            if (isMatchedText(text)) {
+            if (isMatchedText(text) || matchedItemIndexes.has(index)) {
                 span.classList.add("highlight-text");
             }
 
@@ -234,6 +512,7 @@ function renderPage(pageNumber) {
 
     const requestId = ++renderRequestId;
     clearTextLayer();
+    showViewerLoading("Rendering page...");
 
     pdfDoc.getPage(pageNumber).then(function (page) {
         if (requestId !== renderRequestId) {
@@ -267,6 +546,7 @@ function renderPage(pageNumber) {
 
             renderTextLayer(page, viewport, requestId);
             updateZoomLabel(pageScale);
+            hideViewerLoading();
 
             pageRendering = false;
 
@@ -839,7 +1119,12 @@ function createTextLayerForPage(page, viewport, wrapper) {
     wrapper.appendChild(layer);
 
     page.getTextContent().then(function (textContent) {
-        textContent.items.forEach(function (item) {
+        const matchedItemIndexes = buildTextItemMatchIndexes(
+            textContent.items,
+            parsedSearch
+        );
+
+        textContent.items.forEach(function (item, index) {
             const span = document.createElement("span");
             const text = item.str || "";
 
@@ -863,7 +1148,7 @@ function createTextLayerForPage(page, viewport, wrapper) {
             span.style.fontSize = fontHeight + "px";
             span.style.transform = "scaleX(" + fontWidthScale + ")";
 
-            if (isMatchedText(text)) {
+            if (isMatchedText(text) || matchedItemIndexes.has(index)) {
                 span.classList.add("highlight-text");
             }
 
@@ -962,19 +1247,14 @@ function isTextMatchedByParsedSearch(text, parsed) {
     const normalizedText = normalizeText(text);
 
     if (parsed.mode === "wildcard") {
-        if (parsed.regex) {
-            return parsed.regex.test(normalizedText);
-        }
-
-        return parsed.words.every(function (word) {
-            return normalizedText.includes(word);
-        });
+        return parsed.regex
+            ? parsed.regex.test(normalizedText)
+            : false;
     }
 
-    const escaped = escapeRegExp(parsed.value);
-    const regex = new RegExp("\\b" + escaped + "\\b", "i");
-
-    return regex.test(normalizedText);
+    return parsed.regex
+        ? parsed.regex.test(normalizedText)
+        : containsExactSearchValue(normalizedText, parsed.value);
 }
 
 function updateViewerSearchCount() {

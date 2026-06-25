@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # USE_R2=False
 
-# load_dotenv(os.path.join(BASE_DIR.parent, ".env"))
+# load_dotenv(BASE_DIR / ".env")
 
 # ------------------------------------
 

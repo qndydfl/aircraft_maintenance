@@ -50,6 +50,7 @@ from .services import (
     safe_int,
     parse_manual_search_query,
     build_manual_text_regex,
+    build_snippet_from_regex,
     index_pdf_pages_for_common_manual_file_safely,
     index_pdf_pages_for_other_manual_file_safely,
 )
@@ -641,24 +642,20 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 common_pages = list(common_pages_qs)
                 other_pages = list(other_pages_qs)
 
-                highlight_query = " ".join(
-                    part.strip() for part in search_value.split("*") if part.strip()
-                )
-
                 for page in package_pages:
-                    page.snippet = page.get_snippet(highlight_query)
-                    page.score = calculate_package_score(page, highlight_query)
+                    page.snippet = build_snippet_from_regex(page.text, text_regex)
+                    page.score = calculate_package_score(page, search_value)
 
                 for page in file_pages:
-                    page.snippet = page.get_snippet(highlight_query)
-                    page.score = calculate_file_score(page, highlight_query)
+                    page.snippet = build_snippet_from_regex(page.text, text_regex)
+                    page.score = calculate_file_score(page, search_value)
 
                 for page in common_pages:
-                    page.snippet = page.get_snippet(highlight_query)
+                    page.snippet = build_snippet_from_regex(page.text, text_regex)
                     page.score = 50
 
                 for page in other_pages:
-                    page.snippet = page.get_snippet(highlight_query)
+                    page.snippet = build_snippet_from_regex(page.text, text_regex)
                     page.score = 50
 
                 package_pages = sorted(
@@ -724,11 +721,126 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         for page in other_pages:
             grouped_results["OTHER"].append(page)
 
+        def build_viewer_url(url_name, pk, page_number):
+            params = {
+                "page": page_number,
+                "q": query,
+                "from_search_page": "1",
+                "back": self.request.get_full_path(),
+            }
+
+            return reverse(url_name, kwargs={"pk": pk}) + "?" + urlencode(params)
+
+        result_group_map = {}
+
+        def append_result_group(key, page, group_data):
+            if key not in result_group_map:
+                result_group_map[key] = {
+                    **group_data,
+                    "pages": [],
+                    "first_page": page,
+                }
+
+            result_group_map[key]["pages"].append(page)
+
+        for page in package_pages:
+            package = page.chapter.package
+            append_result_group(
+                ("package", package.pk),
+                page,
+                {
+                    "manual_type": package.manual_type,
+                    "eyebrow": f"{package.manual_type} MANUAL",
+                    "title": f"{package.aircraft.name} / {package.manual_type}",
+                    "aircraft": package.aircraft.name,
+                    "manual": package.manual_type,
+                    "first_match": f"{page.chapter.task} / Page {page.page_number}",
+                    "viewer_url": build_viewer_url(
+                        "manual_chapter_pdf_viewer",
+                        page.chapter.pk,
+                        page.page_number,
+                    ),
+                    "button_class": "btn-primary",
+                    "badge_class": "bg-primary",
+                },
+            )
+
+        for page in file_pages:
+            manual_file = page.manual_file
+            append_result_group(
+                ("file", manual_file.pk),
+                page,
+                {
+                    "manual_type": manual_file.manual_type,
+                    "eyebrow": f"{manual_file.manual_type} MANUAL",
+                    "title": f"{manual_file.aircraft.name} / {manual_file.manual_type}",
+                    "aircraft": manual_file.aircraft.name,
+                    "manual": manual_file.manual_type,
+                    "first_match": f"Page {page.page_number}",
+                    "viewer_url": build_viewer_url(
+                        "manual_file_pdf_viewer",
+                        manual_file.pk,
+                        page.page_number,
+                    ),
+                    "button_class": "btn-danger"
+                    if manual_file.manual_type in {"MEL", "CDL"}
+                    else "btn-primary",
+                    "badge_class": "bg-primary",
+                },
+            )
+
+        for page in other_pages:
+            other_file = page.other_file
+            append_result_group(
+                ("other", other_file.pk),
+                page,
+                {
+                    "manual_type": "OTHER",
+                    "eyebrow": "OTHER MANUAL",
+                    "title": f"{other_file.category.aircraft.name} / {other_file.title}",
+                    "aircraft": other_file.category.aircraft.name,
+                    "manual": other_file.category.name,
+                    "first_match": f"Page {page.page_number}",
+                    "viewer_url": build_viewer_url(
+                        "other_manual_file_pdf_viewer",
+                        other_file.pk,
+                        page.page_number,
+                    ),
+                    "button_class": "btn-primary",
+                    "badge_class": "bg-primary",
+                },
+            )
+
+        for page in common_pages:
+            common_file = page.common_file
+            append_result_group(
+                ("common", common_file.pk),
+                page,
+                {
+                    "manual_type": "COMMON",
+                    "eyebrow": "COMMON MANUAL",
+                    "title": f"{common_file.category.name} / {common_file.title}",
+                    "aircraft": "",
+                    "manual": common_file.category.name,
+                    "first_match": f"Page {page.page_number}",
+                    "viewer_url": build_viewer_url(
+                        "common_manual_file_pdf_viewer",
+                        common_file.pk,
+                        page.page_number,
+                    ),
+                    "button_class": "btn-success",
+                    "badge_class": "bg-success",
+                },
+            )
+
+        result_groups = list(result_group_map.values())
+
         context["package_pages"] = package_pages
         context["file_pages"] = file_pages
         context["common_pages"] = common_pages
         context["other_pages"] = other_pages
         context["grouped_results"] = grouped_results
+        context["result_groups"] = result_groups
 
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
 
@@ -762,6 +874,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         query = self.request.GET.get("q", "").strip()
         view_mode = self.request.GET.get("mode", "single")
         back_url = self.request.GET.get("back", "")
+        match_scope = self.request.GET.get("scope", "").strip()
 
         context["viewer_title"] = (
             f"{chapter.package.aircraft.name} / "
@@ -816,6 +929,9 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
             if back_url:
                 params["back"] = back_url
 
+            if match_scope:
+                params["scope"] = match_scope
+
             return urlencode(params)
 
         all_chapters = ManualChapter.objects.filter(package=chapter.package).order_by(
@@ -852,20 +968,25 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                 else:
                     page_filter = Q(text__iregex=text_regex)
 
-                matches = list(
-                    ManualPDFPage.objects.select_related("chapter")
-                    .filter(chapter__package=chapter.package)
-                    .filter(page_filter)
-                    .order_by(
+                match_queryset = ManualPDFPage.objects.select_related("chapter").filter(
+                    page_filter
+                )
+
+                if match_scope == "chapter":
+                    match_queryset = match_queryset.filter(chapter=chapter).order_by(
+                        "page_number"
+                    )
+                else:
+                    match_queryset = match_queryset.filter(
+                        chapter__package=chapter.package
+                    ).order_by(
                         "chapter__task",
                         "chapter__subtask",
                         "page_number",
                     )
-                    .values(
-                        "chapter_id",
-                        "page_number",
-                        "chapter__task",
-                    )
+
+                matches = list(
+                    match_queryset.values("chapter_id", "page_number", "chapter__task")
                 )
 
                 context["match_count"] = len(matches)
@@ -893,6 +1014,10 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                     current_index = 0
 
                 if current_index is not None:
+                    if match_scope == "chapter" and page_number == 1:
+                        page_number = matches[current_index]["page_number"]
+                        context["page_number"] = page_number
+
                     context["current_match_index"] = current_index + 1
 
                     if current_index > 0:

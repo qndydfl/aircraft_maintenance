@@ -78,18 +78,19 @@ body.form-page .app-container {
 
     .portal-form-card .card-body,
     .common-form-card .card-body {
-        padding: 13px !important;
+        padding: 10px !important;
     }
 
     .portal-form-section,
     .common-form-section {
-        padding-bottom: 15px;
-        margin-bottom: 15px;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
     }
 
     .portal-form-section-title,
     .common-form-section-title {
-        font-size: 0.84rem;
+        font-size: 0.74rem;
+        margin-bottom: 10px;
     }
 
     .portal-form-card textarea,
@@ -99,16 +100,17 @@ body.form-page .app-container {
 
     .portal-form-guide,
     .common-upload-guide {
-        font-size: 0.72rem;
-        padding: 10px 11px;
+        font-size: 0.64rem;
+        padding: 8px 9px;
+        border-radius: 10px;
     }
 
     .portal-form-actions,
     .common-form-actions {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-top: 16px;
+        gap: 6px;
+        margin-top: 12px;
     }
 
     .portal-form-actions .app-card-btn,
