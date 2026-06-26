@@ -139,7 +139,9 @@ body.detail-page .app-container {
     }
 
     .portal-detail-card .app-card-btn.mobile-show-btn {
-        display: block !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
         width: 100%;
         min-height: 29px;
         font-size: 0.64rem;

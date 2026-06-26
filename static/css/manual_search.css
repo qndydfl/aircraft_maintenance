@@ -59,6 +59,7 @@ body.manual-search-page .app-container {
 
 .manual-group-actions {
     display: flex;
+    justify-content: center;
     gap: 8px;
     flex-wrap: wrap;
 }
@@ -154,7 +155,7 @@ body.manual-search-page .app-container {
 
 @media (max-width: 767.98px) {
     body.manual-search-page {
-        padding-bottom: calc(70px + env(safe-area-inset-bottom));
+        padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
 
     .search-summary {
@@ -207,6 +208,7 @@ body.manual-search-page .app-container {
     .manual-group-actions {
         display: grid;
         grid-template-columns: 1fr;
+        justify-content: stretch;
         gap: 6px;
     }
 

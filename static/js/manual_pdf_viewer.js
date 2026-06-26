@@ -3,6 +3,9 @@ const config = window.PDF_VIEWER_CONFIG || {};
 const matchingPages = Array.isArray(config.matchingPages)
     ? config.matchingPages
     : [];
+const matchItems = Array.isArray(config.matchItems)
+    ? config.matchItems
+    : [];
 
 const viewMode = config.viewMode || "single";
 
@@ -66,6 +69,10 @@ let serverMatchIndex = Number.isFinite(initialServerMatchIndex)
 let scale = 1.0;
 let scaleMode = isMobileViewport() ? "width" : "page";
 let renderRequestId = 0;
+let skipRenderLoadingOnce = false;
+const pdfPageCache = new Map();
+const textContentCache = new Map();
+const prefetchingPages = new Set();
 
 function isMobileViewport() {
     return window.innerWidth < 768;
@@ -221,7 +228,6 @@ viewerMatchLinks.forEach(function (link) {
         const targetUrl = new URL(href, window.location.href);
         const isSameViewer = targetUrl.pathname === window.location.pathname;
         const direction = link.dataset.viewerMatchDirection;
-        const targetPage = parseInt(targetUrl.searchParams.get("page") || "", 10);
 
         event.preventDefault();
         const globalLoading = document.getElementById("global-loading");
@@ -230,14 +236,57 @@ viewerMatchLinks.forEach(function (link) {
             globalLoading.classList.add("d-none");
         }
 
-        const canUseLocalMatchNavigation = matchingPages.length > 0 &&
+        if (matchItems.length && serverMatchIndex > 0 && direction) {
+            let nextServerIndex = direction === "prev"
+                ? serverMatchIndex - 2
+                : serverMatchIndex;
+
+            if (nextServerIndex < 0) {
+                nextServerIndex = matchItems.length - 1;
+            } else if (nextServerIndex >= matchItems.length) {
+                nextServerIndex = 0;
+            }
+
+            const nextItem = matchItems[nextServerIndex];
+
+            if (nextItem && nextItem.viewerUrl) {
+                const nextUrl = new URL(nextItem.viewerUrl, window.location.href);
+                const nextPage = parseInt(
+                    nextUrl.searchParams.get("page") ||
+                    nextItem.pageNumber ||
+                    "",
+                    10
+                );
+
+                if (
+                    nextUrl.pathname === window.location.pathname &&
+                    Number.isFinite(nextPage)
+                ) {
+                    window.history.replaceState({}, "", nextUrl.href);
+                    updateServerMatchCountByDirection(direction);
+                    goToPage(nextPage, { silent: true });
+                    return;
+                }
+
+                showViewerLoading("Loading next match...");
+                window.location.replace(nextUrl.href);
+                return;
+            }
+        }
+
+        const currentMatchPageIndex = getCurrentMatchingPageIndex();
+        const canUseLocalMatchNavigation = (
+            isSameViewer &&
+            direction &&
+            matchingPages.length > 0 &&
+            currentMatchPageIndex !== -1 &&
             (
                 !serverMatchTotal ||
-                serverMatchTotal === matchingPages.length ||
-                matchingPages.includes(targetPage)
-            );
+                serverMatchTotal === matchingPages.length
+            )
+        );
 
-        if (isSameViewer && canUseLocalMatchNavigation && direction) {
+        if (canUseLocalMatchNavigation) {
             goToRelativeMatch(direction);
             return;
         }
@@ -278,10 +327,11 @@ function updateServerMatchCountByDirection(direction) {
         serverMatchIndex += 1;
     }
 
-    serverMatchIndex = Math.max(
-        1,
-        Math.min(serverMatchIndex, serverMatchTotal)
-    );
+    if (serverMatchIndex < 1) {
+        serverMatchIndex = serverMatchTotal;
+    } else if (serverMatchIndex > serverMatchTotal) {
+        serverMatchIndex = 1;
+    }
 
     serverMatchCount.textContent =
         serverMatchIndex + " / " + serverMatchTotal;
@@ -298,10 +348,10 @@ function goToRelativeMatch(direction) {
         ? currentIndex - 1
         : currentIndex + 1;
 
-    nextIndex = Math.max(0, Math.min(nextIndex, matchingPages.length - 1));
-
-    if (nextIndex === currentIndex && matchingPages[nextIndex] === currentPage) {
-        return;
+    if (nextIndex < 0) {
+        nextIndex = matchingPages.length - 1;
+    } else if (nextIndex >= matchingPages.length) {
+        nextIndex = 0;
     }
 
     const pageNumber = matchingPages[nextIndex];
@@ -310,7 +360,7 @@ function goToRelativeMatch(direction) {
     window.history.replaceState({}, "", url.href);
 
     updateServerMatchCountByDirection(direction);
-    goToPage(pageNumber);
+    goToPage(pageNumber, { silent: true });
 }
 
 function escapeRegExp(value) {
@@ -482,7 +532,101 @@ function updateZoomLabel(value) {
     zoomLevelSpan.textContent = Math.round(value * 100) + "%";
 }
 
-function renderTextLayer(page, viewport, requestId) {
+function getPdfPage(pageNumber) {
+    if (pdfPageCache.has(pageNumber)) {
+        return Promise.resolve(pdfPageCache.get(pageNumber));
+    }
+
+    return pdfDoc.getPage(pageNumber).then(function (page) {
+        pdfPageCache.set(pageNumber, page);
+        return page;
+    });
+}
+
+function getTextContentForPage(pageNumber, page) {
+    if (textContentCache.has(pageNumber)) {
+        return Promise.resolve(textContentCache.get(pageNumber));
+    }
+
+    const pagePromise = page
+        ? Promise.resolve(page)
+        : getPdfPage(pageNumber);
+
+    return pagePromise.then(function (resolvedPage) {
+        return resolvedPage.getTextContent().then(function (textContent) {
+            textContentCache.set(pageNumber, textContent);
+            return textContent;
+        });
+    });
+}
+
+function getPrefetchMatchPages() {
+    const pages = [];
+    const seen = new Set();
+
+    function addPage(pageNumber) {
+        const parsedPage = parseInt(pageNumber, 10);
+
+        if (
+            Number.isFinite(parsedPage) &&
+            parsedPage >= 1 &&
+            pdfDoc &&
+            parsedPage <= pdfDoc.numPages &&
+            parsedPage !== currentPage &&
+            !seen.has(parsedPage)
+        ) {
+            seen.add(parsedPage);
+            pages.push(parsedPage);
+        }
+    }
+
+    if (matchItems.length && serverMatchIndex > 0) {
+        for (let offset = 1; offset <= 3; offset += 1) {
+            addPage(matchItems[(serverMatchIndex - 1 + offset) % matchItems.length].pageNumber);
+        }
+
+        addPage(matchItems[(serverMatchIndex - 2 + matchItems.length) % matchItems.length].pageNumber);
+    } else if (matchingPages.length) {
+        const currentIndex = getCurrentMatchingPageIndex();
+
+        if (currentIndex !== -1) {
+            for (let offset = 1; offset <= 3; offset += 1) {
+                addPage(matchingPages[(currentIndex + offset) % matchingPages.length]);
+            }
+
+            addPage(matchingPages[(currentIndex - 1 + matchingPages.length) % matchingPages.length]);
+        }
+    }
+
+    return pages;
+}
+
+function prefetchMatchPages() {
+    if (!pdfDoc || !parsedSearch.value) {
+        return;
+    }
+
+    getPrefetchMatchPages().forEach(function (pageNumber) {
+        if (prefetchingPages.has(pageNumber)) {
+            return;
+        }
+
+        prefetchingPages.add(pageNumber);
+
+        getPdfPage(pageNumber)
+            .then(function (page) {
+                return getTextContentForPage(pageNumber, page);
+            })
+            .catch(function () {
+                // Prefetch is only a speed boost; normal rendering can still recover.
+            })
+            .finally(function () {
+                prefetchingPages.delete(pageNumber);
+            });
+    });
+}
+
+function renderTextLayer(pageNumber, page, viewport, requestId) {
     if (!textLayer || requestId !== renderRequestId) {
         return;
     }
@@ -498,7 +642,7 @@ function renderTextLayer(page, viewport, requestId) {
     textLayer.style.left = "0";
     textLayer.style.top = "0";
 
-    page.getTextContent().then(function (textContent) {
+    getTextContentForPage(pageNumber, page).then(function (textContent) {
         if (requestId !== renderRequestId) {
             return;
         }
@@ -541,52 +685,65 @@ function renderPage(pageNumber) {
     pageRendering = true;
 
     const requestId = ++renderRequestId;
+    const showRenderLoading = !skipRenderLoadingOnce;
+    skipRenderLoadingOnce = false;
+
     clearTextLayer();
-    showViewerLoading("Rendering page...");
 
-    pdfDoc.getPage(pageNumber).then(function (page) {
-        if (requestId !== renderRequestId) {
-            return;
-        }
+    if (showRenderLoading) {
+        showViewerLoading("Rendering page...");
+    }
 
-        const pageScale = getFitScale(page);
-        const viewport = page.getViewport({ scale: pageScale });
-
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        canvas.style.width = viewport.width + "px";
-        canvas.style.height = viewport.height + "px";
-
-        singlePageViewer.style.width = viewport.width + "px";
-        singlePageViewer.style.height = viewport.height + "px";
-
-        textLayer.style.width = viewport.width + "px";
-        textLayer.style.height = viewport.height + "px";
-
-        const renderTask = page.render({
-            canvasContext: ctx,
-            viewport: viewport,
-        });
-
-        renderTask.promise.then(function () {
+    getPdfPage(pageNumber)
+        .then(function (page) {
             if (requestId !== renderRequestId) {
                 return;
             }
 
-            renderTextLayer(page, viewport, requestId);
-            updateZoomLabel(pageScale);
+            const pageScale = getFitScale(page);
+            const viewport = page.getViewport({ scale: pageScale });
+
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            canvas.style.width = viewport.width + "px";
+            canvas.style.height = viewport.height + "px";
+
+            singlePageViewer.style.width = viewport.width + "px";
+            singlePageViewer.style.height = viewport.height + "px";
+
+            textLayer.style.width = viewport.width + "px";
+            textLayer.style.height = viewport.height + "px";
+
+            const renderTask = page.render({
+                canvasContext: ctx,
+                viewport: viewport,
+            });
+
+            return renderTask.promise.then(function () {
+                if (requestId !== renderRequestId) {
+                    return;
+                }
+
+                renderTextLayer(pageNumber, page, viewport, requestId);
+                updateZoomLabel(pageScale);
+                hideViewerLoading();
+                prefetchMatchPages();
+
+                pageRendering = false;
+
+                if (pagePending !== null) {
+                    const pendingPage = pagePending;
+                    pagePending = null;
+                    renderPage(pendingPage);
+                }
+            });
+        })
+        .catch(function (error) {
+            console.error("PDF Page Render Error:", error);
             hideViewerLoading();
-
             pageRendering = false;
-
-            if (pagePending !== null) {
-                const pendingPage = pagePending;
-                pagePending = null;
-                renderPage(pendingPage);
-            }
         });
-    });
 
     pageNumberInput.value = pageNumber;
 
@@ -605,7 +762,9 @@ function queueRenderPage(pageNumber) {
     }
 }
 
-function goToPage(pageNumber) {
+function goToPage(pageNumber, options) {
+    options = options || {};
+
     if (!pdfDoc) {
         return;
     }
@@ -615,6 +774,7 @@ function goToPage(pageNumber) {
     }
 
     currentPage = pageNumber;
+    skipRenderLoadingOnce = Boolean(options.silent);
 
     if (
         isMobileViewport() &&
@@ -1132,7 +1292,7 @@ if (!pdfUrl) {
         });
 }
 
-function createTextLayerForPage(page, viewport, wrapper) {
+function createTextLayerForPage(pageNumber, page, viewport, wrapper) {
     const layer = document.createElement("div");
     layer.className = "text-layer dynamic-text-layer";
 
@@ -1148,7 +1308,7 @@ function createTextLayerForPage(page, viewport, wrapper) {
 
     wrapper.appendChild(layer);
 
-    page.getTextContent().then(function (textContent) {
+    getTextContentForPage(pageNumber, page).then(function (textContent) {
         const matchedItemIndexes = buildTextItemMatchIndexes(
             textContent.items,
             parsedSearch
@@ -1188,7 +1348,7 @@ function createTextLayerForPage(page, viewport, wrapper) {
 }
 
 function renderMatchPage(pageNumber) {
-    return pdfDoc.getPage(pageNumber).then(function (page) {
+    return getPdfPage(pageNumber).then(function (page) {
         const pageScale = getFitScale(page);
         const viewport = page.getViewport({ scale: pageScale });
 
@@ -1221,7 +1381,7 @@ function renderMatchPage(pageNumber) {
                 viewport: viewport,
             })
             .promise.then(function () {
-                createTextLayerForPage(page, viewport, wrapper);
+                createTextLayerForPage(pageNumber, page, viewport, wrapper);
             });
     });
 }
@@ -1252,8 +1412,8 @@ async function searchPdfPages(query) {
     const results = [];
 
     for (let pageNumber = 1; pageNumber <= pdfDoc.numPages; pageNumber++) {
-        const page = await pdfDoc.getPage(pageNumber);
-        const textContent = await page.getTextContent();
+        const page = await getPdfPage(pageNumber);
+        const textContent = await getTextContentForPage(pageNumber, page);
 
         const pageText = textContent.items
             .map(function (item) {

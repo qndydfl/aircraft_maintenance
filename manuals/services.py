@@ -6,8 +6,13 @@ from bs4 import BeautifulSoup
 from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage, OtherManualPDFPage
 from django.db import transaction
 from pypdf import PdfReader, PdfWriter
+from PIL import Image
+import pytesseract
 
 from django.core.files import File
+
+IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]
+OFFICE_EXTENSIONS = [".doc", ".docx", ".xls", ".xlsx"]
 
 
 def get_libreoffice_command():
@@ -59,6 +64,102 @@ def convert_office_to_pdf(input_path, output_dir):
     return converted_pdf_path
 
 
+def convert_image_to_pdf(input_path, output_dir):
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    pdf_path = os.path.join(output_dir, base_name + ".pdf")
+
+    with Image.open(input_path) as image:
+        frames = []
+
+        for frame_index in range(getattr(image, "n_frames", 1)):
+            if getattr(image, "is_animated", False):
+                image.seek(frame_index)
+
+            frame = image.copy()
+
+            if frame.mode in ("RGBA", "LA") or (
+                frame.mode == "P" and "transparency" in frame.info
+            ):
+                background = Image.new("RGB", frame.size, "white")
+                rgba_frame = frame.convert("RGBA")
+                background.paste(rgba_frame, mask=rgba_frame.split()[-1])
+                frame = background
+            else:
+                frame = frame.convert("RGB")
+
+            frames.append(frame)
+
+        if not frames:
+            raise Exception("이미지 파일을 읽을 수 없습니다.")
+
+        first_frame = frames[0]
+        remaining_frames = frames[1:]
+
+        first_frame.save(
+            pdf_path,
+            "PDF",
+            resolution=100.0,
+            save_all=bool(remaining_frames),
+            append_images=remaining_frames,
+        )
+
+    return pdf_path
+
+
+def get_ocr_language():
+    return getattr(settings, "TESSERACT_OCR_LANG", "eng")
+
+
+def normalize_ocr_text(value):
+    return " ".join((value or "").split())
+
+
+def extract_image_ocr_texts(input_path):
+    texts = []
+
+    with Image.open(input_path) as image:
+        frame_count = getattr(image, "n_frames", 1)
+
+        for frame_index in range(frame_count):
+            if getattr(image, "is_animated", False):
+                image.seek(frame_index)
+
+            frame = image.copy()
+
+            if frame.mode in ("RGBA", "LA") or (
+                frame.mode == "P" and "transparency" in frame.info
+            ):
+                background = Image.new("RGB", frame.size, "white")
+                rgba_frame = frame.convert("RGBA")
+                background.paste(rgba_frame, mask=rgba_frame.split()[-1])
+                frame = background
+            else:
+                frame = frame.convert("RGB")
+
+            text = pytesseract.image_to_string(
+                frame,
+                lang=get_ocr_language(),
+            )
+            texts.append(normalize_ocr_text(text))
+
+    return texts
+
+
+def extract_storage_image_ocr_texts(django_file):
+    suffix = os.path.splitext(django_file.name.lower())[1]
+    temp_input_path = storage_file_to_temp_file(
+        django_file,
+        suffix=suffix,
+    )
+
+    try:
+        return extract_image_ocr_texts(temp_input_path)
+
+    finally:
+        if temp_input_path and os.path.exists(temp_input_path):
+            os.remove(temp_input_path)
+
+
 def convert_other_manual_file_to_pdf(other_file):
     if not other_file.file:
         return None
@@ -68,16 +169,9 @@ def convert_other_manual_file_to_pdf(other_file):
     if original_name.endswith(".pdf"):
         return other_file.file
 
-    allowed_convert_extensions = [
-        ".doc",
-        ".docx",
-        ".xls",
-        ".xlsx",
-    ]
-
     ext = os.path.splitext(original_name)[1]
 
-    if ext not in allowed_convert_extensions:
+    if ext not in OFFICE_EXTENSIONS + IMAGE_EXTENSIONS:
         return None
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -87,25 +181,16 @@ def convert_other_manual_file_to_pdf(other_file):
             with open(input_path, "wb") as target:
                 target.write(source.read())
 
-        command = [
-            "libreoffice",
-            "--headless",
-            "--convert-to",
-            "pdf",
-            "--outdir",
-            temp_dir,
-            input_path,
-        ]
-
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        pdf_filename = os.path.splitext(os.path.basename(input_path))[0] + ".pdf"
-        pdf_path = os.path.join(temp_dir, pdf_filename)
+        if ext in OFFICE_EXTENSIONS:
+            pdf_path = convert_office_to_pdf(
+                input_path=input_path,
+                output_dir=temp_dir,
+            )
+        else:
+            pdf_path = convert_image_to_pdf(
+                input_path=input_path,
+                output_dir=temp_dir,
+            )
 
         if not os.path.exists(pdf_path):
             raise Exception("PDF 변환 파일을 찾을 수 없습니다.")
@@ -821,18 +906,38 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
 
     temp_dir = tempfile.mkdtemp()
     temp_pdf_path = None
+    ocr_texts = []
 
     try:
         if suffix == ".pdf":
             temp_pdf_path = temp_input_path
 
-        elif suffix in [".doc", ".docx", ".xls", ".xlsx"]:
+        elif suffix in OFFICE_EXTENSIONS:
             temp_pdf_path = convert_office_to_pdf(
                 input_path=temp_input_path,
                 output_dir=temp_dir,
             )
 
             pdf_name = os.path.splitext(os.path.basename(common_file.file.name))[0] + ".pdf"
+
+            with open(temp_pdf_path, "rb") as pdf_file:
+                common_file.pdf_file.save(
+                    pdf_name,
+                    File(pdf_file),
+                    save=False,
+                )
+
+        elif suffix in IMAGE_EXTENSIONS:
+            temp_pdf_path = convert_image_to_pdf(
+                input_path=temp_input_path,
+                output_dir=temp_dir,
+            )
+            ocr_texts = extract_image_ocr_texts(temp_input_path)
+
+            pdf_name = (
+                os.path.splitext(os.path.basename(common_file.file.name))[0]
+                + ".pdf"
+            )
 
             with open(temp_pdf_path, "rb") as pdf_file:
                 common_file.pdf_file.save(
@@ -869,6 +974,9 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
                 page = document.load_page(page_index)
                 text = extract_clean_text(page)
 
+                if ocr_texts and page_index < len(ocr_texts):
+                    text = ocr_texts[page_index] or text
+
                 new_pages.append(
                     CommonManualPDFPage(
                         common_file=common_file,
@@ -895,6 +1003,15 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
 
 
 def index_pdf_pages_for_other_manual_file_safely(other_file):
+    original_ext = ""
+    ocr_texts = []
+
+    if other_file.file:
+        original_ext = os.path.splitext(other_file.file.name.lower())[1]
+
+    if original_ext in IMAGE_EXTENSIONS:
+        ocr_texts = extract_storage_image_ocr_texts(other_file.file)
+
     pdf_file = convert_other_manual_file_to_pdf(other_file)
 
     if not pdf_file:
@@ -904,12 +1021,16 @@ def index_pdf_pages_for_other_manual_file_safely(other_file):
         other_file=other_file
     ).delete()
 
-    return index_pdf_pages_for_other_manual_file(other_file)
+    return index_pdf_pages_for_other_manual_file(
+        other_file,
+        ocr_texts=ocr_texts,
+    )
 
 
-def index_pdf_pages_for_other_manual_file(other_file):
+def index_pdf_pages_for_other_manual_file(other_file, ocr_texts=None):
     import fitz
 
+    ocr_texts = ocr_texts or []
     pdf_file = other_file.pdf_file
 
     if not pdf_file:
@@ -923,6 +1044,9 @@ def index_pdf_pages_for_other_manual_file(other_file):
         for page_index in range(pdf_document.page_count):
             page = pdf_document.load_page(page_index)
             text = page.get_text("text") or ""
+
+            if ocr_texts and page_index < len(ocr_texts):
+                text = ocr_texts[page_index] or text
 
             OtherManualPDFPage.objects.create(
                 other_file=other_file,

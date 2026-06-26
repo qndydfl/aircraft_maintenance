@@ -17,6 +17,7 @@ pdf-viewer-page
         searchQuery: "{{ query|escapejs }}".trim().toLowerCase(),
         viewerType: "{{ viewer_type }}",
         matchingPages: {{ matching_pages_json|default:"[]"|safe }},
+        matchItems: {{ matching_match_items_json|default:"[]"|safe }},
         currentMatchIndex: parseInt("{{ current_match_index|default:'0' }}", 10),
         matchCount: parseInt("{{ match_count|default:'0' }}", 10),
         viewMode: "{{ view_mode|default:'single' }}",

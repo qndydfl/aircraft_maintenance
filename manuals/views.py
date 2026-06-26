@@ -915,6 +915,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
         context["current_match_index"] = 0
         context["match_count"] = 0
         context["matching_pages_json"] = json.dumps([])
+        context["matching_match_items_json"] = json.dumps([])
 
         def build_viewer_query_params(page):
             params = {
@@ -1051,6 +1052,23 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                 ]
 
                 context["matching_pages_json"] = json.dumps(matching_pages_list)
+                context["matching_match_items_json"] = json.dumps(
+                    [
+                        {
+                            "chapterId": item["chapter_id"],
+                            "pageNumber": item["page_number"],
+                            "viewerUrl": (
+                                reverse(
+                                    "manual_chapter_pdf_viewer",
+                                    kwargs={"pk": item["chapter_id"]},
+                                )
+                                + "?"
+                                + build_viewer_query_params(item["page_number"])
+                            ),
+                        }
+                        for item in matches
+                    ]
+                )
 
         return context
 

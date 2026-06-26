@@ -14,6 +14,10 @@ from .models import (
     OtherManualFile,
 )
 
+IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]
+DOCUMENT_EXTENSIONS = [".pdf", ".doc", ".docx", ".xls", ".xlsx"]
+UPLOAD_ACCEPT_EXTENSIONS = ",".join(DOCUMENT_EXTENSIONS + IMAGE_EXTENSIONS)
+
 
 class ManualFileForm(forms.ModelForm):
 
@@ -35,7 +39,7 @@ class ManualFileForm(forms.ModelForm):
             "file": forms.ClearableFileInput(
                 attrs={
                     "class": "form-control",
-                    "accept": ".pdf,.doc,.docx,.xls,.xlsx",
+                    "accept": ".pdf",
                 }
             ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
@@ -226,7 +230,7 @@ class CommonManualFileForm(forms.ModelForm):
             "file": forms.ClearableFileInput(
                 attrs={
                     "class": "form-control",
-                    "accept": ".pdf,.doc,.docx,.xls,.xlsx",
+                    "accept": UPLOAD_ACCEPT_EXTENSIONS,
                 }
             ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
@@ -242,17 +246,11 @@ class CommonManualFileForm(forms.ModelForm):
 
         ext = os.path.splitext(file.name)[1].lower()
 
-        allowed_extensions = [
-            ".pdf",
-            ".doc",
-            ".docx",
-            ".xls",
-            ".xlsx",
-        ]
+        allowed_extensions = DOCUMENT_EXTENSIONS + IMAGE_EXTENSIONS
 
         if ext not in allowed_extensions:
             raise ValidationError(
-                "공통 매뉴얼은 PDF, Word, Excel 파일만 업로드할 수 있습니다."
+                "공통 매뉴얼은 PDF, Word, Excel, 이미지 파일만 업로드할 수 있습니다."
             )
 
         return file
@@ -324,7 +322,7 @@ class OtherManualFileForm(forms.ModelForm):
             "file": forms.ClearableFileInput(
                 attrs={
                     "class": "form-control",
-                    "accept": ".pdf,.doc,.docx,.xls,.xlsx",
+                    "accept": UPLOAD_ACCEPT_EXTENSIONS,
                 }
             ),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
@@ -340,17 +338,11 @@ class OtherManualFileForm(forms.ModelForm):
 
         ext = os.path.splitext(file.name)[1].lower()
 
-        allowed_extensions = [
-            ".pdf",
-            ".doc",
-            ".docx",
-            ".xls",
-            ".xlsx",
-        ]
+        allowed_extensions = DOCUMENT_EXTENSIONS + IMAGE_EXTENSIONS
 
         if ext not in allowed_extensions:
             raise ValidationError(
-                "OTHER 매뉴얼은 PDF, Word, Excel 파일만 업로드할 수 있습니다."
+                "OTHER 매뉴얼은 PDF, Word, Excel, 이미지 파일만 업로드할 수 있습니다."
             )
 
         return file

@@ -69,6 +69,10 @@
 }
 
 .app-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border-radius: 999px;
     font-size: 0.82rem;
     font-weight: 750;
@@ -77,6 +81,10 @@
 }
 
 .app-card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border-radius: 12px;
     font-size: 0.82rem;
     font-weight: 780;

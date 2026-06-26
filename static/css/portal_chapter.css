@@ -7,15 +7,71 @@ body.chapter-page .app-container {
 }
 
 .portal-chapter-search-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
     background: rgba(255,255,255,0.82);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(229,231,235,0.9);
+    border-radius: 999px;
 }
 
 .portal-chapter-search-input {
     height: 44px;
     font-size: 0.9rem;
     background: transparent;
+    border: 0;
+    border-radius: 999px !important;
+    padding: 0 16px;
+    min-width: 0;
+    box-shadow: none !important;
+}
+
+.portal-chapter-search-input:focus {
+    background: rgba(255,255,255,0.72);
+}
+
+.portal-chapter-search-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.portal-chapter-search-actions .btn {
+    min-width: 88px;
+    min-height: 38px;
+    border-radius: 999px !important;
+    font-weight: 800;
+}
+
+.chapter-search-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    max-width: 100%;
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: #1d4ed8;
+    background: rgba(13,110,253,0.08);
+    border: 1px solid rgba(13,110,253,0.14);
+}
+
+.chapter-search-summary span {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.chapter-search-summary strong {
+    color: #1d1d1f;
+    font-size: 0.84rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .portal-chapter-card-header h5 {
@@ -85,11 +141,11 @@ body.chapter-page .app-container {
 
 @media (max-width: 767.98px) {
     body.chapter-page {
-        padding-bottom: calc(70px + env(safe-area-inset-bottom));
+        padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
 
     body.chapter-page .app-container {
-        padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important;
+        padding-bottom: 10px !important;
     }
 
     .portal-chapter-search-form {
@@ -100,24 +156,50 @@ body.chapter-page .app-container {
     .portal-chapter-search-group {
         display: grid;
         grid-template-columns: 1fr;
+        gap: 7px;
+        padding: 8px;
         border-radius: 16px !important;
-        overflow: hidden;
+        overflow: visible;
     }
 
     .portal-chapter-search-input {
         height: 36px;
+        min-height: 36px;
         font-size: .7rem;
-        padding-left: 14px !important;
-        border-right: 0 !important;
-        border-bottom: 1px solid rgba(229,231,235,.9) !important;
-        border-radius: 0 !important;
+        padding: 0 12px !important;
+        border: 1px solid rgba(229,231,235,.9) !important;
+        border-radius: 12px !important;
+        background: rgba(255,255,255,.82);
     }
 
-    .portal-chapter-search-group .btn {
+    .portal-chapter-search-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .portal-chapter-search-actions .btn {
         width: 100%;
         min-height: 34px;
-        border-radius: 0 !important;
+        border-radius: 999px !important;
         font-size: .68rem;
+    }
+
+    .chapter-search-summary {
+        display: flex;
+        width: 100%;
+        padding: 7px 10px;
+        border-radius: 14px;
+    }
+
+    .chapter-search-summary span {
+        font-size: .56rem;
+        flex: 0 0 auto;
+    }
+
+    .chapter-search-summary strong {
+        min-width: 0;
+        font-size: .66rem;
     }
 
     .portal-chapter-bookmark-grid {

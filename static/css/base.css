@@ -68,6 +68,14 @@ body {
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 }
 
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+}
+
 .mobile-bottom-nav {
     position: fixed;
     left: 0;
@@ -152,7 +160,7 @@ body {
 @media (max-width: 767.98px) {
     body {
         padding-top: 58px;
-        padding-bottom: calc(70px + env(safe-area-inset-bottom));
+        padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
 
     .app-navbar {
@@ -176,7 +184,7 @@ body {
         max-width: 100%;
         padding-left: 10px;
         padding-right: 10px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        padding-bottom: 10px;
     }
 
     .app-message-area {

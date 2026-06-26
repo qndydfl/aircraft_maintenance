@@ -44,83 +44,87 @@ chapter-page
     data-loading-title="Searching Chapters"
     data-loading-message="Scanning indexed chapter pages..."
 >
-    <div class="input-group portal-chapter-search-group shadow-sm rounded-pill overflow-hidden">
+    <div class="portal-chapter-search-group shadow-sm">
         <input
             type="text"
             name="q"
             value="{{ q }}"
-            class="form-control portal-chapter-search-input border-end-0 ps-4 py-2"
+            class="form-control portal-chapter-search-input"
             placeholder="Task, Subtask, Title, PDF 내용 검색..."
         >
 
-        <button type="submit" class="btn btn-primary px-4">
-            Search
-        </button>
+        <div class="portal-chapter-search-actions">
+            <button type="submit" class="btn btn-primary">
+                Search
+            </button>
 
-        {% if q %}
-            <a href="?" class="btn btn-outline-secondary border-start-0">
-                Clear
-            </a>
-        {% endif %}
+            {% if q %}
+                <a href="?" class="btn btn-outline-secondary">
+                    Clear
+                </a>
+            {% endif %}
+        </div>
     </div>
 </form>
 
 {% if q %}
-    <div class="alert alert-info app-alert py-2 rounded-3 d-flex align-items-center mb-4">
-        <span class="me-2">🔍 검색어 결과:</span>
+    <div class="chapter-search-summary app-alert mb-4">
+        <span>Search Result</span>
         <strong>{{ q }}</strong>
     </div>
 {% endif %}
 
-<div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
-    <div class="card-body p-4">
-        <div class="portal-chapter-card-header mb-4">
-            <div>
-                <h5 class="mb-1 fw-bold text-dark">
-                    Chapter Contents
-                </h5>
+{% if not q %}
+    <div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
+        <div class="card-body p-4">
+            <div class="portal-chapter-card-header mb-4">
+                <div>
+                    <h5 class="mb-1 fw-bold text-dark">
+                        Chapter Contents
+                    </h5>
 
-                <p class="text-muted small mb-0">
-                    Chapter를 선택하면 PDF viewer로 열립니다.
-                </p>
-            </div>
-        </div>
-
-        <div class="portal-chapter-bookmark-grid">
-            {% for chapter in chapter_bookmarks %}
-                <a href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}{% if q %}?q={{ q|urlencode }}&scope=chapter&back={{ request.get_full_path|urlencode }}{% else %}?back={{ request.get_full_path|urlencode }}{% endif %}"
-                    class="portal-chapter-bookmark-item d-flex align-items-start p-3 rounded-3 text-decoration-none">
-
-                    <span class="portal-chapter-bookmark-icon text-primary me-3 mt-1">
-                        ▱
-                    </span>
-
-                    <span class="portal-chapter-bookmark-text text-dark flex-grow-1">
-                        <div class="fw-bold text-truncate-1">
-                            {{ chapter.task }}
-
-                            {% if chapter.subtask %}
-                                <span class="text-secondary fw-normal">
-                                    / {{ chapter.subtask }}
-                                </span>
-                            {% endif %}
-                        </div>
-
-                        <div class="text-muted small mt-1 text-truncate-2">
-                            {{ chapter.title|default:"No Title" }}
-                        </div>
-                    </span>
-                </a>
-            {% empty %}
-                <div class="text-muted text-center py-5 w-100">
-                    <p class="mb-0">
-                        표시할 Chapter가 없습니다.
+                    <p class="text-muted small mb-0">
+                        Chapter를 선택하면 PDF viewer로 열립니다.
                     </p>
                 </div>
-            {% endfor %}
+            </div>
+
+            <div class="portal-chapter-bookmark-grid">
+                {% for chapter in chapter_bookmarks %}
+                    <a href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?back={{ request.get_full_path|urlencode }}"
+                        class="portal-chapter-bookmark-item d-flex align-items-start p-3 rounded-3 text-decoration-none">
+
+                        <span class="portal-chapter-bookmark-icon text-primary me-3 mt-1">
+                            ▱
+                        </span>
+
+                        <span class="portal-chapter-bookmark-text text-dark flex-grow-1">
+                            <div class="fw-bold text-truncate-1">
+                                {{ chapter.task }}
+
+                                {% if chapter.subtask %}
+                                    <span class="text-secondary fw-normal">
+                                        / {{ chapter.subtask }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-muted small mt-1 text-truncate-2">
+                                {{ chapter.title|default:"No Title" }}
+                            </div>
+                        </span>
+                    </a>
+                {% empty %}
+                    <div class="text-muted text-center py-5 w-100">
+                        <p class="mb-0">
+                            표시할 Chapter가 없습니다.
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
-</div>
+{% endif %}
 
 {% if q and matching_chapters %}
     <div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
@@ -222,6 +226,10 @@ chapter-page
             </div>
 
         </div>
+    </div>
+{% elif q %}
+    <div class="alert alert-warning app-alert">
+        검색 결과가 없습니다.
     </div>
 {% endif %}
 
