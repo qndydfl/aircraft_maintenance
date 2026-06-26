@@ -106,12 +106,42 @@ def convert_image_to_pdf(input_path, output_dir):
     return pdf_path
 
 
+def delete_stored_file(file_field):
+    if file_field:
+        file_field.delete(save=False)
+
+
 def get_ocr_language():
     return getattr(settings, "TESSERACT_OCR_LANG", "eng")
 
 
+def get_ocr_timeout():
+    return getattr(settings, "TESSERACT_OCR_TIMEOUT", 45)
+
+
+def get_ocr_max_side():
+    return getattr(settings, "TESSERACT_OCR_MAX_SIDE", 2400)
+
+
 def normalize_ocr_text(value):
     return " ".join((value or "").split())
+
+
+def prepare_image_for_ocr(image):
+    max_side = get_ocr_max_side()
+    width, height = image.size
+    largest_side = max(width, height)
+
+    if largest_side <= max_side:
+        return image
+
+    ratio = max_side / largest_side
+    resized_size = (
+        max(1, int(width * ratio)),
+        max(1, int(height * ratio)),
+    )
+
+    return image.resize(resized_size, Image.Resampling.LANCZOS)
 
 
 def extract_image_ocr_texts(input_path):
@@ -136,9 +166,12 @@ def extract_image_ocr_texts(input_path):
             else:
                 frame = frame.convert("RGB")
 
+            frame = prepare_image_for_ocr(frame)
+
             text = pytesseract.image_to_string(
                 frame,
                 lang=get_ocr_language(),
+                timeout=get_ocr_timeout(),
             )
             texts.append(normalize_ocr_text(text))
 
@@ -167,6 +200,8 @@ def convert_other_manual_file_to_pdf(other_file):
     original_name = other_file.file.name.lower()
 
     if original_name.endswith(".pdf"):
+        delete_stored_file(other_file.converted_pdf)
+        other_file.save(update_fields=["converted_pdf"])
         return other_file.file
 
     ext = os.path.splitext(original_name)[1]
@@ -196,6 +231,8 @@ def convert_other_manual_file_to_pdf(other_file):
             raise Exception("PDF 변환 파일을 찾을 수 없습니다.")
 
         save_name = f"{os.path.splitext(os.path.basename(other_file.file.name))[0]}.pdf"
+
+        delete_stored_file(other_file.converted_pdf)
 
         with open(pdf_path, "rb") as pdf_file:
             other_file.converted_pdf.save(
@@ -425,9 +462,7 @@ def index_pdf_pages_for_chapter(chapter):
     if not os.path.exists(pdf_path):
         return 0
 
-    ManualPDFPage.objects.filter(chapter=chapter).delete()
-
-    created_count = 0
+    new_pages = []
 
     document = fitz.open(pdf_path)
 
@@ -437,16 +472,22 @@ def index_pdf_pages_for_chapter(chapter):
 
             text = extract_clean_text(page)
 
-            ManualPDFPage.objects.create(
-                chapter=chapter, page_number=page_index + 1, text=text
+            new_pages.append(
+                ManualPDFPage(
+                    chapter=chapter,
+                    page_number=page_index + 1,
+                    text=text,
+                )
             )
-
-            created_count += 1
 
     finally:
         document.close()
 
-    return created_count
+    with transaction.atomic():
+        ManualPDFPage.objects.filter(chapter=chapter).delete()
+        ManualPDFPage.objects.bulk_create(new_pages, batch_size=200)
+
+    return len(new_pages)
 
 
 def index_pdf_pages_for_package(package):
@@ -858,9 +899,7 @@ def index_pdf_pages_for_manual_file(manual_file):
             ]
         )
 
-        ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
-
-        created_count = 0
+        new_pages = []
 
         document = fitz.open(temp_pdf_path)
 
@@ -870,18 +909,22 @@ def index_pdf_pages_for_manual_file(manual_file):
 
                 text = extract_clean_text(page)
 
-                ManualFilePDFPage.objects.create(
-                    manual_file=manual_file,
-                    page_number=page_index + 1,
-                    text=text,
+                new_pages.append(
+                    ManualFilePDFPage(
+                        manual_file=manual_file,
+                        page_number=page_index + 1,
+                        text=text,
+                    )
                 )
-
-                created_count += 1
 
         finally:
             document.close()
 
-        return created_count
+        with transaction.atomic():
+            ManualFilePDFPage.objects.filter(manual_file=manual_file).delete()
+            ManualFilePDFPage.objects.bulk_create(new_pages, batch_size=200)
+
+        return len(new_pages)
 
     finally:
         if os.path.exists(temp_pdf_path):
@@ -911,6 +954,7 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
     try:
         if suffix == ".pdf":
             temp_pdf_path = temp_input_path
+            delete_stored_file(common_file.pdf_file)
 
         elif suffix in OFFICE_EXTENSIONS:
             temp_pdf_path = convert_office_to_pdf(
@@ -918,7 +962,12 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
                 output_dir=temp_dir,
             )
 
-            pdf_name = os.path.splitext(os.path.basename(common_file.file.name))[0] + ".pdf"
+            pdf_name = (
+                os.path.splitext(os.path.basename(common_file.file.name))[0]
+                + ".pdf"
+            )
+
+            delete_stored_file(common_file.pdf_file)
 
             with open(temp_pdf_path, "rb") as pdf_file:
                 common_file.pdf_file.save(
@@ -938,6 +987,8 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
                 os.path.splitext(os.path.basename(common_file.file.name))[0]
                 + ".pdf"
             )
+
+            delete_stored_file(common_file.pdf_file)
 
             with open(temp_pdf_path, "rb") as pdf_file:
                 common_file.pdf_file.save(
@@ -990,7 +1041,7 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
 
         with transaction.atomic():
             CommonManualPDFPage.objects.filter(common_file=common_file).delete()
-            CommonManualPDFPage.objects.bulk_create(new_pages)
+            CommonManualPDFPage.objects.bulk_create(new_pages, batch_size=200)
 
         return len(new_pages)
 
@@ -1017,10 +1068,6 @@ def index_pdf_pages_for_other_manual_file_safely(other_file):
     if not pdf_file:
         return 0
 
-    OtherManualPDFPage.objects.filter(
-        other_file=other_file
-    ).delete()
-
     return index_pdf_pages_for_other_manual_file(
         other_file,
         ocr_texts=ocr_texts,
@@ -1036,27 +1083,35 @@ def index_pdf_pages_for_other_manual_file(other_file, ocr_texts=None):
     if not pdf_file:
         return 0
 
-    page_count = 0
+    new_pages = []
 
     with pdf_file.open("rb") as file:
         pdf_document = fitz.open(stream=file.read(), filetype="pdf")
 
-        for page_index in range(pdf_document.page_count):
-            page = pdf_document.load_page(page_index)
-            text = page.get_text("text") or ""
+        try:
+            for page_index in range(pdf_document.page_count):
+                page = pdf_document.load_page(page_index)
+                text = page.get_text("text") or ""
 
-            if ocr_texts and page_index < len(ocr_texts):
-                text = ocr_texts[page_index] or text
+                if ocr_texts and page_index < len(ocr_texts):
+                    text = ocr_texts[page_index] or text
 
-            OtherManualPDFPage.objects.create(
-                other_file=other_file,
-                page_number=page_index + 1,
-                text=text,
-            )
+                new_pages.append(
+                    OtherManualPDFPage(
+                        other_file=other_file,
+                        page_number=page_index + 1,
+                        text=text,
+                    )
+                )
 
-            page_count += 1
+        finally:
+            pdf_document.close()
 
-    return page_count
+    with transaction.atomic():
+        OtherManualPDFPage.objects.filter(other_file=other_file).delete()
+        OtherManualPDFPage.objects.bulk_create(new_pages, batch_size=200)
+
+    return len(new_pages)
 
 
 def process_manual_package_safely(package):
@@ -1172,10 +1227,10 @@ def process_manual_package_safely(package):
                     package.revision_date_text = rev_date
                     package.save(update_fields=["revision_no", "revision_date_text"])
 
-            page_count = index_pdf_pages_for_package(package=package)
+        page_count = index_pdf_pages_for_package(package=package)
 
-            package.processed = True
-            package.save(update_fields=["processed"])
+        package.processed = True
+        package.save(update_fields=["processed"])
 
         if old_extracted_path and old_extracted_path != final_extract_to:
             shutil.rmtree(old_extracted_path, ignore_errors=True)

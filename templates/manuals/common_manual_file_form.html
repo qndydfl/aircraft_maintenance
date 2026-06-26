@@ -45,8 +45,8 @@ Common Manual Upload
         <div class="card-body">
             <form method="post"
                 enctype="multipart/form-data"
-                data-loading-title="Processing Common Manual"
-                data-loading-message="Uploading and preparing file...">
+                data-loading-title="Uploading Common Manual"
+                data-loading-message="Uploading file and queuing search indexing...">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}

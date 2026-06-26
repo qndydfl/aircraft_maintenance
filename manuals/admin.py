@@ -10,6 +10,7 @@ from .models import (
     CommonManualCategory,
     CommonManualFile,
     CommonManualPDFPage,
+    ReindexJob,
 )
 
 
@@ -196,4 +197,35 @@ class CommonManualPDFPageAdmin(admin.ModelAdmin):
     search_fields = [
         "common_file__title",
         "text",
+    ]
+
+
+@admin.register(ReindexJob)
+class ReindexJobAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "target_type",
+        "target_id",
+        "status",
+        "page_count",
+        "created_at",
+        "started_at",
+        "finished_at",
+    ]
+
+    list_filter = [
+        "target_type",
+        "status",
+        "created_at",
+    ]
+
+    search_fields = [
+        "message",
+        "target_type",
+    ]
+
+    readonly_fields = [
+        "created_at",
+        "started_at",
+        "finished_at",
     ]

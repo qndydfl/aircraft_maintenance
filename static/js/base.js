@@ -24,10 +24,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll("form").forEach(function (form) {
         form.addEventListener("submit", function () {
+            if (form.dataset.submitted === "true") {
+                return;
+            }
+
+            form.dataset.submitted = "true";
+
             const title = form.dataset.loadingTitle || "Processing...";
             const message = form.dataset.loadingMessage || "Please wait.";
 
             showLoading(title, message);
+
+            form.querySelectorAll("button[type='submit'], input[type='submit']").forEach(function (button) {
+                button.disabled = true;
+                button.setAttribute("aria-disabled", "true");
+            });
         });
     });
 

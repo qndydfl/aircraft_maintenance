@@ -111,6 +111,15 @@ detail-page common-manual-detail-page
                         {% endif %}
                     </p>
 
+                    {% if file.latest_reindex_job %}
+                        <p class="small mb-3">
+                            <span class="badge {% if file.latest_reindex_job.status == 'failed' %}bg-danger{% elif file.latest_reindex_job.status == 'done' %}bg-success{% else %}bg-info{% endif %} manual-badge">
+                                {{ file.latest_reindex_job.status|upper }}
+                            </span>
+                            {{ file.latest_reindex_job.message }}
+                        </p>
+                    {% endif %}
+
                     <div class="portal-detail-button-group mt-auto">
 
                         <div class="portal-detail-button-grid">
@@ -143,11 +152,12 @@ detail-page common-manual-detail-page
                                 action="{% url 'common_manual_file_reindex' file.pk %}"
                                 class="desktop-only-btn-group"
                                 data-loading-title="Re-indexing Common Manual"
-                                data-loading-message="Converting and rebuilding PDF search index...">
+                                data-loading-message="Converting file, running OCR when needed, and rebuilding search index...">
                                 {% csrf_token %}
 
                                 <button type="submit"
-                                        class="btn btn-outline-info w-100 app-card-btn">
+                                        class="btn btn-outline-info w-100 app-card-btn"
+                                        {% if file.latest_reindex_job.is_active %}disabled{% endif %}>
                                     Re-index
                                 </button>
                             </form>

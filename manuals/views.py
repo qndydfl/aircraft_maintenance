@@ -26,6 +26,7 @@ from .models import (
     OtherManualFile,
     OtherManualCategory,
     OtherManualPDFPage,
+    ReindexJob,
 )
 from .forms import (
     ManualFileForm,
@@ -42,7 +43,6 @@ from .services import (
     process_manual_package,
     index_pdf_pages_for_manual_file,
     process_manual_package_safely,
-    index_pdf_pages_for_manual_file_safely,
     parse_search_query,
     get_match_navigation,
     calculate_package_score,
@@ -51,8 +51,6 @@ from .services import (
     parse_manual_search_query,
     build_manual_text_regex,
     build_snippet_from_regex,
-    index_pdf_pages_for_common_manual_file_safely,
-    index_pdf_pages_for_other_manual_file_safely,
 )
 from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min, Prefetch
@@ -60,6 +58,64 @@ from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.views import View
 from urllib.parse import urlencode
+
+
+def delete_file_field(file_field):
+    if file_field:
+        file_field.delete(save=False)
+
+
+def queue_reindex_job(target_type, target_id, message=""):
+    existing_job = ReindexJob.objects.filter(
+        target_type=target_type,
+        target_id=target_id,
+        status__in=[
+            ReindexJob.STATUS_QUEUED,
+            ReindexJob.STATUS_PROCESSING,
+        ],
+    ).first()
+
+    if existing_job:
+        return existing_job, False
+
+    job = ReindexJob.objects.create(
+        target_type=target_type,
+        target_id=target_id,
+        message=message,
+    )
+
+    return job, True
+
+
+def attach_latest_reindex_jobs(items, item_getter, target_type):
+    item_list = list(items)
+    target_ids = [
+        item_getter(item).pk
+        for item in item_list
+        if item_getter(item) is not None
+    ]
+
+    if not target_ids:
+        return item_list
+
+    jobs = ReindexJob.objects.filter(
+        target_type=target_type,
+        target_id__in=target_ids,
+    ).order_by("target_type", "target_id", "-created_at")
+
+    latest_by_target = {}
+
+    for job in jobs:
+        if job.target_id not in latest_by_target:
+            latest_by_target[job.target_id] = job
+
+    for item in item_list:
+        target = item_getter(item)
+
+        if target is not None:
+            target.latest_reindex_job = latest_by_target.get(target.pk)
+
+    return item_list
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -121,6 +177,22 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
             "other_categories__files",
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        manual_items = self.object.get_manual_status_list()
+        manual_items = attach_latest_reindex_jobs(
+            manual_items,
+            lambda item: item.get("package"),
+            ReindexJob.TARGET_MANUAL_PACKAGE,
+        )
+        manual_items = attach_latest_reindex_jobs(
+            manual_items,
+            lambda item: item.get("file"),
+            ReindexJob.TARGET_MANUAL_FILE,
+        )
+        context["manual_items"] = manual_items
+        return context
+
 
 class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
     model = ManualFile
@@ -168,34 +240,26 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
+        old_file = None
+
+        if self.object.pk:
+            old_instance = ManualFile.objects.get(pk=self.object.pk)
+            old_file = old_instance.file
+
         response = super().form_valid(form)
 
-        try:
-            page_count = index_pdf_pages_for_manual_file_safely(self.object)
+        if old_file and self.object.file and old_file.name != self.object.file.name:
+            delete_file_field(old_file)
 
-            if self.object.manual_type == "MEL":
-                mel_count = extract_mel_dispatch_items_from_pdf(self.object)
-
-                messages.success(
-                    self.request,
-                    f"MEL PDF Page {page_count}개 인덱싱, Dispatch Item {mel_count}개 추출 완료",
-                )
-            elif page_count:
-                messages.success(
-                    self.request,
-                    f"{self.object.manual_type} PDF Page {page_count}개 인덱싱 완료",
-                )
-            else:
-                messages.info(
-                    self.request,
-                    "PDF 업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
-                )
-
-        except Exception as error:
-            messages.warning(
-                self.request,
-                f"PDF 업로드는 완료되었지만 인덱싱 실패: {error}",
-            )
+        queue_reindex_job(
+            ReindexJob.TARGET_MANUAL_FILE,
+            self.object.pk,
+            f"{self.object.manual_type} PDF indexing queued",
+        )
+        messages.success(
+            self.request,
+            "PDF 업로드가 완료되었습니다. 검색 인덱싱 작업을 예약했습니다.",
+        )
 
         return response
 
@@ -225,25 +289,15 @@ class ManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        try:
-            page_count = index_pdf_pages_for_manual_file_safely(self.object)
-
-            if page_count:
-                messages.success(
-                    self.request,
-                    f"{self.object.manual_type} PDF Page {page_count}개 재인덱싱 완료",
-                )
-            else:
-                messages.info(
-                    self.request,
-                    "PDF 업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
-                )
-
-        except Exception as error:
-            messages.warning(
-                self.request,
-                f"PDF 업로드는 완료되었지만 인덱싱 실패: {error}",
-            )
+        queue_reindex_job(
+            ReindexJob.TARGET_MANUAL_FILE,
+            self.object.pk,
+            f"{self.object.manual_type} PDF indexing queued",
+        )
+        messages.success(
+            self.request,
+            "PDF 재업로드가 완료되었습니다. 검색 인덱싱 작업을 예약했습니다.",
+        )
 
         return response
 
@@ -260,8 +314,7 @@ class ManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
     context_object_name = "manual"
 
     def form_valid(self, form):
-        if self.object.file:
-            self.object.file.delete(save=False)
+        delete_file_field(self.object.file)
 
         return super().form_valid(form)
 
@@ -280,8 +333,7 @@ class ManualPackageDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView
     def form_valid(self, form):
         extracted_path = self.object.extracted_path
 
-        if self.object.zip_file:
-            self.object.zip_file.delete(save=False)
+        delete_file_field(self.object.zip_file)
 
         if extracted_path and os.path.exists(extracted_path):
             shutil.rmtree(extracted_path, ignore_errors=True)
@@ -1266,16 +1318,18 @@ class ManualPackageReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         package = ManualPackage.objects.get(pk=kwargs["pk"])
 
-        try:
-            result = process_manual_package_safely(package)
+        job, created = queue_reindex_job(
+            ReindexJob.TARGET_MANUAL_PACKAGE,
+            package.pk,
+            f"{package.manual_type} ZIP re-index queued",
+        )
 
-            messages.success(
-                request,
-                f"{package.manual_type} 재인덱싱 완료: Chapter {result['chapter_count']}개, PDF Page {result['page_count']}개",
-            )
-
-        except Exception as error:
-            messages.error(request, f"재인덱싱 실패: {error}")
+        if created:
+            package.processed = False
+            package.save(update_fields=["processed"])
+            messages.success(request, "재인덱싱 작업을 예약했습니다.")
+        else:
+            messages.info(request, "이미 재인덱싱 작업이 진행 중입니다.")
 
         return redirect("aircraft_manual_detail", pk=package.aircraft.pk)
 
@@ -1290,26 +1344,16 @@ class ManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         manual = ManualFile.objects.get(pk=kwargs["pk"])
 
-        try:
-            page_count = index_pdf_pages_for_manual_file_safely(manual)
-            mel_count = None
+        _, created = queue_reindex_job(
+            ReindexJob.TARGET_MANUAL_FILE,
+            manual.pk,
+            f"{manual.manual_type} PDF re-index queued",
+        )
 
-            if manual.manual_type == "MEL":
-                mel_count = extract_mel_dispatch_items_from_pdf(manual)
-
-            if mel_count is not None:
-                messages.success(
-                    request,
-                    f"{manual.manual_type} PDF Page {page_count}개 재인덱싱, MEL EICAS Message {mel_count}개 추출 완료",
-                )
-            else:
-                messages.success(
-                    request,
-                    f"{manual.manual_type} PDF Page {page_count}개 재인덱싱 완료",
-                )
-
-        except Exception as error:
-            messages.error(request, f"재인덱싱 실패: {error}")
+        if created:
+            messages.success(request, "재인덱싱 작업을 예약했습니다.")
+        else:
+            messages.info(request, "이미 재인덱싱 작업이 진행 중입니다.")
 
         return redirect("aircraft_manual_detail", pk=manual.aircraft.pk)
 
@@ -1380,9 +1424,13 @@ class CommonManualCategoryDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         back_url = self.request.GET.get("back", "").strip()
 
-        context["files"] = CommonManualFile.objects.filter(
+        context["files"] = attach_latest_reindex_jobs(
+            CommonManualFile.objects.filter(
             category=self.object
-        ).order_by("title")
+            ).order_by("title"),
+            lambda file: file,
+            ReindexJob.TARGET_COMMON_FILE,
+        )
         context["back_url"] = back_url or reverse_lazy("home")
 
         return context
@@ -1433,27 +1481,29 @@ class CommonManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateV
         )
 
     def form_valid(self, form):
+        old_file = None
+        old_pdf_file = None
+
+        if self.object.pk:
+            old_instance = CommonManualFile.objects.get(pk=self.object.pk)
+            old_file = old_instance.file
+            old_pdf_file = old_instance.pdf_file
+
         response = super().form_valid(form)
 
-        try:
-            page_count = index_pdf_pages_for_common_manual_file_safely(self.object)
+        if old_file and self.object.file and old_file.name != self.object.file.name:
+            delete_file_field(old_file)
+            delete_file_field(old_pdf_file)
 
-            if page_count:
-                messages.success(
-                    self.request,
-                    f"공통 매뉴얼 PDF Page {page_count}개 인덱싱 완료",
-                )
-            else:
-                messages.info(
-                    self.request,
-                    "업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
-                )
-
-        except Exception as error:
-            messages.warning(
-                self.request,
-                f"업로드는 완료되었지만 인덱싱 실패: {error}",
-            )
+        queue_reindex_job(
+            ReindexJob.TARGET_COMMON_FILE,
+            self.object.pk,
+            "Common manual indexing queued",
+        )
+        messages.success(
+            self.request,
+            "업로드가 완료되었습니다. 검색 인덱싱 작업을 예약했습니다.",
+        )
 
         return response
 
@@ -1483,25 +1533,15 @@ class CommonManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateV
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        try:
-            page_count = index_pdf_pages_for_common_manual_file_safely(self.object)
-
-            if page_count:
-                messages.success(
-                    self.request,
-                    f"공통 매뉴얼 PDF Page {page_count}개 재인덱싱 완료",
-                )
-            else:
-                messages.info(
-                    self.request,
-                    "업로드는 완료되었지만 인덱싱할 페이지가 없습니다.",
-                )
-
-        except Exception as error:
-            messages.warning(
-                self.request,
-                f"업로드는 완료되었지만 인덱싱 실패: {error}",
-            )
+        queue_reindex_job(
+            ReindexJob.TARGET_COMMON_FILE,
+            self.object.pk,
+            "Common manual indexing queued",
+        )
+        messages.success(
+            self.request,
+            "수정이 완료되었습니다. 검색 인덱싱 작업을 예약했습니다.",
+        )
 
         return response
 
@@ -1526,6 +1566,12 @@ class CommonManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteV
             }
         )
         return context
+
+    def form_valid(self, form):
+        delete_file_field(self.object.file)
+        delete_file_field(self.object.pdf_file)
+
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy(
@@ -1672,16 +1718,16 @@ class CommonManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         common_file = get_object_or_404(CommonManualFile, pk=kwargs["pk"])
 
-        try:
-            page_count = index_pdf_pages_for_common_manual_file_safely(common_file)
+        _, created = queue_reindex_job(
+            ReindexJob.TARGET_COMMON_FILE,
+            common_file.pk,
+            "Common manual re-index queued",
+        )
 
-            messages.success(
-                request,
-                f"공통 매뉴얼 재인덱싱 완료: PDF Page {page_count}개",
-            )
-
-        except Exception as error:
-            messages.error(request, f"공통 매뉴얼 재인덱싱 실패: {error}")
+        if created:
+            messages.success(request, "재인덱싱 작업을 예약했습니다.")
+        else:
+            messages.info(request, "이미 재인덱싱 작업이 진행 중입니다.")
 
         return redirect(
             "common_manual_category_detail",
@@ -1745,6 +1791,13 @@ class CommonManualCategoryDeleteView(
         )
 
         return context
+
+    def form_valid(self, form):
+        for common_file in self.object.files.all():
+            delete_file_field(common_file.file)
+            delete_file_field(common_file.pdf_file)
+
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse("home")
@@ -1819,9 +1872,13 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["files"] = OtherManualFile.objects.filter(
+        context["files"] = attach_latest_reindex_jobs(
+            OtherManualFile.objects.filter(
             category=self.object
-        ).order_by("title")
+            ).order_by("title"),
+            lambda file: file,
+            ReindexJob.TARGET_OTHER_FILE,
+        )
 
         context["back_url"] = reverse_lazy(
             "aircraft_manual_detail",
@@ -1879,8 +1936,8 @@ class OtherManualCategoryDeleteView(LoginRequiredMixin, StaffRequiredMixin, Dele
 
     def form_valid(self, form):
         for other_file in self.object.files.all():
-            if other_file.file:
-                other_file.file.delete(save=False)
+            delete_file_field(other_file.file)
+            delete_file_field(other_file.converted_pdf)
 
         return super().form_valid(form)
 
@@ -1932,25 +1989,15 @@ class OtherManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateVi
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        try:
-            page_count = index_pdf_pages_for_other_manual_file_safely(self.object)
-
-            if page_count:
-                messages.success(
-                    self.request,
-                    f"OTHER PDF Page {page_count}개 인덱싱 완료",
-                )
-            else:
-                messages.info(
-                    self.request,
-                    "업로드는 완료되었지만 인덱싱할 PDF 페이지가 없습니다.",
-                )
-
-        except Exception as error:
-            messages.warning(
-                self.request,
-                f"업로드는 완료되었지만 PDF 인덱싱 실패: {error}",
-            )
+        queue_reindex_job(
+            ReindexJob.TARGET_OTHER_FILE,
+            self.object.pk,
+            "Other file indexing queued",
+        )
+        messages.success(
+            self.request,
+            "업로드가 완료되었습니다. 검색 인덱싱 작업을 예약했습니다.",
+        )
 
         return response
 
@@ -1979,35 +2026,28 @@ class OtherManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateVi
 
     def form_valid(self, form):
         old_file = None
+        old_converted_pdf = None
 
         if self.object.pk:
             old_instance = OtherManualFile.objects.get(pk=self.object.pk)
             old_file = old_instance.file
+            old_converted_pdf = old_instance.converted_pdf
 
         response = super().form_valid(form)
 
         if old_file and self.object.file and old_file.name != self.object.file.name:
-            old_file.delete(save=False)
+            delete_file_field(old_file)
+            delete_file_field(old_converted_pdf)
 
-        try:
-            page_count = index_pdf_pages_for_other_manual_file_safely(self.object)
-
-            if page_count:
-                messages.success(
-                    self.request,
-                    f"OTHER PDF Page {page_count}개 재인덱싱 완료",
-                )
-            else:
-                messages.info(
-                    self.request,
-                    "수정은 완료되었지만 인덱싱할 PDF 페이지가 없습니다.",
-                )
-
-        except Exception as error:
-            messages.warning(
-                self.request,
-                f"수정은 완료되었지만 PDF 인덱싱 실패: {error}",
-            )
+        queue_reindex_job(
+            ReindexJob.TARGET_OTHER_FILE,
+            self.object.pk,
+            "Other file indexing queued",
+        )
+        messages.success(
+            self.request,
+            "수정이 완료되었습니다. 검색 인덱싱 작업을 예약했습니다.",
+        )
 
         return response
 
@@ -2042,8 +2082,8 @@ class OtherManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteVi
         return context
 
     def form_valid(self, form):
-        if self.object.file:
-            self.object.file.delete(save=False)
+        delete_file_field(self.object.file)
+        delete_file_field(self.object.converted_pdf)
 
         return super().form_valid(form)
 
@@ -2215,19 +2255,16 @@ class OtherManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         other_file = get_object_or_404(OtherManualFile, pk=kwargs["pk"])
 
-        try:
-            page_count = index_pdf_pages_for_other_manual_file_safely(other_file)
+        _, created = queue_reindex_job(
+            ReindexJob.TARGET_OTHER_FILE,
+            other_file.pk,
+            "Other file re-index queued",
+        )
 
-            messages.success(
-                request,
-                f"OTHER PDF Page {page_count}개 재인덱싱 완료",
-            )
-
-        except Exception as error:
-            messages.error(
-                request,
-                f"OTHER PDF 재인덱싱 실패: {error}",
-            )
+        if created:
+            messages.success(request, "재인덱싱 작업을 예약했습니다.")
+        else:
+            messages.info(request, "이미 재인덱싱 작업이 진행 중입니다.")
 
         return redirect(
             "other_manual_category_detail",

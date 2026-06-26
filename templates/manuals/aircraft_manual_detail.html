@@ -60,7 +60,7 @@ detail-page aircraft-manual-detail-page
 
 <div class="row g-3 g-md-4">
 
-    {% for item in aircraft.get_manual_status_list %}
+    {% for item in manual_items %}
 
         <div class="col-12 col-sm-6 col-lg-3">
 
@@ -184,6 +184,15 @@ detail-page aircraft-manual-detail-page
                             </p>
                         {% endif %}
 
+                        {% if item.package.latest_reindex_job %}
+                            <p class="small mb-3">
+                                <span class="badge {% if item.package.latest_reindex_job.status == 'failed' %}bg-danger{% elif item.package.latest_reindex_job.status == 'done' %}bg-success{% else %}bg-info{% endif %} manual-badge">
+                                    {{ item.package.latest_reindex_job.status|upper }}
+                                </span>
+                                {{ item.package.latest_reindex_job.message }}
+                            </p>
+                        {% endif %}
+
                         <div class="portal-detail-button-group">
 
                             <div class="portal-detail-button-grid">
@@ -220,7 +229,8 @@ detail-page aircraft-manual-detail-page
                                     {% csrf_token %}
 
                                     <button type="submit"
-                                        class="btn btn-outline-info w-100 app-card-btn">
+                                        class="btn btn-outline-info w-100 app-card-btn"
+                                        {% if item.package.latest_reindex_job.is_active %}disabled{% endif %}>
                                         Re-index ZIP
                                     </button>
                                 </form>
@@ -264,6 +274,15 @@ detail-page aircraft-manual-detail-page
                                         NOT INDEXED
                                     </span>
                                 {% endif %}
+                            </p>
+                        {% endif %}
+
+                        {% if item.file.latest_reindex_job %}
+                            <p class="small mb-3">
+                                <span class="badge {% if item.file.latest_reindex_job.status == 'failed' %}bg-danger{% elif item.file.latest_reindex_job.status == 'done' %}bg-success{% else %}bg-info{% endif %} manual-badge">
+                                    {{ item.file.latest_reindex_job.status|upper }}
+                                </span>
+                                {{ item.file.latest_reindex_job.message }}
                             </p>
                         {% endif %}
 
@@ -311,7 +330,8 @@ detail-page aircraft-manual-detail-page
                                     {% csrf_token %}
 
                                     <button type="submit"
-                                        class="btn btn-outline-info w-100 app-card-btn">
+                                        class="btn btn-outline-info w-100 app-card-btn"
+                                        {% if item.file.latest_reindex_job.is_active %}disabled{% endif %}>
                                         Re-index PDF
                                     </button>
                                 </form>

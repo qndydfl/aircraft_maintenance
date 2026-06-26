@@ -556,3 +556,60 @@ class OtherManualPDFPage(models.Model):
         end = min(index + len(query) + radius, len(self.text))
 
         return self.text[start:end]
+
+
+class ReindexJob(models.Model):
+    TARGET_MANUAL_PACKAGE = "manual_package"
+    TARGET_MANUAL_FILE = "manual_file"
+    TARGET_COMMON_FILE = "common_file"
+    TARGET_OTHER_FILE = "other_file"
+
+    TARGET_CHOICES = [
+        (TARGET_MANUAL_PACKAGE, "Manual Package"),
+        (TARGET_MANUAL_FILE, "Manual File"),
+        (TARGET_COMMON_FILE, "Common File"),
+        (TARGET_OTHER_FILE, "Other File"),
+    ]
+
+    STATUS_QUEUED = "queued"
+    STATUS_PROCESSING = "processing"
+    STATUS_DONE = "done"
+    STATUS_FAILED = "failed"
+
+    STATUS_CHOICES = [
+        (STATUS_QUEUED, "Queued"),
+        (STATUS_PROCESSING, "Processing"),
+        (STATUS_DONE, "Done"),
+        (STATUS_FAILED, "Failed"),
+    ]
+
+    target_type = models.CharField(max_length=30, choices=TARGET_CHOICES)
+    target_id = models.PositiveIntegerField()
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_QUEUED,
+        db_index=True,
+    )
+    message = models.CharField(max_length=255, blank=True, default="")
+    page_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(blank=True, null=True)
+    finished_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["target_type", "target_id", "-created_at"]),
+            models.Index(fields=["status", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.target_type}:{self.target_id} {self.status}"
+
+    @property
+    def is_active(self):
+        return self.status in {
+            self.STATUS_QUEUED,
+            self.STATUS_PROCESSING,
+        }

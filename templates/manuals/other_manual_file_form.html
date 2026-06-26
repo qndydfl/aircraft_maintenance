@@ -42,7 +42,11 @@ form-page
     <div class="card portal-card shadow-sm portal-form-card">
         <div class="card-body">
 
-            <form method="post" enctype="multipart/form-data" class="portal-form">
+            <form method="post"
+                enctype="multipart/form-data"
+                class="portal-form"
+                data-loading-title="Uploading OTHER File"
+                data-loading-message="Uploading file and queuing search indexing...">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
