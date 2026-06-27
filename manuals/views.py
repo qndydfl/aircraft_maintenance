@@ -1,4 +1,5 @@
 import os, shutil, json
+from datetime import timedelta
 
 from django.urls import reverse_lazy, reverse
 from django.conf import settings
@@ -60,6 +61,7 @@ from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.views import View
+from django.utils import timezone
 from urllib.parse import urlencode
 
 
@@ -210,6 +212,56 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
             ReindexJob.TARGET_MANUAL_FILE,
         )
         context["manual_items"] = manual_items
+        return context
+
+
+class DateCalculatorView(LoginRequiredMixin, TemplateView):
+    template_name = "manuals/date_calculator.html"
+
+    fixed_days = [3, 10, 120, 240]
+    english_months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        selected_days = safe_int(self.request.GET.get("days"), 3)
+
+        if selected_days < 1:
+            selected_days = 1
+
+        target_date = today + timedelta(days=selected_days)
+        target_date_en = (
+            f"{target_date.day:02d} "
+            f"{self.english_months[target_date.month - 1]} "
+            f"{target_date.year}"
+        )
+        now = timezone.now()
+
+        context.update(
+            {
+                "today": today,
+                "fixed_days": self.fixed_days,
+                "selected_days": selected_days,
+                "target_date": target_date,
+                "target_date_en": target_date_en,
+                "local_now": timezone.localtime(now),
+                "utc_now": now,
+            }
+        )
+
         return context
 
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import HomeView
+from .views import DateCalculatorView, HomeView
 from .views import (
     AircraftManualDetailView,
     ManualFileDetailView,
@@ -50,6 +50,7 @@ from .views import (
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
+    path("date-calculator/", DateCalculatorView.as_view(), name="date_calculator"),
     path(
         "aircraft/<int:pk>/manuals/",
         AircraftManualDetailView.as_view(),

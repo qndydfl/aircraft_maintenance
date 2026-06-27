@@ -1,0 +1,194 @@
+.date-calculator-shell {
+    max-width: 720px;
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+}
+
+.date-result-card,
+.date-calculator-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.86);
+    border-radius: 18px;
+    box-shadow:
+        0 12px 28px rgba(15, 23, 42, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+.date-result-card {
+    padding: 22px;
+    text-align: center;
+}
+
+.date-result-label {
+    color: #64748b;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.date-result-value {
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 850;
+    letter-spacing: 0;
+}
+
+.date-result-note {
+    color: #6b7280;
+    font-size: 0.86rem;
+}
+
+.date-result-long {
+    color: #0d6efd;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.date-time-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.date-time-card {
+    background: rgba(248, 250, 252, 0.88);
+    border: 1px solid rgba(226, 232, 240, 0.98);
+    border-radius: 14px;
+    padding: 13px 14px;
+}
+
+.date-time-label {
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.date-time-value {
+    display: block;
+    color: #111827;
+    font-size: 0.92rem;
+    font-weight: 850;
+    letter-spacing: 0;
+}
+
+.date-calculator-card {
+    padding: 16px;
+}
+
+.date-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.date-preset-btn {
+    min-height: 44px;
+    border: 1px solid #d6dce7;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.date-preset-btn.active {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.date-input-wrap {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+}
+
+.date-input-wrap .form-control {
+    min-height: 44px;
+}
+
+.date-input-wrap .app-card-btn {
+    min-width: 112px;
+}
+
+@media (max-width: 567px) {
+    .date-calculator-shell {
+        gap: 10px;
+    }
+
+    .date-result-card {
+        padding: 16px 12px;
+        border-radius: 15px;
+    }
+
+    .date-result-label {
+        font-size: 0.62rem;
+    }
+
+    .date-result-value {
+        font-size: 1.45rem;
+    }
+
+    .date-result-note {
+        font-size: 0.72rem;
+    }
+
+    .date-result-long {
+        font-size: 0.86rem;
+    }
+
+    .date-time-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .date-time-card {
+        padding: 10px 11px;
+        border-radius: 12px;
+    }
+
+    .date-time-label {
+        font-size: 0.58rem;
+    }
+
+    .date-time-value {
+        font-size: 0.76rem;
+    }
+
+    .date-calculator-card {
+        padding: 11px;
+        border-radius: 15px;
+    }
+
+    .date-preset-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .date-preset-btn {
+        min-height: 36px;
+        border-radius: 10px;
+        font-size: 0.72rem;
+    }
+
+    .date-input-wrap {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .date-input-wrap .form-control {
+        min-height: 38px;
+        text-align: center;
+    }
+
+    .date-input-wrap .app-card-btn {
+        width: 100%;
+        min-width: 0;
+    }
+}

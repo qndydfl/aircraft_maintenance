@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+date-calculator-page
+{% endblock body_class %}
+
+{% block title %}
+Date Calculator
+{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/date_calculator.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="page-hero mb-4">
+    <div>
+        <p class="page-eyebrow mb-1">
+            Date Tool
+        </p>
+
+        <h2 class="page-title mb-2">
+            Date Calculator
+        </h2>
+
+        <p class="text-muted mb-0 page-subtitle">
+            오늘을 제외하고 선택한 일수 뒤의 날짜를 계산합니다.
+        </p>
+    </div>
+
+    <div class="page-actions">
+        <a href="{% url 'home' %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+</div>
+
+<section class="date-calculator-shell">
+    <div class="date-result-card">
+        <p class="date-result-label mb-1">
+            Result
+        </p>
+
+        <h3 id="date-result"
+            class="date-result-value mb-2"
+            data-today="{{ today|date:'Y-m-d' }}">
+            {{ target_date|date:"Y-m-d" }}
+        </h3>
+
+        <p id="date-result-long"
+            class="date-result-long mb-2">
+            {{ target_date_en }}
+        </p>
+
+        <p id="date-result-note"
+            class="date-result-note mb-0">
+            {{ today|date:"Y-m-d" }} 기준, 오늘 제외 {{ selected_days }}일 후
+        </p>
+    </div>
+
+    <div class="date-time-grid">
+        <div class="date-time-card">
+            <p class="date-time-label mb-1">
+                Local Time
+            </p>
+
+            <strong id="local-time"
+                class="date-time-value">
+                {{ local_now|date:"Y-m-d H:i:s" }}
+            </strong>
+        </div>
+
+        <div class="date-time-card">
+            <p class="date-time-label mb-1">
+                UTC Time
+            </p>
+
+            <strong id="utc-time"
+                class="date-time-value">
+                {{ utc_now|date:"Y-m-d H:i:s" }}
+            </strong>
+        </div>
+    </div>
+
+    <form method="get"
+        class="date-calculator-card"
+        id="date-calculator-form">
+
+        <div class="date-preset-grid"
+            role="group"
+            aria-label="Preset days">
+            {% for day in fixed_days %}
+                <button type="button"
+                    class="date-preset-btn {% if selected_days == day %}active{% endif %}"
+                    data-days="{{ day }}">
+                    {{ day }} days
+                </button>
+            {% endfor %}
+        </div>
+
+        <div class="date-custom-row">
+            <label for="days-input"
+                class="form-label mb-1">
+                Custom days
+            </label>
+
+            <div class="date-input-wrap">
+                <input id="days-input"
+                    name="days"
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                    class="form-control"
+                    value="{{ selected_days }}">
+
+                <button type="submit"
+                    class="btn btn-primary app-card-btn">
+                    Calculate
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
+
+{% endblock content %}
+
+{% block js %}
+<script defer src="{% static 'js/date_calculator.js' %}"></script>
+{% endblock js %}
