@@ -1,4 +1,5 @@
 import time
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -35,12 +36,20 @@ class Command(BaseCommand):
             default=5,
             help="Seconds to wait between queue checks.",
         )
+        parser.add_argument(
+            "--stale-minutes",
+            type=int,
+            default=120,
+            help="Mark processing jobs older than this as failed before claiming the next job.",
+        )
 
     def handle(self, *args, **options):
         run_once = options["once"]
         sleep_seconds = options["sleep"]
+        stale_minutes = options["stale_minutes"]
 
         while True:
+            self.fail_stale_processing_jobs(stale_minutes)
             job = self.claim_next_job()
 
             if job:
@@ -51,6 +60,30 @@ class Command(BaseCommand):
                 break
 
             time.sleep(sleep_seconds)
+
+    def fail_stale_processing_jobs(self, stale_minutes):
+        if stale_minutes <= 0:
+            return
+
+        cutoff = timezone.now() - timedelta(minutes=stale_minutes)
+        stale_jobs = ReindexJob.objects.filter(
+            status=ReindexJob.STATUS_PROCESSING,
+            started_at__lt=cutoff,
+            finished_at__isnull=True,
+        )
+
+        failed_count = stale_jobs.update(
+            status=ReindexJob.STATUS_FAILED,
+            message="Processing job timed out. Please run re-index again.",
+            finished_at=timezone.now(),
+        )
+
+        if failed_count:
+            self.stderr.write(
+                self.style.WARNING(
+                    f"Marked {failed_count} stale processing job(s) as failed."
+                )
+            )
 
     def claim_next_job(self):
         with transaction.atomic():

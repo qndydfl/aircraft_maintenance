@@ -230,7 +230,7 @@ detail-page aircraft-manual-detail-page
 
                                     <button type="submit"
                                         class="btn btn-outline-info w-100 app-card-btn"
-                                        {% if item.package.latest_reindex_job.is_active %}disabled{% endif %}>
+                                        {% if item.package.latest_reindex_job.status == 'processing' %}disabled{% endif %}>
                                         Re-index ZIP
                                     </button>
                                 </form>
@@ -331,7 +331,7 @@ detail-page aircraft-manual-detail-page
 
                                     <button type="submit"
                                         class="btn btn-outline-info w-100 app-card-btn"
-                                        {% if item.file.latest_reindex_job.is_active %}disabled{% endif %}>
+                                        {% if item.file.latest_reindex_job.status == 'processing' %}disabled{% endif %}>
                                         Re-index PDF
                                     </button>
                                 </form>

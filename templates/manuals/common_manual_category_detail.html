@@ -156,8 +156,8 @@ detail-page common-manual-detail-page
                                 {% csrf_token %}
 
                                 <button type="submit"
-                                        class="btn btn-outline-info w-100 app-card-btn"
-                                        {% if file.latest_reindex_job.is_active %}disabled{% endif %}>
+                                    class="btn btn-outline-info w-100 app-card-btn"
+                                    {% if file.latest_reindex_job.status == 'processing' %}disabled{% endif %}>
                                     Re-index
                                 </button>
                             </form>
