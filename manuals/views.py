@@ -240,16 +240,7 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        old_file = None
-
-        if self.object.pk:
-            old_instance = ManualFile.objects.get(pk=self.object.pk)
-            old_file = old_instance.file
-
         response = super().form_valid(form)
-
-        if old_file and self.object.file and old_file.name != self.object.file.name:
-            delete_file_field(old_file)
 
         queue_reindex_job(
             ReindexJob.TARGET_MANUAL_FILE,
@@ -287,7 +278,16 @@ class ManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
+        old_file = None
+
+        if self.object.pk:
+            old_instance = ManualFile.objects.get(pk=self.object.pk)
+            old_file = old_instance.file
+
         response = super().form_valid(form)
+
+        if old_file and self.object.file and old_file.name != self.object.file.name:
+            delete_file_field(old_file)
 
         queue_reindex_job(
             ReindexJob.TARGET_MANUAL_FILE,
@@ -1481,19 +1481,7 @@ class CommonManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateV
         )
 
     def form_valid(self, form):
-        old_file = None
-        old_pdf_file = None
-
-        if self.object.pk:
-            old_instance = CommonManualFile.objects.get(pk=self.object.pk)
-            old_file = old_instance.file
-            old_pdf_file = old_instance.pdf_file
-
         response = super().form_valid(form)
-
-        if old_file and self.object.file and old_file.name != self.object.file.name:
-            delete_file_field(old_file)
-            delete_file_field(old_pdf_file)
 
         queue_reindex_job(
             ReindexJob.TARGET_COMMON_FILE,
@@ -1531,7 +1519,19 @@ class CommonManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateV
         )
 
     def form_valid(self, form):
+        old_file = None
+        old_pdf_file = None
+
+        if self.object.pk:
+            old_instance = CommonManualFile.objects.get(pk=self.object.pk)
+            old_file = old_instance.file
+            old_pdf_file = old_instance.pdf_file
+
         response = super().form_valid(form)
+
+        if old_file and self.object.file and old_file.name != self.object.file.name:
+            delete_file_field(old_file)
+            delete_file_field(old_pdf_file)
 
         queue_reindex_job(
             ReindexJob.TARGET_COMMON_FILE,
