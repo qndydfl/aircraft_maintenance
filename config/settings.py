@@ -10,11 +10,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env")
 load_dotenv(ENV_FILE)
 
+
+# 업로드 환경
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
-
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")]
-
 USE_R2 = os.getenv("USE_R2", "FALSE").upper() == "TRUE"
+
+
+# 개발 환경
+# ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# DEBUG = True
+# USE_R2 = False
+
 
 DEFAULT_SECRET_KEY = "django-insecure-local-dev-key"
 

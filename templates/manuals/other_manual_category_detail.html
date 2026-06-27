@@ -112,15 +112,6 @@ detail-page other-manual-detail-page
                         </p>
                     {% endif %}
 
-                    {% if file.latest_reindex_job %}
-                        <p class="small mb-3">
-                            <span class="badge {% if file.latest_reindex_job.status == 'failed' %}bg-danger{% elif file.latest_reindex_job.status == 'done' %}bg-success{% else %}bg-info{% endif %} manual-badge">
-                                {{ file.latest_reindex_job.status|upper }}
-                            </span>
-                            {{ file.latest_reindex_job.message }}
-                        </p>
-                    {% endif %}
-
                     {% if file.description %}
                         <p class="portal-detail-note">
                             {{ file.description }}
@@ -176,8 +167,7 @@ detail-page other-manual-detail-page
                                     {% csrf_token %}
 
                                     <button type="submit"
-                                        class="btn btn-outline-info w-100 app-card-btn"
-                                        {% if file.latest_reindex_job.status == 'processing' %}disabled{% endif %}>
+                                        class="btn btn-outline-info w-100 app-card-btn">
                                         Re-index PDF
                                     </button>
                                 </form>

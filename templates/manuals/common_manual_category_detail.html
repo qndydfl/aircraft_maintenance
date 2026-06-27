@@ -111,15 +111,6 @@ detail-page common-manual-detail-page
                         {% endif %}
                     </p>
 
-                    {% if file.latest_reindex_job %}
-                        <p class="small mb-3">
-                            <span class="badge {% if file.latest_reindex_job.status == 'failed' %}bg-danger{% elif file.latest_reindex_job.status == 'done' %}bg-success{% else %}bg-info{% endif %} manual-badge">
-                                {{ file.latest_reindex_job.status|upper }}
-                            </span>
-                            {{ file.latest_reindex_job.message }}
-                        </p>
-                    {% endif %}
-
                     <div class="portal-detail-button-group mt-auto">
 
                         <div class="portal-detail-button-grid">
@@ -156,8 +147,7 @@ detail-page common-manual-detail-page
                                 {% csrf_token %}
 
                                 <button type="submit"
-                                    class="btn btn-outline-info w-100 app-card-btn"
-                                    {% if file.latest_reindex_job.status == 'processing' %}disabled{% endif %}>
+                                    class="btn btn-outline-info w-100 app-card-btn">
                                     Re-index
                                 </button>
                             </form>
