@@ -1,3 +1,11 @@
+body.date-calculator-page .app-main {
+    min-height: auto;
+}
+
+body.date-calculator-page .app-container {
+    padding-bottom: 8px;
+}
+
 .date-calculator-shell {
     max-width: 720px;
     margin: 0 auto;
@@ -117,6 +125,10 @@
 }
 
 @media (max-width: 567px) {
+    body.date-calculator-page .app-container {
+        padding-bottom: 4px !important;
+    }
+
     .date-calculator-shell {
         gap: 10px;
     }
