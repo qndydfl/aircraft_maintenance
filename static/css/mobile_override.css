@@ -47,31 +47,6 @@
         font-weight: 850;
     }
 
-    .page-hero {
-        padding: 10px 11px;
-        border-radius: 17px;
-        margin-top: 12px;
-        margin-bottom: 10px !important;
-        background: rgba(255,255,255,.72);
-        backdrop-filter: blur(22px) saturate(180%);
-        -webkit-backdrop-filter: blur(22px) saturate(180%);
-        box-shadow: 0 10px 26px rgba(15,23,42,.07);
-        gap: 8px;
-    }
-
-    .page-title {
-        font-size: .94rem;
-        line-height: 1.15;
-        letter-spacing: 0;
-    }
-
-    .page-eyebrow {
-        font-size: .52rem;
-        letter-spacing: .04em;
-    }
-
-    .page-subtitle,
-    .section-description,
     .manual-card-note,
     .portal-list-card-desc {
         display: none !important;
@@ -284,14 +259,20 @@
         bottom: 0;
         width: 100%;
         border-radius: 0;
-        background: rgba(250,250,252,.9);
+        background:
+            linear-gradient(180deg, rgba(31,41,55,.96), rgba(17,24,39,.98));
         backdrop-filter: blur(24px) saturate(180%);
         -webkit-backdrop-filter: blur(24px) saturate(180%);
-        box-shadow: 0 -8px 28px rgba(15,23,42,.12);
+        border-top: 1px solid rgba(255,255,255,.08);
+        box-shadow: 0 -10px 28px rgba(15,23,42,.26);
+    }
+
+    .mobile-nav-item {
+        color: rgba(229,231,235,.64);
     }
 
     .mobile-nav-item.active {
-        color: #111827;
+        color: #fff;
     }
 
     .mobile-nav-icon {

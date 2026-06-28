@@ -142,20 +142,25 @@
     .page-hero {
         align-items: flex-start;
         padding: 10px 11px;
-        border-radius: 14px;
+        border-radius: 17px;
         gap: 8px;
-        margin-top: 6px;
-        margin-bottom: 10px !important;
+        margin-top: 20px;
+        background: rgba(255,255,255,.72);
+        backdrop-filter: blur(22px) saturate(180%);
+        -webkit-backdrop-filter: blur(22px) saturate(180%);
+        box-shadow: 0 10px 26px rgba(15,23,42,.07);
     }
 
     .page-title {
-        font-size: 0.98rem;
+        font-size: 0.94rem;
         line-height: 1.15;
+        letter-spacing: 0;
         margin-bottom: 3px !important;
     }
 
     .page-eyebrow {
-        font-size: 0.56rem;
+        font-size: 0.52rem;
+        letter-spacing: 0.04em;
         margin-bottom: 2px !important;
     }
 

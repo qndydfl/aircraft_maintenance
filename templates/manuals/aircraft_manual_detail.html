@@ -64,7 +64,7 @@ detail-page aircraft-manual-detail-page
 
         <div class="col-12 col-sm-6 col-lg-3">
 
-            <div class="card portal-card portal-detail-card h-100 shadow-sm {% if not item.file and not item.package and item.type != 'OTHER' %}portal-detail-empty-card{% endif %}">
+            <div class="card portal-card portal-detail-card h-100 shadow-sm {% if item.type == 'OTHER' %}{% with folder=aircraft.other_categories.first %}{% if not folder or not folder.files.count %}portal-detail-empty-card{% endif %}{% endwith %}{% elif not item.file and not item.package %}portal-detail-empty-card{% endif %}">
 
                 <div class="card-body">
 
