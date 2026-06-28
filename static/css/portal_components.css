@@ -1,12 +1,12 @@
 .page-hero {
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(22px) saturate(180%);
     -webkit-backdrop-filter: blur(22px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.84);
     border-radius: 22px;
     padding: 18px 20px;
     box-shadow:
-        0 14px 34px rgba(15, 23, 42, 0.08),
+        0 12px 30px rgba(15, 23, 42, 0.07),
         inset 0 1px 1px rgba(255, 255, 255, 0.9);
     display: flex;
     justify-content: space-between;
@@ -16,7 +16,7 @@
 }
 
 .page-eyebrow {
-    color: var(--app-primary);
+    color: #374151;
     font-size: 0.68rem;
     font-weight: 850;
     letter-spacing: 0.08em;
@@ -78,6 +78,7 @@
     font-weight: 750;
     padding: 0.45rem 0.85rem;
     white-space: nowrap;
+    box-shadow: none;
 }
 
 .app-card-btn {
@@ -89,6 +90,7 @@
     font-size: 0.82rem;
     font-weight: 780;
     padding: 0.5rem 0.8rem;
+    box-shadow: none;
 }
 
 .app-form-control,

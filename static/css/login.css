@@ -120,7 +120,8 @@ body.login-page .app-container {
     color: rgba(60,60,67,0.7);
 }
 
-.form-label {
+.login-card .form-label {
+    display: block;
     margin-bottom: 8px;
 
     font-size: 13px;
@@ -129,7 +130,10 @@ body.login-page .app-container {
     color: rgba(60,60,67,0.78);
 }
 
-.form-control {
+.login-card input,
+.login-card .form-control {
+    display: block;
+    width: 100%;
     height: 56px;
 
     border-radius: 18px;
@@ -145,7 +149,9 @@ body.login-page .app-container {
         0 8px 20px rgba(0,0,0,0.04);
 }
 
-.form-control:focus {
+.login-card input:focus,
+.login-card .form-control:focus {
+    outline: none;
     background: rgba(255,255,255,0.82);
 
     border-color: rgba(13,110,253,0.55);
@@ -202,8 +208,15 @@ body.login-page .app-container {
 
     .login-card {
         max-width: 100%;
-        padding: 36px 24px;
+        padding: 34px 24px;
         border-radius: 30px;
+    }
+
+    .login-card input,
+    .login-card .form-control {
+        height: 48px;
+        border-radius: 16px;
+        font-size: 16px;
     }
 
     .login-title {

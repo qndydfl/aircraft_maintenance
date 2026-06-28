@@ -89,12 +89,40 @@ body {
 .viewer-toolbar {
     padding: 7px 9px;
     border-radius: 16px;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(260px, 1fr) auto;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     overflow-x: auto;
     white-space: nowrap;
     scrollbar-width: none;
+}
+
+.viewer-toolbar-left,
+.viewer-toolbar-center,
+.viewer-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.viewer-toolbar-left {
+    justify-content: flex-start;
+}
+
+.viewer-toolbar-center {
+    justify-content: center;
+}
+
+.viewer-toolbar-right {
+    justify-content: flex-end;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.viewer-toolbar-right::-webkit-scrollbar {
+    display: none;
 }
 
 .viewer-toolbar::-webkit-scrollbar,
@@ -107,6 +135,20 @@ body {
     min-height: 31px;
     padding: 0.28rem 0.6rem;
     font-size: 0.74rem;
+    background: rgba(255,255,255,0.82);
+    border-color: rgba(203,213,225,0.95);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75);
+}
+
+#toggle-outline,
+#focus-viewer {
+    background: rgba(17,24,39,0.92);
+    border-color: rgba(17,24,39,0.92);
+    color: #fff;
+}
+
+#focus-viewer {
+    margin-right: 4px;
 }
 
 .viewer-page-control {
@@ -118,6 +160,7 @@ body {
     border: 1px solid #e5e7eb;
     border-radius: 999px;
     padding: 3px 8px;
+    margin-inline: 2px;
 }
 
 .viewer-page-input {
@@ -137,6 +180,7 @@ body {
 
 .viewer-search-panel {
     flex-shrink: 0;
+    margin-left: 2px;
 }
 
 .viewer-search-row {
@@ -178,6 +222,57 @@ body {
     background: rgba(255,255,255,0.5);
     border: 1px solid rgba(255,255,255,0.75);
     box-shadow: 0 16px 42px rgba(15,23,42,0.12);
+}
+
+.viewer-focus-exit {
+    display: none;
+}
+
+.viewer-page.viewer-focus-mode .viewer-topbar,
+.viewer-page.viewer-focus-mode .viewer-toolbar {
+    display: none;
+}
+
+.viewer-page.viewer-focus-mode .manual-pdf-layout {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    margin: 0;
+    border-radius: 0;
+    background: rgba(17,24,39,0.84);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: none;
+}
+
+.viewer-page.viewer-focus-mode .viewer-focus-exit {
+    position: fixed;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    right: 10px;
+    z-index: 3100;
+    display: inline-flex;
+    min-height: 34px;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 850;
+    color: #111827;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+}
+
+.viewer-page.viewer-focus-mode .outline-panel,
+.viewer-page.viewer-focus-mode .outline-resizer {
+    display: none !important;
+}
+
+.viewer-page.viewer-focus-mode .pdf-viewer-scroll {
+    background: rgba(17,24,39,0.92);
+}
+
+.viewer-page.viewer-focus-mode .pdf-viewer-wrap,
+.viewer-page.viewer-focus-mode .multi-page-viewer canvas {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
 }
 
 .outline-panel {
@@ -451,9 +546,18 @@ body {
         padding: 5px;
         gap: 5px;
         border-radius: 13px;
-        flex-wrap: wrap;
-        overflow-x: visible;
-        white-space: normal;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .viewer-toolbar-left,
+    .viewer-toolbar-center,
+    .viewer-toolbar-right {
+        flex: 0 0 auto;
+        gap: 5px;
     }
 
     .viewer-tool-btn {
@@ -462,22 +566,29 @@ body {
         font-size: 0.6rem;
     }
 
+    #toggle-outline,
+    #focus-viewer {
+        margin-right: 0;
+        white-space: nowrap;
+    }
+
     .viewer-search-panel {
         display: flex !important;
-        flex: 1 0 100%;
+        flex: 0 0 auto;
         min-width: 0;
-        order: 2;
+        margin-left: 2px;
     }
 
     .viewer-search-row {
         gap: 4px;
-        width: 100%;
+        width: auto;
         overflow-x: auto;
         padding-bottom: 1px;
+        flex-wrap: nowrap;
     }
 
     .viewer-search-input {
-        flex: 1 0 118px;
+        flex: 0 0 118px;
         width: auto;
         min-width: 118px;
         height: 27px;
@@ -536,6 +647,23 @@ body {
         height: 100%;
         padding: 6px;
         padding-bottom: 6px;
+    }
+
+    .viewer-page.viewer-focus-mode .manual-pdf-layout {
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .viewer-page.viewer-focus-mode .viewer-focus-exit {
+        bottom: calc(
+            var(--viewer-mobile-nav-height, 44px)
+            + var(--viewer-bottom-nav-height, 62px)
+            + 14px
+        );
+        right: 8px;
+        min-height: 30px;
+        padding: 4px 10px;
+        font-size: 0.64rem;
     }
 
     .outline-title {

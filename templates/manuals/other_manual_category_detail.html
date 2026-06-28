@@ -120,7 +120,7 @@ detail-page other-manual-detail-page
 
                     <div class="portal-detail-button-group">
 
-                        <div class="portal-detail-button-grid">
+                        <div class="portal-detail-button-grid manual-primary-actions">
 
                             {% if file.is_pdf %}
                                 <a href="{% url 'other_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
@@ -137,7 +137,7 @@ detail-page other-manual-detail-page
 
                             <a href="{{ file.file.url }}"
                                 download
-                                class="btn btn-success app-card-btn mobile-show-btn">
+                                class="btn btn-success app-card-btn mobile-show-btn mobile-download-btn">
                                 Download
                             </a>
 

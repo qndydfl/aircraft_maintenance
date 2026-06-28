@@ -138,6 +138,10 @@ body.detail-page .app-container {
         gap: 6px;
     }
 
+    .manual-primary-actions {
+        grid-template-columns: 1fr;
+    }
+
     .portal-detail-card .app-card-btn.mobile-show-btn {
         display: flex !important;
         align-items: center;
@@ -145,5 +149,9 @@ body.detail-page .app-container {
         width: 100%;
         min-height: 29px;
         font-size: 0.64rem;
+    }
+
+    .portal-detail-card .app-card-btn.mobile-download-btn {
+        display: none !important;
     }
 }

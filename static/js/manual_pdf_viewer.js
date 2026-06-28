@@ -39,6 +39,8 @@ const zoomInBtn = document.getElementById("zoom-in");
 const zoomOutBtn = document.getElementById("zoom-out");
 const fitWidthBtn = document.getElementById("fit-width");
 const fitPageBtn = document.getElementById("fit-page");
+const focusViewerBtn = document.getElementById("focus-viewer");
+const focusExitBtn = document.getElementById("focus-exit");
 const outlinePanel = document.getElementById("outline-panel");
 const toggleOutlineBtn = document.getElementById("toggle-outline");
 const manualPdfLayout = document.getElementById("manual-pdf-layout");
@@ -57,6 +59,7 @@ const serverMatchCount = document.getElementById("server-match-count");
 
 const outlineStorageKey = "manualPdfOutlineHiddenV3";
 const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
+const VIEWER_FOCUS_KEY = "manualPdfFocusModeV1";
 
 let viewerSearchQuery = searchQuery || "";
 let viewerSearchMatches = [];
@@ -64,12 +67,15 @@ let viewerSearchIndex = -1;
 let serverMatchIndex = Number.isFinite(initialServerMatchIndex)
     ? initialServerMatchIndex
     : 0;
+let isFocusMode = sessionStorage.getItem(VIEWER_FOCUS_KEY) === "true";
 
 
 let scale = 1.0;
 let scaleMode = isMobileViewport() ? "width" : "page";
 let renderRequestId = 0;
 let skipRenderLoadingOnce = false;
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 6;
 const pdfPageCache = new Map();
 const textContentCache = new Map();
 const prefetchingPages = new Set();
@@ -530,6 +536,33 @@ function getFitScale(page) {
 
 function updateZoomLabel(value) {
     zoomLevelSpan.textContent = Math.round(value * 100) + "%";
+}
+
+function applyFocusMode(shouldFocus, options) {
+    options = options || {};
+    isFocusMode = Boolean(shouldFocus);
+    sessionStorage.setItem(VIEWER_FOCUS_KEY, isFocusMode ? "true" : "false");
+
+    const viewerPage = document.querySelector(".viewer-page");
+
+    if (viewerPage) {
+        viewerPage.classList.toggle("viewer-focus-mode", isFocusMode);
+    }
+
+    if (focusViewerBtn) {
+        focusViewerBtn.textContent = isFocusMode ? "Normal" : "Focus";
+        focusViewerBtn.classList.toggle("active", isFocusMode);
+    }
+
+    if (isFocusMode && manualPdfLayout) {
+        manualPdfLayout.classList.add("outline-hidden");
+    }
+
+    if (!options.skipRender && pdfDoc && scaleMode !== "custom") {
+        requestAnimationFrame(function () {
+            queueRenderPage(currentPage);
+        });
+    }
 }
 
 function getPdfPage(pageNumber) {
@@ -1072,13 +1105,13 @@ pageNumberInput.addEventListener("change", function () {
 
 zoomInBtn.addEventListener("click", function () {
     scaleMode = "custom";
-    scale = Math.min(scale + 0.1, 4);
+    scale = Math.min(scale + 0.1, MAX_SCALE);
     queueRenderPage(currentPage);
 });
 
 zoomOutBtn.addEventListener("click", function () {
     scaleMode = "custom";
-    scale = Math.max(scale - 0.1, 0.5);
+    scale = Math.max(scale - 0.1, MIN_SCALE);
     queueRenderPage(currentPage);
 });
 
@@ -1096,6 +1129,25 @@ fitPageBtn.addEventListener("click", function () {
     requestAnimationFrame(function () {
         queueRenderPage(currentPage);
     });
+});
+
+if (focusViewerBtn) {
+    focusViewerBtn.addEventListener("click", function () {
+        const nextFocusMode = !isFocusMode;
+        applyFocusMode(nextFocusMode);
+    });
+}
+
+if (focusExitBtn) {
+    focusExitBtn.addEventListener("click", function () {
+        applyFocusMode(false);
+    });
+}
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && isFocusMode) {
+        applyFocusMode(false);
+    }
 });
 
 function rerenderOnResize() {
@@ -1233,8 +1285,13 @@ function applyOutlineState() {
 }
 
 applyOutlineState();
+applyFocusMode(isFocusMode, { skipRender: true });
 
 toggleOutlineBtn.addEventListener("click", function () {
+    if (isFocusMode) {
+        applyFocusMode(false, { skipRender: true });
+    }
+
     manualPdfLayout.classList.toggle("outline-hidden");
 
     const isHidden = manualPdfLayout.classList.contains("outline-hidden");
@@ -1279,6 +1336,7 @@ if (!pdfUrl) {
                 multiPageViewer.classList.add("d-none");
 
                 scaleMode = isMobileViewport() ? "width" : "page";
+                applyFocusMode(isFocusMode, { skipRender: true });
                 renderPage(currentPage);
             }
 
@@ -1618,8 +1676,8 @@ pdfContainer.addEventListener(
         scaleMode = "custom";
 
         scale = Math.min(
-            Math.max(scale + delta, 0.5),
-            4
+            Math.max(scale + delta, MIN_SCALE),
+            MAX_SCALE
         );
 
         touchStartDistance = currentDistance;

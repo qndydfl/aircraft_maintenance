@@ -76,74 +76,86 @@ pdf-viewer-page
     </div>
 
     <div class="viewer-toolbar">
-        <button
-            id="toggle-outline"
-            class="btn btn-outline-dark viewer-tool-btn"
-        >
-            Contents
-        </button>
+        <div class="viewer-toolbar-left">
+            <button
+                id="toggle-outline"
+                class="btn btn-outline-dark viewer-tool-btn"
+            >
+                Contents
+            </button>
 
-        <button
-            id="prev-page"
-            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-        >
-            Prev
-        </button>
-
-        <div class="viewer-page-control d-none d-md-inline-flex">
-            <input
-                id="page-number"
-                type="number"
-                value="{{ page_number }}"
-                min="1"
-                class="form-control viewer-page-input"
-            />
-            <span class="viewer-page-total">
-                / <span id="page-count">-</span>
-            </span>
+            <button
+                id="focus-viewer"
+                class="btn btn-outline-dark viewer-tool-btn"
+                type="button"
+            >
+                Focus
+            </button>
         </div>
 
-        <button
-            id="next-page"
-            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-        >
-            Next
-        </button>
+        <div class="viewer-toolbar-center">
+            <button
+                id="prev-page"
+                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+            >
+                Prev
+            </button>
 
-        <button
-            id="zoom-out"
-            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-        >
-            -
-        </button>
-        <span
-            id="zoom-level"
-            class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
-            >100%</span
-        >
-        <button
-            id="zoom-in"
-            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-        >
-            +
-        </button>
+            <div class="viewer-page-control d-none d-md-inline-flex">
+                <input
+                    id="page-number"
+                    type="number"
+                    value="{{ page_number }}"
+                    min="1"
+                    class="form-control viewer-page-input"
+                />
+                <span class="viewer-page-total">
+                    / <span id="page-count">-</span>
+                </span>
+            </div>
 
-        <button
-            id="fit-width"
-            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-        >
-            Width
-        </button>
-        <button
-            id="fit-page"
-            class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-        >
-            Page
-        </button>
+            <button
+                id="next-page"
+                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+            >
+                Next
+            </button>
+
+            <button
+                id="zoom-out"
+                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+            >
+                -
+            </button>
+            <span
+                id="zoom-level"
+                class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
+                >100%</span
+            >
+            <button
+                id="zoom-in"
+                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+            >
+                +
+            </button>
+
+            <button
+                id="fit-width"
+                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+            >
+                Width
+            </button>
+            <button
+                id="fit-page"
+                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+            >
+                Page
+            </button>
+        </div>
 
         <div
             id="viewer-mobile-search"
-            class="viewer-search-panel d-flex d-md-flex"
+            class="viewer-toolbar-right viewer-search-panel d-flex d-md-flex"
         >
             <div class="viewer-search-row">
                 {% if not from_search_page %}
@@ -220,6 +232,14 @@ pdf-viewer-page
     </div>
 
     <div id="manual-pdf-layout" class="manual-pdf-layout">
+        <button
+            id="focus-exit"
+            class="btn btn-light viewer-focus-exit"
+            type="button"
+        >
+            Exit
+        </button>
+
         <aside id="outline-panel" class="outline-panel">
             <div class="outline-title">PDF Contents</div>
             <div id="outline-container">

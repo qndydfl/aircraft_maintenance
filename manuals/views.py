@@ -61,6 +61,7 @@ from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.views import View
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from urllib.parse import urlencode
 
@@ -234,31 +235,44 @@ class DateCalculatorView(LoginRequiredMixin, TemplateView):
         "Dec",
     ]
 
+    def format_datetime_en(self, value, suffix=""):
+        suffix_text = f" {suffix}" if suffix else ""
+        return (
+            f"{value.day:02d} "
+            f"{self.english_months[value.month - 1]} "
+            f"{value.year} "
+            f"{value:%H:%M:%S}"
+            f"{suffix_text}"
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.localdate()
-        selected_days = safe_int(self.request.GET.get("days"), 3)
+        base_date = parse_date(self.request.GET.get("base_date", "")) or today
+        selected_days = safe_int(self.request.GET.get("days"), 0)
 
-        if selected_days < 1:
-            selected_days = 1
+        if selected_days < 0:
+            selected_days = 0
 
-        target_date = today + timedelta(days=selected_days)
+        target_date = base_date + timedelta(days=selected_days)
         target_date_en = (
             f"{target_date.day:02d} "
             f"{self.english_months[target_date.month - 1]} "
             f"{target_date.year}"
         )
         now = timezone.now()
+        local_now = timezone.localtime(now)
 
         context.update(
             {
                 "today": today,
+                "base_date": base_date,
                 "fixed_days": self.fixed_days,
                 "selected_days": selected_days,
                 "target_date": target_date,
                 "target_date_en": target_date_en,
-                "local_now": timezone.localtime(now),
-                "utc_now": now,
+                "local_now_text": self.format_datetime_en(local_now),
+                "utc_now_text": self.format_datetime_en(now, "UTC"),
             }
         )
 

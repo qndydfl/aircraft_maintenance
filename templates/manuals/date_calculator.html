@@ -39,6 +39,24 @@ Date Calculator
 </div>
 
 <section class="date-calculator-shell">
+    <div class="date-clock-card">
+        <p class="date-result-label mb-1">
+            UTC Time
+        </p>
+
+        <strong id="utc-time"
+            class="date-utc-value">
+            {{ utc_now_text }}
+        </strong>
+
+        <p class="date-local-row mb-0">
+            <span>Local Time</span>
+            <strong id="local-time">
+                {{ local_now_text }}
+            </strong>
+        </p>
+    </div>
+
     <div class="date-result-card">
         <p class="date-result-label mb-1">
             Result
@@ -57,37 +75,30 @@ Date Calculator
 
         <p id="date-result-note"
             class="date-result-note mb-0">
-            {{ today|date:"Y-m-d" }} 기준, 오늘 제외 {{ selected_days }}일 후
+            {% if selected_days == 0 %}
+                {{ base_date|date:"Y-m-d" }} 기준 날짜
+            {% else %}
+                {{ base_date|date:"Y-m-d" }} 기준, 선택 날짜 제외 {{ selected_days }}일 후
+            {% endif %}
         </p>
-    </div>
-
-    <div class="date-time-grid">
-        <div class="date-time-card">
-            <p class="date-time-label mb-1">
-                Local Time
-            </p>
-
-            <strong id="local-time"
-                class="date-time-value">
-                {{ local_now|date:"Y-m-d H:i:s" }}
-            </strong>
-        </div>
-
-        <div class="date-time-card">
-            <p class="date-time-label mb-1">
-                UTC Time
-            </p>
-
-            <strong id="utc-time"
-                class="date-time-value">
-                {{ utc_now|date:"Y-m-d H:i:s" }}
-            </strong>
-        </div>
     </div>
 
     <form method="get"
         class="date-calculator-card"
         id="date-calculator-form">
+
+        <div class="date-base-row">
+            <label for="base-date-input"
+                class="form-label mb-1">
+                Base date
+            </label>
+
+            <input id="base-date-input"
+                name="base_date"
+                type="date"
+                class="form-control"
+                value="{{ base_date|date:'Y-m-d' }}">
+        </div>
 
         <div class="date-preset-grid"
             role="group"
@@ -111,7 +122,7 @@ Date Calculator
                 <input id="days-input"
                     name="days"
                     type="number"
-                    min="1"
+                    min="0"
                     step="1"
                     inputmode="numeric"
                     class="form-control"

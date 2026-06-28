@@ -113,7 +113,7 @@ detail-page common-manual-detail-page
 
                     <div class="portal-detail-button-group mt-auto">
 
-                        <div class="portal-detail-button-grid">
+                        <div class="portal-detail-button-grid manual-primary-actions">
                             <a href="{% url 'common_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
                                 class="btn btn-primary app-card-btn mobile-show-btn">
                                 Open
@@ -121,7 +121,7 @@ detail-page common-manual-detail-page
 
                             <a href="{{ file.file.url }}"
                                 download
-                                class="btn btn-success app-card-btn mobile-show-btn">
+                                class="btn btn-success app-card-btn mobile-show-btn mobile-download-btn">
                                 Download
                             </a>
                         </div>
