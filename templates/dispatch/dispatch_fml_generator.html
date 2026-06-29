@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}
+dispatch-fml-page
+{% endblock body_class %}
+
+{% block title %}
+FML Generator
+{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/dispatch_fml_generator.css' %}">
+{% endblock css %}
+
+{% block content %}
+
+<div class="page-hero mb-4">
+    <div>
+        <p class="page-eyebrow mb-1">FLIGHT MAINTENANCE LOG</p>
+        <h2 class="page-title mb-2">FML Generator</h2>
+        <p class="text-muted mb-0 page-subtitle">
+            MEL / Dispatch 결과를 FML 입력 문구로 변환합니다.
+        </p>
+    </div>
+
+    <div class="page-actions">
+        <a href="{% url 'dispatch_auto_search' %}"
+            class="btn btn-outline-secondary app-action-btn">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="card portal-card fml-search-card mb-4">
+    <div class="card-body">
+        <form method="get" id="fml-generator-form">
+            {% if source_row %}
+                <input type="hidden" name="row_id" value="{{ source_row.pk }}">
+            {% endif %}
+            {% if source_page %}
+                <input type="hidden" name="page_id" value="{{ source_page.pk }}">
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Aircraft</label>
+                    <select name="aircraft" class="form-select app-form-control">
+                        <option value="">전체 기종</option>
+                        {% for aircraft in aircrafts %}
+                            <option value="{{ aircraft.id }}"
+                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}selected{% endif %}>
+                                {{ aircraft.maker }} - {{ aircraft.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">FOM / Defect</label>
+                    <input type="text"
+                        name="q"
+                        value="{{ query }}"
+                        class="form-control app-form-control"
+                        placeholder="예: vent extract">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Maint Msg</label>
+                    <input type="text"
+                        name="maint_msg"
+                        value="{{ maint_msg }}"
+                        class="form-control app-form-control"
+                        placeholder="29-17008">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Station</label>
+                    <input type="text"
+                        name="station"
+                        value="{{ station }}"
+                        class="form-control app-form-control"
+                        placeholder="KMI">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Date</label>
+                    <input type="date"
+                        name="date"
+                        value="{{ date_input }}"
+                        class="form-control app-form-control">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Item</label>
+                    <input type="text"
+                        name="item_no"
+                        value="{{ item_no }}"
+                        class="form-control app-form-control">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Leg</label>
+                    <input type="text"
+                        name="leg"
+                        value="{{ leg }}"
+                        class="form-control app-form-control">
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <label class="form-label">Work Order</label>
+                    <input type="text"
+                        name="work_order"
+                        value="{{ work_order }}"
+                        class="form-control app-form-control">
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">ATA Code</label>
+                    {% if ata_candidates %}
+                        <select name="ata_code" class="form-select app-form-control">
+                            <option value="" {% if not ata_code %}selected{% endif %}>
+                                Select ATA code
+                            </option>
+                            {% for candidate in ata_candidates %}
+                                <option value="{{ candidate.value }}"
+                                    {% if ata_code == candidate.value %}selected{% endif %}>
+                                    {{ candidate.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <input type="text"
+                            name="ata_code"
+                            value="{{ ata_code }}"
+                            class="form-control app-form-control">
+                    {% endif %}
+                </div>
+
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 app-card-btn">
+                        Generate
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <div class="card portal-card fml-card h-100">
+            <div class="card-body">
+                <div class="fml-card-header">
+                    <div>
+                        <p class="page-eyebrow mb-1">DEFECT and WORK ORDER</p>
+                        <h5 class="section-title mb-0">Defect Entry</h5>
+                    </div>
+                    <button type="button"
+                        class="btn btn-outline-primary app-card-btn fml-copy-btn"
+                        data-copy-target="defect-copy">
+                        Copy
+                    </button>
+                </div>
+
+                <div class="fml-meta-grid">
+                    <div><span>ITEM</span><strong>{{ item_no }}</strong></div>
+                    <div><span>LEG</span><strong>{{ leg|default:"-" }}</strong></div>
+                    <div><span>ATA CODE</span><strong>{{ ata_code|default:"-" }}</strong></div>
+                </div>
+
+                <textarea id="defect-copy"
+                    class="form-control fml-output"
+                    rows="5">{{ defect_text }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card portal-card fml-card h-100">
+            <div class="card-body">
+                <div class="fml-card-header">
+                    <div>
+                        <p class="page-eyebrow mb-1">ACTION TAKEN</p>
+                        <h5 class="section-title mb-0">Action Entry</h5>
+                    </div>
+                    <button type="button"
+                        class="btn btn-outline-primary app-card-btn fml-copy-btn"
+                        data-copy-target="action-copy">
+                        Copy
+                    </button>
+                </div>
+
+                <div class="fml-meta-grid">
+                    <div><span>ITEM</span><strong>{{ item_no }}</strong></div>
+                    <div><span>STATION</span><strong>{{ station|default:"-" }}</strong></div>
+                    <div><span>DATE</span><strong>{{ fml_date }}</strong></div>
+                    <div class="fml-meta-check">
+                        <span>DEFERRED</span>
+                        <label class="form-check mb-0">
+                            <input class="form-check-input"
+                                type="checkbox"
+                                name="defer_action"
+                                value="1"
+                                form="fml-generator-form"
+                                {% if defer_action %}checked{% endif %}>
+                            <strong>YES</strong>
+                        </label>
+                    </div>
+                    <div>
+                        <span>DEFER NO</span>
+                        <strong>{{ defer_no_display|default:"-" }}</strong>
+                    </div>
+                </div>
+
+                <textarea id="action-copy"
+                    class="form-control fml-output"
+                    rows="7">{{ action_taken }}</textarea>
+
+                <div class="fml-work-order">
+                    <span>WORK ORDER</span>
+                    <strong>{{ work_order|default:"-" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if source_row or source_page or fim_ref %}
+    <div class="card portal-card fml-source-card mt-4">
+        <div class="card-body">
+            <h5 class="section-title mb-3">Source</h5>
+
+            <div class="fml-source-grid">
+                <div>
+                    <span>MEL Message</span>
+                    <strong>
+                        {% if source_row %}
+                            {{ source_row.message }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <span>MEL Item</span>
+                    <strong>
+                        {% if source_row %}
+                            {{ source_row.mel_item|default:"-" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <span>PDF Page</span>
+                    <strong>
+                        {% if source_page %}
+                            {{ source_page.page_number }}
+                        {% elif source_row and source_row.page_number %}
+                            {{ source_row.page_number }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <span>FIM Ref</span>
+                    <strong>{{ fim_ref|default:"-" }}</strong>
+                </div>
+                <div>
+                    <span>AMM Ref</span>
+                    <strong>{{ amm_ref|default:"-" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    document.querySelectorAll(".fml-copy-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const target = document.getElementById(button.dataset.copyTarget);
+
+            if (!target) {
+                return;
+            }
+
+            target.select();
+            document.execCommand("copy");
+            button.textContent = "Copied";
+
+            setTimeout(function () {
+                button.textContent = "Copy";
+            }, 1200);
+        });
+    });
+</script>
+
+{% endblock content %}

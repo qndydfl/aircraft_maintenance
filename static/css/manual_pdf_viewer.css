@@ -135,7 +135,6 @@ body {
     min-height: 31px;
     padding: 0.28rem 0.6rem;
     font-size: 0.74rem;
-    background: rgba(255,255,255,0.82);
     border-color: rgba(203,213,225,0.95);
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.75);
 }
@@ -421,6 +420,15 @@ body {
     font-size: 0.95rem;
 }
 
+.viewer-loading-error {
+    color: #991b1b;
+    background: rgba(254, 242, 242, 0.95);
+}
+
+.viewer-loading-error .spinner-border {
+    display: none;
+}
+
 #pdf-canvas {
     display: block;
     max-width: none;
@@ -686,6 +694,24 @@ body {
     .mobile-page-indicator {
         min-width: 58px;
         font-size: 0.66rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .viewer-from-search-page .viewer-toolbar-center {
+        display: none !important;
+    }
+
+    .viewer-from-search-page .viewer-toolbar {
+        justify-content: flex-start;
+    }
+
+    .viewer-from-search-page .viewer-search-input,
+    .viewer-from-search-page #viewer-search-btn,
+    .viewer-from-search-page #viewer-search-prev,
+    .viewer-from-search-page #viewer-search-count,
+    .viewer-from-search-page #viewer-search-next {
+        display: none !important;
     }
 }
 

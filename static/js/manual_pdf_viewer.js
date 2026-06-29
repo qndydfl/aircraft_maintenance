@@ -10,6 +10,7 @@ const matchItems = Array.isArray(config.matchItems)
 const viewMode = config.viewMode || "single";
 
 const pdfUrl = config.pdfUrl;
+const fallbackPdfUrl = config.fallbackPdfUrl || "";
 const initialPage = config.initialPage || 1;
 const searchQuery = config.searchQuery || "";
 const viewerType = config.viewerType || "file";
@@ -197,6 +198,21 @@ function hideViewerLoading() {
     }
 
     viewerLoading.classList.add("d-none");
+}
+
+function showViewerError(message) {
+    if (!viewerLoading) {
+        return;
+    }
+
+    const title = viewerLoading.querySelector(".viewer-loading-title");
+
+    if (title) {
+        title.textContent = message || "PDF를 불러오지 못했습니다.";
+    }
+
+    viewerLoading.classList.remove("d-none");
+    viewerLoading.classList.add("viewer-loading-error");
 }
 
 if (viewerBackLink) {
@@ -1308,12 +1324,9 @@ toggleOutlineBtn.addEventListener("click", function () {
     }, 180);
 });
 
-if (!pdfUrl) {
-    outlineContainer.innerHTML =
-        '<div class="outline-empty">PDF를 불러올 수 없습니다.</div>';
-} else {
+function loadPdfDocument(sourceUrl, triedFallback) {
     pdfjsLib
-        .getDocument(pdfUrl)
+        .getDocument(sourceUrl)
         .promise.then(function (pdfDoc_) {
             pdfDoc = pdfDoc_;
             pageCountSpan.textContent = pdfDoc.numPages;
@@ -1345,9 +1358,29 @@ if (!pdfUrl) {
         .catch(function (error) {
             console.error("PDF Load Error:", error);
 
+            if (
+                !triedFallback &&
+                fallbackPdfUrl &&
+                fallbackPdfUrl !== sourceUrl
+            ) {
+                showViewerLoading("Retrying PDF...");
+                loadPdfDocument(fallbackPdfUrl, true);
+                return;
+            }
+
             outlineContainer.innerHTML =
                 '<div class="outline-empty">PDF를 불러오지 못했습니다.</div>';
+
+            showViewerError("PDF를 불러오지 못했습니다.");
         });
+}
+
+if (!pdfUrl) {
+    outlineContainer.innerHTML =
+        '<div class="outline-empty">PDF를 불러올 수 없습니다.</div>';
+    showViewerError("PDF를 불러올 수 없습니다.");
+} else {
+    loadPdfDocument(pdfUrl, false);
 }
 
 function createTextLayerForPage(pageNumber, page, viewport, wrapper) {

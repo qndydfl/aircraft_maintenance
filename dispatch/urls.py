@@ -6,6 +6,7 @@ from .views import (
     DispatchCreateView,
     DispatchUpdateView,
     DispatchDeleteView,
+    DispatchFmlGeneratorView,
     DispatchAutocompleteView,
     DispatchCSVDownloadView,
     DispatchPrintView,
@@ -16,6 +17,7 @@ from .views import (
 
 urlpatterns = [
     path("", DispatchAutoSearchView.as_view(), name="dispatch_auto_search"),
+    path("fml/", DispatchFmlGeneratorView.as_view(), name="dispatch_fml_generator"),
     path(
         "autocomplete/",
         DispatchAutocompleteView.as_view(),

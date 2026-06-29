@@ -1028,6 +1028,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
 
         context["from_search_page"] = (
             from_search_flag in {"1", "true", "yes"}
+            or (bool(query) and match_scope == "chapter")
             or "manual-search" in back_url_lower
             or "manual_search" in back_url_lower
             or "dispatch_auto_search" in back_url_lower
@@ -1218,7 +1219,17 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
 
         context["viewer_title"] = f"{manual.aircraft.name} / {manual.manual_type}"
         context["viewer_subtitle"] = manual.description or "PDF Viewer"
-        context["pdf_url"] = reverse("manual_file_pdf", kwargs={"pk": manual.pk})
+        pdf_url = reverse("manual_file_pdf", kwargs={"pk": manual.pk})
+
+        if manual.uploaded_at:
+            pdf_url = f"{pdf_url}?v={int(manual.uploaded_at.timestamp())}"
+
+        context["pdf_url"] = pdf_url
+
+        try:
+            context["pdf_fallback_url"] = manual.file.url if manual.file else ""
+        except Exception:
+            context["pdf_fallback_url"] = ""
 
         if back_url:
             context["back_url"] = back_url
@@ -1340,14 +1351,24 @@ class ManualFilePDFView(LoginRequiredMixin, View):
             ManualFile.objects.select_related("aircraft"), pk=kwargs["pk"]
         )
 
+        if not manual.file:
+            raise Http404("PDF file is not available")
+
         file_name = (manual.file.name or "").lower()
         if not file_name.endswith(".pdf"):
             raise Http404("PDF file is not available")
 
-        if not manual.file:
-            raise Http404("PDF file is not available")
+        try:
+            pdf_file = manual.file.open("rb")
+        except Exception as error:
+            raise Http404("PDF file could not be opened") from error
 
-        return FileResponse(manual.file.open("rb"), content_type="application/pdf")
+        return FileResponse(
+            pdf_file,
+            content_type="application/pdf",
+            as_attachment=False,
+            filename=os.path.basename(manual.file.name),
+        )
 
 
 class ManualPackageUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):

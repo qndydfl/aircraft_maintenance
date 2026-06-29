@@ -78,6 +78,12 @@ body.dispatch-search-page .app-container {
     gap: 12px;
 }
 
+.candidate-actions {
+    display: grid;
+    gap: 7px;
+    flex: 0 0 auto;
+}
+
 .candidate-snippet {
     margin-top: 10px;
     max-height: 180px;
@@ -216,6 +222,10 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
     .candidate-top {
         flex-direction: column;
         gap: 6px;
+    }
+
+    .candidate-actions {
+        width: 100%;
     }
 
     .candidate-top strong {

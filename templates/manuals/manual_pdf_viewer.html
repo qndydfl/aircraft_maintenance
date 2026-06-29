@@ -13,6 +13,7 @@ pdf-viewer-page
 <script>
     window.PDF_VIEWER_CONFIG = {
         pdfUrl: "{{ pdf_url }}",
+        fallbackPdfUrl: "{{ pdf_fallback_url|default:''|escapejs }}",
         initialPage: parseInt("{{ page_number|default:'1' }}", 10),
         searchQuery: "{{ query|escapejs }}".trim().toLowerCase(),
         viewerType: "{{ viewer_type }}",
@@ -33,13 +34,13 @@ pdf-viewer-page
     defer
     src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ></script>
-<script defer src="{% static 'js/manual_pdf_viewer.js' %}"></script>
+<script defer src="{% static 'js/manual_pdf_viewer.js' %}?v=20260629"></script>
 {% endblock js %} 
 
 {% block nav %} {% endblock nav %} 
 
 {% block content %}
-<div class="viewer-page">
+<div class="viewer-page{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}">
     <div class="viewer-topbar">
         <div class="viewer-title-area">
             <h4 class="viewer-title mb-1">{{ viewer_title }}</h4>
