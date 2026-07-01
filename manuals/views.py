@@ -235,19 +235,25 @@ class DateCalculatorView(LoginRequiredMixin, TemplateView):
         "Dec",
     ]
 
-    def format_datetime_en(self, value, suffix=""):
-        suffix_text = f" {suffix}" if suffix else ""
-        return (
-            f"{value.day:02d} "
-            f"{self.english_months[value.month - 1]} "
-            f"{value.year} "
-            f"{value:%H:%M:%S}"
-            f"{suffix_text}"
-        )
+    def format_datetime_parts_en(self, value, suffix=""):
+        time_text = f"{value:%H:%M:%S}"
+
+        if suffix:
+            time_text = f"{time_text} {suffix}"
+
+        return {
+            "date": (
+                f"{value.day:02d} "
+                f"{self.english_months[value.month - 1]} "
+                f"{value.year}"
+            ),
+            "time": time_text,
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        today = timezone.localdate()
+        now = timezone.now()
+        today = now.date()
         base_date = parse_date(self.request.GET.get("base_date", "")) or today
         selected_days = safe_int(self.request.GET.get("days"), 0)
 
@@ -260,8 +266,9 @@ class DateCalculatorView(LoginRequiredMixin, TemplateView):
             f"{self.english_months[target_date.month - 1]} "
             f"{target_date.year}"
         )
-        now = timezone.now()
         local_now = timezone.localtime(now)
+        local_now_parts = self.format_datetime_parts_en(local_now)
+        utc_now_parts = self.format_datetime_parts_en(now, "UTC")
 
         context.update(
             {
@@ -271,8 +278,10 @@ class DateCalculatorView(LoginRequiredMixin, TemplateView):
                 "selected_days": selected_days,
                 "target_date": target_date,
                 "target_date_en": target_date_en,
-                "local_now_text": self.format_datetime_en(local_now),
-                "utc_now_text": self.format_datetime_en(now, "UTC"),
+                "local_now_date": local_now_parts["date"],
+                "local_now_time": local_now_parts["time"],
+                "utc_now_date": utc_now_parts["date"],
+                "utc_now_time": utc_now_parts["time"],
             }
         )
 

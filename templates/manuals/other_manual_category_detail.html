@@ -124,6 +124,8 @@ detail-page other-manual-detail-page
 
                             {% if file.is_pdf %}
                                 <a href="{% url 'other_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     class="btn btn-primary app-card-btn mobile-show-btn">
                                     Open
                                 </a>

@@ -92,6 +92,8 @@ chapter-page
             <div class="portal-chapter-bookmark-grid">
                 {% for chapter in chapter_bookmarks %}
                     <a href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?back={{ request.get_full_path|urlencode }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="portal-chapter-bookmark-item d-flex align-items-start p-3 rounded-3 text-decoration-none">
 
                         <span class="portal-chapter-bookmark-icon text-primary me-3 mt-1">
@@ -178,6 +180,8 @@ chapter-page
 
                                 <td class="text-center">
                                     <a href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         class="btn btn-sm btn-primary rounded-pill px-3">
                                         Open Chapter
                                     </a>
@@ -218,6 +222,8 @@ chapter-page
                         </p>
 
                         <a href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             class="btn btn-primary w-100 app-card-btn rounded-pill">
                             Open Chapter
                         </a>

@@ -272,6 +272,8 @@ detail-page aircraft-manual-detail-page
                             <div class="portal-detail-button-grid manual-primary-actions">
                                 {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
                                     <a href="{% url 'manual_file_pdf_viewer' item.file.pk %}?back={{ request.get_full_path|urlencode }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         class="btn btn-primary app-card-btn mobile-show-btn">
                                         Open
                                     </a>

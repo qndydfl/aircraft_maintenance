@@ -4,6 +4,25 @@
     const note = document.getElementById("date-result-note");
     const input = document.getElementById("days-input");
     const baseDateInput = document.getElementById("base-date-input");
+    const form = document.getElementById("date-calculator-form");
+    const dateCalculatorModal = document.getElementById("date-calculator-modal");
+    const fuelDensityForm = document.getElementById("fuel-density-form");
+    const fuelDensityModal = document.getElementById("fuel-density-modal");
+    const fuelDensityInput = document.getElementById("fuel-density-input");
+    const fuelDensityResult = document.getElementById("fuel-density-result");
+    const fuelDensityNote = document.getElementById("fuel-density-note");
+    const timeCalculatorForm = document.getElementById("time-calculator-form");
+    const timeCalculatorModal = document.getElementById("time-calculator-modal");
+    const timeBaseInput = document.getElementById("time-base-input");
+    const timeAddInput = document.getElementById("time-add-input");
+    const timeCalculatorResult = document.getElementById("time-calculator-result");
+    const timeCalculatorNote = document.getElementById("time-calculator-note");
+    const basicCalculatorDisplay = document.getElementById("basic-calculator-display");
+    const basicCalculatorExpression = document.getElementById("basic-calculator-expression");
+    const basicCalculatorModal = document.getElementById("basic-calculator-modal");
+    const basicCalculatorKeys = document.querySelectorAll(
+        "[data-basic-calc-number], [data-basic-calc-operator], [data-basic-calc-action]"
+    );
     const localTime = document.getElementById("local-time");
     const utcTime = document.getElementById("utc-time");
     const presetButtons = document.querySelectorAll(".date-preset-btn");
@@ -27,6 +46,10 @@
         "Nov",
         "Dec",
     ];
+    let basicCurrentValue = "0";
+    let basicStoredValue = null;
+    let basicPendingOperator = null;
+    let basicShouldResetDisplay = false;
 
     function formatDate(date) {
         const year = date.getFullYear();
@@ -42,7 +65,7 @@
         return `${day} ${month} ${year}`;
     }
 
-    function formatDateTime(date, useUtc) {
+    function formatDateTimeParts(date, useUtc) {
         const year = useUtc ? date.getUTCFullYear() : date.getFullYear();
         const month = englishMonths[
             useUtc ? date.getUTCMonth() : date.getMonth()
@@ -60,7 +83,24 @@
             useUtc ? date.getUTCSeconds() : date.getSeconds()
         ).padStart(2, "0");
 
-        return `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+        return {
+            date: `${day} ${month} ${year}`,
+            time: `${hours}:${minutes}:${seconds}${useUtc ? " UTC" : ""}`,
+        };
+    }
+
+    function renderClockValue(element, parts) {
+        element.innerHTML = "";
+
+        const dateLine = document.createElement("span");
+        dateLine.className = "date-clock-date";
+        dateLine.textContent = parts.date;
+
+        const timeLine = document.createElement("span");
+        timeLine.className = "date-clock-time";
+        timeLine.textContent = parts.time;
+
+        element.append(dateLine, timeLine);
     }
 
     function updateClock() {
@@ -69,8 +109,8 @@
         }
 
         const now = new Date();
-        localTime.textContent = formatDateTime(now, false);
-        utcTime.textContent = `${formatDateTime(now, true)} UTC`;
+        renderClockValue(localTime, formatDateTimeParts(now, false));
+        renderClockValue(utcTime, formatDateTimeParts(now, true));
     }
 
     function updateDate(days) {
@@ -100,6 +140,262 @@
         });
     }
 
+    function resetDateCalculator() {
+        if (!input) {
+            return;
+        }
+
+        updateDate(0);
+    }
+
+    function updateFuelDensity() {
+        if (!fuelDensityInput || !fuelDensityResult || !fuelDensityNote) {
+            return;
+        }
+
+        const density = Number.parseFloat(fuelDensityInput.value);
+
+        if (!Number.isFinite(density) || density < 0) {
+            fuelDensityResult.textContent = "-";
+            fuelDensityNote.textContent = "Density g/cm3 값을 입력하세요";
+            return;
+        }
+
+        const poundsPerGallon = density * (3.78533 / 0.4539);
+        fuelDensityResult.textContent = poundsPerGallon.toFixed(2);
+        fuelDensityNote.textContent = `${density.toFixed(3)} g/cm3 기준`;
+    }
+
+    function resetFuelDensity() {
+        if (!fuelDensityInput) {
+            return;
+        }
+
+        fuelDensityInput.value = "0";
+        updateFuelDensity();
+    }
+
+    function parseHourMinute(value) {
+        const normalizedValue = String(value || "").trim();
+        const colonMatch = normalizedValue.match(/^(\d+):(\d{1,2})$/);
+
+        if (colonMatch) {
+            return (Number.parseInt(colonMatch[1], 10) * 60)
+                + Number.parseInt(colonMatch[2], 10);
+        }
+
+        const digitMatch = normalizedValue.match(/^\d+$/);
+
+        if (digitMatch) {
+            const hoursText = normalizedValue.slice(0, -2) || "0";
+            const minutesText = normalizedValue.slice(-2);
+
+            return (Number.parseInt(hoursText, 10) * 60)
+                + Number.parseInt(minutesText, 10);
+        }
+
+        return null;
+    }
+
+    function formatHourMinute(totalMinutes) {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = String(totalMinutes % 60).padStart(2, "0");
+        return `${hours}:${minutes}`;
+    }
+
+    function updateTimeCalculator() {
+        if (
+            !timeBaseInput
+            || !timeAddInput
+            || !timeCalculatorResult
+            || !timeCalculatorNote
+        ) {
+            return;
+        }
+
+        const baseMinutes = parseHourMinute(timeBaseInput.value);
+        const addMinutes = parseHourMinute(timeAddInput.value);
+
+        if (baseMinutes === null || addMinutes === null) {
+            timeCalculatorResult.textContent = "-";
+            timeCalculatorNote.textContent = "HH:MM 또는 숫자 형식으로 입력하세요";
+            return;
+        }
+
+        timeCalculatorResult.textContent = formatHourMinute(
+            baseMinutes + addMinutes
+        );
+        timeCalculatorNote.textContent = `${timeBaseInput.value.trim()} + ${timeAddInput.value.trim()} 기준`;
+    }
+
+    function resetTimeCalculator() {
+        if (!timeBaseInput || !timeAddInput) {
+            return;
+        }
+
+        timeBaseInput.value = "0:00";
+        timeAddInput.value = "0:00";
+        updateTimeCalculator();
+    }
+
+    function formatBasicNumber(value) {
+        if (!Number.isFinite(value)) {
+            return "Error";
+        }
+
+        const rounded = Math.round((value + Number.EPSILON) * 10000000000) / 10000000000;
+        return String(rounded);
+    }
+
+    function renderBasicCalculator() {
+        if (!basicCalculatorDisplay || !basicCalculatorExpression) {
+            return;
+        }
+
+        const operatorLabelMap = {
+            "+": "+",
+            "-": "−",
+            "*": "×",
+            "/": "÷",
+        };
+
+        basicCalculatorDisplay.textContent = basicCurrentValue;
+        basicCalculatorExpression.textContent = basicPendingOperator
+            ? `${basicStoredValue} ${operatorLabelMap[basicPendingOperator]}`
+            : "";
+    }
+
+    function calculateBasicValue(firstValue, operator, secondValue) {
+        const first = Number.parseFloat(firstValue);
+        const second = Number.parseFloat(secondValue);
+
+        if (!Number.isFinite(first) || !Number.isFinite(second)) {
+            return "Error";
+        }
+
+        if (operator === "+") {
+            return formatBasicNumber(first + second);
+        }
+
+        if (operator === "-") {
+            return formatBasicNumber(first - second);
+        }
+
+        if (operator === "*") {
+            return formatBasicNumber(first * second);
+        }
+
+        if (operator === "/") {
+            return second === 0 ? "Error" : formatBasicNumber(first / second);
+        }
+
+        return basicCurrentValue;
+    }
+
+    function inputBasicNumber(numberValue) {
+        if (basicCurrentValue === "Error" || basicShouldResetDisplay) {
+            basicCurrentValue = numberValue;
+            basicShouldResetDisplay = false;
+            return;
+        }
+
+        if (basicCurrentValue === "0") {
+            basicCurrentValue = numberValue;
+            return;
+        }
+
+        basicCurrentValue += numberValue;
+    }
+
+    function inputBasicDecimal() {
+        if (basicCurrentValue === "Error" || basicShouldResetDisplay) {
+            basicCurrentValue = "0.";
+            basicShouldResetDisplay = false;
+            return;
+        }
+
+        if (!basicCurrentValue.includes(".")) {
+            basicCurrentValue += ".";
+        }
+    }
+
+    function handleBasicOperator(operator) {
+        if (basicCurrentValue === "Error") {
+            return;
+        }
+
+        if (basicStoredValue !== null && basicPendingOperator && !basicShouldResetDisplay) {
+            basicCurrentValue = calculateBasicValue(
+                basicStoredValue,
+                basicPendingOperator,
+                basicCurrentValue
+            );
+        }
+
+        basicStoredValue = basicCurrentValue;
+        basicPendingOperator = operator;
+        basicShouldResetDisplay = true;
+    }
+
+    function handleBasicAction(action) {
+        if (action === "clear") {
+            resetBasicCalculator();
+            return;
+        }
+
+        if (action === "backspace") {
+            if (basicShouldResetDisplay || basicCurrentValue === "Error") {
+                basicCurrentValue = "0";
+                basicShouldResetDisplay = false;
+                return;
+            }
+
+            basicCurrentValue = basicCurrentValue.length > 1
+                ? basicCurrentValue.slice(0, -1)
+                : "0";
+            return;
+        }
+
+        if (action === "percent") {
+            if (basicCurrentValue !== "Error") {
+                basicCurrentValue = formatBasicNumber(Number.parseFloat(basicCurrentValue) / 100);
+            }
+            return;
+        }
+
+        if (action === "toggle-sign") {
+            if (basicCurrentValue !== "0" && basicCurrentValue !== "Error") {
+                basicCurrentValue = basicCurrentValue.startsWith("-")
+                    ? basicCurrentValue.slice(1)
+                    : `-${basicCurrentValue}`;
+            }
+            return;
+        }
+
+        if (action === "decimal") {
+            inputBasicDecimal();
+            return;
+        }
+
+        if (action === "equals" && basicStoredValue !== null && basicPendingOperator) {
+            basicCurrentValue = calculateBasicValue(
+                basicStoredValue,
+                basicPendingOperator,
+                basicCurrentValue
+            );
+            basicStoredValue = null;
+            basicPendingOperator = null;
+            basicShouldResetDisplay = true;
+        }
+    }
+
+    function resetBasicCalculator() {
+        basicCurrentValue = "0";
+        basicStoredValue = null;
+        basicPendingOperator = null;
+        basicShouldResetDisplay = false;
+    }
+
     presetButtons.forEach((button) => {
         button.addEventListener("click", () => {
             updateDate(button.dataset.days);
@@ -114,6 +410,75 @@
         updateDate(input.value);
     });
 
+    if (form) {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            updateDate(input.value);
+        });
+    }
+
+    if (dateCalculatorModal) {
+        dateCalculatorModal.addEventListener("hidden.bs.modal", resetDateCalculator);
+    }
+
+    if (fuelDensityInput) {
+        fuelDensityInput.addEventListener("input", updateFuelDensity);
+    }
+
+    if (fuelDensityForm) {
+        fuelDensityForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            updateFuelDensity();
+        });
+    }
+
+    if (fuelDensityModal) {
+        fuelDensityModal.addEventListener("hidden.bs.modal", resetFuelDensity);
+    }
+
+    if (timeBaseInput) {
+        timeBaseInput.addEventListener("input", updateTimeCalculator);
+    }
+
+    if (timeAddInput) {
+        timeAddInput.addEventListener("input", updateTimeCalculator);
+    }
+
+    if (timeCalculatorForm) {
+        timeCalculatorForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            updateTimeCalculator();
+        });
+    }
+
+    if (timeCalculatorModal) {
+        timeCalculatorModal.addEventListener("hidden.bs.modal", resetTimeCalculator);
+    }
+
+    basicCalculatorKeys.forEach((button) => {
+        button.addEventListener("click", () => {
+            if (button.dataset.basicCalcNumber !== undefined) {
+                inputBasicNumber(button.dataset.basicCalcNumber);
+            } else if (button.dataset.basicCalcOperator) {
+                handleBasicOperator(button.dataset.basicCalcOperator);
+            } else if (button.dataset.basicCalcAction) {
+                handleBasicAction(button.dataset.basicCalcAction);
+            }
+
+            renderBasicCalculator();
+        });
+    });
+
+    if (basicCalculatorModal) {
+        basicCalculatorModal.addEventListener("hidden.bs.modal", () => {
+            resetBasicCalculator();
+            renderBasicCalculator();
+        });
+    }
+
+    updateFuelDensity();
+    updateTimeCalculator();
+    renderBasicCalculator();
     updateClock();
     window.setInterval(updateClock, 1000);
 })();

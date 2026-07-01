@@ -107,18 +107,21 @@ dispatch-detail-page
             {% if dispatch.mel_manual_file_id and dispatch.mel_page_number %}
                 <a href="{% url 'manual_file_pdf_viewer' dispatch.mel_manual_file_id %}?page={{ dispatch.mel_page_number }}&q={{ dispatch.mel_search_keyword|default:dispatch.mel_number|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-danger app-card-btn">
                     Open Saved MEL Page
                 </a>
             {% elif mel_page %}
                 <a href="{% url 'manual_file_pdf_viewer' mel_page.manual_file.pk %}?page={{ mel_page.page_number }}&q={{ mel_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-outline-danger app-card-btn">
                     Open MEL Page
                 </a>
             {% elif mel_file %}
                 <a href="{% url 'manual_file_pdf_viewer' mel_file.pk %}?q={{ mel_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-outline-danger app-card-btn">
                     Open MEL PDF
                 </a>
@@ -127,12 +130,14 @@ dispatch-detail-page
             {% if dispatch.fim_chapter_id and dispatch.fim_page_number %}
                 <a href="{% url 'manual_chapter_pdf_viewer' dispatch.fim_chapter_id %}?page={{ dispatch.fim_page_number }}&q={{ dispatch.fim_search_keyword|default:dispatch.fim_chapter|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-primary app-card-btn">
                     Open Saved FIM Page
                 </a>
             {% elif fim_page %}
                 <a href="{% url 'manual_chapter_pdf_viewer' fim_page.chapter.pk %}?page={{ fim_page.page_number }}&q={{ fim_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-outline-primary app-card-btn">
                     Open FIM Page
                 </a>
@@ -145,11 +150,15 @@ dispatch-detail-page
 
             {% if dispatch.amm_chapter_id and dispatch.amm_page_number %}
                 <a href="{% url 'manual_chapter_pdf_viewer' dispatch.amm_chapter_id %}?page={{ dispatch.amm_page_number }}&q={{ dispatch.amm_search_keyword|default:dispatch.amm_chapter|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-success app-card-btn">
                     Open Saved AMM Page
                 </a>
             {% elif amm_page %}
                 <a href="{% url 'manual_chapter_pdf_viewer' amm_page.chapter.pk %}?page={{ amm_page.page_number }}&q={{ amm_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     class="btn btn-outline-success app-card-btn">
                     Open AMM Page
                 </a>

@@ -115,6 +115,8 @@ detail-page common-manual-detail-page
 
                         <div class="portal-detail-button-grid manual-primary-actions">
                             <a href="{% url 'common_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 class="btn btn-primary app-card-btn mobile-show-btn">
                                 Open
                             </a>

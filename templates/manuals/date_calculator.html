@@ -13,16 +13,20 @@ Date Calculator
 <link rel="stylesheet" href="{% static 'css/date_calculator.css' %}">
 {% endblock css %}
 
+{% block js %}
+<script defer src="{% static 'js/date_calculator.js' %}"></script>
+{% endblock js %}
+
 {% block content %}
 
 <div class="page-hero mb-4">
     <div>
         <p class="page-eyebrow mb-1">
-            Date Tool
+            CALCULATOR Tool
         </p>
 
         <h2 class="page-title mb-2">
-            Date Calculator
+            CALCULATOR
         </h2>
 
         <p class="text-muted mb-0 page-subtitle">
@@ -46,99 +50,495 @@ Date Calculator
 
         <strong id="utc-time"
             class="date-utc-value">
-            {{ utc_now_text }}
+            <span class="date-clock-date">
+                {{ utc_now_date }}
+            </span>
+            <span class="date-clock-time">
+                {{ utc_now_time }}
+            </span>
         </strong>
 
-        <p class="date-local-row mb-0">
-            <span>Local Time</span>
-            <strong id="local-time">
-                {{ local_now_text }}
-            </strong>
+        <p class="date-result-label mt-3 mb-1">
+            LOCAL TIME
         </p>
+
+        <strong id="local-time"
+            class="date-local-value">
+            <span class="date-clock-date">
+                {{ local_now_date }}
+            </span>
+            <span class="date-clock-time">
+                {{ local_now_time }}
+            </span>
+        </strong>
     </div>
 
-    <div class="date-result-card">
-        <p class="date-result-label mb-1">
-            Result
-        </p>
+    <div class="date-tool-grid">
+        <button type="button"
+            class="date-tool-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#date-calculator-modal">
+            <span>Date Calculator</span>
+            <strong>Open</strong>
+        </button>
 
-        <h3 id="date-result"
-            class="date-result-value mb-2"
-            data-today="{{ today|date:'Y-m-d' }}">
-            {{ target_date|date:"Y-m-d" }}
-        </h3>
+        <button type="button"
+            class="date-tool-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#fuel-density-modal">
+            <span>Fuel Density Converter</span>
+            <strong>Open</strong>
+        </button>
 
-        <p id="date-result-long"
-            class="date-result-long mb-2">
-            {{ target_date_en }}
-        </p>
+        <button type="button"
+            class="date-tool-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#time-calculator-modal">
+            <span> FLIGHT LOG Time Calculator</span>
+            <strong>Open</strong>
+        </button>
 
-        <p id="date-result-note"
-            class="date-result-note mb-0">
-            {% if selected_days == 0 %}
-                {{ base_date|date:"Y-m-d" }} 기준 날짜
-            {% else %}
-                {{ base_date|date:"Y-m-d" }} 기준, 선택 날짜 제외 {{ selected_days }}일 후
-            {% endif %}
-        </p>
+        <button type="button"
+            class="date-tool-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#basic-calculator-modal">
+            <span>General Calculator</span>
+            <strong>Open</strong>
+        </button>
     </div>
-
-    <form method="get"
-        class="date-calculator-card"
-        id="date-calculator-form">
-
-        <div class="date-base-row">
-            <label for="base-date-input"
-                class="form-label mb-1">
-                Base date
-            </label>
-
-            <input id="base-date-input"
-                name="base_date"
-                type="date"
-                class="form-control"
-                value="{{ base_date|date:'Y-m-d' }}">
-        </div>
-
-        <div class="date-preset-grid"
-            role="group"
-            aria-label="Preset days">
-            {% for day in fixed_days %}
-                <button type="button"
-                    class="date-preset-btn {% if selected_days == day %}active{% endif %}"
-                    data-days="{{ day }}">
-                    {{ day }} days
-                </button>
-            {% endfor %}
-        </div>
-
-        <div class="date-custom-row">
-            <label for="days-input"
-                class="form-label mb-1">
-                Custom days
-            </label>
-
-            <div class="date-input-wrap">
-                <input id="days-input"
-                    name="days"
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputmode="numeric"
-                    class="form-control"
-                    value="{{ selected_days }}">
-
-                <button type="submit"
-                    class="btn btn-primary app-card-btn">
-                    Calculate
-                </button>
-            </div>
-        </div>
-    </form>
 </section>
 
-{% endblock content %}
+<div class="modal fade"
+    id="date-calculator-modal"
+    tabindex="-1"
+    aria-labelledby="date-calculator-modal-title"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content date-modal-content">
+            <div class="modal-header date-modal-header">
+                <div>
+                    <p class="date-result-label mb-1">
+                        Date Tool
+                    </p>
 
-{% block js %}
-<script defer src="{% static 'js/date_calculator.js' %}"></script>
-{% endblock js %}
+                    <h5 class="modal-title"
+                        id="date-calculator-modal-title">
+                        Date Calculator
+                    </h5>
+                </div>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body date-modal-body">
+                <div class="date-result-card">
+                    <p class="date-result-label mb-1">
+                        Result
+                    </p>
+
+                    <span id="date-result"
+                        class="visually-hidden"
+                        data-today="{{ today|date:'Y-m-d' }}">
+                        {{ target_date|date:"Y-m-d" }}
+                    </span>
+
+                    <p id="date-result-long"
+                        class="date-result-long date-result-primary mb-2">
+                        {{ target_date_en }}
+                    </p>
+
+                    <p id="date-result-note"
+                        class="date-result-note mb-0">
+                        {% if selected_days == 0 %}
+                            {{ base_date|date:"Y-m-d" }} 기준 날짜
+                        {% else %}
+                            {{ base_date|date:"Y-m-d" }} 기준, 선택 날짜 제외 {{ selected_days }}일 후
+                        {% endif %}
+                    </p>
+                </div>
+
+                <form method="get"
+                    class="date-calculator-card"
+                    id="date-calculator-form"
+                    data-local-submit="true">
+
+                    <div class="date-base-row">
+                        <label for="base-date-input"
+                            class="form-label mb-1">
+                            Base date
+                        </label>
+
+                        <input id="base-date-input"
+                            name="base_date"
+                            type="date"
+                            class="form-control"
+                            value="{{ base_date|date:'Y-m-d' }}">
+
+                        <p class="calculator-input-help mb-0">
+                            기본은 UTC 기준입니다. 다른 날짜를 선택하세요.
+                        </p>
+                    </div>
+
+                    <div class="date-preset-grid"
+                        role="group"
+                        aria-label="Preset days">
+                        {% for day in fixed_days %}
+                            <button type="button"
+                                class="date-preset-btn {% if selected_days == day %}active{% endif %}"
+                                data-days="{{ day }}">
+                                {{ day }} days
+                            </button>
+                        {% endfor %}
+                    </div>
+
+                    <div class="date-custom-row">
+                        <label for="days-input"
+                            class="form-label mb-1">
+                            Custom days
+                        </label>
+
+                        <div class="date-input-wrap date-input-wrap-single">
+                            <input id="days-input"
+                                name="days"
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputmode="numeric"
+                                class="form-control"
+                                value="{{ selected_days }}">
+                        </div>
+
+                        <p class="calculator-input-help mb-0">
+                            오늘 또는 기준 날짜는 제외하고 더할 일수를 입력합니다.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+    id="fuel-density-modal"
+    tabindex="-1"
+    aria-labelledby="fuel-density-modal-title"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content date-modal-content">
+            <div class="modal-header date-modal-header">
+                <div>
+                    <p class="date-result-label mb-1">
+                        Fuel Tool
+                    </p>
+
+                    <h5 class="modal-title"
+                        id="fuel-density-modal-title">
+                        Fuel Density Converter
+                    </h5>
+                </div>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body date-modal-body">
+                <div class="date-result-card fuel-result-card">
+                    <p class="date-result-label mb-1">
+                        Density lbs/gal
+                    </p>
+
+                    <p id="fuel-density-result"
+                        class="date-result-long fuel-result-value mb-1">
+                        0.00
+                    </p>
+
+                    <p id="fuel-density-note"
+                        class="date-result-note mb-0">
+                        0.000 g/cm3 기준
+                    </p>
+                </div>
+
+                <form class="date-calculator-card"
+                    id="fuel-density-form"
+                    data-local-submit="true">
+
+                    <div class="date-custom-row">
+                        <label for="fuel-density-input"
+                            class="form-label mb-1">
+                            Density g/cm3
+                        </label>
+
+                        <div class="date-input-wrap date-input-wrap-single">
+                            <input id="fuel-density-input"
+                                type="number"
+                                min="0"
+                                step="0.001"
+                                inputmode="decimal"
+                                class="form-control"
+                                value="0"
+                                placeholder="0">
+                        </div>
+
+                        <p class="calculator-input-help mb-0">
+                            g/cm3 값을 입력하면 lbs/gal로 바로 환산됩니다. 예: 0.775 → 6.46
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+    id="time-calculator-modal"
+    tabindex="-1"
+    aria-labelledby="time-calculator-modal-title"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content date-modal-content">
+            <div class="modal-header date-modal-header">
+                <div>
+                    <p class="date-result-label mb-1">
+                        Time Tool
+                    </p>
+
+                    <h5 class="modal-title"
+                        id="time-calculator-modal-title">
+                        Time Calculator
+                    </h5>
+                </div>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body date-modal-body">
+                <div class="date-result-card">
+                    <p class="date-result-label mb-1">
+                        Result
+                    </p>
+
+                    <p id="time-calculator-result"
+                        class="date-result-long fuel-result-value mb-1">
+                        0:00
+                    </p>
+
+                    <p id="time-calculator-note"
+                        class="date-result-note mb-0">
+                        0:00 + 0:00 기준
+                    </p>
+                </div>
+
+                <form class="date-calculator-card"
+                    id="time-calculator-form"
+                    data-local-submit="true">
+
+                    <p class="calculator-input-help ms-1 mb-2">
+                        시간 입력시 ' : '를 사용하지 않고 숫자만 입력해도 됩니다.
+                    </p>
+
+                    <div class="date-base-row">
+                        <label for="time-base-input"
+                            class="form-label mb-1">
+                            Base time
+                        </label>
+
+                        <input id="time-base-input"
+                            type="text"
+                            inputmode="numeric"
+                            class="form-control time-calculator-input"
+                            value="0:00"
+                            placeholder="0:00">
+                    </div>
+
+                    <div class="date-custom-row">
+                        <label for="time-add-input"
+                            class="form-label mb-1">
+                            Add time
+                        </label>
+
+                        <div class="date-input-wrap date-input-wrap-single">
+                            <input id="time-add-input"
+                                type="text"
+                                inputmode="numeric"
+                                class="form-control time-calculator-input"
+                                value="0:00"
+                                placeholder="0:00">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+    id="basic-calculator-modal"
+    tabindex="-1"
+    aria-labelledby="basic-calculator-modal-title"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content date-modal-content">
+            <div class="modal-header date-modal-header">
+                <div>
+                    <p class="date-result-label mb-1">
+                        Calculator Tool
+                    </p>
+
+                    <h5 class="modal-title"
+                        id="basic-calculator-modal-title">
+                        General Calculator
+                    </h5>
+                </div>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body date-modal-body">
+                <div class="basic-calculator">
+                    <div class="basic-calculator-display">
+                        <p id="basic-calculator-expression"
+                            class="basic-calculator-expression mb-1">
+                        </p>
+
+                        <strong id="basic-calculator-display">
+                            0
+                        </strong>
+                    </div>
+
+                    <div class="basic-calculator-grid"
+                        aria-label="General calculator keypad">
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-muted"
+                            data-basic-calc-action="clear">
+                            C
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-muted"
+                            data-basic-calc-action="backspace">
+                            ⌫
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-muted"
+                            data-basic-calc-action="percent">
+                            %
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-operator"
+                            data-basic-calc-operator="/">
+                            ÷
+                        </button>
+
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="7">
+                            7
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="8">
+                            8
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="9">
+                            9
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-operator"
+                            data-basic-calc-operator="*">
+                            ×
+                        </button>
+
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="4">
+                            4
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="5">
+                            5
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="6">
+                            6
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-operator"
+                            data-basic-calc-operator="-">
+                            −
+                        </button>
+
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="1">
+                            1
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="2">
+                            2
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="3">
+                            3
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-operator"
+                            data-basic-calc-operator="+">
+                            +
+                        </button>
+
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-action="toggle-sign">
+                            +/−
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-number="0">
+                            0
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key"
+                            data-basic-calc-action="decimal">
+                            .
+                        </button>
+                        <button type="button"
+                            class="basic-calculator-key basic-calculator-key-equals"
+                            data-basic-calc-action="equals">
+                            =
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

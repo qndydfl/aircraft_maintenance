@@ -55,6 +55,7 @@ const viewerSearchPrevBtn = document.getElementById("viewer-search-prev");
 const viewerSearchNextBtn = document.getElementById("viewer-search-next");
 const viewerSearchCount = document.getElementById("viewer-search-count");
 const viewerBackLink = document.getElementById("viewer-back-link");
+const viewerExitBtn = document.getElementById("viewer-exit-btn");
 const viewerMatchLinks = document.querySelectorAll("[data-viewer-match-link]");
 const serverMatchCount = document.getElementById("server-match-count");
 
@@ -236,6 +237,26 @@ if (viewerBackLink) {
         }
 
         window.location.href = fallbackUrl || "/";
+    });
+}
+
+if (viewerExitBtn) {
+    const fallbackUrl = viewerExitBtn.dataset.fallbackUrl || "/";
+
+    viewerExitBtn.addEventListener("click", function () {
+        const globalLoading = document.getElementById("global-loading");
+
+        if (globalLoading) {
+            globalLoading.classList.add("d-none");
+        }
+
+        window.close();
+
+        window.setTimeout(function () {
+            if (!window.closed) {
+                window.location.href = fallbackUrl || "/";
+            }
+        }, 150);
     });
 }
 
