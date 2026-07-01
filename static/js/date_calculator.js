@@ -113,29 +113,36 @@
         renderClockValue(utcTime, formatDateTimeParts(now, true));
     }
 
-    function updateDate(days) {
+    function updateDate(days, options) {
+        const settings = options || {};
         const parsedDays = Number.parseInt(days, 10);
         const baseDateText = baseDateInput.value || todayText;
+        const normalizedDays = Number.isFinite(parsedDays) && parsedDays >= 0
+            ? parsedDays
+            : 0;
 
-        if (!Number.isFinite(parsedDays) || parsedDays < 0) {
+        if ((days || "").toString().trim() && parsedDays < 0) {
             return;
         }
 
         const baseDate = new Date(`${baseDateText}T00:00:00`);
         const targetDate = new Date(baseDate);
-        targetDate.setDate(baseDate.getDate() + parsedDays);
+        targetDate.setDate(baseDate.getDate() + normalizedDays);
 
         result.textContent = formatDate(targetDate);
         longResult.textContent = formatLongDate(targetDate);
-        note.textContent = parsedDays === 0
+        note.textContent = normalizedDays === 0
             ? `${baseDateText} 기준 날짜`
-            : `${baseDateText} 기준, 선택 날짜 제외 ${parsedDays}일 후`;
-        input.value = parsedDays;
+            : `${baseDateText} 기준, 선택 날짜 제외 ${normalizedDays}일 후`;
+
+        if (!settings.keepInputEmpty) {
+            input.value = normalizedDays;
+        }
 
         presetButtons.forEach((button) => {
             button.classList.toggle(
                 "active",
-                Number.parseInt(button.dataset.days, 10) === parsedDays
+                Number.parseInt(button.dataset.days, 10) === normalizedDays
             );
         });
     }
@@ -145,7 +152,8 @@
             return;
         }
 
-        updateDate(0);
+        input.value = "";
+        updateDate(0, { keepInputEmpty: true });
     }
 
     function updateFuelDensity() {
@@ -177,6 +185,11 @@
 
     function parseHourMinute(value) {
         const normalizedValue = String(value || "").trim();
+
+        if (!normalizedValue) {
+            return 0;
+        }
+
         const colonMatch = normalizedValue.match(/^(\d+):(\d{1,2})$/);
 
         if (colonMatch) {
@@ -225,7 +238,9 @@
         timeCalculatorResult.textContent = formatHourMinute(
             baseMinutes + addMinutes
         );
-        timeCalculatorNote.textContent = `${timeBaseInput.value.trim()} + ${timeAddInput.value.trim()} 기준`;
+        const baseLabel = timeBaseInput.value.trim() || "0";
+        const addLabel = timeAddInput.value.trim() || "0";
+        timeCalculatorNote.textContent = `${baseLabel} + ${addLabel} 기준`;
     }
 
     function resetTimeCalculator() {
@@ -233,8 +248,8 @@
             return;
         }
 
-        timeBaseInput.value = "0:00";
-        timeAddInput.value = "0:00";
+        timeBaseInput.value = "";
+        timeAddInput.value = "";
         updateTimeCalculator();
     }
 
@@ -403,17 +418,17 @@
     });
 
     input.addEventListener("input", () => {
-        updateDate(input.value);
+        updateDate(input.value, { keepInputEmpty: input.value.trim() === "" });
     });
 
     baseDateInput.addEventListener("input", () => {
-        updateDate(input.value);
+        updateDate(input.value, { keepInputEmpty: input.value.trim() === "" });
     });
 
     if (form) {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            updateDate(input.value);
+            updateDate(input.value, { keepInputEmpty: input.value.trim() === "" });
         });
     }
 

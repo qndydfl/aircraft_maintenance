@@ -78,7 +78,7 @@ Date Calculator
             class="date-tool-btn"
             data-bs-toggle="modal"
             data-bs-target="#date-calculator-modal">
-            <span>Date Calculator</span>
+            <span>날짜 계산기</span>
             <strong>Open</strong>
         </button>
 
@@ -86,7 +86,7 @@ Date Calculator
             class="date-tool-btn"
             data-bs-toggle="modal"
             data-bs-target="#fuel-density-modal">
-            <span>Fuel Density Converter</span>
+            <span>연료 비중 변환기</span>
             <strong>Open</strong>
         </button>
 
@@ -94,7 +94,7 @@ Date Calculator
             class="date-tool-btn"
             data-bs-toggle="modal"
             data-bs-target="#time-calculator-modal">
-            <span> FLIGHT LOG Time Calculator</span>
+            <span>비행 로그 시간 계산기</span>
             <strong>Open</strong>
         </button>
 
@@ -102,7 +102,7 @@ Date Calculator
             class="date-tool-btn"
             data-bs-toggle="modal"
             data-bs-target="#basic-calculator-modal">
-            <span>General Calculator</span>
+            <span>일반 계산기</span>
             <strong>Open</strong>
         </button>
     </div>
@@ -125,7 +125,7 @@ Date Calculator
 
                     <h5 class="modal-title"
                         id="date-calculator-modal-title">
-                        Date Calculator
+                        날짜 계산기
                     </h5>
                 </div>
 
@@ -211,7 +211,8 @@ Date Calculator
                                 step="1"
                                 inputmode="numeric"
                                 class="form-control"
-                                value="{{ selected_days }}">
+                                value=""
+                                placeholder="0">
                         </div>
 
                         <p class="calculator-input-help mb-0">
@@ -241,7 +242,7 @@ Date Calculator
 
                     <h5 class="modal-title"
                         id="fuel-density-modal-title">
-                        Fuel Density Converter
+                        연료 비중 변환기
                     </h5>
                 </div>
 
@@ -317,7 +318,7 @@ Date Calculator
 
                     <h5 class="modal-title"
                         id="time-calculator-modal-title">
-                        Time Calculator
+                        비행 로그 시간 계산기
                     </h5>
                 </div>
 
@@ -363,8 +364,8 @@ Date Calculator
                             type="text"
                             inputmode="numeric"
                             class="form-control time-calculator-input"
-                            value="0:00"
-                            placeholder="0:00">
+                            value=""
+                            placeholder="0">
                     </div>
 
                     <div class="date-custom-row">
@@ -378,8 +379,8 @@ Date Calculator
                                 type="text"
                                 inputmode="numeric"
                                 class="form-control time-calculator-input"
-                                value="0:00"
-                                placeholder="0:00">
+                                value=""
+                                placeholder="0">
                         </div>
                     </div>
                 </form>
@@ -405,7 +406,7 @@ Date Calculator
 
                     <h5 class="modal-title"
                         id="basic-calculator-modal-title">
-                        General Calculator
+                        일반 계산기
                     </h5>
                 </div>
 

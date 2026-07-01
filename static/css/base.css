@@ -46,6 +46,25 @@ body {
     color: rgba(255, 255, 255, 0.96) !important;
 }
 
+.app-revision-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    margin-right: auto;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(13, 110, 253, 0.22);
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 0.72rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.app-revision-date {
+    color: rgba(255, 255, 255, 0.74);
+}
+
 .app-user-name {
     max-width: 120px;
     overflow: hidden;
@@ -208,6 +227,16 @@ body {
         font-size: 0.94rem;
     }
 
+    .app-revision-pill {
+        min-height: 26px;
+        padding: 3px 8px;
+        font-size: 0.62rem;
+    }
+
+    .app-revision-date {
+        display: none;
+    }
+
     .app-user-name {
         max-width: 82px;
         font-size: 0.7rem;
@@ -217,7 +246,7 @@ body {
         max-width: 100%;
         padding-left: 10px;
         padding-right: 10px;
-        padding-bottom: 10px;
+        padding-bottom: 18px;
     }
 
     .app-message-area {

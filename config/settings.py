@@ -108,6 +108,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "config.context_processors.site_dates",
             ],
         },
     },
@@ -189,3 +190,8 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 
 TESSERACT_OCR_LANG = "eng+kor"
+
+
+SITE_CREATED_DATE = os.getenv("SITE_CREATED_DATE", "Jun 2026")
+SITE_REVISION_DATE = os.getenv("SITE_REVISION_DATE", "01 Jul 2026")
+SITE_REVISION_NO = os.getenv("SITE_REVISION_NO", "Rev. 01")

@@ -81,6 +81,14 @@ body.home-page .manual-section:last-child {
     margin-bottom: 0 !important;
 }
 
+.home-created-note {
+    margin: -10px 0 18px;
+    color: var(--app-muted);
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-align: center;
+}
+
 @media (max-width: 567px) {
     .home-page .page-hero {
         flex-direction: column;
@@ -103,6 +111,11 @@ body.home-page .manual-section:last-child {
 
     .section-header {
         margin-bottom: 8px;
+    }
+
+    .home-created-note {
+        margin: -6px 0 12px;
+        font-size: 0.62rem;
     }
 
     .aircraft-card-header {

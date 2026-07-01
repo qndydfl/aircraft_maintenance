@@ -224,7 +224,16 @@ body.date-calculator-page .app-container {
 .date-input-wrap .form-control {
     border: 1px solid rgba(203, 213, 225, 0.95);
     background: rgba(255, 255, 255, 0.92);
+    font-size: 1.12rem;
     font-weight: 750;
+}
+
+.date-base-row .form-control::placeholder,
+.date-input-wrap .form-control::placeholder {
+    font-size: inherit;
+    font-weight: inherit;
+    color: #94a3b8;
+    opacity: 1;
 }
 
 .time-calculator-input {
@@ -399,6 +408,13 @@ body.date-calculator-page .app-container {
     .date-input-wrap .form-control {
         min-height: 38px;
         text-align: center;
+        font-size: 1.02rem;
+    }
+
+    .date-base-row .form-control::placeholder,
+    .date-input-wrap .form-control::placeholder {
+        font-size: 1.02rem;
+        font-weight: 750;
     }
 
     .date-input-wrap .app-card-btn {

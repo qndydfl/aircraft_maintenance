@@ -45,6 +45,11 @@
             Manual Portal
         </a>
 
+        <span class="app-revision-pill">
+            <span>{{ site_revision_no }}</span>
+            <span class="app-revision-date">{{ site_revision_date }}</span>
+        </span>
+
         <div class="d-flex align-items-center gap-3">
 
             {% if user.is_authenticated %}
