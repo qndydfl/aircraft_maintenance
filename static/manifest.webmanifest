@@ -1,0 +1,32 @@
+{
+    "name": "Manual Portal",
+    "short_name": "Manual",
+    "description": "Aircraft manual search, dispatch, viewer, and calculator tools.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f4f6fb",
+    "theme_color": "#111827",
+    "orientation": "portrait",
+    "categories": ["productivity", "utilities"],
+    "icons": [
+        {
+            "src": "/static/icons/app-icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/icons/app-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/icons/app-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}

@@ -86,3 +86,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/service-worker.js").catch(function () {
+            // PWA support is optional, so the site should continue normally.
+        });
+    });
+}
