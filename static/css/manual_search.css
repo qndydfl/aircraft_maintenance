@@ -140,6 +140,10 @@ body.manual-search-page .app-container {
     background: rgba(255, 255, 255, 0.92);
 }
 
+.manual-search-empty-mobile {
+    display: none;
+}
+
 @media (min-width: 768px) {
     .mobile-filter-collapse.collapse {
         display: block;
@@ -172,6 +176,19 @@ body.manual-search-page .app-container {
 
     .mobile-filter-collapse {
         margin-top: -2px;
+    }
+
+    .manual-search-empty-desktop {
+        display: none;
+    }
+
+    .manual-search-empty-mobile {
+        display: inline;
+    }
+
+    #manual-search-filter.show ~ .manual-search-empty-prompt,
+    #manual-search-filter.collapsing ~ .manual-search-empty-prompt {
+        display: none;
     }
 
     .manual-group-info {

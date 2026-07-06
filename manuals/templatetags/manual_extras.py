@@ -41,15 +41,17 @@ def build_highlight_regex(query):
     if not tokens:
         return ""
 
+    token_separator = r"[\s:：]+"
+
     if "*" in query:
-        return r"\s+".join(build_token_regex(token) for token in tokens)
+        return token_separator.join(build_token_regex(token) for token in tokens)
 
     exact_tokens = [
         rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
         for token in tokens
     ]
 
-    return r"\s+".join(exact_tokens)
+    return token_separator.join(exact_tokens)
 
 
 @register.filter

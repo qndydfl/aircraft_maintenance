@@ -501,6 +501,35 @@ def build_structured_search_q(fields, search_value, match_mode):
     return filters
 
 
+def build_mel_dispatch_search_q(fields, search_value, match_mode):
+    if not search_value:
+        return Q()
+
+    if match_mode == "contains":
+        lookup_suffix = "icontains"
+        filters = Q()
+
+        for field in fields:
+            filters |= Q(**{f"{field}__{lookup_suffix}": search_value})
+
+        return filters
+
+    text_regex = build_manual_text_regex(search_value, match_mode)
+
+    if not text_regex:
+        return Q()
+
+    if match_mode == "exact":
+        text_regex = rf"^\s*{text_regex}"
+
+    filters = Q()
+
+    for field in fields:
+        filters |= Q(**{f"{field}__iregex": text_regex})
+
+    return filters
+
+
 def exclude_noisy_mel_dispatch_rows(queryset):
     return queryset.exclude(
         Q(mel_item="", adc="") & (Q(condition="") | Q(condition__iregex=r"[A-Za-z]"))
@@ -647,14 +676,16 @@ def build_manual_text_regex(search_value, match_mode):
     if not tokens:
         return ""
 
+    token_separator = r"[\s:：]+"
+
     if match_mode == "wildcard":
-        return r"\s+".join(build_token_regex(token) for token in tokens)
+        return token_separator.join(build_token_regex(token) for token in tokens)
 
     exact_words = [
         rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
         for token in tokens
     ]
-    return r"\s+".join(exact_words)
+    return token_separator.join(exact_words)
 
 
 def clean_cell(value):

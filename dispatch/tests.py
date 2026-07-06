@@ -12,7 +12,7 @@ from dispatch.services import (
 from manuals.models import Aircraft
 
 
-class DispatchAutoSearchViewTests(TestCase):
+class DispatchSearchViewTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             username="tester",
@@ -20,7 +20,7 @@ class DispatchAutoSearchViewTests(TestCase):
         )
         self.client.force_login(self.user)
         self.aircraft = Aircraft.objects.create(name="B737-800", maker="BOEING")
-        self.url = reverse("dispatch_auto_search")
+        self.url = reverse("dispatch_search")
 
     def test_message_search_is_exact_without_wildcards_for_mel_rows(self):
         MelDispatchItem.objects.create(
@@ -116,6 +116,50 @@ class DispatchAutoSearchViewTests(TestCase):
         self.assertIn("RECIRC FANS OFF", messages)
         self.assertIn("RECIRC FAN ON", messages)
         self.assertNotIn("RECIRCULATION FAN OFF", messages)
+
+    def test_mel_row_search_matches_exact_phrase_inside_merged_message(self):
+        MelDispatchItem.objects.create(
+            aircraft=self.aircraft,
+            message=(
+                "OUTFLOW VALVE AFT OUTFLOW VALVE AFT "
+                "OUTFLOW VALVE FWD OUTFLOW VALVE FWD"
+            ),
+            level="ASAS",
+            condition="Outflow Valves (FWD and AFT) - Passenger",
+            mel_item="21-31-03-02",
+            adc="RTG",
+        )
+        MelDispatchItem.objects.create(
+            aircraft=self.aircraft,
+            message=(
+                "OUTFLOW VALVE AFT OUTFLOW VALVE AFT "
+                "OUTFLOW VALVE FWD OUTFLOW VALVE FWD"
+            ),
+            level="ASAS",
+            condition="Outflow Valves (FWD and AFT) - All",
+            mel_item="21-31-03-04",
+            adc="RTG",
+        )
+        MelDispatchItem.objects.create(
+            aircraft=self.aircraft,
+            message="OUTFLOW VALVE FWD",
+            level="A",
+            condition="Different row",
+            mel_item="21-31-03-01",
+            adc="RTG",
+        )
+
+        response = self.client.get(
+            self.url,
+            {"q": "outflow valve aft", "search_type": "all"},
+        )
+
+        mel_items = [
+            row.mel_item
+            for row in response.context["mel_dispatch_rows"]
+        ]
+
+        self.assertEqual(mel_items, ["21-31-03-02", "21-31-03-04"])
 
     def test_message_search_excludes_noisy_mel_rows(self):
         MelDispatchItem.objects.create(

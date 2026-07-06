@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block body_class %}
-date-calculator-page
+calculator-page
 {% endblock body_class %}
 
 {% block title %}
@@ -10,11 +10,11 @@ Date Calculator
 {% endblock title %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/date_calculator.css' %}">
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}">
 {% endblock css %}
 
 {% block js %}
-<script defer src="{% static 'js/date_calculator.js' %}"></script>
+<script defer src="{% static 'js/calculator.js' %}"></script>
 {% endblock js %}
 
 {% block content %}
@@ -180,8 +180,8 @@ Date Calculator
                             class="form-control"
                             value="{{ base_date|date:'Y-m-d' }}">
 
-                        <p class="calculator-input-help mb-0">
-                            기본은 UTC 기준입니다. 다른 날짜를 선택하세요.
+                        <p class="calculator-input-help mb-0 text-center">
+                            UTC 기준입니다. 필요시 날짜를 선택하세요.
                         </p>
                     </div>
 
@@ -215,11 +215,19 @@ Date Calculator
                                 placeholder="0">
                         </div>
 
-                        <p class="calculator-input-help mb-0">
+                        <p class="calculator-input-help mb-0 text-center">
                             오늘 또는 기준 날짜는 제외하고 더할 일수를 입력합니다.
                         </p>
                     </div>
                 </form>
+            </div>
+
+            <div class="modal-footer date-modal-footer">
+                <button type="button"
+                    class="btn btn-outline-secondary rounded-pill px-4"
+                    data-bs-dismiss="modal">
+                    닫기
+                </button>
             </div>
         </div>
     </div>
@@ -291,11 +299,19 @@ Date Calculator
                                 placeholder="0">
                         </div>
 
-                        <p class="calculator-input-help mb-0">
+                        <p class="calculator-input-help mb-0 text-center">
                             g/cm3 값을 입력하면 lbs/gal로 바로 환산됩니다. 예: 0.775 → 6.46
                         </p>
                     </div>
                 </form>
+            </div>
+
+            <div class="modal-footer date-modal-footer">
+                <button type="button"
+                    class="btn btn-outline-secondary rounded-pill px-4"
+                    data-bs-dismiss="modal">
+                    닫기
+                </button>
             </div>
         </div>
     </div>
@@ -350,7 +366,7 @@ Date Calculator
                     id="time-calculator-form"
                     data-local-submit="true">
 
-                    <p class="calculator-input-help ms-1 mb-2">
+                    <p class="calculator-input-help ms-1 mb-2 text-center">
                         시간 입력시 ' : '를 사용하지 않고 숫자만 입력해도 됩니다.
                     </p>
 
@@ -384,6 +400,14 @@ Date Calculator
                         </div>
                     </div>
                 </form>
+            </div>
+
+            <div class="modal-footer date-modal-footer">
+                <button type="button"
+                    class="btn btn-outline-secondary rounded-pill px-4"
+                    data-bs-dismiss="modal">
+                    닫기
+                </button>
             </div>
         </div>
     </div>
@@ -537,6 +561,14 @@ Date Calculator
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <div class="modal-footer date-modal-footer">
+                <button type="button"
+                    class="btn btn-outline-secondary rounded-pill px-4"
+                    data-bs-dismiss="modal">
+                    닫기
+                </button>
             </div>
         </div>
     </div>

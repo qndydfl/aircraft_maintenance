@@ -1,4 +1,4 @@
-import os, shutil, json
+import os, shutil, json, re
 from datetime import timedelta
 
 from django.urls import reverse_lazy, reverse
@@ -217,7 +217,7 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
 
 
 class DateCalculatorView(LoginRequiredMixin, TemplateView):
-    template_name = "manuals/date_calculator.html"
+    template_name = "manuals/calculator.html"
 
     fixed_days = [3, 10, 120, 240]
     english_months = [
@@ -1040,7 +1040,7 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
             or (bool(query) and match_scope == "chapter")
             or "manual-search" in back_url_lower
             or "manual_search" in back_url_lower
-            or "dispatch_auto_search" in back_url_lower
+            or "dispatch_search" in back_url_lower
             or "/dispatch/" in back_url_lower
         )
 
@@ -1217,12 +1217,97 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
     template_name = "manuals/manual_pdf_viewer.html"
     context_object_name = "manual"
 
+    def find_mel_item_start_pages(self, manual, mel_item):
+        mel_item = (mel_item or "").strip()
+
+        if not mel_item:
+            return []
+
+        item_pattern = re.compile(
+            rf"(?<![0-9A-Za-z/_-]){re.escape(mel_item)}(?![0-9A-Za-z/_-])",
+            re.IGNORECASE,
+        )
+        candidates = []
+
+        pages = (
+            ManualFilePDFPage.objects.filter(
+                manual_file=manual,
+                text__icontains=mel_item,
+            )
+            .only("page_number", "text")
+            .order_by("page_number")
+        )
+
+        for page in pages:
+            match = item_pattern.search(page.text or "")
+
+            if match:
+                candidates.append(
+                    {
+                        "page_number": page.page_number,
+                        "position": match.start(),
+                        "score": self.score_mel_item_page(
+                            page.text,
+                            match.start(),
+                        ),
+                    }
+                )
+
+        candidates.sort(
+            key=lambda item: (
+                -item["score"],
+                item["position"],
+                item["page_number"],
+            )
+        )
+
+        return [
+            candidates[0]["page_number"]
+        ] if candidates else []
+
+    def score_mel_item_page(self, text, match_position):
+        text = text or ""
+        lower_text = text.lower()
+        before_text = lower_text[max(match_position - 500, 0):match_position]
+        after_text = lower_text[match_position:match_position + 900]
+        nearby_text = lower_text[max(match_position - 120, 0):match_position + 220]
+
+        score = 0
+
+        if re.search(r"\binterval\s+installed\s+required\b", after_text):
+            score += 120
+
+        if re.search(r"\brepair\s+interval\b", after_text):
+            score += 80
+
+        if re.search(r"\bitem\s*$", before_text[-80:]):
+            score += 20
+
+        if "mel item - index" in lower_text[:500]:
+            score -= 120
+
+        if "eicas message - index" in lower_text[:500]:
+            score -= 120
+
+        if "list of effective" in lower_text[:500]:
+            score -= 120
+
+        if re.search(r"\buse\s+mel\s+item\b", nearby_text):
+            score -= 90
+
+        if re.search(r"\brefer\s+to\s+(?:mel\s+)?item\b", nearby_text):
+            score -= 60
+
+        return score
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         manual = self.object
         page_number = safe_int(self.request.GET.get("page", "1"), default=1)
         query = self.request.GET.get("q", "").strip()
+        mel_item_query = self.request.GET.get("mel_item", "").strip()
+        mel_start_query = self.request.GET.get("mel_start", "").lower()
         view_mode = self.request.GET.get("mode", "single")
         back_url = self.request.GET.get("back", "")
 
@@ -1255,7 +1340,7 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
             from_search_flag in {"1", "true", "yes"}
             or "manual-search" in back_url_lower
             or "manual_search" in back_url_lower
-            or "dispatch_auto_search" in back_url_lower
+            or "dispatch_search" in back_url_lower
             or "/dispatch/" in back_url_lower
         )
 
@@ -1286,6 +1371,12 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
             if back_url:
                 params["back"] = back_url
 
+            if mel_item_query:
+                params["mel_item"] = mel_item_query
+
+            if mel_start_query:
+                params["mel_start"] = mel_start_query
+
             return urlencode(params)
 
         if query:
@@ -1294,18 +1385,29 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
             if search_value:
                 text_regex = build_manual_text_regex(search_value, match_mode)
 
-                if match_mode == "contains":
+                if mel_item_query and mel_start_query in {"1", "true", "yes"}:
+                    matching_pages_list = self.find_mel_item_start_pages(
+                        manual,
+                        mel_item_query,
+                    )
+                elif match_mode == "contains":
                     page_filter = Q(text__icontains=search_value)
+                    matching_pages_list = list(
+                        ManualFilePDFPage.objects.filter(manual_file=manual)
+                        .filter(page_filter)
+                        .order_by("page_number")
+                        .values_list("page_number", flat=True)
+                        .distinct()
+                    )
                 else:
                     page_filter = Q(text__iregex=text_regex)
-
-                matching_pages_list = list(
-                    ManualFilePDFPage.objects.filter(manual_file=manual)
-                    .filter(page_filter)
-                    .order_by("page_number")
-                    .values_list("page_number", flat=True)
-                    .distinct()
-                )
+                    matching_pages_list = list(
+                        ManualFilePDFPage.objects.filter(manual_file=manual)
+                        .filter(page_filter)
+                        .order_by("page_number")
+                        .values_list("page_number", flat=True)
+                        .distinct()
+                    )
 
                 context["match_count"] = len(matching_pages_list)
                 context["matching_pages_json"] = json.dumps(matching_pages_list)
@@ -1733,7 +1835,7 @@ class CommonManualFilePDFViewerView(LoginRequiredMixin, DetailView):
             from_search_flag in {"1", "true", "yes"}
             or "manual-search" in back_url_lower
             or "manual_search" in back_url_lower
-            or "dispatch_auto_search" in back_url_lower
+            or "dispatch_search" in back_url_lower
             or "/dispatch/" in back_url_lower
         )
         context["page_number"] = page_number
@@ -2244,7 +2346,7 @@ class OtherManualFilePDFViewerView(LoginRequiredMixin, DetailView):
             from_search_flag in {"1", "true", "yes"}
             or "manual-search" in back_url_lower
             or "manual_search" in back_url_lower
-            or "dispatch_auto_search" in back_url_lower
+            or "dispatch_search" in back_url_lower
             or "/dispatch/" in back_url_lower
         )
         context["page_number"] = page_number

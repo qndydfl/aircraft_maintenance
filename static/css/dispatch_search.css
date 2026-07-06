@@ -181,6 +181,10 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
     background: rgba(255, 255, 255, 0.92);
 }
 
+.dispatch-search-empty-mobile {
+    display: none;
+}
+
 @media (min-width: 768px) {
     .mobile-filter-collapse.collapse {
         display: block;
@@ -213,6 +217,19 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
 
     .mobile-filter-collapse {
         margin-top: -2px;
+    }
+
+    .dispatch-search-empty-desktop {
+        display: none;
+    }
+
+    .dispatch-search-empty-mobile {
+        display: inline;
+    }
+
+    #dispatch-search-filter.show ~ .dispatch-search-empty-prompt,
+    #dispatch-search-filter.collapsing ~ .dispatch-search-empty-prompt {
+        display: none;
     }
 
     .dispatch-candidate-tab-content {

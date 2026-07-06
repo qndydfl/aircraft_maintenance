@@ -6,6 +6,10 @@
 <link rel="stylesheet" href="{% static 'css/manual_search.css' %}">
 {% endblock css %}
 
+{% block js %}
+<script src="{% static 'js/manual_search.js' %}"></script>
+{% endblock js %}
+
 {% block body_class %}
 manual-search-page
 {% endblock body_class %}
@@ -234,8 +238,8 @@ manual-search-page
 
 {% else %}
 
-    <div class="alert alert-info app-alert">
-        검색어를 입력하세요.
+    <div class="alert alert-info app-alert manual-search-empty-prompt justify-content-center d-flex align-items-center">
+        Search Options을 클릭해서 검색어를 입력하세요.
     </div>
 
 {% endif %}

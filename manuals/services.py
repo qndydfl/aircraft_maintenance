@@ -1409,14 +1409,16 @@ def build_manual_text_regex(search_value, match_mode):
     if not tokens:
         return ""
 
+    token_separator = r"[\s:：]+"
+
     if match_mode == "wildcard":
-        return r"\s+".join(build_token_regex(token) for token in tokens)
+        return token_separator.join(build_token_regex(token) for token in tokens)
 
     exact_words = [
         rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
         for token in tokens
     ]
-    return r"\s+".join(exact_words)
+    return token_separator.join(exact_words)
 
 
 def build_snippet_from_regex(text, text_regex, length=180):

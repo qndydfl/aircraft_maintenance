@@ -1,4 +1,5 @@
 from django.db.models import Q
+from types import SimpleNamespace
 
 from .models import DispatchReference, MelDispatchItem
 from manuals.models import Aircraft, ManualPDFPage, ManualFilePDFPage
@@ -28,6 +29,7 @@ from django.http import JsonResponse, HttpResponse
 from .services import (
     build_text_regex,
     build_structured_search_q,
+    build_mel_dispatch_search_q,
     exclude_noisy_mel_dispatch_rows,
     recommend_package_pages,
     recommend_file_pages,
@@ -171,7 +173,7 @@ class DispatchSearchView(LoginRequiredMixin, ListView):
 class DispatchCSVUploadView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     template_name = "dispatch/dispatch_csv_upload.html"
     form_class = DispatchCSVUploadForm
-    success_url = reverse_lazy("dispatch_auto_search")
+    success_url = reverse_lazy("dispatch_search")
 
     def test_func(self):
         return self.request.user.is_staff
@@ -520,7 +522,7 @@ class DispatchDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
     model = DispatchReference
     template_name = "dispatch/dispatch_confirm_delete.html"
     context_object_name = "dispatch"
-    success_url = reverse_lazy("dispatch_auto_search")
+    success_url = reverse_lazy("dispatch_search")
 
 
 class DispatchCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
@@ -788,8 +790,321 @@ class DispatchDetailPrintView(LoginRequiredMixin, DetailView):
     context_object_name = "dispatch"
 
 
-class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
-    template_name = "dispatch/dispatch_auto_search.html"
+class DispatchSearchView(LoginRequiredMixin, TemplateView):
+    template_name = "dispatch/dispatch_search.html"
+
+    def build_manual_pdf_query(self, query):
+        query = (query or "").strip()
+
+        if re.fullmatch(r"\d{2}-\d{3,5}", query):
+            return f"maintenance message: {query}"
+
+        return query
+
+    def build_mel_dispatch_viewer_query(self, row, fallback_query):
+        if getattr(row, "is_none_dispatch", False):
+            return (getattr(row, "message", "") or fallback_query).strip()
+
+        mel_item = (getattr(row, "mel_item", "") or "").strip()
+        message = (getattr(row, "message", "") or "").strip()
+
+        if mel_item and mel_item.upper() not in {"N/A", "NA", "-"}:
+            return mel_item
+
+        if message:
+            return message
+
+        return fallback_query
+
+    def find_mel_dispatch_viewer_page(self, row):
+        if getattr(row, "is_none_dispatch", False):
+            return getattr(row, "page_number", None)
+
+        manual_file = getattr(row, "manual_file", None)
+        mel_item = (getattr(row, "mel_item", "") or "").strip()
+
+        if not manual_file or not mel_item:
+            return getattr(row, "page_number", None)
+
+        item_pattern = re.compile(
+            rf"(?<![0-9A-Za-z/_-]){re.escape(mel_item)}(?![0-9A-Za-z/_-])",
+            re.IGNORECASE,
+        )
+        candidates = []
+
+        pages = (
+            ManualFilePDFPage.objects.filter(
+                manual_file=manual_file,
+                text__icontains=mel_item,
+            )
+            .only("page_number", "text")
+            .order_by("page_number")
+        )
+
+        for page in pages:
+            match = item_pattern.search(page.text or "")
+
+            if match:
+                candidates.append(
+                    {
+                        "page_number": page.page_number,
+                        "position": match.start(),
+                        "score": self.score_mel_item_page(
+                            page.text,
+                            match.start(),
+                        ),
+                    }
+                )
+
+        if candidates:
+            candidates.sort(
+                key=lambda item: (
+                    -item["score"],
+                    item["position"],
+                    item["page_number"],
+                )
+            )
+            return candidates[0]["page_number"]
+
+        return getattr(row, "page_number", None)
+
+    def score_mel_item_page(self, text, match_position):
+        text = text or ""
+        lower_text = text.lower()
+        before_text = lower_text[max(match_position - 500, 0):match_position]
+        after_text = lower_text[match_position:match_position + 900]
+        nearby_text = lower_text[max(match_position - 120, 0):match_position + 220]
+
+        score = 0
+
+        if re.search(r"\binterval\s+installed\s+required\b", after_text):
+            score += 120
+
+        if re.search(r"\brepair\s+interval\b", after_text):
+            score += 80
+
+        if re.search(r"\bitem\s*$", before_text[-80:]):
+            score += 20
+
+        if "mel item - index" in lower_text[:500]:
+            score -= 120
+
+        if "eicas message - index" in lower_text[:500]:
+            score -= 120
+
+        if "list of effective" in lower_text[:500]:
+            score -= 120
+
+        if re.search(r"\buse\s+mel\s+item\b", nearby_text):
+            score -= 90
+
+        if re.search(r"\brefer\s+to\s+(?:mel\s+)?item\b", nearby_text):
+            score -= 60
+
+        return score
+
+    def build_sibling_message_regex(self, query):
+        words = [
+            word.upper()
+            for word in re.findall(r"[0-9A-Za-z]+", query or "")
+            if word.strip()
+        ]
+
+        if len(words) < 2:
+            return None
+
+        last_word = words[-1]
+
+        if not re.fullmatch(r"(?:[A-Z]+\d+|[A-Z])", last_word):
+            return None
+
+        stem_words = words[:-1]
+        if re.fullmatch(r"[A-Z]+\d+", last_word):
+            suffix_pattern = r"[A-Z]\d+"
+        else:
+            suffix_pattern = r"[A-Z]"
+        token_chars = r"0-9A-Za-z가-힣"
+        token_patterns = [
+            rf"(?<![{token_chars}]){re.escape(word)}(?![{token_chars}])"
+            for word in stem_words
+        ]
+        token_patterns.append(
+            rf"(?<![{token_chars}]){suffix_pattern}(?![{token_chars}])"
+        )
+
+        return re.compile(
+            r"\s+".join(token_patterns),
+            re.IGNORECASE,
+        )
+
+    def find_sibling_mel_rows(self, aircraft_qs, query):
+        sibling_regex = self.build_sibling_message_regex(query)
+
+        if not sibling_regex:
+            return []
+
+        candidates = exclude_noisy_mel_dispatch_rows(
+            MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
+        )
+        matched_rows = []
+
+        for row in candidates.only(
+            "id",
+            "aircraft_id",
+            "manual_file_id",
+            "message",
+            "level",
+            "condition",
+            "mel_item",
+            "adc",
+            "page_number",
+        ):
+            if sibling_regex.search(row.message or ""):
+                row.display_message = query.upper()
+                matched_rows.append(row)
+
+        return matched_rows
+
+    def build_message_block_regex(self, query):
+        words = [
+            word.upper()
+            for word in re.findall(r"[0-9A-Za-z]+", query or "")
+            if word.strip()
+        ]
+
+        if not words:
+            return None, None
+
+        token_chars = r"0-9A-Za-z가-힣"
+        token_patterns = [
+            rf"(?<![{token_chars}]){re.escape(word)}(?![{token_chars}])"
+            for word in words
+        ]
+
+        return (
+            re.compile(r"[\s:：]+".join(token_patterns), re.IGNORECASE),
+            re.compile(
+                rf"^\s*(?<![{token_chars}]){re.escape(words[0])}(?![{token_chars}])",
+                re.IGNORECASE,
+            ),
+        )
+
+    def find_message_block_mel_rows(self, aircraft_qs, query):
+        block_regex, starts_with_first_word = self.build_message_block_regex(query)
+
+        if not block_regex or not starts_with_first_word:
+            return []
+
+        candidates = exclude_noisy_mel_dispatch_rows(
+            MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
+        )
+        matched_rows = []
+
+        for row in candidates.only(
+            "id",
+            "aircraft_id",
+            "manual_file_id",
+            "message",
+            "level",
+            "condition",
+            "mel_item",
+            "adc",
+            "page_number",
+        ):
+            message = row.message or ""
+
+            if starts_with_first_word.search(message) and block_regex.search(message):
+                row.display_message = query.upper()
+                matched_rows.append(row)
+
+        return matched_rows
+
+    def build_none_dispatch_regex(self, query):
+        words = [
+            word.upper()
+            for word in re.findall(r"[0-9A-Za-z]+", query or "")
+            if word.strip()
+        ]
+
+        if not words:
+            return None
+
+        token_chars = r"0-9A-Za-z가-힣"
+        token_patterns = [
+            rf"(?<![{token_chars}]){re.escape(word)}(?![{token_chars}])"
+            for word in words
+        ]
+        message_pattern = r"[\s:：]+".join(token_patterns)
+
+        return re.compile(
+            rf"{message_pattern}\s+(?P<level>[A-Z])\s+None\s*\(\s*No\s+Dispatch\s*\)",
+            re.IGNORECASE,
+        )
+
+    def find_none_dispatch_rows(self, aircraft_qs, query):
+        none_dispatch_regex = self.build_none_dispatch_regex(query)
+
+        if not none_dispatch_regex:
+            return []
+
+        pages = (
+            ManualFilePDFPage.objects.filter(
+                manual_file__aircraft__in=aircraft_qs,
+                manual_file__manual_type="MEL",
+                text__icontains="None",
+            )
+            .select_related("manual_file", "manual_file__aircraft")
+            .only("page_number", "text", "manual_file", "manual_file__aircraft")
+            .order_by("manual_file_id", "page_number")
+        )
+        matched_rows = []
+
+        for page in pages:
+            match = none_dispatch_regex.search(page.text or "")
+
+            if not match:
+                continue
+
+            matched_rows.append(
+                SimpleNamespace(
+                    pk=f"none-dispatch:{page.manual_file_id}:{page.page_number}:{query}",
+                    aircraft=page.manual_file.aircraft,
+                    aircraft_id=page.manual_file.aircraft_id,
+                    manual_file=page.manual_file,
+                    manual_file_id=page.manual_file_id,
+                    message=query.upper(),
+                    display_message=query.upper(),
+                    level=match.group("level"),
+                    condition="None(No Dispatch)",
+                    mel_item="None(No Dispatch)",
+                    adc="",
+                    page_number=page.page_number,
+                    is_none_dispatch=True,
+                )
+            )
+
+        return matched_rows
+
+    def apply_display_message(self, row, query):
+        if getattr(row, "display_message", None):
+            return
+
+        message = row.message or ""
+        block_regex, starts_with_first_word = self.build_message_block_regex(query)
+
+        if not message or not block_regex or not starts_with_first_word:
+            return
+
+        normalized_message = " ".join(message.upper().split())
+        normalized_query = " ".join((query or "").upper().split())
+
+        if (
+            normalized_query
+            and normalized_message != normalized_query
+            and starts_with_first_word.search(message)
+            and block_regex.search(message)
+        ):
+            row.display_message = normalized_query
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -808,6 +1123,7 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
         context["selected_aircraft"] = aircraft_id
         context["query"] = query
+        context["manual_pdf_query"] = self.build_manual_pdf_query(query)
         context["search_type"] = search_type
         context["message_mode"] = search_type == "message"
 
@@ -850,29 +1166,63 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
             mel_dispatch_rows = exclude_noisy_mel_dispatch_rows(
                 MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
             ).filter(
-                build_structured_search_q(
+                build_mel_dispatch_search_q(
                     ["message", "condition"],
                     search_value,
                     match_mode,
                 )
             )
             mel_dispatch_rows = mel_dispatch_rows.order_by(
-                "aircraft__name", "message", "page_number"
+                "aircraft__name", "message", "page_number", "mel_item"
             )[:100]
 
         else:
             mel_dispatch_rows = exclude_noisy_mel_dispatch_rows(
                 MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
             ).filter(
-                build_structured_search_q(
+                build_mel_dispatch_search_q(
                     ["message", "condition", "mel_item"],
                     search_value,
                     match_mode,
                 )
             )
             mel_dispatch_rows = mel_dispatch_rows.order_by(
-                "aircraft__name", "message", "page_number"
+                "aircraft__name", "message", "page_number", "mel_item"
             )[:100]
+
+        mel_dispatch_rows = list(mel_dispatch_rows)
+
+        rows_by_id = {
+            row.pk: row
+            for row in mel_dispatch_rows
+        }
+
+        if not rows_by_id:
+            for row in self.find_message_block_mel_rows(aircraft_qs, query):
+                rows_by_id.setdefault(row.pk, row)
+
+        if not rows_by_id:
+            for row in self.find_none_dispatch_rows(aircraft_qs, query):
+                rows_by_id.setdefault(row.pk, row)
+
+        if not rows_by_id:
+            for row in self.find_sibling_mel_rows(aircraft_qs, query):
+                rows_by_id.setdefault(row.pk, row)
+
+        mel_dispatch_rows = sorted(
+            rows_by_id.values(),
+            key=lambda row: (
+                row.aircraft.name if row.aircraft_id else "",
+                row.page_number or 0,
+                row.mel_item or "",
+                row.message or "",
+            ),
+        )
+
+        for row in mel_dispatch_rows:
+            self.apply_display_message(row, query)
+            row.viewer_query = self.build_mel_dispatch_viewer_query(row, query)
+            row.viewer_page_number = self.find_mel_dispatch_viewer_page(row)
 
         context["mel_dispatch_rows"] = mel_dispatch_rows
 
@@ -942,7 +1292,8 @@ class DispatchAutoSearchView(LoginRequiredMixin, TemplateView):
         context["saved_dispatch_results"] = saved_dispatch_results
 
         # 3. Manual PDF 검색
-        search_value, match_mode = parse_manual_search_query(query)
+        manual_pdf_query = context["manual_pdf_query"]
+        search_value, match_mode = parse_manual_search_query(manual_pdf_query)
 
         if not search_value:
             return context

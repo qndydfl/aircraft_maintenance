@@ -10,12 +10,12 @@ from .views import (
     DispatchCSVDownloadView,
     DispatchPrintView,
     DispatchDetailPrintView,
-    DispatchAutoSearchView,
+    DispatchSearchView,
     DispatchListView,
 )
 
 urlpatterns = [
-    path("", DispatchAutoSearchView.as_view(), name="dispatch_auto_search"),
+    path("", DispatchSearchView.as_view(), name="dispatch_search"),
     path(
         "autocomplete/",
         DispatchAutocompleteView.as_view(),
@@ -33,5 +33,5 @@ urlpatterns = [
     path("<int:pk>/", DispatchDetailView.as_view(), name="dispatch_detail"),
     path("<int:pk>/edit/", DispatchUpdateView.as_view(), name="dispatch_update"),
     path("<int:pk>/delete/", DispatchDeleteView.as_view(), name="dispatch_delete"),
-    path("dispatch/list/", DispatchListView.as_view(), name="dispatch_list"),
+    path("list/", DispatchListView.as_view(), name="dispatch_list"),
 ]

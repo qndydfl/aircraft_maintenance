@@ -123,18 +123,18 @@
         <span class="mobile-nav-text">Search</span>
     </a>
 
-    <a href="{% url 'dispatch_auto_search' %}"
+    <a href="{% url 'dispatch_search' %}"
         class="mobile-nav-item 
-        {% if request.resolver_match.url_name == 'dispatch_auto_search' or request.resolver_match.url_name == 'dispatch_detail' %}
+        {% if request.resolver_match.url_name == 'dispatch_search' or request.resolver_match.url_name == 'dispatch_detail' %}
         active
         {% endif %}">
         <span class="mobile-nav-icon">!</span>
         <span class="mobile-nav-text">Dispatch</span>
     </a>
     
-    <a href="{% url 'date_calculator' %}"
+    <a href="{% url 'calculator' %}"
         class="mobile-nav-item
-        {% if request.resolver_match.url_name == 'date_calculator' %}
+        {% if request.resolver_match.url_name == 'calculator' %}
         active
         {% endif %}">
         <span class="mobile-nav-icon">□</span>
