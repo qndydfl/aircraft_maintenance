@@ -149,7 +149,7 @@ body.chapter-page .app-container {
 
 @media (max-width: 35.5rem) {
     body.chapter-page {
-        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
     }
 
     body.chapter-page .app-container {

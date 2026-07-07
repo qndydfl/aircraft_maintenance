@@ -313,7 +313,11 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span,
     }
 
     body.manual-search-page {
-        padding-bottom: calc(62px + env(safe-area-inset-bottom));
+        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+    }
+
+    body.dispatch-search-page {
+        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
     }
 
     body.dispatch-search-page .portal-card {

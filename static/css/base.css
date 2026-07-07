@@ -176,7 +176,7 @@ body {
 
 .mobile-nav-item {
     flex: 1;
-    height: 100%;
+    height: var(--bottom-nav-height);
     color: rgba(229, 231, 235, 0.64);
     text-decoration: none;
     display: flex;
