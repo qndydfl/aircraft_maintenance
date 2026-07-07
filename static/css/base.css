@@ -170,13 +170,14 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
     box-shadow: 0 -0.625rem 1.75rem rgba(15, 23, 42, 0.26);
 }
 
 .mobile-nav-item {
     flex: 1;
     height: var(--bottom-nav-height);
+    align-self: flex-start;
     color: rgba(229, 231, 235, 0.64);
     text-decoration: none;
     display: flex;
@@ -251,6 +252,17 @@ body {
 
     .app-created-date {
         display: none;
+    }
+
+    .mobile-bottom-nav {
+        height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+        padding-bottom: var(--safe-area-bottom);
+        align-items: flex-start;
+    }
+
+    .mobile-nav-item {
+        height: var(--bottom-nav-height);
+        align-self: flex-start;
     }
 }
 
