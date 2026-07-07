@@ -486,3 +486,27 @@
         font-size: 0.66rem;
     }
 }
+
+@media (display-mode: standalone) and (max-width: 48rem) {
+    :root {
+        --safe-area-bottom: 0px;
+    }
+
+    body {
+        padding-bottom: var(--bottom-nav-height) !important;
+    }
+
+    .mobile-bottom-nav {
+        height: var(--bottom-nav-height) !important;
+        padding-bottom: 0 !important;
+        bottom: 0 !important;
+    }
+
+    .mobile-nav-item {
+        height: var(--bottom-nav-height);
+    }
+
+    body.pdf-viewer-page {
+        padding-bottom: 0 !important;
+    }
+}

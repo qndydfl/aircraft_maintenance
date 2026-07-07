@@ -266,6 +266,22 @@ body {
     }
 }
 
+@media (display-mode: standalone) and (max-width: 48rem) {
+    :root {
+        --safe-area-bottom: 0px;
+    }
+
+    body {
+        padding-bottom: var(--bottom-nav-height);
+    }
+
+    .mobile-bottom-nav {
+        height: var(--bottom-nav-height);
+        padding-bottom: 0;
+        bottom: 0;
+    }
+}
+
 /* 실제 모바일 화면 */
 @media (max-width: 35.5rem) {
     :root {
