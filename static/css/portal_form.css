@@ -71,7 +71,7 @@ body.form-page .app-container {
     min-width: 120px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     body.form-page .app-container {
         padding-bottom: 0;
     }

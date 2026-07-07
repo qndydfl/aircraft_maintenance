@@ -310,25 +310,25 @@ body.date-calculator-page .app-container {
     background: #0d6efd;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     body.date-calculator-page .app-container {
-        padding-bottom: 4px !important;
+        padding-bottom: 0.25rem !important;
     }
 
     .date-calculator-shell {
-        gap: 8px;
+        gap: clamp(0.5rem, 2vw, 0.75rem);
     }
 
     .date-clock-card,
     .date-result-card {
-        padding: 14px 12px;
-        border-radius: 15px;
+        padding: clamp(0.8rem, 2.6vw, 1rem);
+        border-radius: 0.95rem;
     }
 
     .date-tool-btn {
-        min-height: 54px;
-        padding: 12px 14px;
-        border-radius: 15px;
+        min-height: clamp(3.25rem, 8vw, 3.75rem);
+        padding: clamp(0.75rem, 2.5vw, 1rem);
+        border-radius: 0.95rem;
     }
 
     .date-tool-btn span {
@@ -340,15 +340,15 @@ body.date-calculator-page .app-container {
     }
 
     .date-modal-content {
-        border-radius: 20px 20px 0 0;
+        border-radius: 1.25rem 1.25rem 0 0;
     }
 
     .date-modal-header {
-        padding: 14px 14px 10px;
+        padding: 0.875rem 0.875rem 0.625rem;
     }
 
     .date-modal-body {
-        padding: 10px;
+        padding: 0.625rem;
     }
 
     .date-result-label {
@@ -384,35 +384,35 @@ body.date-calculator-page .app-container {
     }
 
     .date-calculator-card {
-        padding: 9px;
-        border-radius: 15px;
+        padding: 0.6rem;
+        border-radius: 0.95rem;
     }
 
     .date-base-row,
     .date-custom-row {
-        padding: 8px;
-        border-radius: 12px;
+        padding: 0.5rem;
+        border-radius: 0.75rem;
     }
 
     .date-preset-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 4px;
-        margin-bottom: 8px;
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
     }
 
     .date-preset-btn {
-        min-height: 34px;
-        border-radius: 9px;
+        min-height: clamp(2.125rem, 5.5vw, 2.5rem);
+        border-radius: 0.6rem;
         font-size: 0.72rem;
     }
 
     .date-input-wrap {
         grid-template-columns: 1fr;
-        gap: 7px;
+        gap: 0.45rem;
     }
 
     .date-input-wrap .form-control {
-        min-height: 38px;
+        min-height: clamp(2.375rem, 6vw, 2.75rem);
         text-align: center;
         font-size: 1.02rem;
     }
@@ -429,9 +429,9 @@ body.date-calculator-page .app-container {
     }
 
     .basic-calculator-display {
-        min-height: 78px;
-        padding: 13px;
-        border-radius: 14px;
+        min-height: clamp(4.875rem, 12vw, 5.75rem);
+        padding: 0.8rem;
+        border-radius: 0.875rem;
     }
 
     .basic-calculator-display strong {
@@ -439,8 +439,8 @@ body.date-calculator-page .app-container {
     }
 
     .basic-calculator-key {
-        min-height: 46px;
-        border-radius: 12px;
+        min-height: clamp(2.875rem, 7.4vw, 3.35rem);
+        border-radius: 0.75rem;
         font-size: 0.94rem;
     }
 }

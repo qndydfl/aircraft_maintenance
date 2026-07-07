@@ -2,20 +2,27 @@
    iPhone-like Mobile Polish Override
    Add at the VERY END of CSS
 ================================ */
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     :root {
         --app-bg: #f5f5f7;
-        --app-radius: 16px;
-        --mobile-bottom-nav-height: clamp(58px, 8vh, 68px);
+        --app-radius: 1rem;
+        --navbar-height: 3.5rem;
+        --bottom-nav-height: clamp(3.625rem, 8vh, 4.25rem);
     }
 
     body {
         background:
-            radial-gradient(circle at 20% 0%, rgba(13,110,253,.10), transparent 28%),
+            radial-gradient(
+                circle at 20% 0%,
+                rgba(13, 110, 253, 0.1),
+                transparent 28%
+            ),
             linear-gradient(180deg, #f7f8fb 0%, #f2f3f7 100%);
-        padding-top: 56px;
-        padding-bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom));
-        font-size: clamp(12.5px, 1.7vw, 14px);
+        padding-top: var(--navbar-height);
+        padding-bottom: calc(
+            var(--bottom-nav-height) + env(safe-area-inset-bottom)
+        );
+        font-size: clamp(78.125%, 1.7vw, 87.5%);
         line-height: 1.35;
     }
 
@@ -52,14 +59,14 @@
     }
 
     .app-container {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-        padding-bottom: 12px !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
     }
 
     .row {
-        --bs-gutter-x: .65rem;
-        --bs-gutter-y: .65rem;
+        --bs-gutter-x: 0.65rem;
+        --bs-gutter-y: 0.65rem;
     }
 
     [class*="col-md-"] {
@@ -68,17 +75,20 @@
     }
 
     .app-navbar {
-        min-height: 52px;
-        background:
-            linear-gradient(180deg, rgba(31,41,55,.96), rgba(17,24,39,.94)) !important;
+        min-height: 3.25rem;
+        background: linear-gradient(
+            180deg,
+            rgba(31, 41, 55, 0.96),
+            rgba(17, 24, 39, 0.94)
+        ) !important;
         backdrop-filter: blur(18px) saturate(180%);
         -webkit-backdrop-filter: blur(18px) saturate(180%);
-        border-bottom: 1px solid rgba(255,255,255,.08);
-        box-shadow: 0 8px 22px rgba(15,23,42,.22);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.22);
     }
 
     .app-brand {
-        font-size: .9rem;
+        font-size: 0.9rem;
         font-weight: 850;
     }
 
@@ -95,20 +105,20 @@
     .delete-card,
     .dispatch-ref-card,
     .mel-result-card {
-        border-radius: 18px !important;
-        background: rgba(255,255,255,.78) !important;
+        border-radius: var(--app-radius) !important;
+        background: rgba(255, 255, 255, 0.78) !important;
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid rgba(255,255,255,.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.85) !important;
         box-shadow:
-            0 10px 24px rgba(15,23,42,.07),
-            inset 0 1px 1px rgba(255,255,255,.9);
+            0 10px 24px rgba(15, 23, 42, 0.07),
+            inset 0 1px 1px rgba(255, 255, 255, 0.9);
     }
 
     .portal-card .card-body,
     .dispatch-search-card .card-body,
     .delete-card .card-body {
-        padding: 12px !important;
+        padding: clamp(0.7rem, 2.4vw, 1rem) !important;
     }
 
     .app-action-btn,
@@ -117,10 +127,10 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 5px;
-        min-height: 32px;
+        gap: 0.3125rem;
+        min-height: clamp(2rem, 5.2vw, 2.5rem);
         border-radius: 999px !important;
-        font-size: .66rem;
+        font-size: clamp(0.66rem, 1.7vw, 0.78rem);
         font-weight: 800;
         line-height: 1.2;
         white-space: normal;
@@ -129,15 +139,15 @@
     .form-control,
     .form-select,
     .app-form-control {
-        min-height: 38px;
-        border-radius: 14px !important;
-        font-size: .72rem;
-        background: rgba(255,255,255,.82);
+        min-height: clamp(2.375rem, 6vw, 2.75rem);
+        border-radius: 0.875rem !important;
+        font-size: clamp(0.72rem, 1.9vw, 0.84rem);
+        background: rgba(255, 255, 255, 0.82);
     }
 
     .form-label {
-        font-size: .6rem;
-        margin-bottom: 4px;
+        font-size: clamp(0.6rem, 1.55vw, 0.72rem);
+        margin-bottom: 0.25rem;
     }
 
     .section-title,
@@ -147,7 +157,7 @@
     .dispatch-form-section-title,
     .portal-form-section-title,
     .common-form-section-title {
-        font-size: .78rem !important;
+        font-size: 0.78rem !important;
         line-height: 1.2;
         letter-spacing: 0;
     }
@@ -162,7 +172,7 @@
     .portal-list-badge,
     .portal-detail-pill,
     .dispatch-status-badge {
-        font-size: .56rem;
+        font-size: 0.56rem;
         padding: 4px 7px;
     }
 
@@ -191,7 +201,7 @@
     .dispatch-info-item span,
     .dispatch-reference-item span,
     .dispatch-mini-grid span {
-        font-size: .54rem !important;
+        font-size: 0.54rem !important;
     }
 
     .portal-detail-info strong,
@@ -199,7 +209,7 @@
     .dispatch-info-item strong,
     .dispatch-reference-item strong,
     .dispatch-mini-grid strong {
-        font-size: .66rem !important;
+        font-size: 0.66rem !important;
         line-height: 1.25;
     }
 
@@ -211,7 +221,7 @@
     .dispatch-form-actions {
         display: grid !important;
         grid-template-columns: 1fr !important;
-        gap: 7px !important;
+        gap: 0.45rem !important;
     }
 
     .mobile-filter-toggle {
@@ -219,18 +229,18 @@
         display: flex !important;
         align-items: center;
         justify-content: center;
-        min-height: 36px;
-        margin-bottom: 10px !important;
+        min-height: clamp(2.25rem, 5.8vw, 2.75rem);
+        margin-bottom: 0.625rem !important;
         border: 0 !important;
-        background: rgba(17,24,39,.94) !important;
-        box-shadow: 0 10px 22px rgba(15,23,42,.18);
+        background: rgba(17, 24, 39, 0.94) !important;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
     }
 
     .mobile-tab-scroll {
         display: flex;
-        gap: 7px;
+        gap: 0.45rem;
         overflow-x: auto;
-        padding: 1px 1px 8px;
+        padding: 0.0625rem 0.0625rem 0.5rem;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
     }
@@ -243,25 +253,25 @@
         flex: 0 0 auto;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
-        min-height: 32px;
+        gap: 0.3125rem;
+        min-height: clamp(2rem, 5.2vw, 2.45rem);
         border-radius: 999px !important;
-        padding: 6px 11px;
-        font-size: .66rem;
+        padding: 0.375rem clamp(0.65rem, 2.2vw, 0.9rem);
+        font-size: clamp(0.66rem, 1.7vw, 0.78rem);
         font-weight: 850;
         color: #475569;
-        background: rgba(255,255,255,.76);
-        border: 1px solid rgba(203,213,225,.9);
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(203, 213, 225, 0.9);
         white-space: nowrap;
     }
 
     .mobile-tab-scroll .nav-link span {
-        min-width: 19px;
-        padding: 2px 6px;
+        min-width: 1.2rem;
+        padding: 0.125rem 0.375rem;
         border-radius: 999px;
-        background: rgba(15,23,42,.08);
+        background: rgba(15, 23, 42, 0.08);
         color: #334155;
-        font-size: .58rem;
+        font-size: 0.58rem;
         text-align: center;
     }
 
@@ -269,12 +279,12 @@
         color: #fff;
         background: #111827;
         border-color: #111827;
-        box-shadow: 0 8px 18px rgba(15,23,42,.2);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
     }
 
     .mobile-tab-scroll .nav-link.active span {
         color: #111827;
-        background: rgba(255,255,255,.92);
+        background: rgba(255, 255, 255, 0.92);
     }
 
     .common-result-snippet,
@@ -282,30 +292,33 @@
     .dispatch-text-body,
     .portal-form-guide,
     .common-upload-guide {
-        font-size: .64rem !important;
+        font-size: 0.64rem !important;
         line-height: 1.4;
     }
 
     .mobile-bottom-nav {
         display: grid !important;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        height: var(--mobile-bottom-nav-height);
+        height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
         margin: 0;
         left: 0;
         right: 0;
         bottom: 0;
         width: 100%;
         border-radius: 0;
-        background:
-            linear-gradient(180deg, rgba(31,41,55,.96), rgba(17,24,39,.98));
+        background: linear-gradient(
+            180deg,
+            rgba(31, 41, 55, 0.96),
+            rgba(17, 24, 39, 0.98)
+        );
         backdrop-filter: blur(24px) saturate(180%);
         -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border-top: 1px solid rgba(255,255,255,.08);
-        box-shadow: 0 -10px 28px rgba(15,23,42,.26);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.26);
     }
 
     .mobile-nav-item {
-        color: rgba(229,231,235,.64);
+        color: rgba(229, 231, 235, 0.64);
     }
 
     .mobile-nav-item.active {
@@ -313,19 +326,19 @@
     }
 
     .mobile-nav-icon {
-        font-size: clamp(.92rem, 2.4vw, 1.08rem);
+        font-size: clamp(0.92rem, 2.4vw, 1.08rem);
     }
 
     .mobile-nav-text {
-        font-size: clamp(.54rem, 1.8vw, .64rem);
+        font-size: clamp(0.54rem, 1.8vw, 0.64rem);
     }
 
     table {
-        font-size: .68rem !important;
+        font-size: 0.68rem !important;
     }
 
     .table-responsive {
-        border-radius: 16px;
+        border-radius: var(--app-radius);
         overflow: hidden;
     }
 
@@ -337,11 +350,11 @@
     .text-muted,
     small,
     .small {
-        font-size: .62rem !important;
+        font-size: 0.62rem !important;
     }
 
     input::placeholder {
-        font-size: .68rem;
+        font-size: 0.68rem;
     }
 
     body.pdf-viewer-page {
@@ -350,7 +363,7 @@
     }
 
     body.pdf-viewer-page .app-main {
-        min-height: 100vh !important;
+        min-height: 100dvh !important;
     }
 
     body.pdf-viewer-page .app-container {
@@ -360,8 +373,16 @@
 
     body.pdf-viewer-page .viewer-page {
         background:
-            radial-gradient(circle at 15% 12%, rgba(0,122,255,0.15), transparent 32%),
-            radial-gradient(circle at 85% 20%, rgba(175,82,222,0.12), transparent 34%),
+            radial-gradient(
+                circle at 15% 12%,
+                rgba(0, 122, 255, 0.15),
+                transparent 32%
+            ),
+            radial-gradient(
+                circle at 85% 20%,
+                rgba(175, 82, 222, 0.12),
+                transparent 34%
+            ),
             linear-gradient(135deg, #f6f8fc, #eef1f7);
     }
 
@@ -413,10 +434,10 @@
     }
 }
 
-@media (max-width: 567px) {
+@media (max-width: 35.5rem) {
     body.pdf-viewer-page {
         padding-top: 0 !important;
-        padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+        padding-bottom: calc(4.375rem + env(safe-area-inset-bottom)) !important;
     }
 
     body.pdf-viewer-page .viewer-action-btn {

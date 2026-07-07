@@ -12,9 +12,9 @@ body.chapter-page .app-container {
     align-items: center;
     gap: 8px;
     padding: 6px;
-    background: rgba(255,255,255,0.82);
+    background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(229,231,235,0.9);
+    border: 1px solid rgba(229, 231, 235, 0.9);
     border-radius: 999px;
 }
 
@@ -30,7 +30,7 @@ body.chapter-page .app-container {
 }
 
 .portal-chapter-search-input:focus {
-    background: rgba(255,255,255,0.72);
+    background: rgba(255, 255, 255, 0.72);
 }
 
 .portal-chapter-search-actions {
@@ -55,8 +55,8 @@ body.chapter-page .app-container {
     padding: 8px 12px;
     border-radius: 999px;
     color: #1d4ed8;
-    background: rgba(13,110,253,0.08);
-    border: 1px solid rgba(13,110,253,0.14);
+    background: rgba(13, 110, 253, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.14);
 }
 
 .chapter-search-summary span {
@@ -85,28 +85,30 @@ body.chapter-page .app-container {
 }
 
 .portal-chapter-bookmark-item {
-    background: rgba(248,250,252,0.82);
-    border: 1px solid rgba(226,232,240,0.9);
+    background: rgba(248, 250, 252, 0.82);
+    border: 1px solid rgba(226, 232, 240, 0.9);
     border-radius: 15px !important;
-    transition: transform .18s ease, box-shadow .18s ease;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .portal-chapter-bookmark-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(15,23,42,.08);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .portal-chapter-bookmark-icon {
-    font-size: .9rem;
+    font-size: 0.9rem;
 }
 
 .portal-chapter-bookmark-text .fw-bold {
-    font-size: .9rem;
+    font-size: 0.9rem;
 }
 
 .portal-chapter-result-card {
-    background: rgba(255,255,255,.84) !important;
-    border: 1px solid rgba(229,231,235,.9) !important;
+    background: rgba(255, 255, 255, 0.84) !important;
+    border: 1px solid rgba(229, 231, 235, 0.9) !important;
     border-radius: 15px !important;
 }
 
@@ -127,19 +129,19 @@ body.chapter-page .app-container {
     -webkit-line-clamp: 2;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 48.0625rem) {
     .portal-chapter-bookmark-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 75rem) {
     .portal-chapter-bookmark-grid {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     body.chapter-page {
         padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
@@ -165,11 +167,11 @@ body.chapter-page .app-container {
     .portal-chapter-search-input {
         height: 36px;
         min-height: 36px;
-        font-size: .7rem;
+        font-size: 0.7rem;
         padding: 0 12px !important;
-        border: 1px solid rgba(229,231,235,.9) !important;
+        border: 1px solid rgba(229, 231, 235, 0.9) !important;
         border-radius: 12px !important;
-        background: rgba(255,255,255,.82);
+        background: rgba(255, 255, 255, 0.82);
     }
 
     .portal-chapter-search-actions {
@@ -182,7 +184,7 @@ body.chapter-page .app-container {
         width: 100%;
         min-height: 34px;
         border-radius: 999px !important;
-        font-size: .68rem;
+        font-size: 0.68rem;
     }
 
     .chapter-search-summary {
@@ -193,13 +195,13 @@ body.chapter-page .app-container {
     }
 
     .chapter-search-summary span {
-        font-size: .56rem;
+        font-size: 0.56rem;
         flex: 0 0 auto;
     }
 
     .chapter-search-summary strong {
         min-width: 0;
-        font-size: .66rem;
+        font-size: 0.66rem;
     }
 
     .portal-chapter-bookmark-grid {
@@ -212,12 +214,12 @@ body.chapter-page .app-container {
     }
 
     .portal-chapter-bookmark-icon {
-        font-size: .76rem;
+        font-size: 0.76rem;
         margin-right: 9px !important;
     }
 
     .portal-chapter-bookmark-text .fw-bold {
-        font-size: .72rem;
+        font-size: 0.72rem;
     }
 
     .portal-chapter-bookmark-text .small {
@@ -230,11 +232,11 @@ body.chapter-page .app-container {
     }
 
     .chapter-result-label {
-        font-size: .54rem;
+        font-size: 0.54rem;
     }
 
     .chapter-result-title {
-        font-size: .72rem;
+        font-size: 0.72rem;
     }
 
     .chapter-result-description {

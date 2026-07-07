@@ -10,8 +10,8 @@
     --app-navbar-border: rgba(255, 255, 255, 0.08);
 
     --app-radius: clamp(1rem, 1.8vw, 1.4rem);
-    --navbar-height: clamp(3.5rem, 6vw, 4.5rem);
-    --bottom-nav-height: clamp(3.8rem, 9vw, 4.6rem);
+    --navbar-height: clamp(3.5rem, 2vw, 4.5rem);
+    --bottom-nav-height: clamp(3.5rem, 9vw, 4.6rem);
     --container-x: clamp(0.75rem, 2.5vw, 2rem);
 }
 
@@ -22,7 +22,7 @@
 
 html {
     scroll-behavior: smooth;
-    font-size: clamp(14px, 1.4vw, 16px);
+    font-size: clamp(87.5%, 1.4vw, 100%);
 }
 
 body {
@@ -30,11 +30,16 @@ body {
     color: var(--app-text);
     padding-top: var(--navbar-height);
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .app-navbar {
     min-height: var(--navbar-height);
-    background: linear-gradient(180deg, rgba(31, 41, 55, 0.96), var(--app-navbar-bg)) !important;
+    background: linear-gradient(
+        180deg,
+        rgba(31, 41, 55, 0.96),
+        var(--app-navbar-bg)
+    ) !important;
     border-bottom: 1px solid var(--app-navbar-border);
     backdrop-filter: blur(1.125rem) saturate(170%);
     -webkit-backdrop-filter: blur(1.125rem) saturate(170%);
@@ -113,6 +118,7 @@ body {
 
 .app-main {
     min-height: calc(100vh - var(--navbar-height));
+    min-height: calc(100dvh - var(--navbar-height));
 }
 
 .app-container {
@@ -144,7 +150,11 @@ body {
     z-index: 1040;
     height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
-    background: linear-gradient(180deg, rgba(31, 41, 55, 0.96), rgba(17, 24, 39, 0.98));
+    background: linear-gradient(
+        180deg,
+        rgba(31, 41, 55, 0.96),
+        rgba(17, 24, 39, 0.98)
+    );
     backdrop-filter: blur(1.375rem) saturate(180%);
     -webkit-backdrop-filter: blur(1.375rem) saturate(180%);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -217,16 +227,24 @@ body {
     color: #6b7280;
 }
 
-/* 스마트폰 */
-@media (max-width: 767.98px) {
+/* 768px 이하에서는 하단 네비게이션만 유지합니다. */
+@media (max-width: 48rem) {
     :root {
-        --navbar-height: 3.625rem;
         --bottom-nav-height: 3.875rem;
-        --container-x: clamp(0.625rem, 3.5vw, 1rem);
     }
 
     body {
-        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+        padding-bottom: calc(
+            var(--bottom-nav-height) + env(safe-area-inset-bottom)
+        );
+    }
+}
+
+/* 실제 모바일 화면 */
+@media (max-width: 35.5rem) {
+    :root {
+        --navbar-height: 3.625rem;
+        --container-x: clamp(0.625rem, 3.5vw, 1rem);
     }
 
     .app-revision-date {
@@ -241,10 +259,15 @@ body {
     .admin-only-action {
         display: none !important;
     }
+
+    .mobile-nav-text {
+        font-size: clamp(.8rem, 6vw, 0.75rem) !important;
+    }
+
 }
 
 /* iPad / Galaxy Tab */
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (min-width: 48.0625rem) and (max-width: 64rem) {
     :root {
         --navbar-height: clamp(3.75rem, 6vw, 4.25rem);
         --container-x: clamp(1rem, 3vw, 2rem);
@@ -272,7 +295,7 @@ body {
 }
 
 /* 데스크톱 */
-@media (min-width: 1025px) {
+@media (min-width: 64.0625rem) {
     body {
         padding-bottom: 0 !important;
     }

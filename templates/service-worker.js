@@ -1,4 +1,4 @@
-const CACHE_NAME = "manual-portal-static-v1";
+const CACHE_NAME = "manual-portal-static-v2";
 
 const STATIC_ASSETS = [
     "/static/manifest.webmanifest",
@@ -58,12 +58,8 @@ self.addEventListener("fetch", function (event) {
     }
 
     event.respondWith(
-        caches.match(request).then(function (cachedResponse) {
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-
-            return fetch(request).then(function (response) {
+        fetch(new Request(request, { cache: "reload" }))
+            .then(function (response) {
                 if (!response || response.status !== 200) {
                     return response;
                 }
@@ -75,7 +71,9 @@ self.addEventListener("fetch", function (event) {
                 });
 
                 return response;
-            });
-        })
+            })
+            .catch(function () {
+                return caches.match(request);
+            })
     );
 });

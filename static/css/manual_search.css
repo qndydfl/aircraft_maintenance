@@ -145,7 +145,7 @@ body.manual-search-page .app-container {
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     .mobile-filter-collapse.collapse {
         display: block;
         height: auto !important;

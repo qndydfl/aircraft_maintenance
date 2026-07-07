@@ -83,7 +83,7 @@ body.dispatch-detail-page .app-container {
     line-height: 1.7;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     body.dispatch-detail-page .app-container {
         padding-bottom: 0;
     }

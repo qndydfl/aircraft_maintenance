@@ -54,7 +54,7 @@
     padding: 16px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     .dispatch-search-card .card-body {
         padding: 12px !important;
     }

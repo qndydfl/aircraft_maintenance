@@ -27,7 +27,7 @@
     white-space: pre;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 35.5rem) {
     body.dispatch-csv-upload-page .app-main {
         min-height: auto;
     }
