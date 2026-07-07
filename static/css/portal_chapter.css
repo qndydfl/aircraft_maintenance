@@ -141,13 +141,19 @@ body.chapter-page .app-container {
     }
 }
 
+@media (max-width: 48rem) {
+    body.chapter-page .app-container > :last-child {
+        margin-bottom: 0.5rem !important;
+    }
+}
+
 @media (max-width: 35.5rem) {
     body.chapter-page {
-        padding-bottom: calc(62px + env(safe-area-inset-bottom));
+        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
     }
 
     body.chapter-page .app-container {
-        padding-bottom: 10px !important;
+        padding-bottom: 0.5rem !important;
     }
 
     .portal-chapter-search-form {

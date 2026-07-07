@@ -117,6 +117,10 @@ body.detail-page .app-container {
         display: none !important;
     }
 
+    .aircraft-manual-detail-page .portal-detail-empty-col {
+        display: none !important;
+    }
+
     .portal-detail-note {
         display: none;
     }

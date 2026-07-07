@@ -83,7 +83,7 @@ const textContentCache = new Map();
 const prefetchingPages = new Set();
 
 function isMobileViewport() {
-    return window.innerWidth < 768;
+    return window.innerWidth <= 768;
 }
 
 function parseViewerSearchQuery(query) {
@@ -956,7 +956,7 @@ function createOutlineTree(items, depth = 0) {
 
             row.classList.add("is-active");
 
-            if (window.innerWidth <= 567 && manualPdfLayout) {
+            if (isMobileViewport() && manualPdfLayout) {
                 manualPdfLayout.classList.add("outline-hidden");
                 sessionStorage.setItem(outlineStorageKey, "true");
             }
@@ -1214,7 +1214,7 @@ window.addEventListener("resize", rerenderOnResize);
 
     const savedWidth = localStorage.getItem(OUTLINE_WIDTH_KEY);
 
-    if (savedWidth && window.innerWidth > 567) {
+    if (savedWidth && !isMobileViewport()) {
         outlinePanel.style.width = savedWidth + "px";
         outlinePanel.style.flexBasis = savedWidth + "px";
     }

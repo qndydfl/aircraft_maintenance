@@ -77,6 +77,13 @@ body {
     color: rgba(255, 255, 255, 0.74);
 }
 
+.app-created-date {
+    padding-left: 0.375rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.64);
+    font-weight: 750;
+}
+
 .app-user-name {
     max-width: clamp(5.5rem, 14vw, 10rem);
     overflow: hidden;
@@ -237,6 +244,10 @@ body {
         padding-bottom: calc(
             var(--bottom-nav-height) + env(safe-area-inset-bottom)
         );
+    }
+
+    .app-created-date {
+        display: none;
     }
 }
 
