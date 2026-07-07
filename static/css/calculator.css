@@ -310,7 +310,7 @@ body.date-calculator-page .app-container {
     background: #0d6efd;
 }
 
-@media (max-width: 567px) {
+@media (max-width: 768px) {
     body.date-calculator-page .app-container {
         padding-bottom: 4px !important;
     }

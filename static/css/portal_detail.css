@@ -88,7 +88,7 @@ body.detail-page .app-container {
     gap: 8px;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     .desktop-only-btn,
     .desktop-only-btn-group,
     .portal-detail-button-group form,

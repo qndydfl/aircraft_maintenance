@@ -697,7 +697,7 @@ body {
     }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     .viewer-from-search-page .viewer-toolbar-center {
         display: none !important;
     }

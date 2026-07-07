@@ -34,7 +34,7 @@ body.manual-search-page .app-container {
 
 .manual-group-info {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 9px;
 }
 
@@ -140,11 +140,12 @@ body.manual-search-page .app-container {
     background: rgba(255, 255, 255, 0.92);
 }
 
-.manual-search-empty-mobile {
-    display: none;
+.manual-search-empty-prompt::before {
+    content: "검색어를 입력하세요.";
 }
 
-@media (min-width: 768px) {
+
+@media (max-width: 768px) {
     .mobile-filter-collapse.collapse {
         display: block;
         height: auto !important;
@@ -155,9 +156,7 @@ body.manual-search-page .app-container {
         display: block;
         opacity: 1;
     }
-}
 
-@media (max-width: 767.98px) {
     body.manual-search-page {
         padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
@@ -178,12 +177,8 @@ body.manual-search-page .app-container {
         margin-top: -2px;
     }
 
-    .manual-search-empty-desktop {
-        display: none;
-    }
-
-    .manual-search-empty-mobile {
-        display: inline;
+    .manual-search-empty-prompt::before {
+        content: "Search Options을 클릭해서 검색어를 입력하세요.";
     }
 
     #manual-search-filter.show ~ .manual-search-empty-prompt,

@@ -138,7 +138,7 @@
     border-radius: 13px;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     .page-hero {
         align-items: flex-start;
         padding: 10px 11px;

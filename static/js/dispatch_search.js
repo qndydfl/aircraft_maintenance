@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const showPrompt = function () {
         prompt.classList.remove("d-none");
     };
-
     if (filter.classList.contains("show")) {
         hidePrompt();
     } else {

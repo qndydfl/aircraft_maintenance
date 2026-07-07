@@ -74,7 +74,7 @@
     gap: 10px;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     body.delete-confirm-page .app-main {
         min-height: auto;
     }

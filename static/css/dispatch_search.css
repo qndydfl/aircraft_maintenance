@@ -1,8 +1,10 @@
-body.dispatch-search-page .app-main {
+body.dispatch-search-page .app-main,
+body.manual-search-page .app-main {
     min-height: auto;
 }
 
-body.dispatch-search-page .app-container {
+body.dispatch-search-page .app-container,
+body.manual-search-page .app-container {
     padding-bottom: 8px;
 }
 
@@ -29,9 +31,10 @@ body.dispatch-search-page .app-container {
     color: #1d1d1f;
 }
 
+/* 🚀 유연한 반응형 Grid 적용 */
 .dispatch-mini-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 7px;
     margin-bottom: 10px;
 }
@@ -125,14 +128,16 @@ body.dispatch-search-page table th {
     line-height: 1.45;
 }
 
-body.dispatch-search-page .mobile-filter-toggle {
+body.dispatch-search-page .mobile-filter-toggle,
+.mobile-filter-toggle {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-body.dispatch-search-page .mobile-tab-scroll {
+body.dispatch-search-page .mobile-tab-scroll,
+.mobile-tab-scroll {
     display: flex;
     gap: 8px;
     overflow-x: auto;
@@ -141,11 +146,13 @@ body.dispatch-search-page .mobile-tab-scroll {
     -webkit-overflow-scrolling: touch;
 }
 
-body.dispatch-search-page .mobile-tab-scroll::-webkit-scrollbar {
+body.dispatch-search-page .mobile-tab-scroll::-webkit-scrollbar,
+.mobile-tab-scroll::-webkit-scrollbar {
     display: none;
 }
 
-body.dispatch-search-page .mobile-tab-scroll .nav-link {
+body.dispatch-search-page .mobile-tab-scroll .nav-link,
+.mobile-tab-scroll .nav-link {
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -160,7 +167,8 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link {
     font-weight: 850;
 }
 
-body.dispatch-search-page .mobile-tab-scroll .nav-link span {
+body.dispatch-search-page .mobile-tab-scroll .nav-link span,
+.mobile-tab-scroll .nav-link span {
     min-width: 20px;
     padding: 2px 6px;
     border-radius: 999px;
@@ -169,93 +177,211 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link span {
     font-size: 0.62rem;
 }
 
-body.dispatch-search-page .mobile-tab-scroll .nav-link.active {
+body.dispatch-search-page .mobile-tab-scroll .nav-link.active,
+.mobile-tab-scroll .nav-link.active {
     color: #fff;
     background: #0d6efd;
     border-color: #0d6efd;
     box-shadow: 0 8px 18px rgba(13, 110, 253, 0.22);
 }
 
-body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
+body.dispatch-search-page .mobile-tab-scroll .nav-link.active span,
+.mobile-tab-scroll .nav-link.active span {
     color: #0d6efd;
     background: rgba(255, 255, 255, 0.92);
 }
 
-.dispatch-search-empty-mobile {
-    display: none;
+.dispatch-search-empty-prompt::before,
+.manual-search-empty-prompt::before {
+    content: "검색어를 입력하세요.";
 }
 
-@media (min-width: 768px) {
+.search-summary {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.search-summary > div {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 999px;
+    padding: 7px 13px;
+}
+
+.search-summary-label {
+    color: #6b7280;
+    font-size: 0.76rem;
+    margin-right: 5px;
+}
+
+.manual-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+/* 🚀 데스크톱-태블릿 자동 유연화 Grid 전환 */
+.manual-group-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 9px;
+}
+
+.manual-group-info div {
+    padding: 10px;
+}
+
+.manual-group-info span {
+    display: block;
+    color: #8e8e93;
+    font-size: 0.68rem;
+    font-weight: 850;
+    margin-bottom: 4px;
+}
+
+.manual-group-info strong {
+    display: block;
+    color: #1d1d1f;
+    font-size: 0.84rem;
+    word-break: break-word;
+}
+
+.manual-group-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.common-result-snippet {
+    padding: 12px 14px;
+    border-radius: 13px;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: #334155;
+    background: rgba(25, 135, 84, 0.06);
+    border: 1px solid rgba(25, 135, 84, 0.16);
+}
+
+.common-result-snippet mark,
+.common-result-snippet .highlight {
+    background: #fff3cd;
+    color: #111827;
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
+.common-result-card {
+    border-left: 5px solid #198754;
+}
+
+/* 대화면 태블릿 가로 및 데스크톱 글씨 가독성 향상 */
+@media (min-width: 1024px) {
+    body.dispatch-search-page table {
+        font-size: 0.94rem;
+    }
+    body.dispatch-search-page table th {
+        font-size: 0.8rem;
+    }
+}
+
+/* 🚀 데스크톱 중단점 (태블릿 가로 영역 포함) */
+@media (min-width: 769px) {
     .mobile-filter-collapse.collapse {
         display: block;
         height: auto !important;
         visibility: visible;
     }
 
-    .dispatch-candidate-tab-content > .dispatch-candidate-pane {
+    .dispatch-candidate-tab-content > .dispatch-candidate-pane,
+    .manual-result-tab-content > .manual-result-pane {
         display: block;
         opacity: 1;
     }
 }
 
-@media (max-width: 767.98px) {
+/* 🚀 모바일 및 태블릿 세로 모드 최적화 중단점 */
+@media (max-width: 768px) {
     body.dispatch-search-page .app-container {
         padding-bottom: 0;
+    }
+
+    body.manual-search-page {
+        padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
 
     body.dispatch-search-page .portal-card {
         margin-bottom: 9px !important;
     }
 
-    body.dispatch-search-page .mobile-filter-toggle {
+    /* 🚀 대화면 태블릿 세로에서 버튼이 가로로 무한정 늘어지는 버그 방지 */
+    body.dispatch-search-page .mobile-filter-toggle,
+    .mobile-filter-toggle {
         min-height: 38px;
         margin-top: -2px;
         background: rgba(13, 110, 253, 0.94);
         border: 0;
         box-shadow: 0 10px 22px rgba(13, 110, 253, 0.18);
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .mobile-filter-collapse {
         margin-top: -2px;
     }
 
-    .dispatch-search-empty-desktop {
-        display: none;
-    }
-
-    .dispatch-search-empty-mobile {
-        display: inline;
+    .dispatch-search-empty-prompt::before,
+    .manual-search-empty-prompt::before {
+        content: "Search Options을 클릭해서 검색어를 입력하세요.";
     }
 
     #dispatch-search-filter.show ~ .dispatch-search-empty-prompt,
-    #dispatch-search-filter.collapsing ~ .dispatch-search-empty-prompt {
+    #dispatch-search-filter.collapsing ~ .dispatch-search-empty-prompt,
+    #manual-search-filter.show ~ .manual-search-empty-prompt,
+    #manual-search-filter.collapsing ~ .manual-search-empty-prompt {
         display: none;
+    }
+
+    .search-summary {
+        display: none !important;
     }
 
     .dispatch-candidate-tab-content {
         display: block;
     }
 
-    .candidate-top {
-        flex-direction: column;
+    /* 카드 내 액션 버튼 배치 조정 */
+    .candidate-top,
+    .manual-group-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .candidate-actions,
+    .manual-group-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        justify-content: stretch;
         gap: 6px;
-    }
-
-    .candidate-actions {
         width: 100%;
+        max-width: 480px; /* 늘어남 방지 */
     }
 
-    .candidate-top strong {
-        font-size: 0.7rem;
+    .manual-group-header .manual-badge {
+        justify-self: start;
+        max-width: 100%;
+        white-space: normal;
+        line-height: 1.2;
     }
 
-    .candidate-top .small {
-        font-size: 0.6rem;
-    }
-
-    .candidate-top .app-card-btn {
-        width: 100%;
-    }
+    .candidate-top strong { font-size: 0.7rem; }
+    .candidate-top .small { font-size: 0.6rem; }
+    .candidate-top .app-card-btn,
+    .manual-group-actions .btn { width: 100%; }
 
     .candidate-snippet {
         max-height: 58px;
@@ -277,7 +403,27 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
         padding: 4px 6px;
     }
 
-    
+    .manual-group-info div {
+        padding: 7px 8px;
+        border-radius: 10px;
+    }
+
+    .manual-group-info span { font-size: 0.56rem; }
+    .manual-group-info strong { font-size: 0.66rem; }
+
+    .common-result-card {
+        border-left: 0;
+        border-top: 4px solid #198754;
+    }
+
+    .common-result-snippet {
+        max-height: 54px;
+        overflow: hidden;
+        font-size: 0.66rem;
+        padding: 8px 9px;
+        line-height: 1.35;
+    }
+
     .mel-compact-card {
         padding: 6px 8px;
         border-radius: 11px;
@@ -290,26 +436,11 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
         gap: 8px;
     }
 
-    .mel-dispatch-results .card-body {
-        padding: 12px;
-    }
+    .mel-dispatch-results .card-body { padding: 12px; }
+    .mel-dispatch-results h5 { font-size: 0.88rem; margin-bottom: 9px !important; }
+    .mel-dispatch-results .dispatch-card-title { font-size: 0.78rem; line-height: 1.22; }
 
-    .mel-dispatch-results h5 {
-        font-size: 0.88rem;
-        margin-bottom: 9px !important;
-    }
-
-    .mel-dispatch-results .dispatch-card-title {
-        font-size: 0.78rem;
-        line-height: 1.22;
-    }
-
-    .mel-compact-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
+    .mel-compact-meta { display: flex; flex-wrap: wrap; gap: 4px; }
     .mel-compact-meta span {
         background: #f8fafc;
         border: 1px solid #e5e7eb;
@@ -329,17 +460,8 @@ body.dispatch-search-page .mobile-tab-scroll .nav-link.active span {
         font-weight: 800;
     }
 
-    .mel-condition-details {
-        margin-top: 6px;
-        font-size: 0.56rem;
-    }
-
-    .mel-condition-details summary {
-        color: #6b7280;
-        font-weight: 800;
-        cursor: pointer;
-    }
-
+    .mel-condition-details { margin-top: 6px; font-size: 0.56rem; }
+    .mel-condition-details summary { color: #6b7280; font-weight: 800; cursor: pointer; }
     .mel-condition-details p {
         margin: 6px 0 0;
         padding: 7px;

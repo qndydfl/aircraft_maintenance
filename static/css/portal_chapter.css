@@ -127,7 +127,7 @@ body.chapter-page .app-container {
     -webkit-line-clamp: 2;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     .portal-chapter-bookmark-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -139,7 +139,7 @@ body.chapter-page .app-container {
     }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     body.chapter-page {
         padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
