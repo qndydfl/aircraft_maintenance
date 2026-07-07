@@ -18,9 +18,9 @@
                 transparent 28%
             ),
             linear-gradient(180deg, #f7f8fb 0%, #f2f3f7 100%);
-        padding-top: var(--navbar-height);
+        padding-top: calc(var(--navbar-height) + var(--safe-area-top));
         padding-bottom: calc(
-            var(--bottom-nav-height) + env(safe-area-inset-bottom)
+            var(--bottom-nav-height) + var(--safe-area-bottom)
         );
         font-size: clamp(78.125%, 1.7vw, 87.5%);
         line-height: 1.35;
@@ -75,7 +75,8 @@
     }
 
     .app-navbar {
-        min-height: 3.25rem;
+        min-height: calc(3.25rem + var(--safe-area-top));
+        padding-top: var(--safe-area-top);
         background: linear-gradient(
             180deg,
             rgba(31, 41, 55, 0.96),
@@ -299,7 +300,8 @@
     .mobile-bottom-nav {
         display: grid !important;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+        height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+        padding-bottom: var(--safe-area-bottom);
         margin: 0;
         left: 0;
         right: 0;
@@ -437,7 +439,7 @@
 @media (max-width: 35.5rem) {
     body.pdf-viewer-page {
         padding-top: 0 !important;
-        padding-bottom: calc(4.375rem + env(safe-area-inset-bottom)) !important;
+        padding-bottom: 0 !important;
     }
 
     body.pdf-viewer-page .viewer-action-btn {

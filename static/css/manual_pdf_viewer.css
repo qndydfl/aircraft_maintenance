@@ -380,7 +380,7 @@ body {
 
 .viewer-page.viewer-focus-mode .viewer-focus-exit {
     position: fixed;
-    bottom: calc(12px + env(safe-area-inset-bottom));
+    bottom: calc(12px + var(--safe-area-bottom));
     right: 10px;
     z-index: 3100;
     display: inline-flex;
@@ -651,6 +651,7 @@ body {
 
     body.pdf-viewer-page .viewer-page {
         height: 100dvh;
+        padding-top: var(--safe-area-top);
     }
 
     .viewer-topbar {
@@ -856,9 +857,9 @@ body {
     :root {
         --viewer-mobile-nav-height: 2.75rem;
         --viewer-bottom-nav-height: calc(
-            3.875rem + env(safe-area-inset-bottom)
+            3.875rem + var(--safe-area-bottom)
         );
-        --viewer-safe-bottom: env(safe-area-inset-bottom);
+        --viewer-safe-bottom: var(--safe-area-bottom);
     }
 
     body.pdf-viewer-page .viewer-page {
@@ -885,7 +886,7 @@ body {
         display: flex !important;
         left: 0.625rem;
         right: 0.625rem;
-        bottom: calc(var(--viewer-bottom-nav-height) + 0.375rem);
+        bottom: calc(var(--viewer-bottom-nav-height) + 0.25rem);
         height: var(--viewer-mobile-nav-height);
     }
 }
