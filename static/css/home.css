@@ -1,3 +1,11 @@
+/* static/css/home.css */
+
+/* Home Layout */
+
+body.home-page .manual-section:last-child {
+    margin-bottom: 0 !important;
+}
+
 .manual-section {
     position: relative;
 }
@@ -6,10 +14,12 @@
     display: flex;
     justify-content: center;
     align-items: end;
-    gap: 16px;
-    margin-bottom: 14px;
+    gap: 1rem;
+    margin-bottom: 0.875rem;
     text-align: center;
 }
+
+/* Aircraft Card */
 
 .boeing-card,
 .airbus-card {
@@ -20,12 +30,8 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 14px;
-}
-
-.airbus-maker {
-    color: #087990;
+    gap: 0.75rem;
+    margin-bottom: 0.875rem;
 }
 
 .aircraft-title {
@@ -35,10 +41,14 @@
     letter-spacing: 0;
 }
 
+.airbus-maker {
+    color: #087990;
+}
+
 .aircraft-type-pill {
     background: rgba(13, 110, 253, 0.1);
-    color: #0d6efd;
-    border-radius: 999px;
+    color: var(--app-primary);
+    border-radius: 999rem;
     padding: 0.28rem 0.62rem;
     font-size: 0.64rem;
     font-weight: 850;
@@ -49,37 +59,29 @@
     color: #087990;
 }
 
+/* Manual Badge / Note */
+
 .manual-badge-wrap {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 12px;
+    gap: 0.3125rem;
+    margin-bottom: 0.75rem;
 }
 
 .manual-card-note {
-    min-height: 34px;
+    min-height: 2.125rem;
     color: var(--app-muted);
     font-size: 0.78rem;
     line-height: 1.4;
-    margin-bottom: 14px;
+    margin-bottom: 0.875rem;
 }
 
 .card-button-group {
     display: grid;
-    gap: 7px;
+    gap: 0.45rem;
 }
 
-body.home-page .app-container {
-    padding-bottom: 18px;
-}
-
-body.home-page .app-main {
-    min-height: auto;
-}
-
-body.home-page .manual-section:last-child {
-    margin-bottom: 0 !important;
-}
+/* Mobile */
 
 @media (max-width: 35.5rem) {
     .home-page .page-hero {
@@ -91,37 +93,37 @@ body.home-page .manual-section:last-child {
         width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 7px;
+        gap: 0.45rem;
     }
 
     .home-page .page-actions .app-action-btn {
         width: 100% !important;
-        min-height: 30px;
-        font-size: 0.68rem;
-        border-radius: 10px !important;
+        min-height: var(--button-height);
+        font-size: var(--mobile-font);
+        border-radius: 999rem !important;
     }
 
     .section-header {
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
     }
 
     .aircraft-card-header {
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
     }
 
     .aircraft-title {
-        font-size: 0.84rem;
+        font-size: var(--mobile-title);
         line-height: 1.15;
     }
 
     .aircraft-type-pill {
-        font-size: 0.52rem;
-        padding: 3px 6px;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
     }
 
     .manual-badge-wrap {
-        gap: 4px;
-        margin-bottom: 7px;
+        gap: 0.25rem;
+        margin-bottom: 0.45rem;
     }
 
     .manual-card-note {
@@ -129,6 +131,23 @@ body.home-page .manual-section:last-child {
     }
 
     .card-button-group {
-        gap: 5px;
+        gap: 0.35rem;
+    }
+}
+
+/* iPad Mini */
+
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    .aircraft-title {
+        font-size: 1.2rem;
+    }
+
+    .manual-card-note {
+        font-size: 0.9rem;
+        min-height: auto;
+    }
+
+    .card-button-group {
+        gap: 0.55rem;
     }
 }

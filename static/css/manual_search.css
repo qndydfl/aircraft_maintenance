@@ -1,53 +1,54 @@
+/* static/css/manual_search.css */
+
+/* Manual Search Page */
+
 body.manual-search-page .app-main {
     min-height: auto;
 }
 
 body.manual-search-page .app-container {
-    padding-bottom: 8px;
+    padding-bottom: 0.5rem;
 }
 
-.search-summary {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+/* Empty Prompt */
+
+.manual-search-empty-prompt::before {
+    content: "검색어를 입력하세요.";
 }
 
-.search-summary > div {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.84);
-    border-radius: 999px;
-    padding: 7px 13px;
-}
+/* Manual Result Group */
 
-.search-summary-label {
-    color: #6b7280;
-    font-size: 0.76rem;
-    margin-right: 5px;
+.manual-group-card {
+    overflow: hidden;
 }
 
 .manual-group-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 14px;
+    gap: 0.875rem;
+}
+
+.manual-group-header .manual-badge {
+    flex-shrink: 0;
 }
 
 .manual-group-info {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 9px;
+    grid-template-columns: repeat(auto-fit, minmax(11.25rem, 1fr));
+    gap: 0.5625rem;
 }
 
 .manual-group-info div {
-    padding: 10px;
+    padding: 0.625rem;
 }
 
 .manual-group-info span {
     display: block;
     color: #8e8e93;
-    font-size: 0.68rem;
+    font-size: var(--font-xs);
     font-weight: 850;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
 }
 
 .manual-group-info strong {
@@ -60,13 +61,19 @@ body.manual-search-page .app-container {
 .manual-group-actions {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
+/* Common Manual Result */
+
+.common-result-card {
+    border-left: 0.3125rem solid #198754;
+}
+
 .common-result-snippet {
-    padding: 12px 14px;
-    border-radius: 13px;
+    padding: 0.75rem 0.875rem;
+    border-radius: var(--radius-sm);
     font-size: 0.84rem;
     line-height: 1.55;
     color: #334155;
@@ -78,103 +85,21 @@ body.manual-search-page .app-container {
 .common-result-snippet .highlight {
     background: #fff3cd;
     color: #111827;
-    padding: 0 2px;
-    border-radius: 3px;
+    padding: 0 0.125rem;
+    border-radius: 0.1875rem;
 }
 
-.common-result-card {
-    border-left: 5px solid #198754;
-}
-
-.mobile-filter-toggle {
-    width: 100%;
-    justify-content: center;
-}
-
-.mobile-tab-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 2px 1px 8px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-
-.mobile-tab-scroll::-webkit-scrollbar {
-    display: none;
-}
-
-.mobile-tab-scroll .nav-link {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 34px;
-    border-radius: 999px;
-    padding: 7px 12px;
-    color: #475569;
-    background: rgba(255, 255, 255, 0.74);
-    border: 1px solid rgba(203, 213, 225, 0.9);
-    font-size: 0.72rem;
-    font-weight: 850;
-}
-
-.mobile-tab-scroll .nav-link span {
-    min-width: 20px;
-    padding: 2px 6px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.08);
-    color: #334155;
-    font-size: 0.62rem;
-}
-
-.mobile-tab-scroll .nav-link.active {
-    color: #fff;
-    background: #0d6efd;
-    border-color: #0d6efd;
-    box-shadow: 0 8px 18px rgba(13, 110, 253, 0.22);
-}
-
-.mobile-tab-scroll .nav-link.active span {
-    color: #0d6efd;
-    background: rgba(255, 255, 255, 0.92);
-}
-
-.manual-search-empty-prompt::before {
-    content: "검색어를 입력하세요.";
-}
-
+/* Mobile */
 
 @media (max-width: 35.5rem) {
-    .mobile-filter-collapse.collapse {
-        display: block;
-        height: auto !important;
-        visibility: visible;
-    }
-
-    .manual-result-tab-content > .manual-result-pane {
-        display: block;
-        opacity: 1;
-    }
-
     body.manual-search-page {
-        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
     }
 
-    .search-summary {
-        display: none !important;
-    }
-
-    .mobile-filter-toggle {
-        min-height: 38px;
-        margin-top: -2px;
-        background: rgba(13, 110, 253, 0.94);
-        border: 0;
-        box-shadow: 0 10px 22px rgba(13, 110, 253, 0.18);
-    }
-
-    .mobile-filter-collapse {
-        margin-top: -2px;
+    body.manual-search-page .app-container {
+        padding-bottom: 0.75rem;
     }
 
     .manual-search-empty-prompt::before {
@@ -186,15 +111,21 @@ body.manual-search-page .app-container {
         display: none;
     }
 
-    .manual-group-info {
-        grid-template-columns: 1fr;
-        gap: 6px;
+    .mobile-filter-collapse.collapse {
+        display: block;
+        height: auto !important;
+        visibility: visible;
+    }
+
+    .manual-result-tab-content > .manual-result-pane {
+        display: block;
+        opacity: 1;
     }
 
     .manual-group-header {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 0.5rem;
     }
 
     .manual-group-header .manual-badge {
@@ -204,24 +135,29 @@ body.manual-search-page .app-container {
         line-height: 1.2;
     }
 
+    .manual-group-info {
+        grid-template-columns: 1fr;
+        gap: 0.375rem;
+    }
+
     .manual-group-info div {
-        padding: 7px 8px;
-        border-radius: 10px;
+        padding: 0.45rem 0.5rem;
+        border-radius: 0.625rem;
     }
 
     .manual-group-info span {
-        font-size: 0.56rem;
+        font-size: var(--mobile-small);
     }
 
     .manual-group-info strong {
-        font-size: 0.66rem;
+        font-size: var(--mobile-font);
     }
 
     .manual-group-actions {
         display: grid;
         grid-template-columns: 1fr;
         justify-content: stretch;
-        gap: 6px;
+        gap: 0.375rem;
     }
 
     .manual-group-actions .btn {
@@ -230,14 +166,36 @@ body.manual-search-page .app-container {
 
     .common-result-card {
         border-left: 0;
-        border-top: 4px solid #198754;
+        border-top: 0.25rem solid #198754;
     }
 
     .common-result-snippet {
-        max-height: 54px;
+        max-height: 3.375rem;
         overflow: hidden;
-        font-size: 0.66rem;
-        padding: 8px 9px;
+        font-size: var(--mobile-small);
+        padding: 0.5rem 0.5625rem;
         line-height: 1.35;
+    }
+}
+
+/* iPad Mini */
+
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    body.manual-search-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
+    }
+
+    .manual-group-info {
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    }
+
+    .manual-group-info strong {
+        font-size: 0.95rem;
+    }
+
+    .common-result-snippet {
+        font-size: 0.92rem;
     }
 }

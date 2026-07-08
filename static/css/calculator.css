@@ -1,41 +1,53 @@
+/* static/css/calculator.css */
+
+/* Calculator Page */
+
 body.date-calculator-page .app-main {
     min-height: auto;
 }
 
 body.date-calculator-page .app-container {
-    padding-bottom: 8px;
+    padding-bottom: 0.5rem;
 }
 
 .date-calculator-shell {
-    max-width: 540px;
+    max-width: 33.75rem;
     margin: 0 auto;
     display: grid;
-    gap: 12px;
+    gap: 0.75rem;
 }
+
+/* Glass Cards */
 
 .date-clock-card,
 .date-result-card,
 .date-calculator-card,
 .date-tool-btn {
     background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(1.125rem) saturate(170%);
+    -webkit-backdrop-filter: blur(1.125rem) saturate(170%);
     border: 1px solid rgba(255, 255, 255, 0.86);
-    border-radius: 18px;
+    border-radius: var(--radius-lg);
     box-shadow:
-        0 12px 28px rgba(15, 23, 42, 0.08),
-        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+        0 0.75rem 1.75rem rgba(15, 23, 42, 0.08),
+        inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .date-clock-card {
-    padding: 24px 18px 18px;
+    padding: 1.5rem 1.125rem 1.125rem;
     text-align: center;
 }
 
 .date-result-card {
-    padding: 18px;
+    padding: 1.125rem;
     text-align: center;
 }
+
+.date-calculator-card {
+    padding: 0.75rem;
+}
+
+/* Result Text */
 
 .date-result-label {
     color: #64748b;
@@ -45,12 +57,12 @@ body.date-calculator-page .app-container {
 }
 
 .date-result-note {
-    color: #6b7280;
+    color: var(--app-muted);
     font-size: 0.86rem;
 }
 
 .date-result-long {
-    color: #0d6efd;
+    color: var(--app-primary);
     font-size: 1rem;
     font-weight: 800;
 }
@@ -68,21 +80,12 @@ body.date-calculator-page .app-container {
 
 .date-utc-value {
     display: block;
-    color: #0d6efd;
+    color: var(--app-primary);
     font-size: 1.88rem;
     font-weight: 850;
     letter-spacing: 0;
     line-height: 1.15;
     overflow-wrap: anywhere;
-}
-
-.date-clock-date,
-.date-clock-time {
-    display: block;
-}
-
-.date-clock-time {
-    margin-top: 3px;
 }
 
 .date-local-value {
@@ -94,20 +97,30 @@ body.date-calculator-page .app-container {
     overflow-wrap: anywhere;
 }
 
+.date-clock-date,
+.date-clock-time {
+    display: block;
+}
+
+.date-clock-time {
+    margin-top: 0.1875rem;
+}
+
+/* Tool Buttons */
+
 .date-tool-grid {
     display: grid;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 .date-tool-btn {
     width: 100%;
-    min-height: 62px;
+    min-height: 3.875rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 18px;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
     color: #111827;
     text-align: left;
 }
@@ -118,22 +131,24 @@ body.date-calculator-page .app-container {
 }
 
 .date-tool-btn strong {
-    color: #0d6efd;
+    color: var(--app-primary);
     font-size: 0.78rem;
     font-weight: 850;
 }
 
+/* Modal */
+
 .date-modal-content {
     border: 1px solid rgba(255, 255, 255, 0.86);
-    border-radius: 22px;
+    border-radius: 1.375rem;
     background: rgba(248, 250, 252, 0.96);
-    box-shadow: 0 24px 50px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 1.5rem 3.125rem rgba(15, 23, 42, 0.18);
     overflow: hidden;
 }
 
 .date-modal-header {
     align-items: center;
-    padding: 16px 18px 12px;
+    padding: 1rem 1.125rem 0.75rem;
     border-bottom: 1px solid rgba(226, 232, 240, 0.9);
 }
 
@@ -145,72 +160,73 @@ body.date-calculator-page .app-container {
 
 .date-modal-body {
     display: grid;
-    gap: 10px;
-    padding: 12px;
+    gap: 0.625rem;
+    padding: 0.75rem;
 }
 
 .date-modal-footer {
-    padding: 10px 14px 14px;
+    padding: 0.625rem 0.875rem 0.875rem;
     border-top: 1px solid rgba(226, 232, 240, 0.9);
     background: rgba(248, 250, 252, 0.96);
 }
 
-.date-calculator-card {
-    padding: 12px;
-}
+/* Calculator Form */
 
 .date-base-row {
-    margin-bottom: 10px;
+    margin-bottom: 0.625rem;
+}
+
+.date-base-row,
+.date-custom-row {
+    padding: 0.625rem;
+    background: rgba(248, 250, 252, 0.86);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: var(--radius-sm);
 }
 
 .calculator-input-help {
-    margin-top: 6px;
+    margin-top: 0.375rem;
     color: #0853e9;
     font-size: 0.72rem;
     line-height: 1.35;
 }
 
-.date-base-row,
-.date-custom-row {
-    padding: 10px;
-    background: rgba(248, 250, 252, 0.86);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    border-radius: 13px;
-}
-
 .date-preset-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px;
-    margin-bottom: 10px;
-    padding: 4px;
+    gap: 0.25rem;
+    margin-bottom: 0.625rem;
+    padding: 0.25rem;
     background: rgba(226, 232, 240, 0.72);
-    border-radius: 14px;
+    border-radius: var(--radius-sm);
 }
 
 .date-preset-btn {
-    min-height: 38px;
+    min-height: 2.375rem;
     border: 0;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background: transparent;
     color: #475569;
     font-size: 0.8rem;
     font-weight: 800;
-    transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+    transition:
+        background-color 140ms ease,
+        color 140ms ease,
+        box-shadow 140ms ease;
 }
 
 .date-preset-btn.active {
     background: rgba(255, 255, 255, 0.96);
-    color: #0d6efd;
+    color: var(--app-primary);
     box-shadow:
-        0 2px 8px rgba(15, 23, 42, 0.12),
-        inset 0 1px 1px rgba(255, 255, 255, 0.95);
+        0 0.125rem 0.5rem rgba(15, 23, 42, 0.12),
+        inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.95);
 }
 
 .date-input-wrap {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .date-input-wrap-single {
@@ -218,7 +234,7 @@ body.date-calculator-page .app-container {
 }
 
 .date-input-wrap .form-control {
-    min-height: 44px;
+    min-height: 2.75rem;
 }
 
 .date-input-wrap-single .form-control,
@@ -247,27 +263,29 @@ body.date-calculator-page .app-container {
 }
 
 .date-input-wrap .app-card-btn {
-    min-width: 112px;
+    min-width: 7rem;
 }
+
+/* Basic Calculator */
 
 .basic-calculator {
     display: grid;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 .basic-calculator-display {
-    min-height: 92px;
+    min-height: 5.75rem;
     display: grid;
     align-content: end;
-    padding: 16px;
-    border-radius: 16px;
+    padding: 1rem;
+    border-radius: var(--radius-md);
     background: #111827;
     color: #fff;
     text-align: right;
 }
 
 .basic-calculator-expression {
-    min-height: 18px;
+    min-height: 1.125rem;
     color: rgba(255, 255, 255, 0.58);
     font-size: 0.78rem;
     overflow-wrap: anywhere;
@@ -283,20 +301,20 @@ body.date-calculator-page .app-container {
 .basic-calculator-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .basic-calculator-key {
-    min-height: 52px;
+    min-height: 3.25rem;
     border: 0;
-    border-radius: 14px;
+    border-radius: 0.875rem;
     background: rgba(255, 255, 255, 0.94);
     color: #111827;
     font-size: 1.05rem;
     font-weight: 850;
     box-shadow:
-        0 5px 14px rgba(15, 23, 42, 0.08),
-        inset 0 1px 1px rgba(255, 255, 255, 0.96);
+        0 0.3125rem 0.875rem rgba(15, 23, 42, 0.08),
+        inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.96);
 }
 
 .basic-calculator-key-muted {
@@ -307,12 +325,20 @@ body.date-calculator-page .app-container {
 .basic-calculator-key-operator,
 .basic-calculator-key-equals {
     color: #fff;
-    background: #0d6efd;
+    background: var(--app-primary);
 }
 
+/* Mobile */
+
 @media (max-width: 35.5rem) {
+    body.date-calculator-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
+    }
+
     body.date-calculator-page .app-container {
-        padding-bottom: 0.25rem !important;
+        padding-bottom: 0.75rem;
     }
 
     .date-calculator-shell {
@@ -332,11 +358,11 @@ body.date-calculator-page .app-container {
     }
 
     .date-tool-btn span {
-        font-size: 0.86rem;
+        font-size: var(--mobile-font);
     }
 
     .date-tool-btn strong {
-        font-size: 0.68rem;
+        font-size: var(--mobile-small);
     }
 
     .date-modal-content {
@@ -352,7 +378,7 @@ body.date-calculator-page .app-container {
     }
 
     .date-result-label {
-        font-size: 0.62rem;
+        font-size: var(--mobile-small);
     }
 
     .date-result-note {
@@ -360,7 +386,7 @@ body.date-calculator-page .app-container {
     }
 
     .calculator-input-help {
-        font-size: 0.66rem;
+        font-size: var(--mobile-small);
     }
 
     .date-result-long {
@@ -442,5 +468,50 @@ body.date-calculator-page .app-container {
         min-height: clamp(2.875rem, 7.4vw, 3.35rem);
         border-radius: 0.75rem;
         font-size: 0.94rem;
+    }
+}
+
+/* iPad Mini */
+
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    body.date-calculator-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
+    }
+
+    .date-calculator-shell {
+        max-width: 40rem;
+        gap: 1rem;
+    }
+
+    .date-tool-btn {
+        min-height: 4.25rem;
+        padding: 1rem 1.125rem;
+    }
+
+    .date-tool-btn span {
+        font-size: 1.05rem;
+    }
+
+    .date-tool-btn strong {
+        font-size: 0.88rem;
+    }
+
+    .date-result-primary {
+        font-size: 1.85rem;
+    }
+
+    .date-utc-value {
+        font-size: 2.1rem;
+    }
+
+    .date-local-value {
+        font-size: 1.2rem;
+    }
+
+    .basic-calculator-key {
+        min-height: 3.6rem;
+        font-size: 1.15rem;
     }
 }

@@ -1,239 +1,379 @@
-.page-hero {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.84);
-    border-radius: 22px;
-    padding: 18px 20px;
-    box-shadow:
-        0 12px 30px rgba(15, 23, 42, 0.07),
-        inset 0 1px 1px rgba(255, 255, 255, 0.9);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-top: 30px;
-}
+/* static/css/portal_components.css */
 
-.page-eyebrow {
-    color: #374151;
-    font-size: 0.68rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.page-title {
-    font-size: 1.45rem;
-    font-weight: 850;
-    letter-spacing: 0;
-    color: #1d1d1f;
-}
-
-.page-subtitle {
-    font-size: 0.82rem;
-    color: #6b7280;
-}
-
-.page-actions {
-    margin-left: auto;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.portal-card,
-.portal-detail-card,
-.manual-group-card,
-.candidate-card,
-.portal-list-card {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    border: 1px solid rgba(255, 255, 255, 0.84);
-    border-radius: 18px;
-    box-shadow:
-        0 10px 26px rgba(15, 23, 42, 0.07),
-        inset 0 1px 1px rgba(255, 255, 255, 0.9);
-    overflow: hidden;
-}
-
-.portal-card:hover {
-    transform: none;
-}
-
-.portal-card .card-body {
-    padding: 16px;
-}
-
-.app-action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 750;
-    padding: 0.45rem 0.85rem;
-    white-space: nowrap;
-    box-shadow: none;
-}
-
-.app-card-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-radius: 12px;
-    font-size: 0.82rem;
-    font-weight: 780;
-    padding: 0.5rem 0.8rem;
-    box-shadow: none;
-}
-
-.app-form-control,
-.form-control,
-.form-select {
-    border-radius: 13px;
-    font-size: 0.88rem;
-}
-
-.form-label {
-    font-size: 0.76rem;
-    font-weight: 800;
-    color: #4b5563;
-}
+/* Page Sections */
 
 .section-title {
-    font-size: 1.05rem;
+    font-size: var(--title-sm);
     font-weight: 850;
-    letter-spacing: 0;
     color: #1d1d1f;
 }
 
 .section-description {
-    font-size: 0.82rem;
-    color: #6b7280;
+    font-size: var(--font-base);
+    color: var(--app-muted);
 }
 
-.manual-badge,
-.portal-list-badge,
-.portal-detail-pill {
-    border-radius: 999px;
-    font-size: 0.66rem;
-    font-weight: 800;
-    padding: 5px 8px;
+.manual-section {
+    position: relative;
 }
 
-.dispatch-mini-grid div,
-.manual-group-info div,
-.dispatch-info-item,
-.dispatch-reference-item,
-.portal-detail-info > div,
-.delete-info div {
-    background: rgba(248, 250, 252, 0.86);
-    border: 1px solid rgba(229, 231, 235, 0.95);
-    border-radius: 13px;
+/* Search Summary */
+
+.search-summary {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
+
+.search-summary > div {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 999rem;
+    padding: 0.45rem 0.8rem;
+}
+
+.search-summary-label {
+    color: var(--app-muted);
+    font-size: var(--font-small);
+    margin-right: 0.3125rem;
+}
+
+/* Mobile Tabs */
+
+.mobile-filter-toggle {
+    width: 100%;
+    justify-content: center;
+}
+
+.mobile-tab-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.125rem 0.0625rem 0.5rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mobile-tab-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile-tab-scroll .nav-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: var(--button-height);
+    border-radius: 999rem;
+    padding: 0.45rem 0.75rem;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    font-size: var(--font-base);
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.mobile-tab-scroll .nav-link span {
+    min-width: 1.25rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 999rem;
+    background: rgba(15, 23, 42, 0.08);
+    color: #334155;
+    font-size: var(--font-small);
+    text-align: center;
+}
+
+.mobile-tab-scroll .nav-link.active {
+    color: #fff;
+    background: var(--app-primary);
+    border-color: var(--app-primary);
+    box-shadow: 0 0.5rem 1.125rem rgba(13, 110, 253, 0.22);
+}
+
+.mobile-tab-scroll .nav-link.active span {
+    color: var(--app-primary);
+    background: rgba(255, 255, 255, 0.92);
+}
+
+/* Manual / Dispatch Info */
+
+.manual-group-header,
+.candidate-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.875rem;
+}
+
+.manual-group-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11.25rem, 1fr));
+    gap: 0.5625rem;
+}
+
+.manual-group-info div {
+    padding: 0.625rem;
+}
+
+.manual-group-info span {
+    display: block;
+    color: #8e8e93;
+    font-size: var(--font-xs);
+    font-weight: 850;
+    margin-bottom: 0.25rem;
+}
+
+.manual-group-info strong {
+    display: block;
+    color: #1d1d1f;
+    font-size: 0.84rem;
+    word-break: break-word;
+}
+
+.manual-group-actions,
+.candidate-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Snippets */
+
+.common-result-snippet,
+.candidate-snippet {
+    padding: 0.75rem 0.875rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: #334155;
+    background: rgba(25, 135, 84, 0.06);
+    border: 1px solid rgba(25, 135, 84, 0.16);
+}
+
+.common-result-snippet mark,
+.common-result-snippet .highlight {
+    background: #fff3cd;
+    color: #111827;
+    padding: 0 0.125rem;
+    border-radius: 0.1875rem;
+}
+
+.common-result-card {
+    border-left: 0.3125rem solid #198754;
+}
+
+.candidate-snippet {
+    margin-top: 0.625rem;
+    max-height: 11.25rem;
+    overflow-y: auto;
+    background: rgba(248, 250, 252, 0.9);
+    border-color: rgba(229, 231, 235, 0.95);
+}
+
+/* Mobile */
 
 @media (max-width: 35.5rem) {
-    .page-hero {
-        align-items: flex-start;
-        padding: 20px 11px;
-        border-radius: 17px;
-        gap: 8px;
-        margin-top: 1.625rem;
-        background: rgba(255,255,255,.72);
-        backdrop-filter: blur(22px) saturate(180%);
-        -webkit-backdrop-filter: blur(22px) saturate(180%);
-        box-shadow: 0 10px 26px rgba(15,23,42,.07);
+    .section-title {
+        font-size: var(--mobile-title);
     }
 
-    .page-title {
-        font-size: 0.94rem;
-        line-height: 1.15;
-        letter-spacing: 0;
-        margin-bottom: 3px !important;
-    }
-
-    .page-eyebrow {
-        font-size: 0.52rem;
-        letter-spacing: 0.04em;
-        margin-bottom: 2px !important;
-    }
-
-    .page-subtitle,
     .section-description {
         display: none !important;
     }
 
-    .page-actions {
-        width: auto;
-        flex: 0 0 auto;
-        justify-content: flex-end;
-        gap: 6px;
+    .search-summary {
+        display: none !important;
     }
 
-    .page-actions:empty {
-        display: none;
+    .mobile-filter-toggle {
+        min-height: var(--button-height);
+        margin-bottom: 0.625rem;
+        background: rgba(17, 24, 39, 0.94);
+        border: 0;
+        box-shadow: 0 0.625rem 1.375rem rgba(15, 23, 42, 0.18);
     }
 
-    .page-actions .app-action-btn {
-        width: auto !important;
-        min-height: 28px;
-        padding: 4px 9px !important;
-        font-size: 0.66rem;
-        border-radius: 999px !important;
+    .manual-group-header,
+    .candidate-top {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 
-    .portal-card,
-    .portal-detail-card,
-    .manual-group-card,
-    .candidate-card,
-    .portal-list-card {
-        border-radius: 15px;
+    .manual-group-actions,
+    .candidate-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+        gap: 0.375rem;
     }
 
-    .portal-card .card-body {
-        padding: 10px !important;
+    .manual-group-actions .btn,
+    .candidate-actions .btn,
+    .candidate-actions .app-card-btn {
+        width: 100%;
     }
 
-    .portal-card .card-title,
-    .portal-detail-card .card-title {
-        line-height: 1.25;
+    .manual-group-info {
+        grid-template-columns: 1fr;
+        gap: 0.375rem;
     }
 
-    .app-card-btn {
-        min-height: 31px;
-        font-size: 0.68rem;
-        padding: 5px 8px;
-        border-radius: 10px;
-        line-height: 1.25;
+    .manual-group-info div {
+        padding: 0.45rem 0.5rem;
+        border-radius: 0.625rem;
     }
 
-    .app-form-control,
-    .form-control,
-    .form-select {
-        min-height: 38px;
-        font-size: 0.72rem;
-        border-radius: 11px;
+    .manual-group-info span {
+        font-size: var(--mobile-small);
     }
 
-    .form-label {
-        font-size: 0.64rem;
-        margin-bottom: 4px;
+    .manual-group-info strong {
+        font-size: var(--mobile-font);
     }
 
-    .section-title {
-        font-size: 0.86rem;
+    .common-result-card {
+        border-left: 0;
+        border-top: 0.25rem solid #198754;
     }
 
-    .manual-badge,
-    .portal-list-badge,
-    .portal-detail-pill {
-        font-size: 0.58rem;
-        padding: 4px 7px;
+    .common-result-snippet,
+    .candidate-snippet {
+        max-height: 3.5rem;
+        overflow: hidden;
+        font-size: var(--mobile-small);
+        padding: 0.5rem 0.5625rem;
+        line-height: 1.35;
+    }
+}
+
+/* iPad Mini */
+
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    .mobile-tab-scroll .nav-link {
+        font-size: 0.95rem;
+        padding-inline: 0.9rem;
+    }
+
+    .manual-group-info {
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    }
+}
+
+/* =========================================================
+   Common Page Layout Cleanup
+   - 페이지별 CSS 반복 제거용
+========================================================= */
+
+/* 공통: 페이지 높이 과도하게 늘어나는 것 방지 */
+body.home-page .app-main,
+body.detail-page .app-main,
+body.form-page .app-main,
+body.list-page .app-main,
+body.delete-confirm-page .app-main,
+body.dispatch-search-page .app-main,
+body.dispatch-detail-page .app-main,
+body.dispatch-form-page .app-main,
+body.manual-search-page .app-main,
+body.date-calculator-page .app-main {
+    min-height: auto;
+}
+
+/* 공통: 페이지 하단 여백 */
+body.home-page .app-container,
+body.detail-page .app-container,
+body.form-page .app-container,
+body.list-page .app-container,
+body.delete-confirm-page .app-container,
+body.dispatch-search-page .app-container,
+body.dispatch-detail-page .app-container,
+body.dispatch-form-page .app-container,
+body.manual-search-page .app-container,
+body.date-calculator-page .app-container {
+    padding-bottom: 0.5rem;
+}
+
+/* 모바일에서는 하단 nav 여백은 body가 담당 */
+@media (max-width: 48rem) {
+    body.home-page .app-container,
+    body.detail-page .app-container,
+    body.form-page .app-container,
+    body.list-page .app-container,
+    body.delete-confirm-page .app-container,
+    body.dispatch-search-page .app-container,
+    body.dispatch-detail-page .app-container,
+    body.dispatch-form-page .app-container,
+    body.manual-search-page .app-container,
+    body.date-calculator-page .app-container {
+        padding-bottom: 0.75rem;
+    }
+}
+
+/* iPad Mini에서도 하단 nav 여백은 body가 담당 */
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    body.home-page .app-container,
+    body.detail-page .app-container,
+    body.form-page .app-container,
+    body.list-page .app-container,
+    body.delete-confirm-page .app-container,
+    body.dispatch-search-page .app-container,
+    body.dispatch-detail-page .app-container,
+    body.dispatch-form-page .app-container,
+    body.manual-search-page .app-container,
+    body.date-calculator-page .app-container {
+        padding-bottom: 1rem;
+    }
+}
+
+/* 공통 액션 버튼 그룹 */
+.portal-list-card-actions,
+.manual-group-actions,
+.dispatch-open-actions,
+.dispatch-staff-actions,
+.delete-actions,
+.dispatch-form-actions,
+.portal-form-actions,
+.common-form-actions {
+    gap: 0.5rem;
+}
+
+/* 모바일 액션 버튼은 1열 */
+@media (max-width: 35.5rem) {
+    .portal-list-card-actions,
+    .manual-group-actions,
+    .dispatch-open-actions,
+    .dispatch-staff-actions,
+    .delete-actions,
+    .dispatch-form-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.45rem !important;
+    }
+
+    .portal-list-card-actions .btn,
+    .manual-group-actions .btn,
+    .dispatch-open-actions .btn,
+    .dispatch-staff-actions .btn,
+    .delete-actions .btn,
+    .dispatch-form-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Form 페이지는 모바일에서도 2열 유지 가능 */
+@media (max-width: 35.5rem) {
+    .portal-form-actions,
+    .common-form-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+    }
+
+    .portal-form-actions .app-card-btn,
+    .common-form-actions .app-card-btn {
+        min-width: 0;
+        width: 100%;
     }
 }

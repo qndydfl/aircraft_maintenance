@@ -1,17 +1,25 @@
-body.detail-page .app-main {
+/* static/css/manual_detail.css */
+
+/* Manual Detail Page */
+
+body.detail-page .app-main,
+body.aircraft-manual-detail-page .app-main {
     min-height: auto;
 }
 
-body.detail-page .app-container {
-    padding-bottom: 8px;
+body.detail-page .app-container,
+body.aircraft-manual-detail-page .app-container {
+    padding-bottom: 0.5rem;
 }
+
+/* Detail Card */
 
 .portal-detail-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
 .portal-detail-empty-card {
@@ -19,7 +27,7 @@ body.detail-page .app-container {
 }
 
 .portal-detail-title {
-    font-size: 1.05rem;
+    font-size: var(--title-sm);
     font-weight: 850;
     letter-spacing: 0;
     color: #1d1d1f;
@@ -35,22 +43,24 @@ body.detail-page .app-container {
     color: #6c757d;
 }
 
+/* Detail Info */
+
 .portal-detail-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 0.75rem;
 }
 
 .portal-detail-info > div {
-    padding: 14px;
+    padding: 0.875rem;
 }
 
 .portal-detail-info span {
     display: block;
-    font-size: 0.72rem;
-    color: #6b7280;
+    font-size: var(--font-small);
+    color: var(--app-muted);
     font-weight: 800;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
 }
 
 .portal-detail-info strong {
@@ -60,21 +70,23 @@ body.detail-page .app-container {
 
 .portal-detail-note {
     font-size: 0.84rem;
-    color: #6b7280;
+    color: var(--app-muted);
     line-height: 1.45;
 }
 
 .revision-info,
 .manual-uploaded {
-    font-size: 0.72rem;
-    color: #6b7280;
+    font-size: var(--font-small);
+    color: var(--app-muted);
 }
+
+/* Detail Actions */
 
 .portal-detail-button-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .portal-detail-button-group form {
@@ -85,10 +97,32 @@ body.detail-page .app-container {
 .portal-detail-button-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
+/* Manual Primary Actions */
+
+.manual-primary-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+/* Mobile */
+
 @media (max-width: 35.5rem) {
+    body.detail-page,
+    body.aircraft-manual-detail-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
+    }
+
+    body.detail-page .app-container,
+    body.aircraft-manual-detail-page .app-container {
+        padding-bottom: 0.75rem;
+    }
+
     .desktop-only-btn,
     .desktop-only-btn-group,
     .portal-detail-button-group form,
@@ -96,27 +130,20 @@ body.detail-page .app-container {
         display: none !important;
     }
 
-    body.detail-page .app-container {
-        padding-bottom: 0;
-    }
-
     .portal-detail-card-header {
-        gap: 8px;
-        margin-bottom: 8px;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .portal-detail-title {
-        font-size: 0.78rem;
+        font-size: var(--mobile-title);
     }
 
     .portal-detail-card .text-muted.manual-uploaded {
         display: none !important;
     }
 
-    .aircraft-manual-detail-page .portal-detail-empty-card {
-        display: none !important;
-    }
-
+    .aircraft-manual-detail-page .portal-detail-empty-card,
     .aircraft-manual-detail-page .portal-detail-empty-col {
         display: none !important;
     }
@@ -127,23 +154,23 @@ body.detail-page .app-container {
 
     .portal-detail-info {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 0.5rem;
     }
 
     .portal-detail-info > div {
-        padding: 7px 8px;
+        padding: 0.45rem 0.5rem;
     }
 
     .portal-detail-info span {
-        font-size: 0.56rem;
+        font-size: var(--mobile-small);
     }
 
     .portal-detail-info strong {
-        font-size: 0.66rem;
+        font-size: var(--mobile-font);
     }
 
     .portal-detail-button-grid {
-        gap: 6px;
+        gap: 0.375rem;
     }
 
     .manual-primary-actions {
@@ -155,11 +182,43 @@ body.detail-page .app-container {
         align-items: center;
         justify-content: center;
         width: 100%;
-        min-height: 29px;
-        font-size: 0.64rem;
+        min-height: var(--button-height);
+        font-size: 0.875rem;
     }
 
     .portal-detail-card .app-card-btn.mobile-download-btn {
         display: none !important;
+    }
+}
+
+/* iPad Mini */
+
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    body.detail-page,
+    body.aircraft-manual-detail-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
+    }
+
+    .portal-detail-title {
+        font-size: 1.2rem;
+    }
+
+    .portal-detail-info {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .portal-detail-info strong {
+        font-size: 1rem;
+    }
+
+    .portal-detail-note {
+        font-size: 0.92rem;
+    }
+
+    .portal-detail-button-grid,
+    .manual-primary-actions {
+        gap: 0.625rem;
     }
 }

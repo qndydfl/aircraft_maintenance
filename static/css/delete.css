@@ -1,16 +1,26 @@
+/* static/css/delete.css */
+
+body.delete-confirm-page .app-main {
+    min-height: auto;
+}
+
+body.delete-confirm-page .app-container {
+    padding-bottom: 0.5rem;
+}
+
 .delete-card {
-    max-width: 620px;
+    max-width: 38.75rem;
     margin: 0 auto;
 }
 
 .delete-card .card-body {
-    padding: 30px;
+    padding: 1.875rem;
     text-align: center;
 }
 
 .delete-icon {
     font-size: 2.7rem;
-    margin-bottom: 12px;
+    margin-bottom: 0.75rem;
 }
 
 .delete-title {
@@ -20,31 +30,31 @@
 }
 
 .delete-description {
-    color: #6b7280;
-    margin-bottom: 22px;
+    color: var(--app-muted);
+    margin-bottom: 1.375rem;
 }
 
 .delete-warning {
     background: #fff7ed;
     border: 1px solid #fdba74;
     color: #9a3412;
-    padding: 14px;
-    border-radius: 14px;
-    margin-bottom: 20px;
+    padding: 0.875rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.25rem;
     font-size: 0.86rem;
     line-height: 1.5;
 }
 
 .delete-warning strong {
     display: block;
-    margin-top: 6px;
+    margin-top: 0.375rem;
 }
 
 .delete-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
 .delete-info-full {
@@ -52,15 +62,15 @@
 }
 
 .delete-info div {
-    padding: 13px;
+    padding: 0.8125rem;
 }
 
 .delete-info span {
     display: block;
-    font-size: 0.72rem;
-    color: #6b7280;
+    font-size: var(--font-small);
+    color: var(--app-muted);
     font-weight: 850;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
 }
 
 .delete-info strong {
@@ -71,16 +81,18 @@
 .delete-actions {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 @media (max-width: 35.5rem) {
-    body.delete-confirm-page .app-main {
-        min-height: auto;
+    body.delete-confirm-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
     }
 
     body.delete-confirm-page .app-container {
-        padding-bottom: 0;
+        padding-bottom: 0.75rem;
     }
 
     .delete-card {
@@ -88,7 +100,7 @@
     }
 
     .delete-card .card-body {
-        padding: 18px;
+        padding: 1.125rem;
     }
 
     .delete-icon {
@@ -101,31 +113,47 @@
 
     .delete-description {
         font-size: 0.78rem;
-        margin-bottom: 16px;
+        margin-bottom: 1rem;
     }
 
     .delete-warning {
         font-size: 0.76rem;
-        padding: 11px;
+        padding: 0.6875rem;
     }
 
     .delete-info {
         grid-template-columns: 1fr;
-        gap: 8px;
-        margin-bottom: 16px;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
     }
 
     .delete-info div {
-        padding: 10px;
+        padding: 0.625rem;
     }
 
     .delete-actions {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 0.5rem;
     }
 
     .delete-actions .btn {
         width: 100%;
+    }
+}
+
+@media (min-width: 48.0625rem) and (max-width: 52.125rem) {
+    body.delete-confirm-page {
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
+    }
+
+    .delete-card {
+        max-width: 42rem;
+    }
+
+    .delete-title {
+        font-size: 1.4rem;
     }
 }
