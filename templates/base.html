@@ -117,7 +117,7 @@
 
     <a href="{% url 'manual_search' %}"
         class="mobile-nav-item
-        {% if request.resolver_match.url_name == 'manual_search' or request.resolver_match.url_name == 'manual_pdf_viewer' or request.resolver_match.url_name == 'aircraft_manual_detail' or request.resolver_match.url_name == 'common_manual_category_detail' %}
+        {% if request.resolver_match.url_name == 'manual_search' or request.resolver_match.url_name == 'manual_pdf_viewer' %}
         active
         {% endif %}">
         <span class="mobile-nav-icon">⌕</span>

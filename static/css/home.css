@@ -3,7 +3,7 @@
 /* Home Layout */
 
 body.home-page .manual-section:last-child {
-    margin-bottom: 0 !important;
+    margin-bottom: 0.4rem !important;
 }
 
 .manual-section {

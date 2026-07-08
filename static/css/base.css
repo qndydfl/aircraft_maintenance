@@ -270,7 +270,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    margin-top: 1.875rem;
+    margin-top: 1rem;
 }
 
 .page-eyebrow {
@@ -529,7 +529,7 @@ body {
         padding: 1.25rem 0.7rem;
         border-radius: 1.0625rem;
         gap: 0.5rem;
-        margin-top: 1.625rem;
+        margin-top: 1rem;
         background: rgba(255, 255, 255, 0.72);
     }
 
@@ -807,5 +807,26 @@ body {
         height: var(--bottom-nav-height);
         padding-bottom: 0;
         bottom: 0;
+    }
+}
+
+
+/* iPad mini: Search / Dispatch bottom nav floating fix */
+@media (min-width: 46.5rem) and (max-width: 48rem) {
+    body.manual-search-page,
+    body.dispatch-search-page {
+        padding-bottom: var(--bottom-nav-height) !important;
+    }
+
+    body.manual-search-page .app-container,
+    body.dispatch-search-page .app-container {
+        padding-bottom: 0 !important;
+    }
+
+    body.manual-search-page .mobile-bottom-nav,
+    body.dispatch-search-page .mobile-bottom-nav {
+        bottom: 0 !important;
+        height: var(--bottom-nav-height) !important;
+        padding-bottom: 0 !important;
     }
 }

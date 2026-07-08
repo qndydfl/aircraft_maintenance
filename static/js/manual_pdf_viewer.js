@@ -907,7 +907,7 @@ function createOutlineTree(items, depth = 0) {
             const toggleBtn = document.createElement("button");
             toggleBtn.type = "button";
             toggleBtn.className = "outline-toggle-btn";
-            toggleBtn.innerHTML = '<span class="toggle-icon">[+]</span>';
+            toggleBtn.innerHTML = '<span class="toggle-icon">▶</span>';
 
             row.appendChild(toggleBtn);
 
@@ -926,17 +926,17 @@ function createOutlineTree(items, depth = 0) {
                 if (isCollapsed) {
                     childUl.classList.remove("outline-children-collapsed");
                     toggleBtn.classList.add("is-open");
-                    iconSpan.innerHTML = "[-]";
+                    iconSpan.innerHTML = "▼";
                 } else {
                     childUl.classList.add("outline-children-collapsed");
                     toggleBtn.classList.remove("is-open");
-                    iconSpan.innerHTML = "[+]";
+                    iconSpan.innerHTML = "▶";
                 }
             }
         } else {
             const docIcon = document.createElement("span");
             docIcon.className = "outline-doc-icon";
-            docIcon.innerHTML = "▱";
+            docIcon.innerHTML = "•";
             row.appendChild(docIcon);
         }
 

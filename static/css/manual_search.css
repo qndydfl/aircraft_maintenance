@@ -2,12 +2,20 @@
 
 /* Manual Search Page */
 
+body.manual-search-page {
+    --search-page-edge-gap: 1rem;
+}
+
 body.manual-search-page .app-main {
     min-height: auto;
 }
 
+body.manual-search-page .page-hero {
+    margin-top: var(--search-page-edge-gap);
+}
+
 body.manual-search-page .app-container {
-    padding-bottom: 0.5rem;
+    padding-bottom: var(--search-page-edge-gap) !important;
 }
 
 /* Empty Prompt */
@@ -91,7 +99,7 @@ body.manual-search-page .app-container {
 
 /* Mobile */
 
-@media (max-width: 35.5rem) {
+@media (max-width: 48rem) {
     body.manual-search-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)
@@ -99,7 +107,7 @@ body.manual-search-page .app-container {
     }
 
     body.manual-search-page .app-container {
-        padding-bottom: 0.75rem;
+        padding-bottom: var(--search-page-edge-gap) !important;
     }
 
     .manual-search-empty-prompt::before {
@@ -178,13 +186,23 @@ body.manual-search-page .app-container {
     }
 }
 
+/* Small Mobile */
+
+@media (max-width: 35.5rem) {
+    body.manual-search-page .page-hero {
+        margin-top: var(--search-page-edge-gap) !important;
+    }
+
+    body.manual-search-page .app-container {
+        padding-bottom: var(--search-page-edge-gap) !important;
+    }
+}
+
 /* iPad Mini */
 
 @media (min-width: 48.0625rem) and (max-width: 52.125rem) {
     body.manual-search-page {
-        padding-bottom: calc(
-            var(--bottom-nav-height) + var(--safe-area-bottom)
-        );
+        padding-bottom: 0 !important;
     }
 
     .manual-group-info {

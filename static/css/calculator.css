@@ -2,12 +2,12 @@
 
 /* Calculator Page */
 
-body.date-calculator-page .app-main {
+body.calculator-page .app-main {
     min-height: auto;
 }
 
-body.date-calculator-page .app-container {
-    padding-bottom: 0.5rem;
+body.calculator-page .app-container {
+    padding-bottom: 0;
 }
 
 .date-calculator-shell {
@@ -331,14 +331,14 @@ body.date-calculator-page .app-container {
 /* Mobile */
 
 @media (max-width: 35.5rem) {
-    body.date-calculator-page {
+    body.calculator-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)
         );
     }
 
-    body.date-calculator-page .app-container {
-        padding-bottom: 0.75rem;
+    body.calculator-page .app-container {
+        padding-bottom: 0rem;
     }
 
     .date-calculator-shell {
@@ -382,7 +382,7 @@ body.date-calculator-page .app-container {
     }
 
     .date-result-note {
-        font-size: 0.72rem;
+        font-size: 0.85rem;
     }
 
     .calculator-input-help {
@@ -429,7 +429,7 @@ body.date-calculator-page .app-container {
     .date-preset-btn {
         min-height: clamp(2.125rem, 5.5vw, 2.5rem);
         border-radius: 0.6rem;
-        font-size: 0.72rem;
+        font-size: 0.85rem;
     }
 
     .date-input-wrap {
@@ -474,10 +474,8 @@ body.date-calculator-page .app-container {
 /* iPad Mini */
 
 @media (min-width: 48.0625rem) and (max-width: 52.125rem) {
-    body.date-calculator-page {
-        padding-bottom: calc(
-            var(--bottom-nav-height) + var(--safe-area-bottom)
-        );
+    body.calculator-page {
+        padding-bottom: 0 !important;
     }
 
     .date-calculator-shell {
