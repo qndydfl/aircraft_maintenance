@@ -824,6 +824,8 @@ body {
         height: var(--app-viewport-height);
         padding-bottom: 0 !important;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     body:not(.login-page):not(.pdf-viewer-page) .app-main {
@@ -831,6 +833,7 @@ body {
             var(--app-viewport-height) - var(--navbar-height) -
                 var(--safe-area-top) - var(--bottom-nav-height)
         );
+        flex: 1 1 auto;
         min-height: 0 !important;
         overflow-y: auto;
         overscroll-behavior: contain;
@@ -842,27 +845,34 @@ body {
     }
 
     body:not(.login-page):not(.pdf-viewer-page) .mobile-bottom-nav {
-        bottom: 0 !important;
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        flex: 0 0 var(--bottom-nav-height);
         height: var(--bottom-nav-height) !important;
+        min-height: var(--bottom-nav-height) !important;
         padding-bottom: 0 !important;
+        margin-top: auto !important;
         transform: translateZ(0);
         will-change: transform;
     }
 }
 
 
-/* iPad mini PWA bottom nav floating fix */
+/* iPad mini PWA keeps the same mobile app shell */
 @media (min-width: 46.5rem) and (max-width: 48rem) {
     body:not(.login-page):not(.pdf-viewer-page) {
-        padding-bottom: var(--bottom-nav-height) !important;
-    }
-
-    body:not(.login-page):not(.pdf-viewer-page) .app-container {
         padding-bottom: 0 !important;
     }
 
+    body:not(.login-page):not(.pdf-viewer-page) .app-container {
+        padding-bottom: 1rem !important;
+    }
+
     body:not(.login-page):not(.pdf-viewer-page) .mobile-bottom-nav {
-        bottom: 0 !important;
+        position: relative !important;
+        bottom: auto !important;
         height: var(--bottom-nav-height) !important;
         padding-bottom: 0 !important;
         transform: translateZ(0);

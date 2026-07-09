@@ -60,7 +60,7 @@ manual-search-page
 
                     <select name="aircraft"
                         class="form-select app-form-control">
-                        <option value="">전체 기종</option>
+                        <option value="">ALL</option>
 
                         {% for aircraft in aircrafts %}
                             <option value="{{ aircraft.id }}"
@@ -74,11 +74,11 @@ manual-search-page
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <label class="form-label">Manual</label>
+                    <label class="form-label">Manual Type</label>
 
                     <select name="manual_type"
                         class="form-select app-form-control">
-                        <option value="">전체</option>
+                        <option value="">ALL</option>
 
                         {% for type in manual_types %}
                             <option value="{{ type }}"
