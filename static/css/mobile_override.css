@@ -40,11 +40,23 @@
         display: flex !important;
         align-items: center;
         justify-content: center;
+        gap: 0.4rem;
         min-height: var(--button-height);
         margin-bottom: 0.625rem !important;
         border: 0 !important;
         background: linear-gradient(180deg, #2997ff, var(--app-primary)) !important;
         box-shadow: 0 10px 22px rgba(0, 122, 255, 0.22);
+    }
+
+    .mobile-filter-toggle::after {
+        content: "⌃";
+        font-size: 0.85rem;
+        line-height: 1;
+        transition: transform 150ms ease;
+    }
+
+    .mobile-filter-toggle.collapsed::after {
+        content: "⌄";
     }
 
     .mobile-tab-scroll {

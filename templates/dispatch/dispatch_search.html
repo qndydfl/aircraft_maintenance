@@ -57,17 +57,17 @@ dispatch-search-page
     </div>
 </div>
 
-<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill"
+<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
     type="button"
     data-bs-toggle="collapse"
     data-bs-target="#dispatch-search-filter"
-    aria-expanded="true"
+    aria-expanded="{% if query %}false{% else %}true{% endif %}"
     aria-controls="dispatch-search-filter">
-    Search Options
+    <span class="filter-toggle-label"></span>
 </button>
 
 <div id="dispatch-search-filter"
-    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse show d-md-block">
+    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse {% if not query %}show{% endif %} d-md-block">
     <div class="card-body">
         <form method="get"
             data-loading-title="Searching Dispatch"

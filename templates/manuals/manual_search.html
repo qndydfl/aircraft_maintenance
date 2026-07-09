@@ -37,17 +37,17 @@ manual-search-page
     </div>
 </div>
 
-<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3"
+<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 {% if query %}collapsed{% endif %}"
     type="button"
     data-bs-toggle="collapse"
     data-bs-target="#manual-search-filter"
-    aria-expanded="true"
+    aria-expanded="{% if query %}false{% else %}true{% endif %}"
     aria-controls="manual-search-filter">
-    Search Options
+    <span class="filter-toggle-label"></span>
 </button>
 
 <div id="manual-search-filter"
-    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse show d-md-block">
+    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse {% if not query %}show{% endif %} d-md-block">
     <div class="card-body">
         <form method="get"
             data-loading-title="Searching Manuals"
