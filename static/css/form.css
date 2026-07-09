@@ -49,8 +49,8 @@ body.form-page .app-container {
 .portal-form-guide,
 .common-upload-guide {
     padding: 0.75rem 0.8125rem;
-    background: rgba(248, 250, 252, 0.88);
-    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(242, 242, 247, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.84);
     border-radius: var(--radius-sm);
     font-size: 0.8rem;
     line-height: 1.45;
@@ -73,7 +73,7 @@ body.form-page .app-container {
     min-width: 7.5rem;
 }
 
-@media (max-width: 35.5rem) {
+@media (max-width: 48rem) {
     body.form-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)

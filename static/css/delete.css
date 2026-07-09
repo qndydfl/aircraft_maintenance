@@ -35,9 +35,9 @@ body.delete-confirm-page .app-container {
 }
 
 .delete-warning {
-    background: #fff7ed;
-    border: 1px solid #fdba74;
-    color: #9a3412;
+    background: rgba(255, 204, 0, 0.14);
+    border: 1px solid rgba(255, 204, 0, 0.28);
+    color: #8a5a00;
     padding: 0.875rem;
     border-radius: var(--radius-sm);
     margin-bottom: 1.25rem;
@@ -84,7 +84,7 @@ body.delete-confirm-page .app-container {
     gap: 0.625rem;
 }
 
-@media (max-width: 35.5rem) {
+@media (max-width: 48rem) {
     body.delete-confirm-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)

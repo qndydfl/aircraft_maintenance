@@ -39,6 +39,9 @@ body.dispatch-search-page .app-container {
 .dispatch-ref-card,
 .mel-result-card {
     padding: 0.8125rem;
+    box-shadow:
+        0 0.55rem 1.25rem rgba(15, 23, 42, 0.07),
+        inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .dispatch-card-title {
@@ -56,6 +59,7 @@ body.dispatch-search-page .app-container {
 
 .dispatch-mini-grid div {
     padding: 0.5rem;
+    box-shadow: inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .dispatch-mini-grid span,
@@ -81,6 +85,9 @@ body.dispatch-search-page .app-container {
 .mel-condition-box {
     padding: 0.5625rem;
     margin-bottom: 0.625rem;
+    background: rgba(242, 242, 247, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: var(--radius-sm);
 }
 
 .mel-condition-box p {
@@ -113,8 +120,8 @@ body.dispatch-search-page .app-container {
     margin-top: 0.625rem;
     max-height: 11.25rem;
     overflow-y: auto;
-    background: rgba(248, 250, 252, 0.9);
-    border: 1px solid rgba(229, 231, 235, 0.95);
+    background: rgba(242, 242, 247, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.84);
     border-radius: var(--radius-sm);
     padding: 0.75rem;
     font-size: 0.82rem;
@@ -133,6 +140,7 @@ body.dispatch-search-page .app-container {
 .candidate-pager .badge {
     border-radius: 999rem;
     font-weight: 800;
+    box-shadow: 0 0.35rem 0.75rem rgba(15, 23, 42, 0.08);
 }
 
 /* MEL Compact */
@@ -156,8 +164,8 @@ body.dispatch-search-page .app-container {
 }
 
 .mel-compact-meta span {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
+    background: rgba(242, 242, 247, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.86);
     border-radius: 999rem;
     padding: 0.25rem 0.5rem;
     font-size: var(--font-small);
@@ -190,12 +198,12 @@ body.dispatch-search-page .app-container {
 
 .dispatch-status-complete {
     background: rgba(52, 199, 89, 0.14);
-    color: #198754;
+    color: #168a3a;
 }
 
 .dispatch-status-partial {
-    background: rgba(255, 193, 7, 0.18);
-    color: #b58105;
+    background: rgba(255, 204, 0, 0.18);
+    color: #9a6a00;
 }
 
 .dispatch-status-empty {
@@ -248,14 +256,15 @@ body.dispatch-search-page .app-container {
     font-size: 0.82rem;
     font-weight: 850;
     color: #fff;
+    letter-spacing: 0;
 }
 
 .dispatch-header-danger {
-    background: var(--app-danger);
+    background: linear-gradient(180deg, #ff6961, var(--app-danger));
 }
 
 .dispatch-header-primary {
-    background: var(--app-primary);
+    background: linear-gradient(180deg, #2997ff, var(--app-primary));
 }
 
 .dispatch-header-secondary {
@@ -488,6 +497,10 @@ body.dispatch-search-page table th {
     .candidate-pager .badge {
         font-size: var(--mobile-small);
         padding: 0.35rem 0.55rem;
+        min-height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .mel-dispatch-results .card-body {
@@ -630,6 +643,16 @@ body.dispatch-search-page table th {
 
     body.dispatch-search-page .app-container {
         padding-bottom: var(--search-page-edge-gap) !important;
+    }
+
+    .candidate-pager {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .candidate-pager .badge {
+        order: -1;
+        width: 100%;
     }
 }
 

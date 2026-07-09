@@ -22,6 +22,7 @@ body.manual-search-page .app-container {
 
 .manual-group-card {
     overflow: hidden;
+    border-color: rgba(255, 255, 255, 0.88);
 }
 
 .manual-group-header {
@@ -43,6 +44,7 @@ body.manual-search-page .app-container {
 
 .manual-group-info div {
     padding: 0.625rem;
+    box-shadow: inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .manual-group-info span {
@@ -70,7 +72,7 @@ body.manual-search-page .app-container {
 /* Common Manual Result */
 
 .common-result-card {
-    border-left: 0.3125rem solid #198754;
+    border-left: 0.3125rem solid var(--app-success);
 }
 
 .common-result-snippet {
@@ -79,13 +81,14 @@ body.manual-search-page .app-container {
     font-size: 0.84rem;
     line-height: 1.55;
     color: #334155;
-    background: rgba(25, 135, 84, 0.06);
-    border: 1px solid rgba(25, 135, 84, 0.16);
+    background: rgba(242, 242, 247, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    box-shadow: inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .common-result-snippet mark,
 .common-result-snippet .highlight {
-    background: #fff3cd;
+    background: rgba(255, 204, 0, 0.34);
     color: #111827;
     padding: 0 0.125rem;
     border-radius: 0.1875rem;
@@ -164,7 +167,7 @@ body.manual-search-page .app-container {
 
     .common-result-card {
         border-left: 0;
-        border-top: 0.25rem solid #198754;
+        border-top: 0.25rem solid var(--app-success);
     }
 
     .common-result-snippet {

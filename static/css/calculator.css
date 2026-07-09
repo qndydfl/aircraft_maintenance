@@ -23,14 +23,14 @@ body.calculator-page .app-container {
 .date-result-card,
 .date-calculator-card,
 .date-tool-btn {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(1.125rem) saturate(170%);
-    -webkit-backdrop-filter: blur(1.125rem) saturate(170%);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(1.5rem) saturate(180%);
+    -webkit-backdrop-filter: blur(1.5rem) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.86);
     border-radius: var(--radius-lg);
     box-shadow:
-        0 0.75rem 1.75rem rgba(15, 23, 42, 0.08),
-        inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
+        var(--app-shadow-md),
+        var(--app-inset-highlight);
 }
 
 .date-clock-card {
@@ -123,6 +123,15 @@ body.calculator-page .app-container {
     padding: 0.875rem 1rem;
     color: #111827;
     text-align: left;
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        background-color 150ms ease;
+}
+
+.date-tool-btn:hover {
+    transform: translateY(-0.0625rem);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .date-tool-btn span {
@@ -140,9 +149,11 @@ body.calculator-page .app-container {
 
 .date-modal-content {
     border: 1px solid rgba(255, 255, 255, 0.86);
-    border-radius: 1.375rem;
+    border-radius: var(--radius-xl);
     background: rgba(248, 250, 252, 0.96);
-    box-shadow: 0 1.5rem 3.125rem rgba(15, 23, 42, 0.18);
+    box-shadow: var(--app-shadow-lg);
+    backdrop-filter: blur(1.5rem) saturate(180%);
+    -webkit-backdrop-filter: blur(1.5rem) saturate(180%);
     overflow: hidden;
 }
 
@@ -197,7 +208,7 @@ body.calculator-page .app-container {
     gap: 0.25rem;
     margin-bottom: 0.625rem;
     padding: 0.25rem;
-    background: rgba(226, 232, 240, 0.72);
+    background: rgba(229, 229, 234, 0.74);
     border-radius: var(--radius-sm);
 }
 
@@ -279,7 +290,7 @@ body.calculator-page .app-container {
     align-content: end;
     padding: 1rem;
     border-radius: var(--radius-md);
-    background: #111827;
+    background: linear-gradient(180deg, #242834, #111827);
     color: #fff;
     text-align: right;
 }
@@ -308,7 +319,7 @@ body.calculator-page .app-container {
     min-height: 3.25rem;
     border: 0;
     border-radius: 0.875rem;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.92);
     color: #111827;
     font-size: 1.05rem;
     font-weight: 850;
@@ -325,12 +336,12 @@ body.calculator-page .app-container {
 .basic-calculator-key-operator,
 .basic-calculator-key-equals {
     color: #fff;
-    background: var(--app-primary);
+    background: linear-gradient(180deg, #2997ff, var(--app-primary));
 }
 
 /* Mobile */
 
-@media (max-width: 35.5rem) {
+@media (max-width: 48rem) {
     body.calculator-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)
@@ -352,7 +363,7 @@ body.calculator-page .app-container {
     }
 
     .date-tool-btn {
-        min-height: clamp(3.25rem, 8vw, 3.75rem);
+        min-height: clamp(3.15rem, 7vw, 3.65rem);
         padding: clamp(0.75rem, 2.5vw, 1rem);
         border-radius: 0.95rem;
     }
@@ -465,7 +476,7 @@ body.calculator-page .app-container {
     }
 
     .basic-calculator-key {
-        min-height: clamp(2.875rem, 7.4vw, 3.35rem);
+        min-height: clamp(2.75rem, 6.6vw, 3.25rem);
         border-radius: 0.75rem;
         font-size: 0.94rem;
     }

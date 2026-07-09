@@ -19,11 +19,29 @@ body.home-page .manual-section:last-child {
     text-align: center;
 }
 
+.home-page .page-hero {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72)),
+        radial-gradient(circle at 18% 0%, rgba(0, 122, 255, 0.16), transparent 36%);
+}
+
 /* Aircraft Card */
 
 .boeing-card,
 .airbus-card {
     border-top: 0;
+    transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        border-color 160ms ease;
+}
+
+.boeing-card:hover,
+.airbus-card:hover {
+    transform: translateY(-0.125rem);
+    box-shadow:
+        var(--app-shadow-lg),
+        var(--app-inset-highlight);
 }
 
 .aircraft-card-header {
@@ -46,8 +64,9 @@ body.home-page .manual-section:last-child {
 }
 
 .aircraft-type-pill {
-    background: rgba(13, 110, 253, 0.1);
+    background: rgba(0, 122, 255, 0.12);
     color: var(--app-primary);
+    border: 1px solid rgba(0, 122, 255, 0.14);
     border-radius: 999rem;
     padding: 0.28rem 0.62rem;
     font-size: 0.64rem;
@@ -55,8 +74,9 @@ body.home-page .manual-section:last-child {
 }
 
 .airbus-pill {
-    background: rgba(13, 202, 240, 0.18);
-    color: #087990;
+    background: rgba(52, 199, 89, 0.14);
+    color: #168a3a;
+    border-color: rgba(52, 199, 89, 0.18);
 }
 
 /* Manual Badge / Note */
@@ -66,6 +86,13 @@ body.home-page .manual-section:last-child {
     flex-wrap: wrap;
     gap: 0.3125rem;
     margin-bottom: 0.75rem;
+}
+
+.manual-badge-wrap .manual-badge,
+.manual-badge-wrap .badge {
+    background: rgba(242, 242, 247, 0.78) !important;
+    color: #475569 !important;
+    border: 1px solid rgba(255, 255, 255, 0.86);
 }
 
 .manual-card-note {
@@ -81,9 +108,13 @@ body.home-page .manual-section:last-child {
     gap: 0.45rem;
 }
 
+.card-button-group .app-card-btn {
+    min-height: 2.625rem;
+}
+
 /* Mobile */
 
-@media (max-width: 35.5rem) {
+@media (max-width: 48rem) {
     .home-page .page-hero {
         flex-direction: column;
         align-items: stretch;

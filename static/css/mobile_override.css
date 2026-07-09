@@ -3,10 +3,10 @@
 /* =========================================================
    Mobile Override
    - base.css 이후 로드
-   - 568px 이하의 세부 보정만 담당
+   - 768px 이하의 세부 보정만 담당
 ========================================================= */
 
-@media (max-width: 35.5rem) {
+@media (max-width: 48rem) {
     .d-none.d-md-block,
     .d-none.d-md-flex,
     .d-none.d-md-inline,
@@ -43,8 +43,8 @@
         min-height: var(--button-height);
         margin-bottom: 0.625rem !important;
         border: 0 !important;
-        background: rgba(17, 24, 39, 0.94) !important;
-        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+        background: linear-gradient(180deg, #2997ff, var(--app-primary)) !important;
+        box-shadow: 0 10px 22px rgba(0, 122, 255, 0.22);
     }
 
     .mobile-tab-scroll {
@@ -71,8 +71,11 @@
         font-size: 0.875rem;
         font-weight: 850;
         color: #475569;
-        background: rgba(255, 255, 255, 0.76);
-        border: 1px solid rgba(203, 213, 225, 0.9);
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.86);
+        box-shadow:
+            0 0.35rem 0.9rem rgba(15, 23, 42, 0.06),
+            inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
         white-space: nowrap;
     }
 
@@ -88,13 +91,13 @@
 
     .mobile-tab-scroll .nav-link.active {
         color: #fff;
-        background: #111827;
-        border-color: #111827;
-        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+        background: linear-gradient(180deg, #2997ff, var(--app-primary));
+        border-color: var(--app-primary);
+        box-shadow: 0 8px 18px rgba(0, 122, 255, 0.22);
     }
 
     .mobile-tab-scroll .nav-link.active span {
-        color: #111827;
+        color: var(--app-primary);
         background: rgba(255, 255, 255, 0.92);
     }
 
