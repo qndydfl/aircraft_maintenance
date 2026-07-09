@@ -1,15 +1,28 @@
 document.addEventListener("DOMContentLoaded", function () {
     const loading = document.getElementById("global-loading");
     const bottomNav = document.querySelector(".mobile-bottom-nav");
+    const bottomNavLinks = document.querySelectorAll(".mobile-bottom-nav a");
+
+    if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+    }
 
     function syncViewportHeight() {
-        const viewportHeight = window.visualViewport
-            ? window.visualViewport.height
-            : window.innerHeight;
+        const viewport = window.visualViewport;
+        const viewportHeight = viewport ? viewport.height : window.innerHeight;
+        const viewportOffsetTop = viewport ? viewport.offsetTop : 0;
+        const viewportBottomOffset = Math.max(
+            0,
+            window.innerHeight - viewportHeight - viewportOffsetTop
+        );
 
         document.documentElement.style.setProperty(
             "--app-viewport-height",
             `${viewportHeight}px`
+        );
+        document.documentElement.style.setProperty(
+            "--app-viewport-bottom-offset",
+            `${viewportBottomOffset}px`
         );
 
         if (bottomNav) {
@@ -17,14 +30,47 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function settleMobileViewport() {
+        syncViewportHeight();
+        window.scrollTo(0, 0);
+
+        window.requestAnimationFrame(function () {
+            syncViewportHeight();
+            window.scrollTo(0, 0);
+        });
+
+        window.setTimeout(function () {
+            syncViewportHeight();
+            window.scrollTo(0, 0);
+        }, 120);
+
+        window.setTimeout(function () {
+            syncViewportHeight();
+            window.scrollTo(0, 0);
+        }, 320);
+    }
+
     syncViewportHeight();
     window.addEventListener("resize", syncViewportHeight);
     window.addEventListener("orientationchange", syncViewportHeight);
-    window.addEventListener("pageshow", syncViewportHeight);
+    window.addEventListener("pageshow", settleMobileViewport);
+    window.addEventListener("load", settleMobileViewport);
 
     if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", syncViewportHeight);
         window.visualViewport.addEventListener("scroll", syncViewportHeight);
+    }
+
+    bottomNavLinks.forEach(function (link) {
+        link.addEventListener("click", function () {
+            window.sessionStorage.setItem("mobileNavSettling", "1");
+            settleMobileViewport();
+        });
+    });
+
+    if (window.sessionStorage.getItem("mobileNavSettling") === "1") {
+        window.sessionStorage.removeItem("mobileNavSettling");
+        settleMobileViewport();
     }
 
     if (!loading) {

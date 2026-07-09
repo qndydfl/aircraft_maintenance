@@ -13,6 +13,7 @@
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --app-viewport-height: 100dvh;
+    --app-viewport-bottom-offset: 0px;
 
     --navbar-height: 4.5rem;
     --bottom-nav-height: 4.5rem;
@@ -346,7 +347,7 @@ body {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(-1 * var(--app-viewport-bottom-offset));
     z-index: 1040;
     width: 100%;
     height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
@@ -811,7 +812,7 @@ body {
     .mobile-bottom-nav {
         height: var(--bottom-nav-height);
         padding-bottom: 0;
-        bottom: 0;
+        bottom: calc(-1 * var(--app-viewport-bottom-offset));
     }
 }
 
@@ -827,7 +828,7 @@ body {
     }
 
     body:not(.login-page):not(.pdf-viewer-page) .mobile-bottom-nav {
-        bottom: 0 !important;
+        bottom: calc(-1 * var(--app-viewport-bottom-offset)) !important;
         height: var(--bottom-nav-height) !important;
         padding-bottom: 0 !important;
         transform: translateZ(0);
