@@ -11,15 +11,18 @@ ENV_FILE = os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env")
 load_dotenv(ENV_FILE)
 
 
-# 업로드 환경
+# Environment
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if host.strip()
+]
 USE_R2 = os.getenv("USE_R2", "FALSE").upper() == "TRUE"
 
-
 # 개발 환경
+# DEBUG=True
 # ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-# DEBUG = True
 # USE_R2 = False
 
 
