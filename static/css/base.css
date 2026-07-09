@@ -12,6 +12,7 @@
 
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --app-viewport-height: 100dvh;
 
     --navbar-height: 4.5rem;
     --bottom-nav-height: 4.5rem;
@@ -60,6 +61,7 @@ html {
 body {
     min-height: 100vh;
     min-height: 100dvh;
+    min-height: var(--app-viewport-height);
     padding-top: calc(var(--navbar-height) + var(--safe-area-top));
     background: var(--app-bg);
     color: var(--app-text);
@@ -67,7 +69,10 @@ body {
 }
 
 .app-main {
-    min-height: calc(100dvh - var(--navbar-height) - var(--safe-area-top));
+    min-height: calc(
+        var(--app-viewport-height) - var(--navbar-height) -
+            var(--safe-area-top)
+    );
 }
 
 .app-container {
@@ -811,22 +816,21 @@ body {
 }
 
 
-/* iPad mini: Search / Dispatch bottom nav floating fix */
+/* iPad mini PWA bottom nav floating fix */
 @media (min-width: 46.5rem) and (max-width: 48rem) {
-    body.manual-search-page,
-    body.dispatch-search-page {
+    body:not(.login-page):not(.pdf-viewer-page) {
         padding-bottom: var(--bottom-nav-height) !important;
     }
 
-    body.manual-search-page .app-container,
-    body.dispatch-search-page .app-container {
+    body:not(.login-page):not(.pdf-viewer-page) .app-container {
         padding-bottom: 0 !important;
     }
 
-    body.manual-search-page .mobile-bottom-nav,
-    body.dispatch-search-page .mobile-bottom-nav {
+    body:not(.login-page):not(.pdf-viewer-page) .mobile-bottom-nav {
         bottom: 0 !important;
         height: var(--bottom-nav-height) !important;
         padding-bottom: 0 !important;
+        transform: translateZ(0);
+        will-change: transform;
     }
 }

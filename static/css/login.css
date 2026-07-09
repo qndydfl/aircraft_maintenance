@@ -20,6 +20,10 @@ body.login-page {
     padding-bottom: 0;
 }
 
+body.login-page .mobile-bottom-nav {
+    display: none !important;
+}
+
 body.login-page .app-main {
     min-height: calc(100vh - 12rem);
     min-height: calc(100dvh - 12rem);

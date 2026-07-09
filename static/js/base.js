@@ -1,5 +1,31 @@
 document.addEventListener("DOMContentLoaded", function () {
     const loading = document.getElementById("global-loading");
+    const bottomNav = document.querySelector(".mobile-bottom-nav");
+
+    function syncViewportHeight() {
+        const viewportHeight = window.visualViewport
+            ? window.visualViewport.height
+            : window.innerHeight;
+
+        document.documentElement.style.setProperty(
+            "--app-viewport-height",
+            `${viewportHeight}px`
+        );
+
+        if (bottomNav) {
+            bottomNav.style.transform = "translateZ(0)";
+        }
+    }
+
+    syncViewportHeight();
+    window.addEventListener("resize", syncViewportHeight);
+    window.addEventListener("orientationchange", syncViewportHeight);
+    window.addEventListener("pageshow", syncViewportHeight);
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", syncViewportHeight);
+        window.visualViewport.addEventListener("scroll", syncViewportHeight);
+    }
 
     if (!loading) {
         return;
