@@ -94,10 +94,6 @@ body.dispatch-search-page .app-container {
     line-height: 1.45;
 }
 
-.dispatch-search-empty-prompt::before {
-    content: "검색어를 입력하세요.";
-}
-
 /* Candidate */
 
 .candidate-top {
@@ -431,15 +427,6 @@ body.dispatch-search-page table th {
 
     body.dispatch-search-page .app-container {
         padding-bottom: var(--search-page-edge-gap) !important;
-    }
-
-    .dispatch-search-empty-prompt::before {
-        content: "Search Options을 클릭해서 검색어를 입력하세요.";
-    }
-
-    #dispatch-search-filter.show ~ .dispatch-search-empty-prompt,
-    #dispatch-search-filter.collapsing ~ .dispatch-search-empty-prompt {
-        display: none;
     }
 
     .dispatch-candidate-tab-content {

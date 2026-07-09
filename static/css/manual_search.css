@@ -18,12 +18,6 @@ body.manual-search-page .app-container {
     padding-bottom: var(--search-page-edge-gap) !important;
 }
 
-/* Empty Prompt */
-
-.manual-search-empty-prompt::before {
-    content: "검색어를 입력하세요.";
-}
-
 /* Manual Result Group */
 
 .manual-group-card {
@@ -108,15 +102,6 @@ body.manual-search-page .app-container {
 
     body.manual-search-page .app-container {
         padding-bottom: var(--search-page-edge-gap) !important;
-    }
-
-    .manual-search-empty-prompt::before {
-        content: "Search Options을 클릭해서 검색어를 입력하세요.";
-    }
-
-    #manual-search-filter.show ~ .manual-search-empty-prompt,
-    #manual-search-filter.collapsing ~ .manual-search-empty-prompt {
-        display: none;
     }
 
     .mobile-filter-collapse.collapse {

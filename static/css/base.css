@@ -347,7 +347,7 @@ body {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(-1 * var(--app-viewport-bottom-offset));
+    bottom: 0;
     z-index: 1040;
     width: 100%;
     height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
@@ -812,7 +812,41 @@ body {
     .mobile-bottom-nav {
         height: var(--bottom-nav-height);
         padding-bottom: 0;
-        bottom: calc(-1 * var(--app-viewport-bottom-offset));
+        bottom: 0;
+    }
+}
+
+/* Mobile App Shell */
+
+@media (max-width: 48rem) {
+    body:not(.login-page):not(.pdf-viewer-page) {
+        min-height: var(--app-viewport-height);
+        height: var(--app-viewport-height);
+        padding-bottom: 0 !important;
+        overflow: hidden;
+    }
+
+    body:not(.login-page):not(.pdf-viewer-page) .app-main {
+        height: calc(
+            var(--app-viewport-height) - var(--navbar-height) -
+                var(--safe-area-top) - var(--bottom-nav-height)
+        );
+        min-height: 0 !important;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body:not(.login-page):not(.pdf-viewer-page) .app-container {
+        padding-bottom: 1rem !important;
+    }
+
+    body:not(.login-page):not(.pdf-viewer-page) .mobile-bottom-nav {
+        bottom: 0 !important;
+        height: var(--bottom-nav-height) !important;
+        padding-bottom: 0 !important;
+        transform: translateZ(0);
+        will-change: transform;
     }
 }
 
@@ -828,7 +862,7 @@ body {
     }
 
     body:not(.login-page):not(.pdf-viewer-page) .mobile-bottom-nav {
-        bottom: calc(-1 * var(--app-viewport-bottom-offset)) !important;
+        bottom: 0 !important;
         height: var(--bottom-nav-height) !important;
         padding-bottom: 0 !important;
         transform: translateZ(0);

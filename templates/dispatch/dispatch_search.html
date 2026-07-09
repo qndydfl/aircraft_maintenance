@@ -61,13 +61,13 @@ dispatch-search-page
     type="button"
     data-bs-toggle="collapse"
     data-bs-target="#dispatch-search-filter"
-    aria-expanded="false"
+    aria-expanded="true"
     aria-controls="dispatch-search-filter">
     Search Options
 </button>
 
 <div id="dispatch-search-filter"
-    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse d-md-block">
+    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse show d-md-block">
     <div class="card-body">
         <form method="get"
             data-loading-title="Searching Dispatch"
@@ -113,17 +113,13 @@ dispatch-search-page
 
                 <div class="col-12 col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100 app-card-btn">
-                        Auto Search
+                        Search
                     </button>
                 </div>
             </div>
         </form>
     </div>
 </div>
-
-{% if not query %}
-    <div class="alert alert-info app-alert dispatch-search-empty-prompt justify-content-center d-flex align-items-center"></div>
-{% endif %}
 
 {% if message_mode and not selected_aircraft %}
     <div class="alert alert-secondary app-alert py-2">

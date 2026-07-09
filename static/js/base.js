@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const loading = document.getElementById("global-loading");
     const bottomNav = document.querySelector(".mobile-bottom-nav");
     const bottomNavLinks = document.querySelectorAll(".mobile-bottom-nav a");
+    const appMain = document.querySelector(".app-main");
 
     if ("scrollRestoration" in window.history) {
         window.history.scrollRestoration = "manual";
@@ -33,20 +34,32 @@ document.addEventListener("DOMContentLoaded", function () {
     function settleMobileViewport() {
         syncViewportHeight();
         window.scrollTo(0, 0);
+        if (appMain) {
+            appMain.scrollTop = 0;
+        }
 
         window.requestAnimationFrame(function () {
             syncViewportHeight();
             window.scrollTo(0, 0);
+            if (appMain) {
+                appMain.scrollTop = 0;
+            }
         });
 
         window.setTimeout(function () {
             syncViewportHeight();
             window.scrollTo(0, 0);
+            if (appMain) {
+                appMain.scrollTop = 0;
+            }
         }, 120);
 
         window.setTimeout(function () {
             syncViewportHeight();
             window.scrollTo(0, 0);
+            if (appMain) {
+                appMain.scrollTop = 0;
+            }
         }, 320);
     }
 
