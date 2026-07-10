@@ -395,8 +395,8 @@ dispatch-search-page
 
 {% if query %}
 {% if mel_page_data.item or fim_page_data.item or amm_page_data.item or ipc_page_data.item or cdl_page_data.item %}
-<div class="mobile-result-tabs d-md-none mb-3">
-    <div class="nav nav-pills mobile-tab-scroll"
+<div class="result-tabs dispatch-result-tabs mb-3">
+    <div class="nav nav-pills result-tab-scroll"
         role="tablist">
         {% if mel_page_data.item %}
             <button class="nav-link rounded-pill active"
@@ -466,7 +466,7 @@ dispatch-search-page
 </div>
 {% endif %}
 
-<div class="row g-4 dispatch-candidate-tab-content tab-content">
+<div class="dispatch-candidate-tab-content tab-content">
 
     {% with page=mel_page_data.item %}
         {% if page %}

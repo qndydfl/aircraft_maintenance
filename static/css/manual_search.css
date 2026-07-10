@@ -3,7 +3,7 @@
 /* Manual Search Page */
 
 body.manual-search-page {
-    --search-page-edge-gap: 1rem;
+    --search-page-edge-gap: var(--page-edge-gap);
 }
 
 body.manual-search-page .app-main {
@@ -21,8 +21,13 @@ body.manual-search-page .app-container {
 /* Manual Result Group */
 
 .manual-group-card {
+    position: relative;
     overflow: hidden;
-    border-color: rgba(255, 255, 255, 0.88);
+    border-color: rgba(148, 163, 184, 0.42);
+}
+
+.manual-group-card::before {
+    background: linear-gradient(90deg, var(--app-primary), #6ea8fe);
 }
 
 .manual-group-header {
@@ -30,6 +35,8 @@ body.manual-search-page .app-container {
     justify-content: space-between;
     align-items: flex-start;
     gap: 0.875rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.72);
 }
 
 .manual-group-header .manual-badge {
@@ -44,12 +51,15 @@ body.manual-search-page .app-container {
 
 .manual-group-info div {
     padding: 0.625rem;
+    background: rgba(241, 245, 249, 0.94);
+    border: 1px solid rgba(203, 213, 225, 0.82);
+    border-radius: var(--radius-sm);
     box-shadow: inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .manual-group-info span {
     display: block;
-    color: #8e8e93;
+    color: #64748b;
     font-size: var(--font-xs);
     font-weight: 850;
     margin-bottom: 0.25rem;
@@ -57,8 +67,9 @@ body.manual-search-page .app-container {
 
 .manual-group-info strong {
     display: block;
-    color: #1d1d1f;
+    color: #0f172a;
     font-size: 0.84rem;
+    font-weight: 850;
     word-break: break-word;
 }
 
@@ -72,7 +83,14 @@ body.manual-search-page .app-container {
 /* Common Manual Result */
 
 .common-result-card {
+    position: relative;
+    overflow: hidden;
     border-left: 0.3125rem solid var(--app-success);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(148, 163, 184, 0.42);
+    box-shadow:
+        0 0.75rem 1.75rem rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96);
 }
 
 .common-result-snippet {
@@ -81,17 +99,38 @@ body.manual-search-page .app-container {
     font-size: 0.84rem;
     line-height: 1.55;
     color: #334155;
-    background: rgba(242, 242, 247, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.84);
+    background: rgba(241, 245, 249, 0.94);
+    border: 1px solid rgba(203, 213, 225, 0.78);
     box-shadow: inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
 }
 
 .common-result-snippet mark,
 .common-result-snippet .highlight {
-    background: rgba(255, 204, 0, 0.34);
+    background: rgba(255, 204, 0, 0.36);
     color: #111827;
     padding: 0 0.125rem;
     border-radius: 0.1875rem;
+}
+
+/* Search / Result Section */
+
+body.manual-search-page .search-section,
+body.manual-search-page .result-section {
+    background: rgba(245, 248, 252, 0.82);
+    border: 1px solid rgba(203, 213, 225, 0.78);
+    border-radius: 1.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.manual-result-tab-content > .manual-result-pane {
+    display: none;
+    opacity: 0;
+}
+
+.manual-result-tab-content > .manual-result-pane.active {
+    display: block;
+    opacity: 1;
 }
 
 /* Mobile */
@@ -100,27 +139,25 @@ body.manual-search-page .app-container {
     body.manual-search-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)
-        );
+        ) !important;
     }
 
     body.manual-search-page .app-container {
         padding-bottom: var(--search-page-edge-gap) !important;
     }
 
-    .manual-result-tab-content > .manual-result-pane {
-        display: none;
-        opacity: 0;
-    }
-
-    .manual-result-tab-content > .manual-result-pane.active {
-        display: block;
-        opacity: 1;
+    body.manual-search-page .search-section,
+    body.manual-search-page .result-section {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-radius: 1.125rem;
     }
 
     .manual-group-header {
         display: grid;
         grid-template-columns: 1fr;
         gap: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 
     .manual-group-header .manual-badge {

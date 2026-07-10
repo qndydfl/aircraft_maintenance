@@ -1,12 +1,16 @@
 /* static/css/form.css */
 
+/* Form Page */
+
 body.form-page .app-main {
     min-height: auto;
 }
 
 body.form-page .app-container {
-    padding-bottom: 0.5rem;
+    padding-bottom: var(--page-edge-gap);
 }
+
+/* Form Wrapper */
 
 .portal-form-wrap,
 .common-form-wrap {
@@ -14,10 +18,27 @@ body.form-page .app-container {
     margin: 0 auto;
 }
 
+/* Form Card */
+
 .portal-form-card,
 .common-form-card {
-    border-radius: var(--card-radius);
+    position: relative;
     overflow: hidden;
+    border-radius: var(--card-radius);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    box-shadow:
+        0 0.875rem 2rem rgba(15, 23, 42, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.portal-form-card::before,
+.common-form-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--app-primary), #6ea8fe);
 }
 
 .portal-form-card .card-body,
@@ -25,41 +46,74 @@ body.form-page .app-container {
     padding: 1.25rem;
 }
 
+/* Form Sections */
+
 .portal-form-section,
 .common-form-section {
-    padding-bottom: 1.25rem;
-    margin-bottom: 1.25rem;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius-md);
+    background: rgba(241, 245, 249, 0.74);
+    border: 1px solid rgba(203, 213, 225, 0.78);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .portal-form-section:last-of-type,
 .common-form-section:last-of-type {
-    border-bottom: 0;
     margin-bottom: 0;
 }
 
 .portal-form-section-title,
 .common-form-section-title {
-    font-size: 0.92rem;
-    font-weight: 850;
-    color: #111827;
+    padding-bottom: 0.5rem;
     margin-bottom: 0.875rem;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.78);
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #0f172a;
 }
+
+/* Guide Box */
 
 .portal-form-guide,
 .common-upload-guide {
     padding: 0.75rem 0.8125rem;
-    background: rgba(242, 242, 247, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(203, 213, 225, 0.72);
     border-radius: var(--radius-sm);
     font-size: 0.8rem;
     line-height: 1.45;
+    color: #334155;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
+
+/* Inputs */
 
 .portal-form-card textarea,
 .common-form-card textarea {
     min-height: 6.875rem;
 }
+
+.portal-form-card .form-control,
+.portal-form-card .form-select,
+.common-form-card .form-control,
+.common-form-card .form-select {
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(203, 213, 225, 0.9);
+}
+
+.portal-form-card .form-control:focus,
+.portal-form-card .form-select:focus,
+.common-form-card .form-control:focus,
+.common-form-card .form-select:focus {
+    background: #fff;
+    border-color: rgba(0, 122, 255, 0.72);
+    box-shadow:
+        0 0 0 0.25rem rgba(0, 122, 255, 0.13),
+        0 0.45rem 1rem rgba(15, 23, 42, 0.06);
+}
+
+/* Actions */
 
 .portal-form-actions,
 .common-form-actions {
@@ -73,15 +127,17 @@ body.form-page .app-container {
     min-width: 7.5rem;
 }
 
+/* Mobile */
+
 @media (max-width: 48rem) {
     body.form-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)
-        );
+        ) !important;
     }
 
     body.form-page .app-container {
-        padding-bottom: 0.75rem;
+        padding-bottom: var(--page-edge-gap);
     }
 
     .portal-form-card .card-body,
@@ -91,14 +147,16 @@ body.form-page .app-container {
 
     .portal-form-section,
     .common-form-section {
-        padding-bottom: 0.75rem;
+        padding: 0.75rem;
         margin-bottom: 0.75rem;
+        border-radius: 0.875rem;
     }
 
     .portal-form-section-title,
     .common-form-section-title {
         font-size: var(--mobile-title);
         margin-bottom: 0.625rem;
+        padding-bottom: 0.45rem;
     }
 
     .portal-form-card textarea,
@@ -128,11 +186,11 @@ body.form-page .app-container {
     }
 }
 
+/* iPad Mini */
+
 @media (min-width: 48.0625rem) and (max-width: 52.125rem) {
     body.form-page {
-        padding-bottom: calc(
-            var(--bottom-nav-height) + var(--safe-area-bottom)
-        );
+        padding-bottom: 0 !important;
     }
 
     .portal-form-wrap,

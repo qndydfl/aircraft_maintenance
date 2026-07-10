@@ -115,33 +115,9 @@ manual-search-page
 
 {% if query %}
 
-    <div class="search-summary mb-3">
-        {% for manual_type, pages in grouped_results.items %}
-            <div>
-                <span class="search-summary-label">
-                    {{ manual_type }}
-                </span>
-
-                <strong>
-                    {{ pages|length }}
-                </strong>
-            </div>
-        {% endfor %}
-
-        <div>
-            <span class="search-summary-label">
-                COMMON
-            </span>
-
-            <strong>
-                {{ common_pages|length }}
-            </strong>
-        </div>
-    </div>
-
     {% if result_groups %}
-        <div class="mobile-result-tabs d-md-none mb-3">
-            <div class="nav nav-pills mobile-tab-scroll"
+        <div class="result-tabs manual-result-tabs mb-3">
+            <div class="nav nav-pills result-tab-scroll"
                 role="tablist">
                 {% for group in result_groups %}
                     <button class="nav-link {% if forloop.first %}active{% endif %}"

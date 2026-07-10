@@ -7,7 +7,7 @@ body.calculator-page .app-main {
 }
 
 body.calculator-page .app-container {
-    padding-bottom: 0;
+    padding-bottom: var(--page-edge-gap);
 }
 
 .date-calculator-shell {
@@ -23,14 +23,31 @@ body.calculator-page .app-container {
 .date-result-card,
 .date-calculator-card,
 .date-tool-btn {
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(1.5rem) saturate(180%);
     -webkit-backdrop-filter: blur(1.5rem) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.42);
     border-radius: var(--radius-lg);
     box-shadow:
-        var(--app-shadow-md),
-        var(--app-inset-highlight);
+        0 0.875rem 2rem rgba(15, 23, 42, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.date-clock-card,
+.date-result-card,
+.date-calculator-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.date-clock-card::before,
+.date-result-card::before,
+.date-calculator-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--app-primary), #6ea8fe);
 }
 
 .date-clock-card {
@@ -52,7 +69,7 @@ body.calculator-page .app-container {
 .date-result-label {
     color: #64748b;
     font-size: 0.74rem;
-    font-weight: 800;
+    font-weight: 850;
     text-transform: uppercase;
 }
 
@@ -64,25 +81,27 @@ body.calculator-page .app-container {
 .date-result-long {
     color: var(--app-primary);
     font-size: 1rem;
-    font-weight: 800;
+    font-weight: 850;
 }
 
 .date-result-primary {
     font-size: 1.62rem;
-    font-weight: 850;
+    font-weight: 900;
     line-height: 1.12;
+    color: #0f172a;
 }
 
 .fuel-result-value {
     font-size: 1.7rem;
-    font-weight: 850;
+    font-weight: 900;
+    color: #0f172a;
 }
 
 .date-utc-value {
     display: block;
     color: var(--app-primary);
     font-size: 1.88rem;
-    font-weight: 850;
+    font-weight: 900;
     letter-spacing: 0;
     line-height: 1.15;
     overflow-wrap: anywhere;
@@ -90,9 +109,9 @@ body.calculator-page .app-container {
 
 .date-local-value {
     display: block;
-    color: #111827;
+    color: #0f172a;
     font-size: 1.08rem;
-    font-weight: 850;
+    font-weight: 900;
     line-height: 1.2;
     overflow-wrap: anywhere;
 }
@@ -121,7 +140,7 @@ body.calculator-page .app-container {
     justify-content: space-between;
     gap: 0.75rem;
     padding: 0.875rem 1rem;
-    color: #111827;
+    color: #0f172a;
     text-align: left;
     transition:
         transform 150ms ease,
@@ -131,12 +150,15 @@ body.calculator-page .app-container {
 
 .date-tool-btn:hover {
     transform: translateY(-0.0625rem);
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow:
+        0 1rem 2.25rem rgba(15, 23, 42, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96);
 }
 
 .date-tool-btn span {
     font-size: 0.96rem;
-    font-weight: 850;
+    font-weight: 900;
 }
 
 .date-tool-btn strong {
@@ -148,9 +170,9 @@ body.calculator-page .app-container {
 /* Modal */
 
 .date-modal-content {
-    border: 1px solid rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.42);
     border-radius: var(--radius-xl);
-    background: rgba(248, 250, 252, 0.96);
+    background: rgba(248, 250, 252, 0.98);
     box-shadow: var(--app-shadow-lg);
     backdrop-filter: blur(1.5rem) saturate(180%);
     -webkit-backdrop-filter: blur(1.5rem) saturate(180%);
@@ -160,13 +182,13 @@ body.calculator-page .app-container {
 .date-modal-header {
     align-items: center;
     padding: 1rem 1.125rem 0.75rem;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    border-bottom: 1px solid rgba(203, 213, 225, 0.86);
 }
 
 .date-modal-header .modal-title {
-    color: #111827;
+    color: #0f172a;
     font-size: 1.02rem;
-    font-weight: 850;
+    font-weight: 900;
 }
 
 .date-modal-body {
@@ -177,7 +199,7 @@ body.calculator-page .app-container {
 
 .date-modal-footer {
     padding: 0.625rem 0.875rem 0.875rem;
-    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    border-top: 1px solid rgba(203, 213, 225, 0.86);
     background: rgba(248, 250, 252, 0.96);
 }
 
@@ -190,8 +212,8 @@ body.calculator-page .app-container {
 .date-base-row,
 .date-custom-row {
     padding: 0.625rem;
-    background: rgba(248, 250, 252, 0.86);
-    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(241, 245, 249, 0.94);
+    border: 1px solid rgba(203, 213, 225, 0.82);
     border-radius: var(--radius-sm);
 }
 
@@ -208,7 +230,8 @@ body.calculator-page .app-container {
     gap: 0.25rem;
     margin-bottom: 0.625rem;
     padding: 0.25rem;
-    background: rgba(229, 229, 234, 0.74);
+    background: rgba(226, 232, 240, 0.9);
+    border: 1px solid rgba(203, 213, 225, 0.72);
     border-radius: var(--radius-sm);
 }
 
@@ -219,7 +242,7 @@ body.calculator-page .app-container {
     background: transparent;
     color: #475569;
     font-size: 0.8rem;
-    font-weight: 800;
+    font-weight: 850;
     transition:
         background-color 140ms ease,
         color 140ms ease,
@@ -227,7 +250,7 @@ body.calculator-page .app-container {
 }
 
 .date-preset-btn.active {
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.98);
     color: var(--app-primary);
     box-shadow:
         0 0.125rem 0.5rem rgba(15, 23, 42, 0.12),
@@ -256,9 +279,9 @@ body.calculator-page .app-container {
 .date-base-row .form-control,
 .date-input-wrap .form-control {
     border: 1px solid rgba(203, 213, 225, 0.95);
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.96);
     font-size: 1.12rem;
-    font-weight: 750;
+    font-weight: 800;
 }
 
 .date-base-row .form-control::placeholder,
@@ -293,6 +316,9 @@ body.calculator-page .app-container {
     background: linear-gradient(180deg, #242834, #111827);
     color: #fff;
     text-align: right;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0.75rem 1.5rem rgba(15, 23, 42, 0.18);
 }
 
 .basic-calculator-expression {
@@ -304,7 +330,7 @@ body.calculator-page .app-container {
 
 .basic-calculator-display strong {
     font-size: 2rem;
-    font-weight: 850;
+    font-weight: 900;
     line-height: 1.1;
     overflow-wrap: anywhere;
 }
@@ -317,12 +343,12 @@ body.calculator-page .app-container {
 
 .basic-calculator-key {
     min-height: 3.25rem;
-    border: 0;
+    border: 1px solid rgba(203, 213, 225, 0.7);
     border-radius: 0.875rem;
-    background: rgba(255, 255, 255, 0.92);
-    color: #111827;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
     font-size: 1.05rem;
-    font-weight: 850;
+    font-weight: 900;
     box-shadow:
         0 0.3125rem 0.875rem rgba(15, 23, 42, 0.08),
         inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.96);
@@ -330,12 +356,13 @@ body.calculator-page .app-container {
 
 .basic-calculator-key-muted {
     color: #475569;
-    background: rgba(226, 232, 240, 0.9);
+    background: rgba(226, 232, 240, 0.94);
 }
 
 .basic-calculator-key-operator,
 .basic-calculator-key-equals {
     color: #fff;
+    border-color: rgba(0, 122, 255, 0.55);
     background: linear-gradient(180deg, #2997ff, var(--app-primary));
 }
 
@@ -345,11 +372,11 @@ body.calculator-page .app-container {
     body.calculator-page {
         padding-bottom: calc(
             var(--bottom-nav-height) + var(--safe-area-bottom)
-        );
+        ) !important;
     }
 
     body.calculator-page .app-container {
-        padding-bottom: 0rem;
+        padding-bottom: var(--page-edge-gap);
     }
 
     .date-calculator-shell {
@@ -359,6 +386,10 @@ body.calculator-page .app-container {
     .date-clock-card,
     .date-result-card {
         padding: clamp(0.8rem, 2.6vw, 1rem);
+        border-radius: 0.95rem;
+    }
+
+    .date-calculator-card {
         border-radius: 0.95rem;
     }
 
@@ -400,64 +431,25 @@ body.calculator-page .app-container {
         font-size: var(--mobile-small);
     }
 
-    .date-result-long {
-        font-size: 0.86rem;
-    }
-
-    .date-result-primary {
-        font-size: 1.26rem;
-    }
-
+    .date-result-primary,
     .fuel-result-value {
-        font-size: 1.34rem;
+        font-size: 1.35rem;
     }
 
     .date-utc-value {
-        font-size: 1.28rem;
+        font-size: 1.55rem;
     }
 
     .date-local-value {
-        font-size: 0.88rem;
-    }
-
-    .date-calculator-card {
-        padding: 0.6rem;
-        border-radius: 0.95rem;
-    }
-
-    .date-base-row,
-    .date-custom-row {
-        padding: 0.5rem;
-        border-radius: 0.75rem;
+        font-size: 1rem;
     }
 
     .date-preset-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.25rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .date-preset-btn {
-        min-height: clamp(2.125rem, 5.5vw, 2.5rem);
-        border-radius: 0.6rem;
-        font-size: 0.85rem;
     }
 
     .date-input-wrap {
         grid-template-columns: 1fr;
-        gap: 0.45rem;
-    }
-
-    .date-input-wrap .form-control {
-        min-height: clamp(2.375rem, 6vw, 2.75rem);
-        text-align: center;
-        font-size: 1.02rem;
-    }
-
-    .date-base-row .form-control::placeholder,
-    .date-input-wrap .form-control::placeholder {
-        font-size: 1.02rem;
-        font-weight: 750;
     }
 
     .date-input-wrap .app-card-btn {
@@ -466,19 +458,22 @@ body.calculator-page .app-container {
     }
 
     .basic-calculator-display {
-        min-height: clamp(4.875rem, 12vw, 5.75rem);
-        padding: 0.8rem;
-        border-radius: 0.875rem;
+        min-height: 5rem;
+        padding: 0.875rem;
     }
 
     .basic-calculator-display strong {
-        font-size: 1.58rem;
+        font-size: 1.75rem;
+    }
+
+    .basic-calculator-grid {
+        gap: 0.375rem;
     }
 
     .basic-calculator-key {
-        min-height: clamp(2.75rem, 6.6vw, 3.25rem);
+        min-height: 3rem;
         border-radius: 0.75rem;
-        font-size: 0.94rem;
+        font-size: 1rem;
     }
 }
 
@@ -490,37 +485,23 @@ body.calculator-page .app-container {
     }
 
     .date-calculator-shell {
-        max-width: 40rem;
-        gap: 1rem;
+        max-width: 42rem;
     }
 
-    .date-tool-btn {
-        min-height: 4.25rem;
-        padding: 1rem 1.125rem;
-    }
-
-    .date-tool-btn span {
-        font-size: 1.05rem;
-    }
-
-    .date-tool-btn strong {
-        font-size: 0.88rem;
-    }
-
-    .date-result-primary {
-        font-size: 1.85rem;
+    .date-result-primary,
+    .fuel-result-value {
+        font-size: 1.8rem;
     }
 
     .date-utc-value {
-        font-size: 2.1rem;
+        font-size: 2rem;
     }
 
-    .date-local-value {
-        font-size: 1.2rem;
+    .date-tool-btn span {
+        font-size: 1rem;
     }
 
-    .basic-calculator-key {
-        min-height: 3.6rem;
-        font-size: 1.15rem;
+    .date-tool-btn strong {
+        font-size: 0.86rem;
     }
 }

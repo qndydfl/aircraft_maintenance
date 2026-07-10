@@ -6,23 +6,51 @@ body.home-page .manual-section:last-child {
     margin-bottom: 0.4rem !important;
 }
 
-.manual-section {
-    position: relative;
+.home-page .page-hero {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.97),
+            rgba(255, 255, 255, 0.84)
+        ),
+        radial-gradient(
+            circle at 18% 0%,
+            rgba(0, 122, 255, 0.18),
+            transparent 36%
+        );
 }
+
+/* Section Header */
 
 .section-header {
     display: flex;
     justify-content: center;
     align-items: end;
     gap: 1rem;
-    margin-bottom: 0.875rem;
+    margin-bottom: 1rem;
     text-align: center;
 }
 
-.home-page .page-hero {
+.home-page .manual-section {
+    background: rgba(245, 248, 252, 0.82);
+}
+
+.home-page .manual-section:nth-of-type(2) {
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72)),
-        radial-gradient(circle at 18% 0%, rgba(0, 122, 255, 0.16), transparent 36%);
+        linear-gradient(
+            180deg,
+            rgba(240, 248, 255, 0.86),
+            rgba(245, 248, 252, 0.78)
+        );
+}
+
+.home-page .manual-section:nth-of-type(3) {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(240, 253, 244, 0.82),
+            rgba(245, 248, 252, 0.78)
+        );
 }
 
 /* Aircraft Card */
@@ -34,6 +62,14 @@ body.home-page .manual-section:last-child {
         transform 160ms ease,
         box-shadow 160ms ease,
         border-color 160ms ease;
+}
+
+.boeing-card::before {
+    background: linear-gradient(90deg, #007aff, #6ea8fe);
+}
+
+.airbus-card::before {
+    background: linear-gradient(90deg, #34c759, #8ee6a6);
 }
 
 .boeing-card:hover,
@@ -55,7 +91,7 @@ body.home-page .manual-section:last-child {
 .aircraft-title {
     color: #1d1d1f;
     font-size: 1.08rem;
-    font-weight: 850;
+    font-weight: 900;
     letter-spacing: 0;
 }
 
@@ -66,7 +102,7 @@ body.home-page .manual-section:last-child {
 .aircraft-type-pill {
     background: rgba(0, 122, 255, 0.12);
     color: var(--app-primary);
-    border: 1px solid rgba(0, 122, 255, 0.14);
+    border: 1px solid rgba(0, 122, 255, 0.18);
     border-radius: 999rem;
     padding: 0.28rem 0.62rem;
     font-size: 0.64rem;
@@ -76,7 +112,7 @@ body.home-page .manual-section:last-child {
 .airbus-pill {
     background: rgba(52, 199, 89, 0.14);
     color: #168a3a;
-    border-color: rgba(52, 199, 89, 0.18);
+    border-color: rgba(52, 199, 89, 0.22);
 }
 
 /* Manual Badge / Note */
@@ -90,9 +126,9 @@ body.home-page .manual-section:last-child {
 
 .manual-badge-wrap .manual-badge,
 .manual-badge-wrap .badge {
-    background: rgba(242, 242, 247, 0.78) !important;
+    background: rgba(241, 245, 249, 0.92) !important;
     color: #475569 !important;
-    border: 1px solid rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(203, 213, 225, 0.72);
 }
 
 .manual-card-note {
@@ -127,6 +163,10 @@ body.home-page .manual-section:last-child {
         gap: 0.45rem;
     }
 
+    .home-page .admin-only-action {
+        display: none !important;
+    }
+
     .home-page .page-actions .app-action-btn {
         width: 100% !important;
         min-height: var(--button-height);
@@ -135,7 +175,7 @@ body.home-page .manual-section:last-child {
     }
 
     .section-header {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
     }
 
     .aircraft-card-header {

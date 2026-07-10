@@ -1,12 +1,8 @@
 /* static/css/mobile_override.css */
 
-/* =========================================================
-   Mobile Override
-   - base.css 이후 로드
-   - 768px 이하의 세부 보정만 담당
-========================================================= */
-
 @media (max-width: 48rem) {
+    /* Bootstrap responsive helpers */
+
     .d-none.d-md-block,
     .d-none.d-md-flex,
     .d-none.d-md-inline,
@@ -21,6 +17,8 @@
     .d-inline-flex.d-md-none {
         display: inline-flex !important;
     }
+
+    /* Mobile Filter / Page Nav */
 
     .mobile-filter-toggle.d-md-none,
     .mobile-page-nav.d-md-none {
@@ -44,7 +42,13 @@
         min-height: var(--button-height);
         margin-bottom: 0.625rem !important;
         border: 0 !important;
-        background: linear-gradient(180deg, #2997ff, var(--app-primary)) !important;
+        border-radius: 999rem !important;
+        color: #fff !important;
+        background: linear-gradient(
+            180deg,
+            #2997ff,
+            var(--app-primary)
+        ) !important;
         box-shadow: 0 10px 22px rgba(0, 122, 255, 0.22);
     }
 
@@ -58,6 +62,8 @@
     .mobile-filter-toggle.collapsed::after {
         content: "⌄";
     }
+
+    /* Mobile Tabs */
 
     .mobile-tab-scroll {
         display: flex;
@@ -83,11 +89,11 @@
         font-size: 0.875rem;
         font-weight: 850;
         color: #475569;
-        background: rgba(255, 255, 255, 0.78);
-        border: 1px solid rgba(255, 255, 255, 0.86);
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(203, 213, 225, 0.68);
         box-shadow:
             0 0.35rem 0.9rem rgba(15, 23, 42, 0.06),
-            inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.9);
+            inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.95);
         white-space: nowrap;
     }
 
@@ -103,7 +109,11 @@
 
     .mobile-tab-scroll .nav-link.active {
         color: #fff;
-        background: linear-gradient(180deg, #2997ff, var(--app-primary));
+        background: linear-gradient(
+            180deg,
+            #2997ff,
+            var(--app-primary)
+        );
         border-color: var(--app-primary);
         box-shadow: 0 8px 18px rgba(0, 122, 255, 0.22);
     }
@@ -113,6 +123,8 @@
         background: rgba(255, 255, 255, 0.92);
     }
 
+    /* Text compact */
+
     .common-result-snippet,
     .candidate-snippet,
     .dispatch-text-body,
@@ -121,9 +133,35 @@
         font-size: var(--mobile-small) !important;
         line-height: 1.4;
     }
+
+    /* Card spacing compact */
+
+    .portal-card,
+    .portal-detail-card,
+    .manual-group-card,
+    .candidate-card,
+    .portal-list-card,
+    .delete-card,
+    .dispatch-ref-card,
+    .mel-result-card {
+        border-radius: var(--card-radius);
+    }
+
+    .portal-card .card-body,
+    .portal-detail-card .card-body,
+    .manual-group-card .card-body,
+    .candidate-card .card-body,
+    .portal-list-card .card-body,
+    .delete-card .card-body {
+        padding: var(--card-padding);
+    }
 }
 
-/* PDF Viewer 모바일 보정 */
+/* =========================================================
+   PDF Viewer Mobile Override
+   - 568px 이하
+========================================================= */
+
 @media (max-width: 35.5rem) {
     body.pdf-viewer-page {
         padding-top: 0 !important;
@@ -138,6 +176,12 @@
     body.pdf-viewer-page .app-container {
         max-width: 100% !important;
         padding: 0 !important;
+    }
+
+    body.pdf-viewer-page .viewer-topbar,
+    body.pdf-viewer-page .viewer-toolbar {
+        margin-left: 0.375rem;
+        margin-right: 0.375rem;
     }
 
     body.pdf-viewer-page .viewer-action-btn {
