@@ -3,116 +3,14 @@ from django.db.models import Q
 
 from .models import DispatchKeywordDictionary, MelDispatchItem
 from manuals.models import ManualPDFPage, ManualFilePDFPage
-
-
-def _extract_revision_info_from_text(text):
-    revision_no = ""
-    revision_date_text = ""
-
-    if not text:
-        return revision_no, revision_date_text
-
-    rev_match = re.search(
-        r"Rev\.?(?:\s*No\.?)?\s*:?([0-9A-Za-z\-]+)",
-        text,
-        re.IGNORECASE,
-    )
-
-    date_match = re.search(
-        r"Date\s*:?([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
-        text,
-        re.IGNORECASE,
-    )
-
-    if rev_match:
-        revision_no = rev_match.group(1).strip()
-
-    if date_match:
-        revision_date_text = date_match.group(1).strip()
-
-    return revision_no, revision_date_text
+from manuals.revision_utils import extract_revision_info_from_filename
 
 
 def extract_manual_file_revision_info(manual_file):
-    revision_no = manual_file.revision_no or ""
-    revision_date_text = manual_file.revision_date_text or ""
+    if not manual_file or not manual_file.file:
+        return "", ""
 
-    if revision_no or revision_date_text:
-        return revision_no, revision_date_text
-
-    first_page = manual_file.pdf_pages.filter(page_number=1).only("text").first()
-
-    if first_page and first_page.text:
-        revision_no, revision_date_text = _extract_revision_info_from_text(
-            first_page.text
-        )
-
-    if not revision_no and not revision_date_text and manual_file.file:
-        try:
-            with pdfplumber.open(manual_file.file.path) as pdf:
-                if pdf.pages:
-                    revision_no, revision_date_text = _extract_revision_info_from_text(
-                        pdf.pages[0].extract_text() or ""
-                    )
-        except Exception:
-            return revision_no, revision_date_text
-
-    return revision_no, revision_date_text
-
-
-def _extract_revision_info_from_text(text):
-    revision_no = ""
-    revision_date_text = ""
-
-    if not text:
-        return revision_no, revision_date_text
-
-    rev_match = re.search(
-        r"Rev\.?(?:\s*No\.?)?\s*:?[\s]*([0-9A-Za-z\-]+)",
-        text,
-        re.IGNORECASE,
-    )
-
-    date_match = re.search(
-        r"Date\s*:?[\s]*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{4})",
-        text,
-        re.IGNORECASE,
-    )
-
-    if rev_match:
-        revision_no = rev_match.group(1).strip()
-
-    if date_match:
-        revision_date_text = date_match.group(1).strip()
-
-    return revision_no, revision_date_text
-
-
-def extract_manual_file_revision_info(manual_file):
-    revision_no = manual_file.revision_no or ""
-    revision_date_text = manual_file.revision_date_text or ""
-
-    if revision_no or revision_date_text:
-        return revision_no, revision_date_text
-
-    first_page = manual_file.pdf_pages.filter(page_number=1).only("text").first()
-
-    if first_page and first_page.text:
-        revision_no, revision_date_text = _extract_revision_info_from_text(
-            first_page.text
-        )
-
-    if not revision_no and not revision_date_text and manual_file.file:
-        try:
-            with pdfplumber.open(manual_file.file.path) as pdf:
-                if pdf.pages:
-                    revision_no, revision_date_text = _extract_revision_info_from_text(
-                        pdf.pages[0].extract_text() or ""
-                    )
-        except Exception:
-            return revision_no, revision_date_text
-
-    return revision_no, revision_date_text
+    return extract_revision_info_from_filename(manual_file.file.name)
 
 
 def parse_search_query(query):

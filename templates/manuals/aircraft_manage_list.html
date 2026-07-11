@@ -1,13 +1,11 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load static %} 
 
-{% block body_class %}
-list-page aircraft-manage-page
-{% endblock body_class %}
+{% block body_class %} list-page aircraft-manage-page {% endblock body_class %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}">
-{% endblock css %}
+<link rel="stylesheet" href="{% static 'css/list.css' %}" />
+{% endblock css %} 
 
 {% block content %}
 
@@ -23,30 +21,37 @@ list-page aircraft-manage-page
     </div>
 
     <div class="page-actions">
-        {% if user.is_staff %}
-            <a href="{% url 'aircraft_create' %}"
-                class="btn btn-primary app-action-btn d-none d-md-inline-flex">
-                Add Aircraft
-            </a>
+        {% if user.is_superuser %}
+        <a
+            href="{% url 'aircraft_create' %}"
+            class="btn btn-primary app-action-btn d-none d-md-inline-flex"
+        >
+            Add Aircraft
+        </a>
 
-            <a href="{% url 'common_manual_category_create' %}"
-                class="btn btn-outline-success app-action-btn d-none d-md-inline-flex">
-                Add Common Manual
-            </a>        
+        <a
+            href="{% url 'common_manual_category_create' %}"
+            class="btn btn-outline-success app-action-btn d-none d-md-inline-flex"
+        >
+            Add Common Manual
+        </a>
         {% endif %}
 
-            <a href="{% url 'home' %}"
-                class="btn btn-outline-secondary app-action-btn">
-                Back
-            </a>
+        <a
+            href="{% url 'home' %}"
+            class="btn btn-outline-secondary app-action-btn"
+        >
+            Back
+        </a>
     </div>
 </div>
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
-
         <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover align-middle mb-0 portal-list-table">
+            <table
+                class="table table-hover align-middle mb-0 portal-list-table"
+            >
                 <thead>
                     <tr>
                         <th>Maker</th>
@@ -58,53 +63,56 @@ list-page aircraft-manage-page
 
                 <tbody>
                     {% for aircraft in aircrafts %}
-                        <tr>
-                            <td>
-                                {% if aircraft.maker == "BOEING" %}
-                                    <span class="badge bg-primary portal-list-badge">
-                                        Boeing
-                                    </span>
-                                {% elif aircraft.maker == "AIRBUS" %}
-                                    <span class="badge bg-info text-dark portal-list-badge">
-                                        Airbus
-                                    </span>
-                                {% endif %}
-                            </td>
+                    <tr>
+                        <td>
+                            {% if aircraft.maker == "BOEING" %}
+                            <span class="badge bg-primary portal-list-badge">
+                                Boeing
+                            </span>
+                            {% elif aircraft.maker == "AIRBUS" %}
+                            <span
+                                class="badge bg-info text-dark portal-list-badge"
+                            >
+                                Airbus
+                            </span>
+                            {% endif %}
+                        </td>
 
-                            <td class="fw-bold">
-                                {{ aircraft.name }}
-                            </td>
+                        <td class="fw-bold">{{ aircraft.name }}</td>
 
-                            <td>
-                                {% if aircraft.maker == "BOEING" %}
-                                    AMM / FIM / IPC / MEL / CDL
-                                {% else %}
-                                    AMM / FIM / IPC Link, MEL / CDL PDF
-                                {% endif %}
-                            </td>
+                        <td>
+                            {% if aircraft.maker == "BOEING" %} 
+                            AMM / FIM / IPC / MEL / CDL 
+                            {% else %} AMM / FIM / IPC Link, MEL / CDL PDF 
+                            {% endif %}
+                        </td>
 
-                            <td>
-                                {% if user.is_staff %}
-                                    <div class="d-flex gap-2">
-                                        <a href="{% url 'aircraft_update' aircraft.pk %}"
-                                            class="btn btn-sm btn-warning">
-                                            Edit
-                                        </a>
+                        <td>
+                            {% if user.is_superuser %}
+                            <div class="d-flex gap-2">
+                                <a
+                                    href="{% url 'aircraft_update' aircraft.pk %}"
+                                    class="btn btn-sm btn-warning"
+                                >
+                                    Edit
+                                </a>
 
-                                        <a href="{% url 'aircraft_delete' aircraft.pk %}"
-                                            class="btn btn-sm btn-danger">
-                                            Delete
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </td>
-                        </tr>
+                                <a
+                                    href="{% url 'aircraft_delete' aircraft.pk %}"
+                                    class="btn btn-sm btn-danger"
+                                >
+                                    Delete
+                                </a>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
                     {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
-                                등록된 기종이 없습니다.
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            등록된 기종이 없습니다.
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -112,54 +120,55 @@ list-page aircraft-manage-page
 
         <div class="portal-list-grid d-md-none">
             {% for aircraft in aircrafts %}
-                <div class="portal-list-card">
-                    <div class="portal-list-card-header">
-                        <div>
-                            {% if aircraft.maker == "BOEING" %}
-                                <span class="badge bg-primary portal-list-badge">
-                                    Boeing
-                                </span>
-                            {% elif aircraft.maker == "AIRBUS" %}
-                                <span class="badge bg-info text-dark portal-list-badge">
-                                    Airbus
-                                </span>
-                            {% endif %}
+            <div class="portal-list-card">
+                <div class="portal-list-card-header">
+                    <div>
+                        {% if aircraft.maker == "BOEING" %}
+                        <span class="badge bg-primary portal-list-badge">
+                            Boeing
+                        </span>
+                        {% elif aircraft.maker == "AIRBUS" %}
+                        <span class="badge bg-info text-dark portal-list-badge">
+                            Airbus
+                        </span>
+                        {% endif %}
 
-                            <h5 class="portal-list-card-title mt-2 mb-1">
-                                {{ aircraft.name }}
-                            </h5>
+                        <h5 class="portal-list-card-title mt-2 mb-1">
+                            {{ aircraft.name }}
+                        </h5>
 
-                            <p class="portal-list-card-desc mb-0">
-                                {% if aircraft.maker == "BOEING" %}
-                                    AMM / FIM / IPC / MEL / CDL
-                                {% else %}
-                                    AMM / FIM / IPC Link, MEL / CDL PDF
-                                {% endif %}
-                            </p>
-                        </div>
+                        <p class="portal-list-card-desc mb-0">
+                            {% if aircraft.maker == "BOEING" %} AMM / FIM / IPC
+                            / MEL / CDL {% else %} AMM / FIM / IPC Link, MEL /
+                            CDL PDF {% endif %}
+                        </p>
                     </div>
-
-                    {% if user.is_staff %}
-                        <div class="portal-list-card-actions">
-                            <a href="{% url 'aircraft_update' aircraft.pk %}"
-                                class="btn btn-warning app-card-btn">
-                                Edit
-                            </a>
-
-                            <a href="{% url 'aircraft_delete' aircraft.pk %}"
-                                class="btn btn-danger app-card-btn">
-                                Delete
-                            </a>
-                        </div>
-                    {% endif %}
                 </div>
+
+                {% if user.is_superuser %}
+                <div class="portal-list-card-actions">
+                    <a
+                        href="{% url 'aircraft_update' aircraft.pk %}"
+                        class="btn btn-warning app-card-btn"
+                    >
+                        Edit
+                    </a>
+
+                    <a
+                        href="{% url 'aircraft_delete' aircraft.pk %}"
+                        class="btn btn-danger app-card-btn"
+                    >
+                        Delete
+                    </a>
+                </div>
+                {% endif %}
+            </div>
             {% empty %}
-                <div class="text-center text-muted py-4">
-                    등록된 기종이 없습니다.
-                </div>
+            <div class="text-center text-muted py-4">
+                등록된 기종이 없습니다.
+            </div>
             {% endfor %}
         </div>
-
     </div>
 </div>
 
@@ -177,9 +186,10 @@ list-page aircraft-manage-page
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
-
         <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover align-middle mb-0 portal-list-table">
+            <table
+                class="table table-hover align-middle mb-0 portal-list-table"
+            >
                 <thead>
                     <tr>
                         <th>Category</th>
@@ -192,45 +202,46 @@ list-page aircraft-manage-page
 
                 <tbody>
                     {% for category in common_categories %}
-                        <tr>
-                            <td class="fw-bold">
-                                {{ category.name }}
-                            </td>
+                    <tr>
+                        <td class="fw-bold">{{ category.name }}</td>
 
-                            <td>
-                                <span class="badge bg-success portal-list-badge">
-                                    {{ category.code }}
-                                </span>
-                            </td>
+                        <td>
+                            <span class="badge bg-success portal-list-badge">
+                                {{ category.code }}
+                            </span>
+                        </td>
 
-                            <td>
-                                {{ category.description|default:"공통 매뉴얼 카테고리입니다." }}
-                            </td>
+                        <td>
+                            {{ category.description|default:"공통 매뉴얼
+                            카테고리입니다." }}
+                        </td>
 
-                            <td>
-                                {{ category.files.count }}
-                            </td>
+                        <td>{{ category.files.count }}</td>
 
-                            <td>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <a href="{% url 'common_manual_category_update' category.pk %}"
-                                        class="btn btn-sm btn-warning">
-                                        Edit
-                                    </a>
+                        <td>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a
+                                    href="{% url 'common_manual_category_update' category.pk %}"
+                                    class="btn btn-sm btn-warning"
+                                >
+                                    Edit
+                                </a>
 
-                                    <a href="{% url 'common_manual_category_delete' category.pk %}"
-                                        class="btn btn-sm btn-danger">
-                                        Delete
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+                                <a
+                                    href="{% url 'common_manual_category_delete' category.pk %}"
+                                    class="btn btn-sm btn-danger"
+                                >
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
                     {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                등록된 공통 매뉴얼 카테고리가 없습니다.
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            등록된 공통 매뉴얼 카테고리가 없습니다.
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -238,56 +249,64 @@ list-page aircraft-manage-page
 
         <div class="portal-list-grid d-md-none">
             {% for category in common_categories %}
-                <div class="portal-list-card">
-                    <div class="portal-list-card-header">
-                        <div>
-                            <span class="badge bg-success portal-list-badge">
-                                {{ category.code }}
-                            </span>
+            <div class="portal-list-card">
+                <div class="portal-list-card-header">
+                    <div>
+                        <span class="badge bg-success portal-list-badge">
+                            {{ category.code }}
+                        </span>
 
-                            <h5 class="portal-list-card-title mt-2 mb-1">
-                                {{ category.name }}
-                            </h5>
+                        <h5 class="portal-list-card-title mt-2 mb-1">
+                            {{ category.name }}
+                        </h5>
 
-                            <p class="portal-list-card-desc mb-1">
-                                {{ category.description|default:"공통 매뉴얼 카테고리입니다." }}
-                            </p>
+                        <p class="portal-list-card-desc mb-1">
+                            {{ category.description|default:"공통 매뉴얼
+                            카테고리입니다." }}
+                        </p>
 
-                            <p class="portal-list-card-desc mb-0">
-                                {{ category.files.count }} file(s)
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="portal-list-card-actions">
-                        <a href="{% url 'common_manual_category_detail' category.pk %}?back={% url 'aircraft_manage' %}"
-                            class="btn btn-primary app-card-btn">
-                            Open
-                        </a>
-
-                        <a href="{% url 'common_manual_file_create' %}?category={{ category.pk }}&from_manage=1"
-                            class="btn btn-outline-primary app-card-btn">
-                            Upload
-                        </a>
-
-                        <a href="{% url 'common_manual_category_update' category.pk %}"
-                            class="btn btn-warning app-card-btn">
-                            Edit
-                        </a>
-
-                        <a href="{% url 'common_manual_category_delete' category.pk %}"
-                            class="btn btn-danger app-card-btn">
-                            Delete
-                        </a>
+                        <p class="portal-list-card-desc mb-0">
+                            {{ category.files.count }} file(s)
+                        </p>
                     </div>
                 </div>
+
+                <div class="portal-list-card-actions">
+                    <a
+                        href="{% url 'common_manual_category_detail' category.pk %}?back={% url 'aircraft_manage' %}"
+                        class="btn btn-primary app-card-btn"
+                    >
+                        Open
+                    </a>
+
+                    <a
+                        href="{% url 'common_manual_file_create' %}?category={{ category.pk }}&from_manage=1"
+                        class="btn btn-outline-primary app-card-btn"
+                    >
+                        Upload
+                    </a>
+
+                    <a
+                        href="{% url 'common_manual_category_update' category.pk %}"
+                        class="btn btn-warning app-card-btn"
+                    >
+                        Edit
+                    </a>
+
+                    <a
+                        href="{% url 'common_manual_category_delete' category.pk %}"
+                        class="btn btn-danger app-card-btn"
+                    >
+                        Delete
+                    </a>
+                </div>
+            </div>
             {% empty %}
-                <div class="text-center text-muted py-4">
-                    등록된 공통 매뉴얼 카테고리가 없습니다.
-                </div>
+            <div class="text-center text-muted py-4">
+                등록된 공통 매뉴얼 카테고리가 없습니다.
+            </div>
             {% endfor %}
         </div>
-
     </div>
 </div>
 

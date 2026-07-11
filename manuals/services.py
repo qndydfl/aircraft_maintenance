@@ -10,6 +10,7 @@ from PIL import Image
 import pytesseract
 
 from django.core.files import File
+from .revision_utils import extract_revision_info_from_filename
 
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]
 OFFICE_EXTENSIONS = [".doc", ".docx", ".xls", ".xlsx"]
@@ -502,7 +503,7 @@ def index_pdf_pages_for_package(package):
 
 
 def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
-    manual_type = (manual_type or "").upper()
+    return extract_revision_info_from_filename(source_file_name or pdf_path)
 
     is_mel_or_cdl = manual_type in ["MEL", "CDL"] or bool(
         re.search(
@@ -1006,11 +1007,8 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
             manual_type="COMMON",
         )
 
-        if revision_no and not common_file.revision_no:
-            common_file.revision_no = revision_no
-
-        if revision_date and not common_file.revision_date_text:
-            common_file.revision_date_text = revision_date
+        common_file.revision_no = revision_no
+        common_file.revision_date_text = revision_date
 
         common_file.save()
 
@@ -1480,8 +1478,9 @@ def extract_package_revision_info(package_dir):
 
 
 def save_package_revision_info(package, index_html_path):
-    package_dir = os.path.dirname(index_html_path)
-    revision_no, revision_date = extract_package_revision_info(package_dir)
+    revision_no, revision_date = extract_revision_info_from_filename(
+        getattr(package.zip_file, "name", "")
+    )
 
     package.revision_no = revision_no
     package.revision_date_text = revision_date

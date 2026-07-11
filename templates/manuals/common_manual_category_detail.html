@@ -1,17 +1,13 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load static %} 
 
-{% block body_class %}
-detail-page common-manual-detail-page
-{% endblock body_class %}
+{% block body_class %} detail-page common-manual-detail-page {% endblock body_class %} 
 
-{% block title %}
-{{ category.name }}
-{% endblock title %}
+{% block title %} {{ category.name }} {% endblock title %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_detail.css' %}">
-{% endblock css %}
+<link rel="stylesheet" href="{% static 'css/manual_detail.css' %}" />
+{% endblock css %} 
 
 {% block content %}
 
@@ -27,34 +23,44 @@ detail-page common-manual-detail-page
     </div>
 
     <div class="page-actions">
-        {% if user.is_staff %}
-            <a href="{% url 'common_manual_file_create' %}?category={{ category.pk }}"
-                class="btn btn-primary app-action-btn desktop-only-btn">
-                Upload File
-            </a>
+        {% if user.is_superuser %}
+        <a
+            href="{% url 'common_manual_file_create' %}?category={{ category.pk }}"
+            class="btn btn-primary app-action-btn desktop-only-btn"
+        >
+            Upload File
+        </a>
 
-            <a href="{% url 'common_manual_category_update' category.pk %}"
-                class="btn btn-outline-warning app-action-btn desktop-only-btn">
-                Edit Category
-            </a>
+        <a
+            href="{% url 'common_manual_category_update' category.pk %}"
+            class="btn btn-outline-warning app-action-btn desktop-only-btn"
+        >
+            Edit Category
+        </a>
 
-            <a href="{% url 'common_manual_category_delete' category.pk %}"
-                class="btn btn-outline-danger app-action-btn desktop-only-btn">
-                Delete Category
-            </a>
+        <a
+            href="{% url 'common_manual_category_delete' category.pk %}"
+            class="btn btn-outline-danger app-action-btn desktop-only-btn"
+        >
+            Delete Category
+        </a>
         {% endif %}
 
-        <a href="{{ back_url }}"
-            class="btn btn-outline-secondary app-action-btn mobile-show-btn">
+        <a
+            href="{{ back_url }}"
+            class="btn btn-outline-secondary app-action-btn mobile-show-btn"
+        >
             Back
         </a>
     </div>
 </div>
 
-{% if user.is_staff %}
+{% if user.is_superuser %}
 <div class="mobile-upload-action d-md-none mb-3">
-    <a href="{% url 'common_manual_file_create' %}?category={{ category.pk }}"
-        class="btn btn-primary w-100 app-card-btn">
+    <a
+        href="{% url 'common_manual_file_create' %}?category={{ category.pk }}"
+        class="btn btn-primary w-100 app-card-btn"
+    >
         Upload File
     </a>
 </div>
@@ -62,110 +68,115 @@ detail-page common-manual-detail-page
 
 <div class="row g-3 justify-content-center">
     {% for file in files %}
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card portal-card portal-detail-card h-100 shadow-sm">
-                <div class="card-body d-flex flex-column">
-
-                    <div class="portal-detail-card-header">
-                        <div>
-                            <p class="portal-detail-eyebrow mb-1">
-                                {{ category.name }}
-                            </p>
-
-                            <h5 class="portal-detail-title mb-0">
-                                {{ file.title }}
-                            </h5>
-                        </div>
-
-                        {% if file.is_indexed_pdf %}
-                            <span class="portal-detail-pill ready-pill">
-                                INDEXED
-                            </span>
-                        {% else %}
-                            <span class="portal-detail-pill empty-pill">
-                                NOT INDEXED
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    <p class="text-muted small manual-uploaded mt-2">
-                        Uploaded: {{ file.uploaded_at|date:"Y-m-d H:i" }}
-                    </p>
-
-                    {% if file.description %}
-                        <p class="portal-detail-note">
-                            {{ file.description }}
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card portal-card portal-detail-card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <div class="portal-detail-card-header">
+                    <div>
+                        <p class="portal-detail-eyebrow mb-1">
+                            {{ category.name }}
                         </p>
-                    {% endif %}
 
-                    <p class="small mb-3">
-                        {% if file.is_indexed_pdf %}
-                            <span class="badge bg-success manual-badge">
-                                INDEXED
-                            </span>
-                            {{ file.indexed_page_count }} page(s)
-                        {% else %}
-                            <span class="badge bg-warning text-dark manual-badge">
-                                NOT INDEXED
-                            </span>
-                        {% endif %}
-                    </p>
-
-                    <div class="portal-detail-button-group mt-auto">
-
-                        <div class="portal-detail-button-grid manual-primary-actions">
-                            <a href="{% url 'common_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="btn btn-primary app-card-btn mobile-show-btn">
-                                Open
-                            </a>
-
-                            <a href="{{ file.file.url }}"
-                                download
-                                class="btn btn-success app-card-btn mobile-show-btn mobile-download-btn">
-                                Download
-                            </a>
-                        </div>
-
-                        {% if user.is_staff %}
-                            <div class="portal-detail-button-grid desktop-only-btn-group">
-                                <a href="{% url 'common_manual_file_update' file.pk %}"
-                                    class="btn btn-warning app-card-btn">
-                                    Edit
-                                </a>
-
-                                <a href="{% url 'common_manual_file_delete' file.pk %}"
-                                    class="btn btn-danger app-card-btn">
-                                    Delete
-                                </a>
-                            </div>
-
-                            <form method="post"
-                                action="{% url 'common_manual_file_reindex' file.pk %}"
-                                class="desktop-only-btn-group"
-                                data-loading-title="Re-indexing Common Manual"
-                                data-loading-message="Converting file, running OCR when needed, and rebuilding search index...">
-                                {% csrf_token %}
-
-                                <button type="submit"
-                                    class="btn btn-outline-info w-100 app-card-btn">
-                                    Re-index
-                                </button>
-                            </form>
-                        {% endif %}
-
+                        <h5 class="portal-detail-title mb-0">
+                            {{ file.title }}
+                        </h5>
                     </div>
 
+                    {% if file.is_indexed_pdf %}
+                    <span class="portal-detail-pill ready-pill"> INDEXED </span>
+                    {% else %}
+                    <span class="portal-detail-pill empty-pill">
+                        NOT INDEXED
+                    </span>
+                    {% endif %}
+                </div>
+
+                <p class="text-muted small manual-uploaded mt-2">
+                    Uploaded: {{ file.uploaded_at|date:"Y-m-d H:i" }}
+                </p>
+
+                {% if file.description %}
+                <p class="portal-detail-note">{{ file.description }}</p>
+                {% endif %}
+
+                <p class="small mb-3">
+                    {% if file.is_indexed_pdf %}
+                    <span class="badge bg-success manual-badge"> INDEXED </span>
+                    {{ file.indexed_page_count }} page(s) {% else %}
+                    <span class="badge bg-warning text-dark manual-badge">
+                        NOT INDEXED
+                    </span>
+                    {% endif %}
+                </p>
+
+                <div class="portal-detail-button-group mt-auto">
+                    <div
+                        class="portal-detail-button-grid manual-primary-actions"
+                    >
+                        <a
+                            href="{% url 'common_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-primary app-card-btn mobile-show-btn"
+                        >
+                            Open
+                        </a>
+
+                        <a
+                            href="{{ file.file.url }}"
+                            download
+                            class="btn btn-success app-card-btn mobile-show-btn mobile-download-btn"
+                        >
+                            Download
+                        </a>
+                    </div>
+
+                    {% if user.is_superuser %}
+                    <div
+                        class="portal-detail-button-grid desktop-only-btn-group"
+                    >
+                        <a
+                            href="{% url 'common_manual_file_update' file.pk %}"
+                            class="btn btn-warning app-card-btn"
+                        >
+                            Edit
+                        </a>
+
+                        <a
+                            href="{% url 'common_manual_file_delete' file.pk %}"
+                            class="btn btn-danger app-card-btn"
+                        >
+                            Delete
+                        </a>
+                    </div>
+
+                    <form
+                        method="post"
+                        action="{% url 'common_manual_file_reindex' file.pk %}"
+                        class="desktop-only-btn-group"
+                        data-loading-title="Re-indexing Common Manual"
+                        data-loading-message="Converting file, running OCR when needed, and rebuilding search index..."
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-info w-100 app-card-btn"
+                        >
+                            Re-index
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
         </div>
+    </div>
     {% empty %}
-        <div class="col-12">
-            <div class="alert alert-warning app-alert">
-                등록된 공통 매뉴얼 파일이 없습니다.
-            </div>
+    <div class="col-12">
+        <div class="alert alert-warning app-alert">
+            등록된 공통 매뉴얼 파일이 없습니다.
         </div>
+    </div>
     {% endfor %}
 </div>
 

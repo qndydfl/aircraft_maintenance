@@ -28,7 +28,7 @@ dispatch-search-page
     </div>
 
     <div class="page-actions">
-        {% if user.is_staff %}
+        {% if user.is_superuser %}
             <a href="{% url 'dispatch_csv_upload' %}"
                 class="btn btn-outline-danger app-action-btn d-none d-md-inline-flex">
                 CSV Upload

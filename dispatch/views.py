@@ -176,7 +176,7 @@ class DispatchCSVUploadView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     success_url = reverse_lazy("dispatch_search")
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.is_superuser
 
     def form_valid(self, form):
         csv_file = form.cleaned_data["csv_file"]
@@ -505,7 +505,7 @@ class DispatchDetailView(LoginRequiredMixin, DetailView):
 class StaffRequiredMixin(UserPassesTestMixin):
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.is_superuser
 
 
 class DispatchUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
@@ -871,9 +871,9 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
     def score_mel_item_page(self, text, match_position):
         text = text or ""
         lower_text = text.lower()
-        before_text = lower_text[max(match_position - 500, 0):match_position]
-        after_text = lower_text[match_position:match_position + 900]
-        nearby_text = lower_text[max(match_position - 120, 0):match_position + 220]
+        before_text = lower_text[max(match_position - 500, 0) : match_position]
+        after_text = lower_text[match_position : match_position + 900]
+        nearby_text = lower_text[max(match_position - 120, 0) : match_position + 220]
 
         score = 0
 
@@ -1192,10 +1192,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
 
         mel_dispatch_rows = list(mel_dispatch_rows)
 
-        rows_by_id = {
-            row.pk: row
-            for row in mel_dispatch_rows
-        }
+        rows_by_id = {row.pk: row for row in mel_dispatch_rows}
 
         if not rows_by_id:
             for row in self.find_message_block_mel_rows(aircraft_qs, query):

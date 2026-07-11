@@ -1,26 +1,19 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load static %} 
 
-{% block body_class %}
-detail-page other-manual-detail-page
-{% endblock body_class %}
+{% block body_class %} detail-page other-manual-detail-page {% endblock body_class %} 
 
 {% block css %}
-<link href="{% static 'css/manual_detail.css' %}" rel="stylesheet">
-{% endblock css %}
+<link href="{% static 'css/manual_detail.css' %}" rel="stylesheet" />
+{% endblock css %} 
 
 {% block content %}
 
 <div class="page-hero mb-4">
-
     <div>
-        <p class="page-eyebrow mb-1">
-            {{ category.aircraft.name }} / OTHER
-        </p>
+        <p class="page-eyebrow mb-1">{{ category.aircraft.name }} / OTHER</p>
 
-        <h2 class="page-title mb-2">
-            {{ category.name }}
-        </h2>
+        <h2 class="page-title mb-2">{{ category.name }}</h2>
 
         <p class="text-muted mb-0 page-subtitle">
             {{ category.description|default:"OTHER 매뉴얼 파일을 관리합니다." }}
@@ -28,185 +21,178 @@ detail-page other-manual-detail-page
     </div>
 
     <div class="page-actions">
-        {% if user.is_staff %}
-            <a href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
-                class="btn btn-primary app-action-btn desktop-only-btn">
-                Add File
-            </a>
+        {% if user.is_superuser %}
+        <a
+            href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
+            class="btn btn-primary app-action-btn desktop-only-btn"
+        >
+            Add File
+        </a>
 
-            <a href="{% url 'other_manual_category_update' category.pk %}"
-                class="btn btn-outline-warning app-action-btn desktop-only-btn">
-                Edit Folder
-            </a>
+        <a
+            href="{% url 'other_manual_category_update' category.pk %}"
+            class="btn btn-outline-warning app-action-btn desktop-only-btn"
+        >
+            Edit Folder
+        </a>
 
-            <a href="{% url 'other_manual_category_delete' category.pk %}"
-                class="btn btn-outline-danger app-action-btn desktop-only-btn">
-                Delete Folder
-            </a>
+        <a
+            href="{% url 'other_manual_category_delete' category.pk %}"
+            class="btn btn-outline-danger app-action-btn desktop-only-btn"
+        >
+            Delete Folder
+        </a>
         {% endif %}
 
-        <a href="{{ back_url }}"
-            class="btn btn-outline-secondary app-action-btn">
+        <a
+            href="{{ back_url }}"
+            class="btn btn-outline-secondary app-action-btn"
+        >
             Back
         </a>
     </div>
-
 </div>
 
 <div class="row g-3 g-md-4 justify-content-center">
-
     {% for file in files %}
 
-        <div class="col-12 col-sm-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card portal-card portal-detail-card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="portal-detail-card-header">
+                    <div>
+                        <p class="portal-detail-eyebrow mb-1">OTHER FILE</p>
 
-            <div class="card portal-card portal-detail-card h-100 shadow-sm">
-
-                <div class="card-body">
-
-                    <div class="portal-detail-card-header">
-
-                        <div>
-                            <p class="portal-detail-eyebrow mb-1">
-                                OTHER FILE
-                            </p>
-
-                            <h5 class="portal-detail-title mb-0">
-                                {{ file.title }}
-                            </h5>
-                        </div>
-
-                        <span class="portal-detail-pill ready-pill">
-                            READY
-                        </span>
-
+                        <h5 class="portal-detail-title mb-0">
+                            {{ file.title }}
+                        </h5>
                     </div>
 
-                    {% if file.revision_no or file.revision_date_text %}
-                        <p class="revision-info">
-                            {% if file.revision_no %}
-                                Rev {{ file.revision_no }}
-                            {% endif %}
-
-                            {% if file.revision_date_text %}
-                                · {{ file.revision_date_text }}
-                            {% endif %}
-                        </p>
-                    {% endif %}
-
-                    <p class="text-muted small manual-uploaded">
-                        Uploaded: {{ file.uploaded_at|date:"Y-m-d H:i" }}
-                    </p>
-
-                    {% if file.is_pdf %}
-                        <p class="small mb-3">
-                            {% if file.is_indexed_pdf %}
-                                <span class="badge bg-success manual-badge">
-                                    INDEXED
-                                </span>
-                                {{ file.indexed_page_count }} page(s)
-                            {% else %}
-                                <span class="badge bg-warning text-dark manual-badge">
-                                    NOT INDEXED
-                                </span>
-                            {% endif %}
-                        </p>
-                    {% endif %}
-
-                    {% if file.description %}
-                        <p class="portal-detail-note">
-                            {{ file.description }}
-                        </p>
-                    {% endif %}
-
-                    <div class="portal-detail-button-group">
-
-                        <div class="portal-detail-button-grid manual-primary-actions">
-
-                            {% if file.is_pdf %}
-                                <a href="{% url 'other_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="btn btn-primary app-card-btn mobile-show-btn">
-                                    Open
-                                </a>
-                            {% else %}
-                                <a href="{{ file.file.url }}"
-                                    target="_blank"
-                                    class="btn btn-primary app-card-btn mobile-show-btn">
-                                    Open
-                                </a>
-                            {% endif %}
-
-                            <a href="{{ file.file.url }}"
-                                download
-                                class="btn btn-success app-card-btn mobile-show-btn mobile-download-btn">
-                                Download
-                            </a>
-
-                        </div>
-
-                        {% if user.is_staff %}
-                            <div class="portal-detail-button-grid desktop-only-btn-group">
-
-                                <a href="{% url 'other_manual_file_update' file.pk %}"
-                                    class="btn btn-warning app-card-btn">
-                                    Edit
-                                </a>
-
-                                <a href="{% url 'other_manual_file_delete' file.pk %}"
-                                    class="btn btn-danger app-card-btn">
-                                    Delete
-                                </a>
-
-                            </div>
-
-                            {% if file.is_pdf %}
-                                <form method="post"
-                                    action="{% url 'other_manual_file_reindex' file.pk %}"
-                                    class="desktop-only-btn-group"
-                                    data-loading-title="Re-indexing OTHER File"
-                                    data-loading-message="Converting file, running OCR when needed, and rebuilding search index...">
-                                    {% csrf_token %}
-
-                                    <button type="submit"
-                                        class="btn btn-outline-info w-100 app-card-btn">
-                                        Re-index PDF
-                                    </button>
-                                </form>
-                            {% endif %}
-                        {% endif %}
-
-                    </div>
-
+                    <span class="portal-detail-pill ready-pill"> READY </span>
                 </div>
 
-            </div>
+                {% if file.display_revision_no or file.display_revision_date_text %}
+                <p class="revision-info">
+                    {% if file.display_revision_no %} Rev {{ file.display_revision_no }} {% endif %} {% if file.display_revision_date_text %} · {{ file.display_revision_date_text }} {% endif %}
+                </p>
+                {% endif %}
 
+                <p class="text-muted small manual-uploaded">
+                    Uploaded: {{ file.uploaded_at|date:"Y-m-d H:i" }}
+                </p>
+
+                {% if file.is_pdf %}
+                <p class="small mb-3">
+                    {% if file.is_indexed_pdf %}
+                    <span class="badge bg-success manual-badge"> INDEXED </span>
+                    {{ file.indexed_page_count }} page(s) {% else %}
+                    <span class="badge bg-warning text-dark manual-badge">
+                        NOT INDEXED
+                    </span>
+                    {% endif %}
+                </p>
+                {% endif %} {% if file.description %}
+                <p class="portal-detail-note">{{ file.description }}</p>
+                {% endif %}
+
+                <div class="portal-detail-button-group">
+                    <div
+                        class="portal-detail-button-grid manual-primary-actions"
+                    >
+                        {% if file.is_pdf %}
+                        <a
+                            href="{% url 'other_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-primary app-card-btn mobile-show-btn"
+                        >
+                            Open
+                        </a>
+                        {% else %}
+                        <a
+                            href="{{ file.file.url }}"
+                            target="_blank"
+                            class="btn btn-primary app-card-btn mobile-show-btn"
+                        >
+                            Open
+                        </a>
+                        {% endif %}
+
+                        <a
+                            href="{{ file.file.url }}"
+                            download
+                            class="btn btn-success app-card-btn mobile-show-btn mobile-download-btn"
+                        >
+                            Download
+                        </a>
+                    </div>
+
+                    {% if user.is_superuser %}
+                    <div
+                        class="portal-detail-button-grid desktop-only-btn-group"
+                    >
+                        <a
+                            href="{% url 'other_manual_file_update' file.pk %}"
+                            class="btn btn-warning app-card-btn"
+                        >
+                            Edit
+                        </a>
+
+                        <a
+                            href="{% url 'other_manual_file_delete' file.pk %}"
+                            class="btn btn-danger app-card-btn"
+                        >
+                            Delete
+                        </a>
+                    </div>
+
+                    {% if file.is_pdf %}
+                    <form
+                        method="post"
+                        action="{% url 'other_manual_file_reindex' file.pk %}"
+                        class="desktop-only-btn-group"
+                        data-loading-title="Re-indexing OTHER File"
+                        data-loading-message="Converting file, running OCR when needed, and rebuilding search index..."
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-info w-100 app-card-btn"
+                        >
+                            Re-index PDF
+                        </button>
+                    </form>
+                    {% endif %} {% endif %}
+                </div>
+            </div>
         </div>
+    </div>
 
     {% empty %}
 
-        <div class="col-12">
-            <div class="card portal-card portal-detail-card portal-detail-empty-card shadow-sm">
-                <div class="card-body text-center">
+    <div class="col-12">
+        <div
+            class="card portal-card portal-detail-card portal-detail-empty-card shadow-sm"
+        >
+            <div class="card-body text-center">
+                <p class="portal-detail-note mb-3">
+                    이 OTHER 폴더에 등록된 파일이 없습니다.
+                </p>
 
-                    <p class="portal-detail-note mb-3">
-                        이 OTHER 폴더에 등록된 파일이 없습니다.
-                    </p>
-
-                    {% if user.is_staff %}
-                        <a href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
-                            class="btn btn-outline-primary app-card-btn">
-                            Add First File
-                        </a>
-                    {% endif %}
-
-                </div>
+                {% if user.is_superuser %}
+                <a
+                    href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
+                    class="btn btn-outline-primary app-card-btn"
+                >
+                    Add First File
+                </a>
+                {% endif %}
             </div>
         </div>
+    </div>
 
     {% endfor %}
-
 </div>
 
 {% endblock content %}

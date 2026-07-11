@@ -21,7 +21,7 @@
     </div>
 
     <div class="page-actions">
-        {% if user.is_staff %}
+        {% if user.is_superuser %}
         <a
             href="{% url 'aircraft_manage' %}"
             class="btn btn-outline-primary app-action-btn admin-only-action"

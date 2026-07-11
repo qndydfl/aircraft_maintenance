@@ -30,7 +30,7 @@ list-page dispatch-list-page
 
     <div class="page-actions">
 
-        {% if user.is_staff %}
+        {% if user.is_superuser %}
         <a href="{% url 'dispatch_create' %}"
             class="btn btn-primary app-action-btn d-none d-md-inline-flex">
             Add Dispatch
@@ -257,7 +257,7 @@ list-page dispatch-list-page
                     Open
                 </a>
 
-                {% if user.is_staff %}
+                {% if user.is_superuser %}
 
                 <a href="{% url 'dispatch_update' dispatch.pk %}"
                     class="btn btn-warning app-card-btn">

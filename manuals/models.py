@@ -3,6 +3,15 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 import os
 
+from .revision_utils import extract_revision_info_from_filename
+
+
+def get_filename_revision_info(file_field):
+    if not file_field:
+        return "", ""
+
+    return extract_revision_info_from_filename(file_field.name)
+
 
 def build_snippet_from_text(text, query, length=180):
     if not text:
@@ -209,6 +218,16 @@ class ManualFile(models.Model):
     def is_indexed_pdf(self):
         return self.indexed_page_count() > 0
 
+    @property
+    def display_revision_no(self):
+        revision_no, _ = get_filename_revision_info(self.file)
+        return revision_no
+
+    @property
+    def display_revision_date_text(self):
+        _, revision_date = get_filename_revision_info(self.file)
+        return revision_date
+
     def manual_order(self):
         order_map = {
             "AMM": 1,
@@ -296,6 +315,16 @@ class ManualPackage(models.Model):
             return annotated_count
 
         return self.chapters.aggregate(total=models.Count("pages")).get("total") or 0
+
+    @property
+    def display_revision_no(self):
+        revision_no, _ = get_filename_revision_info(self.zip_file)
+        return revision_no
+
+    @property
+    def display_revision_date_text(self):
+        _, revision_date = get_filename_revision_info(self.zip_file)
+        return revision_date
 
     def __str__(self):
         return f"{self.aircraft.name} - {self.manual_type}"
@@ -425,6 +454,16 @@ class CommonManualFile(models.Model):
     def is_indexed_pdf(self):
         return self.indexed_page_count() > 0
 
+    @property
+    def display_revision_no(self):
+        revision_no, _ = get_filename_revision_info(self.file)
+        return revision_no
+
+    @property
+    def display_revision_date_text(self):
+        _, revision_date = get_filename_revision_info(self.file)
+        return revision_date
+
 
 class CommonManualPDFPage(models.Model):
     common_file = models.ForeignKey(
@@ -494,6 +533,16 @@ class OtherManualFile(models.Model):
 
     def __str__(self):
         return f"{self.category} / {self.title}"
+
+    @property
+    def display_revision_no(self):
+        revision_no, _ = get_filename_revision_info(self.file)
+        return revision_no
+
+    @property
+    def display_revision_date_text(self):
+        _, revision_date = get_filename_revision_info(self.file)
+        return revision_date
 
     @property
     def is_pdf(self):

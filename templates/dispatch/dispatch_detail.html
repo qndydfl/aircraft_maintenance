@@ -1,13 +1,11 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load static %} 
 
-{% block body_class %}
-dispatch-detail-page
-{% endblock body_class %}
+{% block body_class %} dispatch-detail-page {% endblock body_class %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}">
-{% endblock css %}
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}" />
+{% endblock css %} 
 
 {% block content %}
 
@@ -15,9 +13,7 @@ dispatch-detail-page
     <div>
         <p class="page-eyebrow mb-1">DISPATCH</p>
 
-        <h2 class="page-title mb-2">
-            Dispatch Detail
-        </h2>
+        <h2 class="page-title mb-2">Dispatch Detail</h2>
 
         <p class="text-muted mb-0 page-subtitle">
             EICAS Message / Fault Code / MEL / FIM / AMM Reference
@@ -25,14 +21,18 @@ dispatch-detail-page
     </div>
 
     <div class="page-actions">
-        <a href="{% url 'dispatch_detail_print' dispatch.pk %}"
+        <a
+            href="{% url 'dispatch_detail_print' dispatch.pk %}"
             target="_blank"
-            class="btn btn-outline-dark app-action-btn">
+            class="btn btn-outline-dark app-action-btn"
+        >
             Print
         </a>
 
-        <a href="{% url 'dispatch_auto_search' %}"
-            class="btn btn-outline-secondary app-action-btn">
+        <a
+            href="{% url 'dispatch_auto_search' %}"
+            class="btn btn-outline-secondary app-action-btn"
+        >
             Back
         </a>
     </div>
@@ -80,7 +80,7 @@ dispatch-detail-page
                 <strong>{{ dispatch.mel_number|default:"-" }}</strong>
 
                 {% if dispatch.mel_search_keyword %}
-                    <small>Keyword: {{ dispatch.mel_search_keyword }}</small>
+                <small>Keyword: {{ dispatch.mel_search_keyword }}</small>
                 {% endif %}
             </div>
 
@@ -89,7 +89,7 @@ dispatch-detail-page
                 <strong>{{ dispatch.fim_chapter|default:"-" }}</strong>
 
                 {% if dispatch.fim_search_keyword %}
-                    <small>Keyword: {{ dispatch.fim_search_keyword }}</small>
+                <small>Keyword: {{ dispatch.fim_search_keyword }}</small>
                 {% endif %}
             </div>
 
@@ -98,116 +98,128 @@ dispatch-detail-page
                 <strong>{{ dispatch.amm_chapter|default:"-" }}</strong>
 
                 {% if dispatch.amm_search_keyword %}
-                    <small>Keyword: {{ dispatch.amm_search_keyword }}</small>
+                <small>Keyword: {{ dispatch.amm_search_keyword }}</small>
                 {% endif %}
             </div>
         </div>
 
         <div class="dispatch-open-actions">
             {% if dispatch.mel_manual_file_id and dispatch.mel_page_number %}
-                <a href="{% url 'manual_file_pdf_viewer' dispatch.mel_manual_file_id %}?page={{ dispatch.mel_page_number }}&q={{ dispatch.mel_search_keyword|default:dispatch.mel_number|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-danger app-card-btn">
-                    Open Saved MEL Page
-                </a>
+            <a
+                href="{% url 'manual_file_pdf_viewer' dispatch.mel_manual_file_id %}?page={{ dispatch.mel_page_number }}&q={{ dispatch.mel_search_keyword|default:dispatch.mel_number|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-danger app-card-btn"
+            >
+                Open Saved MEL Page
+            </a>
             {% elif mel_page %}
-                <a href="{% url 'manual_file_pdf_viewer' mel_page.manual_file.pk %}?page={{ mel_page.page_number }}&q={{ mel_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-outline-danger app-card-btn">
-                    Open MEL Page
-                </a>
+            <a
+                href="{% url 'manual_file_pdf_viewer' mel_page.manual_file.pk %}?page={{ mel_page.page_number }}&q={{ mel_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-outline-danger app-card-btn"
+            >
+                Open MEL Page
+            </a>
             {% elif mel_file %}
-                <a href="{% url 'manual_file_pdf_viewer' mel_file.pk %}?q={{ mel_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-outline-danger app-card-btn">
-                    Open MEL PDF
-                </a>
-            {% endif %}
-
-            {% if dispatch.fim_chapter_id and dispatch.fim_page_number %}
-                <a href="{% url 'manual_chapter_pdf_viewer' dispatch.fim_chapter_id %}?page={{ dispatch.fim_page_number }}&q={{ dispatch.fim_search_keyword|default:dispatch.fim_chapter|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-primary app-card-btn">
-                    Open Saved FIM Page
-                </a>
+            <a
+                href="{% url 'manual_file_pdf_viewer' mel_file.pk %}?q={{ mel_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-outline-danger app-card-btn"
+            >
+                Open MEL PDF
+            </a>
+            {% endif %} {% if dispatch.fim_chapter_id and
+            dispatch.fim_page_number %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' dispatch.fim_chapter_id %}?page={{ dispatch.fim_page_number }}&q={{ dispatch.fim_search_keyword|default:dispatch.fim_chapter|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-primary app-card-btn"
+            >
+                Open Saved FIM Page
+            </a>
             {% elif fim_page %}
-                <a href="{% url 'manual_chapter_pdf_viewer' fim_page.chapter.pk %}?page={{ fim_page.page_number }}&q={{ fim_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-outline-primary app-card-btn">
-                    Open FIM Page
-                </a>
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' fim_page.chapter.pk %}?page={{ fim_page.page_number }}&q={{ fim_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-outline-primary app-card-btn"
+            >
+                Open FIM Page
+            </a>
             {% elif dispatch.fim_chapter %}
-                <a href="{% url 'manual_search' %}?aircraft={{ dispatch.aircraft.id }}&manual_type=FIM&q={{ fim_query|urlencode }}&back={{ request.get_full_path|urlencode }}"
-                    class="btn btn-outline-primary app-card-btn">
-                    Search FIM
-                </a>
-            {% endif %}
-
-            {% if dispatch.amm_chapter_id and dispatch.amm_page_number %}
-                <a href="{% url 'manual_chapter_pdf_viewer' dispatch.amm_chapter_id %}?page={{ dispatch.amm_page_number }}&q={{ dispatch.amm_search_keyword|default:dispatch.amm_chapter|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-success app-card-btn">
-                    Open Saved AMM Page
-                </a>
+            <a
+                href="{% url 'manual_search' %}?aircraft={{ dispatch.aircraft.id }}&manual_type=FIM&q={{ fim_query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                class="btn btn-outline-primary app-card-btn"
+            >
+                Search FIM
+            </a>
+            {% endif %} {% if dispatch.amm_chapter_id and
+            dispatch.amm_page_number %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' dispatch.amm_chapter_id %}?page={{ dispatch.amm_page_number }}&q={{ dispatch.amm_search_keyword|default:dispatch.amm_chapter|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-success app-card-btn"
+            >
+                Open Saved AMM Page
+            </a>
             {% elif amm_page %}
-                <a href="{% url 'manual_chapter_pdf_viewer' amm_page.chapter.pk %}?page={{ amm_page.page_number }}&q={{ amm_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-outline-success app-card-btn">
-                    Open AMM Page
-                </a>
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' amm_page.chapter.pk %}?page={{ amm_page.page_number }}&q={{ amm_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-outline-success app-card-btn"
+            >
+                Open AMM Page
+            </a>
             {% elif dispatch.amm_chapter %}
-                <a href="{% url 'manual_search' %}?aircraft={{ dispatch.aircraft.id }}&manual_type=AMM&q={{ amm_query|urlencode }}&back={{ request.get_full_path|urlencode }}"
-                    class="btn btn-outline-success app-card-btn">
-                    Search AMM
-                </a>
+            <a
+                href="{% url 'manual_search' %}?aircraft={{ dispatch.aircraft.id }}&manual_type=AMM&q={{ amm_query|urlencode }}&back={{ request.get_full_path|urlencode }}"
+                class="btn btn-outline-success app-card-btn"
+            >
+                Search AMM
+            </a>
             {% endif %}
         </div>
     </div>
 </div>
 
 {% if dispatch.description %}
-    <div class="card portal-card dispatch-detail-card shadow-sm mb-4">
-        <div class="dispatch-card-header dispatch-header-secondary">
-            Description
-        </div>
-
-        <div class="card-body dispatch-text-body">
-            {{ dispatch.description|linebreaks }}
-        </div>
+<div class="card portal-card dispatch-detail-card shadow-sm mb-4">
+    <div class="dispatch-card-header dispatch-header-secondary">
+        Description
     </div>
-{% endif %}
 
-{% if dispatch.note %}
-    <div class="card portal-card dispatch-detail-card shadow-sm mb-4">
-        <div class="dispatch-card-header dispatch-header-warning">
-            Note
-        </div>
-
-        <div class="card-body dispatch-text-body">
-            {{ dispatch.note|linebreaks }}
-        </div>
+    <div class="card-body dispatch-text-body">
+        {{ dispatch.description|linebreaks }}
     </div>
-{% endif %}
+</div>
+{% endif %} {% if dispatch.note %}
+<div class="card portal-card dispatch-detail-card shadow-sm mb-4">
+    <div class="dispatch-card-header dispatch-header-warning">Note</div>
 
-{% if user.is_staff %}
-    <div class="dispatch-staff-actions">
-        <a href="{% url 'dispatch_update' dispatch.pk %}"
-            class="btn btn-warning app-card-btn">
-            Edit
-        </a>
-
-        <a href="{% url 'dispatch_delete' dispatch.pk %}"
-            class="btn btn-danger app-card-btn">
-            Delete
-        </a>
+    <div class="card-body dispatch-text-body">
+        {{ dispatch.note|linebreaks }}
     </div>
-{% endif %}
+</div>
+{% endif %} {% if user.is_superuser %}
+<div class="dispatch-staff-actions">
+    <a
+        href="{% url 'dispatch_update' dispatch.pk %}"
+        class="btn btn-warning app-card-btn"
+    >
+        Edit
+    </a>
 
-{% endblock content %}
+    <a
+        href="{% url 'dispatch_delete' dispatch.pk %}"
+        class="btn btn-danger app-card-btn"
+    >
+        Delete
+    </a>
+</div>
+{% endif %} {% endblock content %}

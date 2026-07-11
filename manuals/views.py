@@ -112,9 +112,7 @@ def index_manual_file_now(manual_file):
 def attach_latest_reindex_jobs(items, item_getter, target_type):
     item_list = list(items)
     target_ids = [
-        item_getter(item).pk
-        for item in item_list
-        if item_getter(item) is not None
+        item_getter(item).pk for item in item_list if item_getter(item) is not None
     ]
 
     if not target_ids:
@@ -143,7 +141,7 @@ def attach_latest_reindex_jobs(items, item_getter, target_type):
 class StaffRequiredMixin(UserPassesTestMixin):
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.is_superuser
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -340,7 +338,9 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
             _, message = index_manual_file_now(self.object)
             messages.success(self.request, f"PDF 업로드 완료. {message}")
         except Exception as error:
-            messages.error(self.request, f"PDF 업로드는 완료되었지만 인덱싱 실패: {error}")
+            messages.error(
+                self.request, f"PDF 업로드는 완료되었지만 인덱싱 실패: {error}"
+            )
 
         return response
 
@@ -383,7 +383,9 @@ class ManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
             _, message = index_manual_file_now(self.object)
             messages.success(self.request, f"PDF 재업로드 완료. {message}")
         except Exception as error:
-            messages.error(self.request, f"PDF 재업로드는 완료되었지만 인덱싱 실패: {error}")
+            messages.error(
+                self.request, f"PDF 재업로드는 완료되었지만 인덱싱 실패: {error}"
+            )
 
         return response
 
@@ -922,9 +924,11 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                         manual_file.pk,
                         page.page_number,
                     ),
-                    "button_class": "btn-danger"
-                    if manual_file.manual_type in {"MEL", "CDL"}
-                    else "btn-primary",
+                    "button_class": (
+                        "btn-danger"
+                        if manual_file.manual_type in {"MEL", "CDL"}
+                        else "btn-primary"
+                    ),
                     "badge_class": "bg-primary",
                 },
             )
@@ -1261,16 +1265,14 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
             )
         )
 
-        return [
-            candidates[0]["page_number"]
-        ] if candidates else []
+        return [candidates[0]["page_number"]] if candidates else []
 
     def score_mel_item_page(self, text, match_position):
         text = text or ""
         lower_text = text.lower()
-        before_text = lower_text[max(match_position - 500, 0):match_position]
-        after_text = lower_text[match_position:match_position + 900]
-        nearby_text = lower_text[max(match_position - 120, 0):match_position + 220]
+        before_text = lower_text[max(match_position - 500, 0) : match_position]
+        after_text = lower_text[match_position : match_position + 900]
+        nearby_text = lower_text[max(match_position - 120, 0) : match_position + 220]
 
         score = 0
 
@@ -1567,7 +1569,7 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     pk_url_kwarg = "package_pk"
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.is_superuser
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1627,9 +1629,7 @@ class CommonManualCategoryDetailView(LoginRequiredMixin, DetailView):
         back_url = self.request.GET.get("back", "").strip()
 
         context["files"] = attach_latest_reindex_jobs(
-            CommonManualFile.objects.filter(
-            category=self.object
-            ).order_by("title"),
+            CommonManualFile.objects.filter(category=self.object).order_by("title"),
             lambda file: file,
             ReindexJob.TARGET_COMMON_FILE,
         )
@@ -2068,9 +2068,7 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         context["files"] = attach_latest_reindex_jobs(
-            OtherManualFile.objects.filter(
-            category=self.object
-            ).order_by("title"),
+            OtherManualFile.objects.filter(category=self.object).order_by("title"),
             lambda file: file,
             ReindexJob.TARGET_OTHER_FILE,
         )
