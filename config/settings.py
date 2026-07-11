@@ -26,7 +26,7 @@ USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
 
 # 개발 환경
 # DEBUG=True
-# ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# ALLOWED_HOSTS = ["*"]
 # USE_R2 = False
 
 
