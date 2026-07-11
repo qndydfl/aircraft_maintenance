@@ -366,12 +366,12 @@ def process_manual_package(package):
     package.extracted_path = extract_to
     package.save(update_fields=["extracted_path"])
 
-    save_package_revision_info(package, index_html_path)
-
     chapter_count = parse_index_html(
         package=package,
         index_html_path=index_html_path,
     )
+
+    save_package_revision_info(package, index_html_path)
 
     page_count = index_pdf_pages_for_package(package=package)
 
@@ -1187,8 +1187,6 @@ def process_manual_package_safely(package):
             package.save(update_fields=["extracted_path", "processed"])
 
             if index_html_path:
-                save_package_revision_info(package, index_html_path)
-
                 chapter_count = parse_index_html(
                     package=package,
                     index_html_path=index_html_path,
@@ -1199,6 +1197,8 @@ def process_manual_package_safely(package):
                     extract_to=temp_extract_to,
                 )
 
+            save_package_revision_info(package, index_html_path)
+
             if os.path.exists(final_extract_to):
                 shutil.rmtree(final_extract_to, ignore_errors=True)
 
@@ -1208,22 +1208,6 @@ def process_manual_package_safely(package):
             package.extracted_path = final_extract_to
             package.processed = False
             package.save(update_fields=["extracted_path", "processed"])
-
-            if not package.revision_no and not package.revision_date_text:
-                first_pdf = ManualChapter.objects.filter(package=package).first()
-
-                if first_pdf:
-                    pdf_path = os.path.join(
-                        package.extracted_path, first_pdf.pdf_relative_path
-                    )
-
-                    rev_no, rev_date = extract_pdf_revision_info(
-                        pdf_path, manual_type=first_pdf.manual_file.manual_type
-                    )
-
-                    package.revision_no = rev_no
-                    package.revision_date_text = rev_date
-                    package.save(update_fields=["revision_no", "revision_date_text"])
 
         page_count = index_pdf_pages_for_package(package=package)
 
@@ -1479,7 +1463,7 @@ def extract_package_revision_info(package_dir):
 
 def save_package_revision_info(package, index_html_path):
     revision_no, revision_date = extract_revision_info_from_filename(
-        getattr(package.zip_file, "name", "")
+        package.revision_source_file_name()
     )
 
     package.revision_no = revision_no

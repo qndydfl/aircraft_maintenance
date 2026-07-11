@@ -316,14 +316,46 @@ class ManualPackage(models.Model):
 
         return self.chapters.aggregate(total=models.Count("pages")).get("total") or 0
 
+    def revision_source_file_name(self):
+        chapters = self.chapters.exclude(pdf_relative_path="").order_by(
+            "task",
+            "subtask",
+            "pdf_relative_path",
+        )
+
+        first_pdf_name = ""
+
+        for chapter in chapters:
+            if not first_pdf_name:
+                first_pdf_name = chapter.pdf_relative_path
+
+            revision_no, revision_date = extract_revision_info_from_filename(
+                chapter.pdf_relative_path
+            )
+
+            if revision_no or revision_date:
+                return chapter.pdf_relative_path
+
+        zip_file_name = self.zip_file.name if self.zip_file else ""
+        revision_no, revision_date = extract_revision_info_from_filename(zip_file_name)
+
+        if revision_no or revision_date:
+            return zip_file_name
+
+        return first_pdf_name or zip_file_name
+
     @property
     def display_revision_no(self):
-        revision_no, _ = get_filename_revision_info(self.zip_file)
+        revision_no, _ = extract_revision_info_from_filename(
+            self.revision_source_file_name()
+        )
         return revision_no
 
     @property
     def display_revision_date_text(self):
-        _, revision_date = get_filename_revision_info(self.zip_file)
+        _, revision_date = extract_revision_info_from_filename(
+            self.revision_source_file_name()
+        )
         return revision_date
 
     def __str__(self):
