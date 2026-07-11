@@ -293,15 +293,11 @@ def extract_clean_text(page):
             continue
 
         seen.add(key)
-        clean_words.append(
-            (block, line, word_no, clean)
-        )
+        clean_words.append((block, line, word_no, clean))
 
     clean_words.sort()
 
-    return " ".join(
-        item[3] for item in clean_words
-    )
+    return " ".join(item[3] for item in clean_words)
 
 
 def safe_extract_zip(zip_file_path, extract_to):
@@ -964,8 +960,7 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
             )
 
             pdf_name = (
-                os.path.splitext(os.path.basename(common_file.file.name))[0]
-                + ".pdf"
+                os.path.splitext(os.path.basename(common_file.file.name))[0] + ".pdf"
             )
 
             delete_stored_file(common_file.pdf_file)
@@ -985,8 +980,7 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
             ocr_texts = extract_image_ocr_texts(temp_input_path)
 
             pdf_name = (
-                os.path.splitext(os.path.basename(common_file.file.name))[0]
-                + ".pdf"
+                os.path.splitext(os.path.basename(common_file.file.name))[0] + ".pdf"
             )
 
             delete_stored_file(common_file.pdf_file)
@@ -1129,6 +1123,7 @@ def process_manual_package_safely(package):
 
     old_extracted_path = package.extracted_path
     temp_zip_path = None
+    temp_zip = None
 
     try:
         os.makedirs(temp_extract_to, exist_ok=True)
@@ -1140,15 +1135,18 @@ def process_manual_package_safely(package):
 
         temp_zip_path = temp_zip.name
 
-        package.zip_file.open("rb")
+        try:
+            package.zip_file.open("rb")
 
-        for chunk in package.zip_file.chunks():
-            temp_zip.write(chunk)
+            for chunk in package.zip_file.chunks():
+                temp_zip.write(chunk)
 
-        package.zip_file.close()
+            temp_zip.flush()
+        finally:
+            package.zip_file.close()
 
-        temp_zip.flush()
-        temp_zip.close()
+            if temp_zip is not None and not temp_zip.closed:
+                temp_zip.close()
 
         safe_extract_zip(
             zip_file_path=temp_zip_path,
@@ -1227,6 +1225,9 @@ def process_manual_package_safely(package):
         raise
 
     finally:
+        if temp_zip is not None and not temp_zip.closed:
+            temp_zip.close()
+
         if temp_zip_path and os.path.exists(temp_zip_path):
             os.remove(temp_zip_path)
 
@@ -1368,10 +1369,7 @@ def build_manual_text_regex(search_value, match_mode):
     token_body = rf"[{token_chars}/_-]*"
 
     def build_token_regex(token):
-        escaped_parts = [
-            re.escape(part)
-            for part in token.split("*")
-        ]
+        escaped_parts = [re.escape(part) for part in token.split("*")]
         body = token_body.join(escaped_parts)
 
         if not token.startswith("*"):
@@ -1382,11 +1380,7 @@ def build_manual_text_regex(search_value, match_mode):
 
         return body
 
-    tokens = [
-        token
-        for token in search_value.split()
-        if token.strip()
-    ]
+    tokens = [token for token in search_value.split() if token.strip()]
 
     if not tokens:
         return ""

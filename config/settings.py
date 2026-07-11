@@ -4,7 +4,6 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 ENV_FILE = os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env")
@@ -23,11 +22,15 @@ ALLOWED_HOSTS = [
 ]
 USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
 
+REINDEX_INLINE = os.getenv("DJANGO_REINDEX_INLINE", str(DEBUG)).lower() == "true"
+
 
 # 개발 환경
-# DEBUG=True
+# DEBUG = True
 # ALLOWED_HOSTS = ["*"]
 # USE_R2 = False
+# REINDEX_INLINE = True
+
 
 
 DEFAULT_SECRET_KEY = "django-insecure-local-dev-key"
@@ -40,9 +43,7 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("CLOUDFLARE_R2_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("CLOUDFLARE_R2_BUCKET_NAME")
 
 AWS_S3_ENDPOINT_URL = (
-    f"https://{AWS_ACCOUNT_ID}.r2.cloudflarestorage.com"
-    if AWS_ACCOUNT_ID
-    else ""
+    f"https://{AWS_ACCOUNT_ID}.r2.cloudflarestorage.com" if AWS_ACCOUNT_ID else ""
 )
 AWS_S3_REGION_NAME = "auto"
 AWS_S3_SIGNATURE_VERSION = "s3v4"
@@ -191,7 +192,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # 세션 만료 시간 설정
-SESSION_COOKIE_AGE = 3600      # 1시간
+SESSION_COOKIE_AGE = 3600  # 1시간
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 

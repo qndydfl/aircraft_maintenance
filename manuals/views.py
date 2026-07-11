@@ -47,6 +47,10 @@ from .services import (
     parse_manual_search_query,
     build_manual_text_regex,
     build_snippet_from_regex,
+    index_pdf_pages_for_common_manual_file_safely,
+    index_pdf_pages_for_manual_file_safely,
+    index_pdf_pages_for_other_manual_file_safely,
+    process_manual_package_safely,
 )
 from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min, Prefetch
@@ -85,6 +89,72 @@ def queue_reindex_job(target_type, target_id, message=""):
     return job, True
 
 
+def process_reindex_job_inline(job):
+    if not getattr(settings, "REINDEX_INLINE", False):
+        return False
+
+    if job.status != ReindexJob.STATUS_QUEUED:
+        return False
+
+    job.status = ReindexJob.STATUS_PROCESSING
+    job.started_at = timezone.now()
+    job.message = "Processing re-index job..."
+    job.save(update_fields=["status", "started_at", "message"])
+
+    try:
+        if job.target_type == ReindexJob.TARGET_MANUAL_PACKAGE:
+            package = ManualPackage.objects.get(pk=job.target_id)
+            result = process_manual_package_safely(package)
+            page_count = result["page_count"]
+            message = (
+                f"{package.manual_type} re-index complete: {page_count} pages"
+            )
+        elif job.target_type == ReindexJob.TARGET_MANUAL_FILE:
+            manual = ManualFile.objects.get(pk=job.target_id)
+            page_count = index_pdf_pages_for_manual_file_safely(manual)
+
+            if manual.manual_type == "MEL":
+                mel_count = extract_mel_dispatch_items_from_pdf(manual)
+                message = (
+                    f"{manual.manual_type} re-index complete: {page_count} pages, "
+                    f"{mel_count} MEL messages"
+                )
+            else:
+                message = (
+                    f"{manual.manual_type} re-index complete: {page_count} pages"
+                )
+        elif job.target_type == ReindexJob.TARGET_COMMON_FILE:
+            common_file = CommonManualFile.objects.get(pk=job.target_id)
+            page_count = index_pdf_pages_for_common_manual_file_safely(common_file)
+            message = f"Common manual re-index complete: {page_count} pages"
+        elif job.target_type == ReindexJob.TARGET_OTHER_FILE:
+            other_file = OtherManualFile.objects.get(pk=job.target_id)
+            page_count = index_pdf_pages_for_other_manual_file_safely(other_file)
+            message = f"OTHER file re-index complete: {page_count} pages"
+        else:
+            raise ValueError(f"Unsupported job target type: {job.target_type}")
+
+        job.status = ReindexJob.STATUS_DONE
+        job.page_count = page_count
+        job.message = message
+        job.finished_at = timezone.now()
+        job.save(
+            update_fields=[
+                "status",
+                "page_count",
+                "message",
+                "finished_at",
+            ]
+        )
+        return True
+    except Exception as error:
+        job.status = ReindexJob.STATUS_FAILED
+        job.message = str(error)[:255]
+        job.finished_at = timezone.now()
+        job.save(update_fields=["status", "message", "finished_at"])
+        raise
+
+
 def queue_reindex_message(request, target_type, target_id, label):
     job, created = queue_reindex_job(
         target_type,
@@ -92,11 +162,40 @@ def queue_reindex_message(request, target_type, target_id, label):
         message=f"{label} indexing queued.",
     )
 
-    if created:
-        messages.success(
-            request,
-            f"{label} 업로드 완료. 인덱싱은 백그라운드에서 진행됩니다.",
-        )
+    if created or getattr(settings, "REINDEX_INLINE", False):
+        if not created and job.status == ReindexJob.STATUS_PROCESSING:
+            job.status = ReindexJob.STATUS_QUEUED
+            job.started_at = None
+            job.finished_at = None
+            job.message = f"{label} indexing queued."
+            job.save(
+                update_fields=[
+                    "status",
+                    "started_at",
+                    "finished_at",
+                    "message",
+                ]
+            )
+
+        try:
+            processed_inline = process_reindex_job_inline(job)
+        except Exception as error:
+            messages.error(
+                request,
+                f"{label} 인덱싱 실패: {error}",
+            )
+            return job
+
+        if processed_inline:
+            messages.success(
+                request,
+                f"{label} 인덱싱을 완료했습니다.",
+            )
+        else:
+            messages.success(
+                request,
+                f"{label} 업로드 완료. 인덱싱은 백그라운드에서 진행됩니다.",
+            )
     else:
         messages.info(
             request,
