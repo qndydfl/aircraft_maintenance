@@ -325,60 +325,7 @@ def find_index_html(extract_to):
 
 
 def process_manual_package(package):
-    extract_to = os.path.join(
-        settings.MEDIA_ROOT,
-        "extracted_manuals",
-        str(package.aircraft.id),
-        package.manual_type.lower(),
-        str(package.id),
-    )
-
-    os.makedirs(extract_to, exist_ok=True)
-
-    temp_zip_path = storage_file_to_temp_file(package.zip_file, suffix=".zip")
-
-    try:
-        safe_extract_zip(
-            zip_file_path=temp_zip_path,
-            extract_to=extract_to,
-        )
-    finally:
-        if os.path.exists(temp_zip_path):
-            os.remove(temp_zip_path)
-
-        package.zip_file.close()
-        temp_zip_path.flush()
-
-        safe_extract_zip(
-            zip_file_path=temp_zip_path,
-            extract_to=extract_to,
-        )
-
-    index_html_path = find_index_html(extract_to)
-
-    if not index_html_path:
-        raise Exception("ZIP 안에서 index.html을 찾을 수 없습니다.")
-
-    package.extracted_path = extract_to
-    package.save(update_fields=["extracted_path"])
-
-    chapter_count = parse_index_html(
-        package=package,
-        index_html_path=index_html_path,
-    )
-
-    save_package_revision_info(package, index_html_path)
-
-    page_count = index_pdf_pages_for_package(package=package)
-
-    package.processed = True
-    package.save(update_fields=["processed"])
-
-    return {
-        "index_html_path": index_html_path,
-        "chapter_count": chapter_count,
-        "page_count": page_count,
-    }
+    return process_manual_package_safely(package)
 
 
 def extract_task_from_text(text):
@@ -1126,6 +1073,17 @@ def process_manual_package_safely(package):
     temp_zip = None
 
     try:
+        if not package.zip_file or not package.zip_file.name:
+            raise FileNotFoundError(
+                "업로드된 ZIP 정보가 없습니다. ZIP 파일을 다시 업로드해 주세요."
+            )
+
+        if not package.zip_file.storage.exists(package.zip_file.name):
+            raise FileNotFoundError(
+                f"저장소에서 ZIP 파일을 찾을 수 없습니다: {package.zip_file.name}. "
+                "현재 저장소에 ZIP 파일을 다시 업로드해 주세요."
+            )
+
         os.makedirs(temp_extract_to, exist_ok=True)
 
         temp_zip = tempfile.NamedTemporaryFile(

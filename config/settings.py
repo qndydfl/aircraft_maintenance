@@ -9,7 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env")
 load_dotenv(ENV_FILE)
 
-
 # Environment
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [
@@ -30,12 +29,17 @@ CSRF_TRUSTED_ORIGINS = [
 USE_X_FORWARDED_HOST = (
     os.getenv("DJANGO_USE_X_FORWARDED_HOST", "False").lower() == "true"
 )
-SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "False").lower() == "true"
+SECURE_SSL_REDIRECT = (
+    os.getenv("DJANGO_SECURE_SSL_REDIRECT", "False").lower() == "true"
+    and not DEBUG
+)
 SESSION_COOKIE_SECURE = (
     os.getenv("DJANGO_SESSION_COOKIE_SECURE", str(not DEBUG)).lower() == "true"
+    and not DEBUG
 )
 CSRF_COOKIE_SECURE = (
     os.getenv("DJANGO_CSRF_COOKIE_SECURE", str(not DEBUG)).lower() == "true"
+    and not DEBUG
 )
 
 
@@ -48,7 +52,7 @@ if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
         "DJANGO_DEBUG=False 에서는 안전한 DJANGO_SECRET_KEY 가 필요합니다."
     )
 
-if os.getenv("DJANGO_SECURE_PROXY_SSL_HEADER", "False").lower() == "true":
+if not DEBUG and os.getenv("DJANGO_SECURE_PROXY_SSL_HEADER", "False").lower() == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 AWS_ACCOUNT_ID = os.environ.get("CLOUDFLARE_R2_ACCOUNT_ID")

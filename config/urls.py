@@ -21,27 +21,15 @@ urlpatterns = [
         name="service_worker",
     ),
 
-    path(
-        "admin/",
-        admin.site.urls
-    ),
+    path("admin/", admin.site.urls ),
 
-    path(
-        "",
-        include("manuals.urls")
-    ),
+    path("", include("manuals.urls")),
 
-    path(
-        "accounts/",
-        include("accounts.urls")
-    ),
+    path("accounts/", include("accounts.urls")),
 
-    path(
-        "dispatch/",
-        include("dispatch.urls")
-    ),
+    path("dispatch/", include("dispatch.urls")),
 
 ] 
 
-if not settings.DEBUG:
+if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

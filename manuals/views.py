@@ -1666,6 +1666,11 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     def test_func(self):
         return self.request.user.is_superuser
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["zip_file"].required = True
+        return form
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["back_url"] = reverse_lazy(
@@ -1676,8 +1681,11 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     def form_valid(self, form):
         uploaded_zip = self.request.FILES.get("zip_file")
 
-        if uploaded_zip:
-            form.instance.original_zip_file_name = uploaded_zip.name
+        if not uploaded_zip:
+            form.add_error("zip_file", "다시 업로드할 ZIP 파일을 선택해 주세요.")
+            return self.form_invalid(form)
+
+        form.instance.original_zip_file_name = uploaded_zip.name
 
         package = form.save()
         package.processed = False

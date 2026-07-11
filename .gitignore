@@ -8,6 +8,7 @@ uploads/
 merged_pdf/
 pdf_cache/
 search_index/
+staticfiles/
 db.sqlite3
 .env
 venv/
