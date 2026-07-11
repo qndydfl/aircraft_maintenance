@@ -21,21 +21,35 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
-
 REINDEX_INLINE = os.getenv("DJANGO_REINDEX_INLINE", str(DEBUG)).lower() == "true"
-
-
-# 개발 환경
-# DEBUG = True
-# ALLOWED_HOSTS = ["*"]
-# USE_R2 = False
-# REINDEX_INLINE = True
-
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+USE_X_FORWARDED_HOST = (
+    os.getenv("DJANGO_USE_X_FORWARDED_HOST", "False").lower() == "true"
+)
+SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "False").lower() == "true"
+SESSION_COOKIE_SECURE = (
+    os.getenv("DJANGO_SESSION_COOKIE_SECURE", str(not DEBUG)).lower() == "true"
+)
+CSRF_COOKIE_SECURE = (
+    os.getenv("DJANGO_CSRF_COOKIE_SECURE", str(not DEBUG)).lower() == "true"
+)
 
 
 DEFAULT_SECRET_KEY = "django-insecure-local-dev-key"
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
+
+if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_DEBUG=False 에서는 안전한 DJANGO_SECRET_KEY 가 필요합니다."
+    )
+
+if os.getenv("DJANGO_SECURE_PROXY_SSL_HEADER", "False").lower() == "true":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 AWS_ACCOUNT_ID = os.environ.get("CLOUDFLARE_R2_ACCOUNT_ID")
 AWS_ACCESS_KEY_ID = os.environ.get("CLOUDFLARE_R2_ACCESS_KEY_ID")
