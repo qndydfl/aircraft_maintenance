@@ -285,6 +285,8 @@ class ManualPackage(models.Model):
 
     zip_file = models.FileField(upload_to="manual_packages/")
 
+    original_zip_file_name = models.CharField(max_length=255, blank=True, default="")
+
     extracted_path = models.CharField(max_length=500, blank=True)
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -336,13 +338,20 @@ class ManualPackage(models.Model):
             if revision_no or revision_date:
                 return chapter.pdf_relative_path
 
-        zip_file_name = self.zip_file.name if self.zip_file else ""
-        revision_no, revision_date = extract_revision_info_from_filename(zip_file_name)
+        zip_file_names = [
+            self.original_zip_file_name,
+            self.zip_file.name if self.zip_file else "",
+        ]
 
-        if revision_no or revision_date:
-            return zip_file_name
+        for zip_file_name in zip_file_names:
+            revision_no, revision_date = extract_revision_info_from_filename(
+                zip_file_name
+            )
 
-        return first_pdf_name or zip_file_name
+            if revision_no or revision_date:
+                return zip_file_name
+
+        return first_pdf_name or next((name for name in zip_file_names if name), "")
 
     @property
     def display_revision_no(self):

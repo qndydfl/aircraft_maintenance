@@ -548,6 +548,11 @@ class ManualPackageCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView
         return context
 
     def form_valid(self, form):
+        uploaded_zip = self.request.FILES.get("zip_file")
+
+        if uploaded_zip:
+            form.instance.original_zip_file_name = uploaded_zip.name
+
         response = super().form_valid(form)
 
         try:
@@ -1500,6 +1505,10 @@ class ManualPackageUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView
         return context
 
     def form_valid(self, form):
+        uploaded_zip = self.request.FILES.get("zip_file")
+
+        if uploaded_zip:
+            form.instance.original_zip_file_name = uploaded_zip.name
 
         response = super().form_valid(form)
 
@@ -1579,6 +1588,11 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return context
 
     def form_valid(self, form):
+        uploaded_zip = self.request.FILES.get("zip_file")
+
+        if uploaded_zip:
+            form.instance.original_zip_file_name = uploaded_zip.name
+
         package = form.save()
         package.processed = False
         package.save(update_fields=["processed"])
