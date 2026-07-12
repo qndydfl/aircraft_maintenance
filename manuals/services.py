@@ -441,11 +441,27 @@ def index_pdf_pages_for_chapter(chapter):
 
 def index_pdf_pages_for_package(package):
     total_pages = 0
+    last_chapter_id = 0
 
-    chapters = ManualChapter.objects.filter(package=package).iterator(chunk_size=50)
+    while True:
+        chapter_ids = list(
+            ManualChapter.objects.filter(
+                package=package,
+                pk__gt=last_chapter_id,
+            )
+            .order_by("pk")
+            .values_list("pk", flat=True)[:50]
+        )
 
-    for chapter in chapters:
-        total_pages += index_pdf_pages_for_chapter(chapter)
+        if not chapter_ids:
+            break
+
+        chapters = ManualChapter.objects.filter(pk__in=chapter_ids).order_by("pk")
+
+        for chapter in chapters:
+            total_pages += index_pdf_pages_for_chapter(chapter)
+
+        last_chapter_id = chapter_ids[-1]
 
     return total_pages
 
