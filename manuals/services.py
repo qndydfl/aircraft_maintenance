@@ -406,17 +406,19 @@ def index_pdf_pages_for_chapter(chapter):
     if not os.path.exists(pdf_path):
         return 0
 
-    new_pages = []
-
     document = fitz.open(pdf_path)
+    page_count = document.page_count
 
     try:
-        for page_index in range(document.page_count):
+        ManualPDFPage.objects.filter(chapter=chapter).delete()
+        page_batch = []
+
+        for page_index in range(page_count):
             page = document.load_page(page_index)
 
             text = extract_clean_text(page)
 
-            new_pages.append(
+            page_batch.append(
                 ManualPDFPage(
                     chapter=chapter,
                     page_number=page_index + 1,
@@ -424,20 +426,23 @@ def index_pdf_pages_for_chapter(chapter):
                 )
             )
 
+            if len(page_batch) >= 200:
+                ManualPDFPage.objects.bulk_create(page_batch, batch_size=200)
+                page_batch.clear()
+
+        if page_batch:
+            ManualPDFPage.objects.bulk_create(page_batch, batch_size=200)
+
     finally:
         document.close()
 
-    with transaction.atomic():
-        ManualPDFPage.objects.filter(chapter=chapter).delete()
-        ManualPDFPage.objects.bulk_create(new_pages, batch_size=200)
-
-    return len(new_pages)
+    return page_count
 
 
 def index_pdf_pages_for_package(package):
     total_pages = 0
 
-    chapters = ManualChapter.objects.filter(package=package)
+    chapters = ManualChapter.objects.filter(package=package).iterator(chunk_size=50)
 
     for chapter in chapters:
         total_pages += index_pdf_pages_for_chapter(chapter)

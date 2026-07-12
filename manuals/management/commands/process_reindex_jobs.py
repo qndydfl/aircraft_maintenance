@@ -2,7 +2,7 @@ import time
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db import OperationalError, close_old_connections, transaction
 from django.utils import timezone
 
 from dispatch.services import extract_mel_dispatch_items_from_pdf
@@ -49,11 +49,36 @@ class Command(BaseCommand):
         stale_minutes = options["stale_minutes"]
 
         while True:
-            self.fail_stale_processing_jobs(stale_minutes)
-            job = self.claim_next_job()
+            try:
+                self.fail_stale_processing_jobs(stale_minutes)
+                job = self.claim_next_job()
+            except OperationalError as error:
+                if "database is locked" not in str(error).lower():
+                    raise
+
+                close_old_connections()
+                self.stderr.write(
+                    self.style.WARNING(
+                        "SQLite database is busy; retrying the queue shortly."
+                    )
+                )
+                time.sleep(max(sleep_seconds, 5))
+                continue
 
             if job:
-                self.process_job(job)
+                try:
+                    self.process_job(job)
+                except OperationalError as error:
+                    if "database is locked" not in str(error).lower():
+                        raise
+
+                    close_old_connections()
+                    self.stderr.write(
+                        self.style.WARNING(
+                            "SQLite database is busy after processing; retrying shortly."
+                        )
+                    )
+                    time.sleep(max(sleep_seconds, 5))
                 continue
 
             if run_once:
