@@ -240,6 +240,13 @@ class StaffRequiredMixin(UserPassesTestMixin):
         return self.request.user.is_superuser
 
 
+class R2DirectUploadContextMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["use_r2_direct_upload"] = bool(getattr(settings, "USE_R2", False))
+        return context
+
+
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = "home.html"
 
@@ -382,7 +389,12 @@ class DateCalculatorView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+class ManualFileCreateView(
+    R2DirectUploadContextMixin,
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    CreateView,
+):
     model = ManualFile
     form_class = ManualFileForm
     template_name = "manuals/manual_file_form.html"
@@ -446,7 +458,12 @@ class ManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
         )
 
 
-class ManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+class ManualFileUpdateView(
+    R2DirectUploadContextMixin,
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    UpdateView,
+):
     model = ManualFile
     form_class = ManualFileForm
     template_name = "manuals/manual_file_form.html"
@@ -597,7 +614,12 @@ class ManualFileDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "manual"
 
 
-class ManualPackageCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+class ManualPackageCreateView(
+    R2DirectUploadContextMixin,
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    CreateView,
+):
     model = ManualPackage
     form_class = ManualPackageForm
     template_name = "manuals/manual_package_form.html"
@@ -1580,7 +1602,12 @@ class ManualFilePDFView(LoginRequiredMixin, View):
         )
 
 
-class ManualPackageUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+class ManualPackageUpdateView(
+    R2DirectUploadContextMixin,
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    UpdateView,
+):
     model = ManualPackage
     form_class = ManualPackageForm
     template_name = "manuals/manual_package_form.html"
@@ -1596,12 +1623,16 @@ class ManualPackageUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView
         return context
 
     def form_valid(self, form):
+        old_file = ManualPackage.objects.get(pk=self.object.pk).zip_file
         uploaded_zip = self.request.FILES.get("zip_file")
 
         if uploaded_zip:
             form.instance.original_zip_file_name = uploaded_zip.name
 
         response = super().form_valid(form)
+
+        if old_file and self.object.zip_file and old_file.name != self.object.zip_file.name:
+            delete_file_field(old_file)
 
         self.object.processed = False
         self.object.save(update_fields=["processed"])
@@ -1657,7 +1688,12 @@ class ManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
         return redirect("aircraft_manual_detail", pk=manual.aircraft.pk)
 
 
-class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ManualPackageReuploadView(
+    R2DirectUploadContextMixin,
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    UpdateView,
+):
     model = ManualPackage
     form_class = ManualPackageForm
     template_name = "manuals/manual_package_form.html"
@@ -1668,7 +1704,7 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields["zip_file"].required = True
+        form.fields["zip_file"].required = False
         return form
 
     def get_context_data(self, **kwargs):
@@ -1679,15 +1715,22 @@ class ManualPackageReuploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return context
 
     def form_valid(self, form):
+        old_file = ManualPackage.objects.get(pk=self.object.pk).zip_file
         uploaded_zip = self.request.FILES.get("zip_file")
+        r2_object_key = form.cleaned_data.get("r2_object_key")
 
-        if not uploaded_zip:
+        if not uploaded_zip and not r2_object_key:
             form.add_error("zip_file", "다시 업로드할 ZIP 파일을 선택해 주세요.")
             return self.form_invalid(form)
 
-        form.instance.original_zip_file_name = uploaded_zip.name
+        if uploaded_zip:
+            form.instance.original_zip_file_name = uploaded_zip.name
 
         package = form.save()
+
+        if old_file and package.zip_file and old_file.name != package.zip_file.name:
+            delete_file_field(old_file)
+
         package.processed = False
         package.save(update_fields=["processed"])
 

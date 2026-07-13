@@ -797,7 +797,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         query = (query or "").strip()
 
         if re.fullmatch(r"\d{2}-\d{3,5}", query):
-            return f"maintenance message: {query}"
+            return f"maintenance messages: {query}"
 
         return query
 

@@ -99,6 +99,25 @@ function parseViewerSearchQuery(query) {
     const trimmed = query.trim().toLowerCase();
     const tokenChars = "0-9a-z가-힣";
     const tokenBody = "[" + tokenChars + "/_-]*";
+    const maintenanceMessageMatch = trimmed.match(
+        /^maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})$/i
+    );
+
+    if (maintenanceMessageMatch) {
+        const messageNumber = escapeRegExp(maintenanceMessageMatch[1]);
+        const regexText =
+            "(^|[^0-9a-z가-힣])maintenance\\s+messages?\\s*[:：]\\s*" +
+            "(?:\\d{2}-\\d{3,5}\\s*,\\s*)*" +
+            messageNumber +
+            "(?![0-9a-z가-힣])";
+
+        return {
+            value: trimmed,
+            mode: "exact",
+            words: [maintenanceMessageMatch[1]],
+            regex: new RegExp(regexText, "i"),
+        };
+    }
 
     function buildWildcardTokenRegex(token) {
         const parts = token.split("*").map(function (part) {

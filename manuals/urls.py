@@ -48,6 +48,13 @@ from .views import (
     OtherManualFileReindexView,
 )
 
+from .r2_upload_views import (
+    R2MultipartInitiateView,
+    R2MultipartPartURLView,
+    R2MultipartCompleteView,
+    R2MultipartAbortView,
+)
+
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("date-calculator/", DateCalculatorView.as_view(), name="calculator"),
@@ -249,4 +256,25 @@ urlpatterns = [
         OtherManualFileReindexView.as_view(),
         name="other_manual_file_reindex",
     ),
+    path(
+        "r2/multipart/initiate/",
+        R2MultipartInitiateView.as_view(),
+        name="r2_multipart_initiate",
+    ),
+    path(
+        "r2/multipart/upload-part/",
+        R2MultipartPartURLView.as_view(),
+        name="r2_multipart_upload_part",
+    ),
+    path(
+        "r2/multipart/complete/",
+        R2MultipartCompleteView.as_view(),
+        name="r2_multipart_complete",
+    ),
+    path(
+        "r2/multipart/abort/",
+        R2MultipartAbortView.as_view(),
+        name="r2_multipart_abort",
+    ),
+
 ]

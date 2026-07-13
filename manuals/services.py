@@ -1344,6 +1344,20 @@ def build_manual_text_regex(search_value, match_mode):
     if not search_value:
         return ""
 
+    maintenance_message_match = re.fullmatch(
+        r"maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})",
+        search_value,
+        re.IGNORECASE,
+    )
+
+    if maintenance_message_match:
+        message_number = re.escape(maintenance_message_match.group(1))
+        return (
+            r"(?<![0-9A-Za-z가-힣])maintenance\s+messages?\s*[:：]\s*"
+            r"(?:\d{2}-\d{3,5}\s*,\s*)*"
+            rf"{message_number}(?![0-9A-Za-z가-힣])"
+        )
+
     token_chars = r"0-9A-Za-z가-힣"
     token_body = rf"[{token_chars}/_-]*"
 

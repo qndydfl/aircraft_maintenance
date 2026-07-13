@@ -1,7 +1,9 @@
 import os
 
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.utils.text import slugify
 
 from .models import (
@@ -19,7 +21,57 @@ DOCUMENT_EXTENSIONS = [".pdf", ".doc", ".docx", ".xls", ".xlsx"]
 UPLOAD_ACCEPT_EXTENSIONS = ",".join(DOCUMENT_EXTENSIONS + IMAGE_EXTENSIONS)
 
 
-class ManualFileForm(forms.ModelForm):
+class R2DirectUploadFormMixin:
+    r2_upload_prefix = ""
+    r2_file_field_name = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields[self.r2_file_field_name].required = False
+
+    def clean_r2_object_key(self):
+        object_key = (self.cleaned_data.get("r2_object_key") or "").strip()
+
+        if not object_key:
+            return ""
+
+        if not settings.USE_R2:
+            raise ValidationError("R2 직접 업로드는 운영 저장소에서만 사용할 수 있습니다.")
+
+        if not object_key.startswith(self.r2_upload_prefix):
+            raise ValidationError("올바르지 않은 R2 파일 경로입니다.")
+
+        if not default_storage.exists(object_key):
+            raise ValidationError("R2에서 업로드된 파일을 확인하지 못했습니다.")
+
+        return object_key
+
+    def has_file_source(self):
+        uploaded_file = self.cleaned_data.get(self.r2_file_field_name)
+        object_key = self.cleaned_data.get("r2_object_key")
+        existing_file = (
+            self.instance.pk
+            and bool(getattr(self.instance, self.r2_file_field_name, None))
+        )
+        return bool(uploaded_file or object_key or existing_file)
+
+    def save(self, commit=True):
+        object_key = self.cleaned_data.get("r2_object_key")
+
+        if object_key:
+            file_field = getattr(self.instance, self.r2_file_field_name)
+            file_field.name = object_key
+
+        return super().save(commit=commit)
+
+
+class ManualFileForm(R2DirectUploadFormMixin, forms.ModelForm):
+    r2_object_key = forms.CharField(required=False, widget=forms.HiddenInput())
+    r2_original_name = forms.CharField(required=False, widget=forms.HiddenInput())
+    r2_file_size = forms.IntegerField(required=False, widget=forms.HiddenInput())
+
+    r2_upload_prefix = "manuals/files/"
+    r2_file_field_name = "file"
 
     class Meta:
         model = ManualFile
@@ -53,6 +105,10 @@ class ManualFileForm(forms.ModelForm):
         aircraft = cleaned_data.get("aircraft")
         manual_type = cleaned_data.get("manual_type")
         file = cleaned_data.get("file")
+        r2_original_name = cleaned_data.get("r2_original_name", "")
+
+        if not self.has_file_source():
+            self.add_error("file", "업로드할 PDF 파일을 선택해 주세요.")
 
         if manual_type == "OTHER":
             raise ValidationError(
@@ -73,10 +129,12 @@ class ManualFileForm(forms.ModelForm):
                     f"{aircraft.name}에는 이미 {manual_type} 파일이 등록되어 있습니다."
                 )
 
-        if not manual_type or not file:
+        source_name = file.name if file else r2_original_name
+
+        if not manual_type or not source_name:
             return cleaned_data
 
-        ext = os.path.splitext(file.name)[1].lower()
+        ext = os.path.splitext(source_name)[1].lower()
 
         pdf_manuals = ["MEL", "CDL"]
 
@@ -104,7 +162,13 @@ class AircraftForm(forms.ModelForm):
         }
 
 
-class ManualPackageForm(forms.ModelForm):
+class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
+    r2_object_key = forms.CharField(required=False, widget=forms.HiddenInput())
+    r2_original_name = forms.CharField(required=False, widget=forms.HiddenInput())
+    r2_file_size = forms.IntegerField(required=False, widget=forms.HiddenInput())
+
+    r2_upload_prefix = "manuals/packages/"
+    r2_file_field_name = "zip_file"
 
     class Meta:
         model = ManualPackage
@@ -133,6 +197,9 @@ class ManualPackageForm(forms.ModelForm):
 
         aircraft = cleaned_data.get("aircraft")
         manual_type = cleaned_data.get("manual_type")
+
+        if not self.has_file_source():
+            self.add_error("zip_file", "업로드할 ZIP 파일을 선택해 주세요.")
 
         if aircraft and manual_type:
             queryset = ManualPackage.objects.filter(
@@ -164,6 +231,22 @@ class ManualPackageForm(forms.ModelForm):
             )
 
         return zip_file
+
+    def clean_r2_original_name(self):
+        original_name = (self.cleaned_data.get("r2_original_name") or "").strip()
+
+        if original_name and os.path.splitext(original_name)[1].lower() != ".zip":
+            raise ValidationError("AMM / FIM / IPC / OTHER는 ZIP 파일만 업로드할 수 있습니다.")
+
+        return original_name
+
+    def save(self, commit=True):
+        original_name = self.cleaned_data.get("r2_original_name")
+
+        if self.cleaned_data.get("r2_object_key") and original_name:
+            self.instance.original_zip_file_name = original_name
+
+        return super().save(commit=commit)
 
 
 class CommonManualCategoryForm(forms.ModelForm):

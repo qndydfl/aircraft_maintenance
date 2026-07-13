@@ -14,6 +14,20 @@ def build_highlight_regex(query):
     if not query:
         return ""
 
+    maintenance_message_match = re.fullmatch(
+        r"maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})",
+        query,
+        re.IGNORECASE,
+    )
+
+    if maintenance_message_match:
+        message_number = re.escape(maintenance_message_match.group(1))
+        return (
+            r"(?<![0-9A-Za-z가-힣])maintenance\s+messages?\s*[:：]\s*"
+            r"(?:\d{2}-\d{3,5}\s*,\s*)*"
+            rf"{message_number}(?![0-9A-Za-z가-힣])"
+        )
+
     token_chars = r"0-9A-Za-z가-힣"
     token_body = rf"[{token_chars}/_-]*"
 

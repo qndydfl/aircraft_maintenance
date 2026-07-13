@@ -9,6 +9,12 @@ form-page manual-package-form-page
 <link rel="stylesheet" href="{% static 'css/form.css' %}">
 {% endblock css %}
 
+{% block js %}
+{% if use_r2_direct_upload %}
+<script defer src="{% static 'js/r2_multipart_upload.js' %}"></script>
+{% endif %}
+{% endblock js %}
+
 {% block content %}
 
 <div class="portal-form-wrap">
@@ -43,10 +49,21 @@ form-page manual-package-form-page
             <form method="post"
                 enctype="multipart/form-data"
                 class="portal-form"
+                {% if use_r2_direct_upload %}
+                data-r2-direct-upload="true"
+                data-r2-upload-type="package"
+                data-r2-initiate-url="{% url 'r2_multipart_initiate' %}"
+                data-r2-part-url="{% url 'r2_multipart_upload_part' %}"
+                data-r2-complete-url="{% url 'r2_multipart_complete' %}"
+                data-r2-abort-url="{% url 'r2_multipart_abort' %}"
+                {% endif %}
                 data-loading-title="Processing ZIP Manual"
                 data-loading-message="Extracting files and indexing PDF pages...">
 
                 {% csrf_token %}
+                {{ form.r2_object_key }}
+                {{ form.r2_original_name }}
+                {{ form.r2_file_size }}
 
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger app-alert">
@@ -108,6 +125,20 @@ form-page manual-package-form-page
                         <div class="text-danger small mt-1">
                             {{ form.zip_file.errors }}
                         </div>
+                    {% endif %}
+
+                    {% if use_r2_direct_upload %}
+                    <div class="r2-upload-progress d-none mt-3" data-r2-progress>
+                        <div class="progress" role="progressbar" aria-label="R2 upload progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                data-r2-progress-bar
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                aria-valuenow="0"
+                                style="width: 0%">0%</div>
+                        </div>
+                        <div class="small text-muted mt-2" data-r2-progress-text></div>
+                    </div>
                     {% endif %}
                 </div>
 
