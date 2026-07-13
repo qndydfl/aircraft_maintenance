@@ -9,7 +9,6 @@ from django.views.generic import (
     ListView,
     FormView,
     View,
-    FormView,
     DetailView,
     UpdateView,
     DeleteView,
@@ -23,11 +22,9 @@ from .forms import DispatchCSVUploadForm, DispatchReferenceForm
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     UserPassesTestMixin,
-    UserPassesTestMixin,
 )
 from django.http import JsonResponse, HttpResponse
 from .services import (
-    build_text_regex,
     build_structured_search_q,
     build_mel_dispatch_search_q,
     exclude_noisy_mel_dispatch_rows,
@@ -41,8 +38,6 @@ from .services import (
     resolve_saved_file_page,
     parse_manual_search_query,
     build_manual_text_regex,
-    is_fault_code_query,
-    is_message_query,
 )
 
 
@@ -83,89 +78,6 @@ class DispatchListView(LoginRequiredMixin, ListView):
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
         context["selected_aircraft"] = self.request.GET.get("aircraft", "").strip()
         context["query"] = self.request.GET.get("q", "").strip()
-
-        return context
-
-
-class DispatchSearchView(LoginRequiredMixin, ListView):
-    model = DispatchReference
-    template_name = "dispatch/dispatch_search.html"
-    context_object_name = "results"
-    paginate_by = 20
-
-    def get_queryset(self):
-        queryset = DispatchReference.objects.select_related("aircraft").order_by(
-            "aircraft__name", "eicas_message", "fault_code"
-        )
-
-        aircraft_id = self.request.GET.get("aircraft", "").strip()
-        query = self.request.GET.get("q", "").strip()
-
-        if aircraft_id:
-            queryset = queryset.filter(aircraft_id=aircraft_id)
-
-        if query:
-            search_value, match_mode = parse_search_query(query)
-
-            if search_value:
-                queryset = queryset.filter(
-                    build_structured_search_q(
-                        [
-                            "eicas_message",
-                            "fault_code",
-                            "mel_number",
-                            "mel_search_keyword",
-                            "mel_ref",
-                            "fim_chapter",
-                            "fim_search_keyword",
-                            "fim_task_ref",
-                            "amm_chapter",
-                            "amm_search_keyword",
-                            "amm_task_ref",
-                            "description",
-                            "note",
-                        ],
-                        search_value,
-                        match_mode,
-                    )
-                )
-
-        if not query and not aircraft_id:
-            return DispatchReference.objects.none()
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context["aircrafts"] = Aircraft.objects.filter(maker="BOEING")
-
-        selected_aircraft = self.request.GET.get("aircraft", "")
-        query = self.request.GET.get("q", "").strip()
-
-        context["selected_aircraft"] = selected_aircraft
-        context["query"] = query
-
-        for item in context["results"]:
-            context["mel_file"] = item.aircraft.get_mel()
-
-            item.amm_query = item.amm_search_keyword or item.amm_chapter
-            item.fim_query = item.fim_search_keyword or item.fim_chapter
-            item.mel_query = item.mel_search_keyword or item.mel_number
-
-            item.amm_page = resolve_saved_package_page(item, "AMM")
-
-            item.fim_page = resolve_saved_package_page(item, "FIM")
-
-            item.mel_file = item.aircraft.get_mel()
-
-            item.mel_page = resolve_saved_file_page(item)
-
-            if item.mel_file and item.mel_query:
-                item.mel_page = ManualFilePDFPage.objects.filter(
-                    manual_file=item.mel_file,
-                    text__icontains=item.mel_query,
-                ).first()
 
         return context
 
@@ -505,7 +417,7 @@ class DispatchDetailView(LoginRequiredMixin, DetailView):
 class StaffRequiredMixin(UserPassesTestMixin):
 
     def test_func(self):
-        return self.request.user.is_superuser
+        return self.request.user.is_staff
 
 
 class DispatchUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):

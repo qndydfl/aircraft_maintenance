@@ -3,69 +3,15 @@ import re
 from django import template
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from manuals.services import build_manual_text_regex, parse_manual_search_query
 
 
 register = template.Library()
 
 
 def build_highlight_regex(query):
-    query = " ".join((query or "").lower().split())
-
-    if not query:
-        return ""
-
-    maintenance_message_match = re.fullmatch(
-        r"maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})",
-        query,
-        re.IGNORECASE,
-    )
-
-    if maintenance_message_match:
-        message_number = re.escape(maintenance_message_match.group(1))
-        return (
-            r"(?<![0-9A-Za-z가-힣])maintenance\s+messages?\s*[:：]\s*"
-            r"(?:\d{2}-\d{3,5}\s*,\s*)*"
-            rf"{message_number}(?![0-9A-Za-z가-힣])"
-        )
-
-    token_chars = r"0-9A-Za-z가-힣"
-    token_body = rf"[{token_chars}/_-]*"
-
-    def build_token_regex(token):
-        escaped_parts = [
-            re.escape(part)
-            for part in token.split("*")
-        ]
-        body = token_body.join(escaped_parts)
-
-        if not token.startswith("*"):
-            body = rf"(?<![{token_chars}])" + body
-
-        if not token.endswith("*"):
-            body = body + rf"(?![{token_chars}])"
-
-        return body
-
-    tokens = [
-        token
-        for token in query.split()
-        if token.strip()
-    ]
-
-    if not tokens:
-        return ""
-
-    token_separator = r"[\s:：]+"
-
-    if "*" in query:
-        return token_separator.join(build_token_regex(token) for token in tokens)
-
-    exact_tokens = [
-        rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
-        for token in tokens
-    ]
-
-    return token_separator.join(exact_tokens)
+    search_value, match_mode = parse_manual_search_query(query)
+    return build_manual_text_regex(search_value, match_mode)
 
 
 @register.filter

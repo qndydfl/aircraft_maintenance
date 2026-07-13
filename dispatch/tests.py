@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -10,6 +12,7 @@ from dispatch.services import (
     merge_mel_row_with_context,
 )
 from manuals.models import Aircraft
+from manuals.services import build_manual_text_regex, parse_manual_search_query
 
 
 class DispatchSearchViewTests(TestCase):
@@ -202,6 +205,27 @@ class DispatchSearchViewTests(TestCase):
 
 
 class DispatchServiceTests(TestCase):
+    def test_maintenance_message_regex_matches_number_in_comma_list(self):
+        search_value, match_mode = parse_manual_search_query(
+            "maintenance messages: 28-19424"
+        )
+        pattern = build_manual_text_regex(search_value, match_mode)
+
+        self.assertIsNotNone(
+            re.search(
+                pattern,
+                "MAINTENANCE MESSAGES: 28-19423, 28-19424",
+                re.IGNORECASE,
+            )
+        )
+        self.assertIsNone(
+            re.search(
+                pattern,
+                "MAINTENANCE MESSAGES: 28-19423",
+                re.IGNORECASE,
+            )
+        )
+
     def test_extract_level_keeps_mel_m_level(self):
         self.assertEqual(extract_level("M"), "M")
 

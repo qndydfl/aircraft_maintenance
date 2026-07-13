@@ -56,7 +56,6 @@ from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
-from django.views import View
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from urllib.parse import urlencode
@@ -237,7 +236,7 @@ def attach_latest_reindex_jobs(items, item_getter, target_type):
 class StaffRequiredMixin(UserPassesTestMixin):
 
     def test_func(self):
-        return self.request.user.is_superuser
+        return self.request.user.is_staff
 
 
 class R2DirectUploadContextMixin:

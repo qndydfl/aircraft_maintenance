@@ -54,10 +54,6 @@ def build_snippet_from_text(text, query, length=180):
     return snippet
 
 
-def get_pdf_full_path(self):
-    return os.path.join(settings.MEDIA_ROOT, self.pdf_relative_path)
-
-
 def validate_manual_file(value):
     ext = os.path.splitext(value.name)[1].lower()
 

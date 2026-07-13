@@ -4,6 +4,7 @@ from django.db.models import Q
 from .models import DispatchKeywordDictionary, MelDispatchItem
 from manuals.models import ManualPDFPage, ManualFilePDFPage
 from manuals.revision_utils import extract_revision_info_from_filename
+from manuals.services import build_manual_text_regex, parse_manual_search_query
 
 
 def extract_manual_file_revision_info(manual_file):
@@ -338,24 +339,6 @@ def find_best_file_page(manual_file, query):
     return pages[0]
 
 
-def calculate_auto_score(text, query):
-    if not text or not query:
-        return 0
-
-    score = 0
-
-    text_lower = text.lower()
-    words = query.lower().split()
-
-    for word in words:
-        count = text_lower.count(word)
-
-        if count > 0:
-            score += count * 10
-
-    return score
-
-
 def build_text_regex(search_value, match_mode):
     escaped = re.escape(search_value)
 
@@ -525,79 +508,6 @@ def paginate_result_group(request, results, prefix):
         "previous_page": current_index - 1,
         "next_page": current_index + 1,
     }
-
-
-def parse_manual_search_query(query):
-    query = (query or "").strip()
-
-    if not query:
-        return "", "exact"
-
-    query = " ".join(query.split())
-
-    if "*" in query:
-        return query.lower(), "wildcard"
-
-    return query.lower(), "exact"
-
-
-def build_manual_text_regex(search_value, match_mode):
-    search_value = (search_value or "").strip().lower()
-
-    if not search_value:
-        return ""
-
-    maintenance_message_match = re.fullmatch(
-        r"maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})",
-        search_value,
-        re.IGNORECASE,
-    )
-
-    if maintenance_message_match:
-        message_number = re.escape(maintenance_message_match.group(1))
-        return (
-            r"(?<![0-9A-Za-z가-힣])maintenance\s+messages?\s*[:：]\s*"
-            r"(?:\d{2}-\d{3,5}\s*,\s*)*"
-            rf"{message_number}(?![0-9A-Za-z가-힣])"
-        )
-
-    token_chars = r"0-9A-Za-z가-힣"
-    token_body = rf"[{token_chars}/_-]*"
-
-    def build_token_regex(token):
-        escaped_parts = [
-            re.escape(part)
-            for part in token.split("*")
-        ]
-        body = token_body.join(escaped_parts)
-
-        if not token.startswith("*"):
-            body = rf"(?<![{token_chars}])" + body
-
-        if not token.endswith("*"):
-            body = body + rf"(?![{token_chars}])"
-
-        return body
-
-    tokens = [
-        token
-        for token in search_value.split()
-        if token.strip()
-    ]
-
-    if not tokens:
-        return ""
-
-    token_separator = r"[\s:：]+"
-
-    if match_mode == "wildcard":
-        return token_separator.join(build_token_regex(token) for token in tokens)
-
-    exact_words = [
-        rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
-        for token in tokens
-    ]
-    return token_separator.join(exact_words)
 
 
 def clean_cell(value):
@@ -879,21 +789,3 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
     finally:
         if os.path.exists(temp_pdf_path):
             os.remove(temp_pdf_path)
-
-
-def is_fault_code_query(query):
-    query = (query or "").strip()
-
-    if not query:
-        return False
-
-    return bool(re.search(r"\d", query))
-
-
-def is_message_query(query):
-    query = (query or "").strip()
-
-    if not query:
-        return False
-
-    return not is_fault_code_query(query)
