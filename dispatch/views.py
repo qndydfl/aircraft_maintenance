@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 from .models import DispatchReference, MelDispatchItem
 from manuals.models import Aircraft, ManualPDFPage, ManualFilePDFPage
+from manuals.services import prefer_group_content_pages
 
 import csv, re, io
 from django.views.generic import (
@@ -38,6 +39,7 @@ from .services import (
     resolve_saved_file_page,
     parse_manual_search_query,
     build_manual_text_regex,
+    extract_airbus_mel_dispatch_blocks,
 )
 
 
@@ -997,6 +999,61 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
 
         return matched_rows
 
+    def find_airbus_mel_rows(self, aircraft_qs, query):
+        search_value, match_mode = parse_manual_search_query(query)
+        message_pattern = build_manual_text_regex(search_value, match_mode)
+
+        if not message_pattern:
+            return []
+
+        pages = ManualFilePDFPage.objects.filter(
+            manual_file__aircraft__in=aircraft_qs.filter(maker="AIRBUS"),
+            manual_file__manual_type="MEL",
+        )
+
+        literal_words = [
+            word
+            for word in re.findall(r"[0-9A-Za-z]+", search_value.replace("*", " "))
+            if len(word) > 1
+        ]
+
+        for word in literal_words:
+            pages = pages.filter(text__icontains=word)
+
+        pages = pages.select_related(
+            "manual_file",
+            "manual_file__aircraft",
+        ).order_by("manual_file_id", "page_number")
+
+        matched_rows = []
+
+        for page in pages:
+            for item in extract_airbus_mel_dispatch_blocks(page.text):
+                if not re.search(message_pattern, item["message"], re.IGNORECASE):
+                    continue
+
+                matched_rows.append(
+                    SimpleNamespace(
+                        pk=(
+                            f"airbus:{page.manual_file_id}:{page.page_number}:"
+                            f"{item['message']}:{item['mel_item']}"
+                        ),
+                        aircraft=page.manual_file.aircraft,
+                        aircraft_id=page.manual_file.aircraft_id,
+                        manual_file=page.manual_file,
+                        manual_file_id=page.manual_file_id,
+                        message=item["message"],
+                        level=item["level"],
+                        condition=item["condition"],
+                        mel_item=item["mel_item"],
+                        adc=item["adc"],
+                        page_number=page.page_number,
+                        is_none_dispatch=item["is_none_dispatch"],
+                    )
+                )
+
+        return matched_rows
+
     def apply_display_message(self, row, query):
         if getattr(row, "display_message", None):
             return
@@ -1107,6 +1164,10 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         rows_by_id = {row.pk: row for row in mel_dispatch_rows}
 
         if not rows_by_id:
+            for row in self.find_airbus_mel_rows(aircraft_qs, query):
+                rows_by_id.setdefault(row.pk, row)
+
+        if not rows_by_id:
             for row in self.find_message_block_mel_rows(aircraft_qs, query):
                 rows_by_id.setdefault(row.pk, row)
 
@@ -1134,6 +1195,19 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
             row.viewer_page_number = self.find_mel_dispatch_viewer_page(row)
 
         context["mel_dispatch_rows"] = mel_dispatch_rows
+        related_manual_queries = []
+
+        for row in mel_dispatch_rows:
+            mel_item = (row.mel_item or "").strip()
+
+            if (
+                mel_item
+                and mel_item.upper() not in {"N/A", "NA", "-"}
+                and mel_item not in related_manual_queries
+            ):
+                related_manual_queries.append(mel_item)
+
+        context["related_manual_queries"] = related_manual_queries
 
         # 2. 저장된 Dispatch Reference 결과
         saved_refs = DispatchReference.objects.filter(
@@ -1228,34 +1302,31 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
             file_filter = Q(text__iregex=text_regex)
 
         # AMM
-        context["amm_results"] = list(
+        context["amm_results"] = prefer_group_content_pages(
             package_base.filter(chapter__package__manual_type="AMM")
             .filter(package_filter)
-            .order_by("chapter__task", "chapter__subtask", "page_number")
+            .order_by("chapter__task", "chapter__subtask", "page_number"),
+            lambda page: page.chapter.package_id,
         )
 
         # FIM
-        context["fim_results"] = list(
+        context["fim_results"] = prefer_group_content_pages(
             package_base.filter(chapter__package__manual_type="FIM")
             .filter(package_filter)
-            .order_by("chapter__task", "chapter__subtask", "page_number")
-        )
-
-        # IPC
-        context["ipc_results"] = list(
-            package_base.filter(chapter__package__manual_type="IPC")
-            .filter(package_filter)
-            .order_by("chapter__task", "chapter__subtask", "page_number")
+            .order_by("chapter__task", "chapter__subtask", "page_number"),
+            lambda page: page.chapter.package_id,
         )
 
         # MEL - 점수 계산 후 점수순 정렬
-        mel_results = list(
-            file_base.filter(manual_file__manual_type="MEL").filter(file_filter)
+        mel_results = prefer_group_content_pages(
+            file_base.filter(manual_file__manual_type="MEL").filter(file_filter),
+            lambda page: page.manual_file_id,
         )
 
         for page in mel_results:
-            page.recommend_score = score_file_page(page, search_value)
-            page.snippet = page.get_snippet(search_value)
+            page.viewer_query = manual_pdf_query
+            page.recommend_score = score_file_page(page, page.viewer_query)
+            page.snippet = page.get_snippet(page.viewer_query)
 
         mel_results.sort(
             key=lambda page: (
@@ -1266,27 +1337,15 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
 
         context["mel_results"] = mel_results
 
-        # CDL
-        context["cdl_results"] = list(
-            file_base.filter(manual_file__manual_type="CDL")
-            .filter(file_filter)
-            .order_by("manual_file__description", "page_number")
-        )
-
-        # AMM / FIM / IPC 점수 및 snippet
+        # AMM / FIM 점수 및 snippet
         for result_group in [
             context["amm_results"],
             context["fim_results"],
-            context["ipc_results"],
         ]:
             for page in result_group:
-                page.recommend_score = score_package_page(page, search_value)
-                page.snippet = page.get_snippet(search_value)
-
-        # CDL 점수 및 snippet
-        for page in context["cdl_results"]:
-            page.recommend_score = score_file_page(page, search_value)
-            page.snippet = page.get_snippet(search_value)
+                page.viewer_query = manual_pdf_query
+                page.recommend_score = score_package_page(page, page.viewer_query)
+                page.snippet = page.get_snippet(page.viewer_query)
 
         context["amm_page_data"] = paginate_result_group(
             self.request, context["amm_results"], "amm"
@@ -1294,14 +1353,8 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         context["fim_page_data"] = paginate_result_group(
             self.request, context["fim_results"], "fim"
         )
-        context["ipc_page_data"] = paginate_result_group(
-            self.request, context["ipc_results"], "ipc"
-        )
         context["mel_page_data"] = paginate_result_group(
             self.request, context["mel_results"], "mel"
-        )
-        context["cdl_page_data"] = paginate_result_group(
-            self.request, context["cdl_results"], "cdl"
         )
 
         return context

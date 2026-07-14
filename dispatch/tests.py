@@ -7,11 +7,12 @@ from django.urls import reverse
 from dispatch.models import DispatchReference, MelDispatchItem
 from dispatch.services import (
     clean_condition,
+    extract_airbus_mel_dispatch_blocks,
     extract_level,
     extract_mel_item,
     merge_mel_row_with_context,
 )
-from manuals.models import Aircraft
+from manuals.models import Aircraft, ManualFile, ManualFilePDFPage
 from manuals.services import build_manual_text_regex, parse_manual_search_query
 
 
@@ -203,8 +204,121 @@ class DispatchSearchViewTests(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].eicas_message, "PACK OFF")
 
+    def test_airbus_dispatch_message_finds_referenced_mel_item_and_candidates(self):
+        airbus = Aircraft.objects.create(name="A350", maker="AIRBUS")
+        mel_file = ManualFile.objects.create(
+            aircraft=airbus,
+            manual_type="MEL",
+            file="manuals/a350-mel.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=mel_file,
+            page_number=375,
+            text=(
+                "Dispatch Message: NAV ADR 1(2)(3) REJECTED BY PRIMs "
+                "Ident.: ME-DM-NAV-00021423.0001001 / 10 APR 17 "
+                "Applicable to: ALL AIRCRAFT STATUS CONDITION OF DISPATCH "
+                "Data from ADR 1(2)(3) have been rejected by the PRIMs. "
+                "Refer to Item 34-12-01 ADR"
+            ),
+        )
+
+        response = self.client.get(
+            self.url,
+            {
+                "aircraft": airbus.pk,
+                "q": "nav adr * rejected by*",
+                "search_type": "all",
+            },
+        )
+
+        rows = response.context["mel_dispatch_rows"]
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].mel_item, "34-12-01")
+        self.assertEqual(response.context["related_manual_queries"], ["34-12-01"])
+        self.assertEqual(response.context["mel_page_data"]["total"], 1)
+        self.assertEqual(
+            response.context["mel_page_data"]["item"].viewer_query,
+            "nav adr * rejected by*",
+        )
+
+    def test_airbus_wildcard_crosses_message_words_and_parentheses(self):
+        airbus = Aircraft.objects.create(name="A350", maker="AIRBUS")
+        mel_file = ManualFile.objects.create(
+            aircraft=airbus,
+            manual_type="MEL",
+            file="manuals/a350-mel.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=mel_file,
+            page_number=379,
+            text=(
+                "Dispatch Message: NAV GNSS 1(2)(1+2) REJECTED BY IRs "
+                "Ident.: ME-DM-NAV-00023698.0001001 / 07 FEB 25 "
+                "Applicable to: ALL AIRCRAFT STATUS CONDITION OF DISPATCH "
+                "The GNSS position is detected failed by the ADIRS. "
+                "Refer to Item 34-50-06 GNSS monitoring by IRs"
+            ),
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=mel_file,
+            page_number=499,
+            text=(
+                "MEL ITEMS PRELIMINARY PAGES - TABLE OF CONTENTS "
+                "34-50-06 GNSS monitoring by IRs"
+            ),
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=mel_file,
+            page_number=1259,
+            text="34-50-06 GNSS monitoring by IRs One GNSS rejected by IRs",
+        )
+
+        response = self.client.get(
+            self.url,
+            {
+                "aircraft": airbus.pk,
+                "q": "nav gnss**rejected by*",
+                "search_type": "all",
+            },
+        )
+
+        rows = response.context["mel_dispatch_rows"]
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].mel_item, "34-50-06")
+        self.assertEqual(response.context["related_manual_queries"], ["34-50-06"])
+        self.assertEqual(response.context["mel_page_data"]["total"], 1)
+
+        viewer_response = self.client.get(
+            reverse("manual_file_pdf_viewer", kwargs={"pk": mel_file.pk}),
+            {
+                "page": 379,
+                "q": "nav gnss**rejected by*",
+                "from_search_page": 1,
+            },
+        )
+
+        self.assertEqual(viewer_response.context["match_count"], 1)
+        self.assertEqual(response.context["ipc_results"], [])
+        self.assertEqual(response.context["cdl_results"], [])
+
 
 class DispatchServiceTests(TestCase):
+    def test_extract_airbus_mel_dispatch_block(self):
+        rows = extract_airbus_mel_dispatch_blocks(
+            "Dispatch Message: NAV ADR 1(2)(3) REJECTED BY PRIMs "
+            "Ident.: ME-DM-NAV-00021423.0001001 / 10 APR 17 "
+            "AIRCRAFT STATUS CONDITION OF DISPATCH "
+            "Data from ADR have been rejected by the PRIMs. "
+            "Refer to Item 34-12-01 ADR"
+        )
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["message"], "NAV ADR 1(2)(3) REJECTED BY PRIMs")
+        self.assertEqual(rows[0]["mel_item"], "34-12-01")
+
     def test_maintenance_message_regex_matches_number_in_comma_list(self):
         search_value, match_mode = parse_manual_search_query(
             "maintenance messages: 28-19424"

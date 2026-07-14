@@ -98,7 +98,6 @@ function parseViewerSearchQuery(query) {
 
     const trimmed = query.trim().toLowerCase();
     const tokenChars = "0-9a-z가-힣";
-    const tokenBody = "[" + tokenChars + "/_-]*";
     const maintenanceMessageMatch = trimmed.match(
         /^maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})$/i
     );
@@ -119,24 +118,6 @@ function parseViewerSearchQuery(query) {
         };
     }
 
-    function buildWildcardTokenRegex(token) {
-        const parts = token.split("*").map(function (part) {
-            return escapeRegExp(part);
-        });
-
-        let regexText = parts.join(tokenBody);
-
-        if (!token.startsWith("*")) {
-            regexText = "(?<![" + tokenChars + "])" + regexText;
-        }
-
-        if (!token.endsWith("*")) {
-            regexText = regexText + "(?![" + tokenChars + "])";
-        }
-
-        return regexText;
-    }
-
     function splitQueryTokens(value) {
         return value
             .split(/\s+/)
@@ -147,7 +128,16 @@ function parseViewerSearchQuery(query) {
     }
 
     if (trimmed.includes("*")) {
-        const tokens = splitQueryTokens(trimmed);
+        const literalParts = trimmed
+            .split("*")
+            .map(function (part) {
+                return splitQueryTokens(part)
+                    .map(function (word) {
+                        return escapeRegExp(word);
+                    })
+                    .join("\\s+");
+            })
+            .filter(Boolean);
         const words = trimmed
             .split(/[\s*]+/)
             .map(function (word) {
@@ -155,7 +145,7 @@ function parseViewerSearchQuery(query) {
             })
             .filter(Boolean);
 
-        if (!tokens.length) {
+        if (!literalParts.length) {
             return {
                 value: "",
                 mode: "exact",
@@ -164,11 +154,19 @@ function parseViewerSearchQuery(query) {
             };
         }
 
-        const regexText = tokens
-            .map(function (token) {
-                return buildWildcardTokenRegex(token);
-            })
-            .join("\\s+");
+        let regexText = literalParts.join("[\\s\\S]{0,240}?");
+
+        if (trimmed.startsWith("*")) {
+            regexText = "\\S*?" + regexText;
+        } else {
+            regexText = "(?<![" + tokenChars + "])" + regexText;
+        }
+
+        if (trimmed.endsWith("*")) {
+            regexText += "\\S*?";
+        } else {
+            regexText += "(?![" + tokenChars + "])";
+        }
 
         return {
             value: trimmed,
@@ -926,6 +924,8 @@ function createOutlineTree(items, depth = 0) {
             const toggleBtn = document.createElement("button");
             toggleBtn.type = "button";
             toggleBtn.className = "outline-toggle-btn";
+            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.setAttribute("aria-label", "하위 목차 펼치기");
             toggleBtn.innerHTML = '<span class="toggle-icon">▶</span>';
 
             row.appendChild(toggleBtn);
@@ -945,10 +945,14 @@ function createOutlineTree(items, depth = 0) {
                 if (isCollapsed) {
                     childUl.classList.remove("outline-children-collapsed");
                     toggleBtn.classList.add("is-open");
+                    toggleBtn.setAttribute("aria-expanded", "true");
+                    toggleBtn.setAttribute("aria-label", "하위 목차 접기");
                     iconSpan.innerHTML = "▼";
                 } else {
                     childUl.classList.add("outline-children-collapsed");
                     toggleBtn.classList.remove("is-open");
+                    toggleBtn.setAttribute("aria-expanded", "false");
+                    toggleBtn.setAttribute("aria-label", "하위 목차 펼치기");
                     iconSpan.innerHTML = "▶";
                 }
             }

@@ -635,6 +635,57 @@ def merge_mel_row_with_context(message, level, condition, mel_item, adc, current
     return message, level, condition, mel_item, adc, current_row
 
 
+def extract_airbus_mel_dispatch_blocks(text):
+    text = " ".join((text or "").split())
+
+    if not text:
+        return []
+
+    block_pattern = re.compile(
+        r"Dispatch\s+Message\s*:\s*(?P<message>.*?)\s+Ident\.\s*:"
+        r"(?P<body>.*?)(?=\s+Dispatch\s+Message\s*:|\Z)",
+        re.IGNORECASE | re.DOTALL,
+    )
+    condition_pattern = re.compile(
+        r"CONDITION\s+OF\s+DISPATCH\s+(?P<condition>.*?)"
+        r"(?=\s+Refer\s+to\s+Item\b|\s+NO\s+DISPATCH\b|\Z)",
+        re.IGNORECASE | re.DOTALL,
+    )
+    item_pattern = re.compile(
+        r"Refer\s+to\s+Item\s+"
+        r"(?P<mel_item>\d{2}-\d{2}-\d{2}(?:-\d{2})?[A-Z]?)",
+        re.IGNORECASE,
+    )
+    results = []
+
+    for match in block_pattern.finditer(text):
+        message = clean_cell(match.group("message"))
+        body = match.group("body") or ""
+        condition_match = condition_pattern.search(body)
+        item_match = item_pattern.search(body)
+        no_dispatch = bool(re.search(r"\bNO\s+DISPATCH\b", body, re.IGNORECASE))
+
+        if not message or (not item_match and not no_dispatch):
+            continue
+
+        results.append(
+            {
+                "message": message,
+                "level": "",
+                "condition": (
+                    clean_cell(condition_match.group("condition"))
+                    if condition_match
+                    else "None(No Dispatch)" if no_dispatch else ""
+                ),
+                "mel_item": item_match.group("mel_item").upper() if item_match else "N/A",
+                "adc": "",
+                "is_none_dispatch": no_dispatch and not item_match,
+            }
+        )
+
+    return results
+
+
 def storage_file_to_temp_file(django_file, suffix=""):
     temp_file = tempfile.NamedTemporaryFile(
         suffix=suffix,
@@ -685,6 +736,25 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
             for page_index, page in enumerate(pdf.pages):
 
                 page_number = page_index + 1
+
+                if manual_file.aircraft.maker == "AIRBUS":
+                    for item in extract_airbus_mel_dispatch_blocks(
+                        page.extract_text() or ""
+                    ):
+                        _, created = MelDispatchItem.objects.get_or_create(
+                            aircraft=manual_file.aircraft,
+                            manual_file=manual_file,
+                            message=item["message"],
+                            level=item["level"],
+                            condition=item["condition"],
+                            mel_item=item["mel_item"],
+                            adc=item["adc"],
+                            page_number=page_number,
+                        )
+
+                        if created:
+                            count += 1
+
                 tables = page.extract_tables()
 
                 for table in tables:

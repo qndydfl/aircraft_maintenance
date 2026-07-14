@@ -47,6 +47,8 @@ from .services import (
     parse_manual_search_query,
     build_manual_text_regex,
     build_snippet_from_regex,
+    prefer_content_pages,
+    prefer_group_content_pages,
     index_pdf_pages_for_common_manual_file_safely,
     index_pdf_pages_for_manual_file_safely,
     index_pdf_pages_for_other_manual_file_safely,
@@ -899,6 +901,23 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 common_pages = list(common_pages_qs)
                 other_pages = list(other_pages_qs)
 
+                package_pages = prefer_group_content_pages(
+                    package_pages,
+                    lambda page: page.chapter.package_id,
+                )
+                file_pages = prefer_group_content_pages(
+                    file_pages,
+                    lambda page: page.manual_file_id,
+                )
+                common_pages = prefer_group_content_pages(
+                    common_pages,
+                    lambda page: page.common_file_id,
+                )
+                other_pages = prefer_group_content_pages(
+                    other_pages,
+                    lambda page: page.other_file_id,
+                )
+
                 for page in package_pages:
                     page.snippet = build_snippet_from_regex(page.text, text_regex)
                     page.score = calculate_package_score(page, search_value)
@@ -1520,13 +1539,16 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                     )
                 else:
                     page_filter = Q(text__iregex=text_regex)
-                    matching_pages_list = list(
+                    matching_page_records = list(
                         ManualFilePDFPage.objects.filter(manual_file=manual)
                         .filter(page_filter)
                         .order_by("page_number")
-                        .values_list("page_number", flat=True)
-                        .distinct()
+                        .only("page_number", "text")
                     )
+                    matching_pages_list = [
+                        page.page_number
+                        for page in prefer_content_pages(matching_page_records)
+                    ]
 
                 context["match_count"] = len(matching_pages_list)
                 context["matching_pages_json"] = json.dumps(matching_pages_list)

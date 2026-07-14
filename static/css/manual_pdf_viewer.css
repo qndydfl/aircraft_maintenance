@@ -394,13 +394,14 @@ body.pdf-viewer-page .app-container {
     margin: 0;
 }
 
-.outline-list.depth-1 {
-    padding-left: 0.875rem;
-    border-left: 1px dashed #cbd5e1;
+.outline-item {
+    min-width: 0;
 }
 
-.outline-list.depth-2 {
-    padding-left: 0.75rem;
+.outline-item > .outline-list {
+    margin-top: 0.25rem;
+    margin-left: 0.675rem;
+    padding-left: 0.675rem;
     border-left: 1px dotted #94a3b8;
 }
 
@@ -428,8 +429,9 @@ body.pdf-viewer-page .app-container {
 }
 
 .outline-tree-link {
+    flex: 1 1 auto;
     min-width: 0;
-    max-width: 100%;
+    max-width: calc(100% - 1.6rem);
 
     display: inline-block;
 
@@ -470,6 +472,8 @@ body.pdf-viewer-page .app-container {
 }
 
 .outline-toggle-btn .toggle-icon {
+    width: 0.8rem;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;

@@ -949,17 +949,33 @@ def build_manual_text_regex(search_value, match_mode):
         )
 
     token_chars = r"0-9A-Za-z가-힣"
-    token_body = rf"[{token_chars}/_-]*"
+    token_separator = r"[\s:：]+"
 
-    def build_token_regex(token):
-        escaped_parts = [re.escape(part) for part in token.split("*")]
-        body = token_body.join(escaped_parts)
+    if match_mode == "wildcard":
+        literal_parts = []
 
-        if not token.startswith("*"):
+        for part in search_value.split("*"):
+            words = [word for word in part.split() if word]
+
+            if words:
+                literal_parts.append(
+                    token_separator.join(re.escape(word) for word in words)
+                )
+
+        if not literal_parts:
+            return ""
+
+        body = r"[\s\S]{0,240}?".join(literal_parts)
+
+        if search_value.startswith("*"):
+            body = r"\S*?" + body
+        else:
             body = rf"(?<![{token_chars}])" + body
 
-        if not token.endswith("*"):
-            body = body + rf"(?![{token_chars}])"
+        if search_value.endswith("*"):
+            body += r"\S*?"
+        else:
+            body += rf"(?![{token_chars}])"
 
         return body
 
@@ -967,11 +983,6 @@ def build_manual_text_regex(search_value, match_mode):
 
     if not tokens:
         return ""
-
-    token_separator = r"[\s:：]+"
-
-    if match_mode == "wildcard":
-        return token_separator.join(build_token_regex(token) for token in tokens)
 
     exact_words = [
         rf"(?<![{token_chars}]){re.escape(token)}(?![{token_chars}])"
@@ -1008,6 +1019,39 @@ def build_snippet_from_regex(text, text_regex, length=180):
         snippet = snippet + "..."
 
     return snippet
+
+
+def is_reference_index_page(text):
+    normalized = " ".join((text or "").lower().split())
+    reference_markers = (
+        "table of contents",
+        "list of effective pages",
+        "list of effective sections",
+        "mel item - index",
+        "eicas message - index",
+    )
+
+    return any(marker in normalized for marker in reference_markers)
+
+
+def prefer_content_pages(pages):
+    pages = list(pages)
+    content_pages = [page for page in pages if not is_reference_index_page(page.text)]
+    return content_pages or pages
+
+
+def prefer_group_content_pages(pages, group_key):
+    grouped_pages = {}
+
+    for page in pages:
+        grouped_pages.setdefault(group_key(page), []).append(page)
+
+    preferred_pages = []
+
+    for group in grouped_pages.values():
+        preferred_pages.extend(prefer_content_pages(group))
+
+    return preferred_pages
 
 
 def save_package_revision_info(package, index_html_path):

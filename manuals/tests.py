@@ -4,7 +4,13 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .forms import CommonManualCategoryForm
-from .models import Aircraft, ManualFile, CommonManualCategory, CommonManualFile
+from .models import (
+    Aircraft,
+    ManualFile,
+    ManualFilePDFPage,
+    CommonManualCategory,
+    CommonManualFile,
+)
 
 
 class AircraftManualAccessTests(TestCase):
@@ -85,6 +91,65 @@ class ManualFilePDFEndpointTests(TestCase):
             response,
             reverse("manual_file_pdf", kwargs={"pk": manual.pk}),
         )
+
+
+class ManualSearchContentPageTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="searchuser",
+            password="testpass123",
+        )
+        self.aircraft = Aircraft.objects.create(name="A350", maker="AIRBUS")
+        self.manual = ManualFile.objects.create(
+            aircraft=self.aircraft,
+            manual_type="MEL",
+            file="manuals/a350-mel.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=self.manual,
+            page_number=116,
+            text=(
+                "MEL ENTRIES PRELIMINARY PAGES - TABLE OF CONTENTS "
+                "NAV GNSS 1(2)(1+2) REJECTED BY IRs"
+            ),
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=self.manual,
+            page_number=379,
+            text=(
+                "Dispatch Message: NAV GNSS 1(2)(1+2) REJECTED BY IRs "
+                "CONDITION OF DISPATCH Refer to Item 34-50-06"
+            ),
+        )
+        self.client.force_login(self.user)
+
+    def test_manual_search_prefers_content_page_over_table_of_contents(self):
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "q": "nav gnss * rejected by*",
+            },
+        )
+
+        groups = response.context["result_groups"]
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["match_count"], 1)
+        self.assertEqual(groups[0]["first_page"].page_number, 379)
+
+    def test_manual_viewer_match_navigation_excludes_table_of_contents(self):
+        response = self.client.get(
+            reverse("manual_file_pdf_viewer", kwargs={"pk": self.manual.pk}),
+            {
+                "page": 379,
+                "q": "nav gnss * rejected by*",
+                "from_search_page": 1,
+            },
+        )
+
+        self.assertEqual(response.context["match_count"], 1)
+        self.assertEqual(response.context["matching_pages_json"], "[379]")
 
 
 class CommonManualCategoryFormTests(TestCase):

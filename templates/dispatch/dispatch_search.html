@@ -494,7 +494,7 @@ dispatch-search-page
                             </div>
 
                             <div class="candidate-actions">
-                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="btn btn-danger app-card-btn">
@@ -508,7 +508,7 @@ dispatch-search-page
                         </p>
 
                         <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:manual_pdf_query }}
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
 
                         <div class="candidate-pager">
@@ -561,7 +561,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="btn btn-primary app-card-btn">
@@ -574,7 +574,7 @@ dispatch-search-page
                         </p>
 
                         <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:manual_pdf_query }}
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
 
                         <div class="candidate-pager">
@@ -627,7 +627,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="btn btn-success app-card-btn">
@@ -640,7 +640,7 @@ dispatch-search-page
                         </p>
 
                         <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:manual_pdf_query }}
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
 
                         <div class="candidate-pager">
@@ -693,7 +693,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="btn btn-outline-info app-card-btn">
@@ -706,7 +706,7 @@ dispatch-search-page
                         </p>
 
                         <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:manual_pdf_query }}
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
 
                         <div class="candidate-pager">
@@ -763,7 +763,7 @@ dispatch-search-page
                                 {% endif %}
                             </div>
 
-                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="btn btn-outline-warning app-card-btn">
@@ -776,7 +776,7 @@ dispatch-search-page
                         </p>
 
                         <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:manual_pdf_query }}
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
 
                         <div class="candidate-pager">
