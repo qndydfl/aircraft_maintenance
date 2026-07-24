@@ -1,22 +1,6 @@
 /* static/css/list.css */
 
 /* =========================================================
-   List Page
-========================================================= */
-
-body.list-page .app-main {
-    min-height: auto;
-}
-
-body.list-page .app-container {
-    padding-bottom: var(--page-edge-gap);
-}
-
-body.chapter-page .app-container {
-    padding-bottom: var(--page-edge-gap);
-}
-
-/* =========================================================
    Chapter Page
 ========================================================= */
 

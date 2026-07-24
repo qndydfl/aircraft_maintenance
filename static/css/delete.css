@@ -1,18 +1,6 @@
 /* static/css/delete.css */
 
 /* =========================================================
-   Delete Confirm Page
-========================================================= */
-
-body.delete-confirm-page .app-main {
-    min-height: auto;
-}
-
-body.delete-confirm-page .app-container {
-    padding-bottom: var(--page-edge-gap);
-}
-
-/* =========================================================
    Delete Wrapper
 ========================================================= */
 

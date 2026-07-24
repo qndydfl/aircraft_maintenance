@@ -1,8 +1,69 @@
+
 document.addEventListener("DOMContentLoaded", function () {
     const loading = document.getElementById("global-loading");
     const bottomNav = document.querySelector(".mobile-bottom-nav");
     const bottomNavLinks = document.querySelectorAll(".mobile-bottom-nav a");
     const appMain = document.querySelector(".app-main");
+
+    /*
+     * PWA 실행 상태 확인
+     *
+     * Android/Chrome:
+     *   display-mode: standalone
+     *
+     * iPhone/iPad:
+     *   window.navigator.standalone
+     */
+    const standaloneMediaQuery = window.matchMedia(
+        "(display-mode: standalone)"
+    );
+
+    function isPwaStandalone() {
+        return (
+            standaloneMediaQuery.matches ||
+            window.navigator.standalone === true
+        );
+    }
+
+    function syncPwaMode() {
+        const standalone = isPwaStandalone();
+
+        document.documentElement.classList.toggle(
+            "pwa-standalone",
+            standalone
+        );
+
+        document.body.classList.toggle(
+            "pwa-standalone",
+            standalone
+        );
+
+        document.documentElement.classList.toggle(
+            "browser-mode",
+            !standalone
+        );
+
+        document.body.classList.toggle(
+            "browser-mode",
+            !standalone
+        );
+    }
+
+    syncPwaMode();
+
+    /*
+     * display-mode가 실행 중 변경되는 경우 대응
+     */
+    if (typeof standaloneMediaQuery.addEventListener === "function") {
+        standaloneMediaQuery.addEventListener(
+            "change",
+            syncPwaMode
+        );
+    } else if (
+        typeof standaloneMediaQuery.addListener === "function"
+    ) {
+        standaloneMediaQuery.addListener(syncPwaMode);
+    }
 
     if ("scrollRestoration" in window.history) {
         window.history.scrollRestoration = "manual";
@@ -10,17 +71,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function syncViewportHeight() {
         const viewport = window.visualViewport;
-        const viewportHeight = viewport ? viewport.height : window.innerHeight;
-        const viewportOffsetTop = viewport ? viewport.offsetTop : 0;
+
+        const viewportHeight = viewport
+            ? viewport.height
+            : window.innerHeight;
+
+        const viewportOffsetTop = viewport
+            ? viewport.offsetTop
+            : 0;
+
         const viewportBottomOffset = Math.max(
             0,
-            window.innerHeight - viewportHeight - viewportOffsetTop
+            window.innerHeight -
+                viewportHeight -
+                viewportOffsetTop
         );
 
         document.documentElement.style.setProperty(
             "--app-viewport-height",
             `${viewportHeight}px`
         );
+
         document.documentElement.style.setProperty(
             "--app-viewport-bottom-offset",
             `${viewportBottomOffset}px`
@@ -31,151 +102,297 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function settleMobileViewport() {
-        syncViewportHeight();
-        window.scrollTo(0, 0);
+    function resetScrollPosition() {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "instant",
+        });
+
         if (appMain) {
             appMain.scrollTop = 0;
         }
+    }
+
+    function settleMobileViewport() {
+        syncPwaMode();
+        syncViewportHeight();
+        resetScrollPosition();
 
         window.requestAnimationFrame(function () {
             syncViewportHeight();
-            window.scrollTo(0, 0);
-            if (appMain) {
-                appMain.scrollTop = 0;
-            }
+            resetScrollPosition();
         });
 
         window.setTimeout(function () {
             syncViewportHeight();
-            window.scrollTo(0, 0);
-            if (appMain) {
-                appMain.scrollTop = 0;
-            }
+            resetScrollPosition();
         }, 120);
 
         window.setTimeout(function () {
             syncViewportHeight();
-            window.scrollTo(0, 0);
-            if (appMain) {
-                appMain.scrollTop = 0;
-            }
+            resetScrollPosition();
         }, 320);
     }
 
     syncViewportHeight();
-    window.addEventListener("resize", syncViewportHeight);
-    window.addEventListener("orientationchange", syncViewportHeight);
-    window.addEventListener("pageshow", settleMobileViewport);
-    window.addEventListener("load", settleMobileViewport);
+
+    window.addEventListener(
+        "resize",
+        syncViewportHeight
+    );
+
+    window.addEventListener(
+        "orientationchange",
+        function () {
+            window.setTimeout(function () {
+                syncPwaMode();
+                syncViewportHeight();
+            }, 100);
+        }
+    );
+
+    window.addEventListener(
+        "pageshow",
+        function () {
+            syncPwaMode();
+            settleMobileViewport();
+        }
+    );
+
+    window.addEventListener(
+        "load",
+        function () {
+            syncPwaMode();
+            settleMobileViewport();
+        }
+    );
 
     if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", syncViewportHeight);
-        window.visualViewport.addEventListener("scroll", syncViewportHeight);
+        window.visualViewport.addEventListener(
+            "resize",
+            syncViewportHeight
+        );
+
+        window.visualViewport.addEventListener(
+            "scroll",
+            syncViewportHeight
+        );
     }
 
     bottomNavLinks.forEach(function (link) {
         link.addEventListener("click", function () {
-            window.sessionStorage.setItem("mobileNavSettling", "1");
+            window.sessionStorage.setItem(
+                "mobileNavSettling",
+                "1"
+            );
+
             settleMobileViewport();
         });
     });
 
-    if (window.sessionStorage.getItem("mobileNavSettling") === "1") {
-        window.sessionStorage.removeItem("mobileNavSettling");
+    if (
+        window.sessionStorage.getItem(
+            "mobileNavSettling"
+        ) === "1"
+    ) {
+        window.sessionStorage.removeItem(
+            "mobileNavSettling"
+        );
+
         settleMobileViewport();
     }
 
+    /*
+     * 전역 Loading UI가 없으면
+     * 아래 로딩 관련 코드는 실행하지 않음
+     */
     if (!loading) {
         return;
     }
 
     function showLoading(title, message) {
-        const titleEl = loading.querySelector(".loading-title");
-        const messageEl = loading.querySelector(".loading-message");
+        const titleEl = loading.querySelector(
+            ".loading-title"
+        );
 
-        titleEl.textContent = title || "Processing...";
-        messageEl.textContent = message || "Please wait.";
+        const messageEl = loading.querySelector(
+            ".loading-message"
+        );
+
+        if (titleEl) {
+            titleEl.textContent =
+                title || "Processing...";
+        }
+
+        if (messageEl) {
+            messageEl.textContent =
+                message || "Please wait.";
+        }
 
         loading.classList.remove("d-none");
+        loading.setAttribute("aria-hidden", "false");
     }
 
     function hideLoading() {
         loading.classList.add("d-none");
+        loading.setAttribute("aria-hidden", "true");
     }
 
     window.addEventListener("pageshow", hideLoading);
     window.addEventListener("popstate", hideLoading);
 
-    document.querySelectorAll("form").forEach(function (form) {
-        form.addEventListener("submit", function () {
-            if (form.dataset.localSubmit === "true") {
-                return;
-            }
+    document
+        .querySelectorAll("form")
+        .forEach(function (form) {
+            form.addEventListener(
+                "submit",
+                function () {
+                    if (
+                        form.dataset.localSubmit ===
+                        "true"
+                    ) {
+                        return;
+                    }
 
-            if (form.dataset.submitted === "true") {
-                return;
-            }
+                    if (
+                        form.dataset.submitted ===
+                        "true"
+                    ) {
+                        return;
+                    }
 
-            form.dataset.submitted = "true";
+                    form.dataset.submitted = "true";
 
-            const title = form.dataset.loadingTitle || "Processing...";
-            const message = form.dataset.loadingMessage || "Please wait.";
+                    const title =
+                        form.dataset.loadingTitle ||
+                        "Processing...";
 
-            showLoading(title, message);
+                    const message =
+                        form.dataset.loadingMessage ||
+                        "Please wait.";
 
-            form.querySelectorAll("button[type='submit'], input[type='submit']").forEach(function (button) {
-                button.disabled = true;
-                button.setAttribute("aria-disabled", "true");
-            });
-        });
-    });
+                    showLoading(title, message);
 
-    document.querySelectorAll("a[data-loading='true']").forEach(function (link) {
-        link.addEventListener("click", function () {
-            const title = link.dataset.loadingTitle || "Loading...";
-            const message = link.dataset.loadingMessage || "Please wait.";
+                    form.querySelectorAll(
+                        [
+                            "button[type='submit']",
+                            "input[type='submit']",
+                        ].join(",")
+                    ).forEach(function (button) {
+                        button.disabled = true;
 
-            showLoading(title, message);
-        });
-    });
-
-    document.querySelectorAll("a[href]").forEach(function (link) {
-        link.addEventListener("click", function () {
-            const href = link.getAttribute("href") || "";
-
-            if (
-                link.dataset.loading ||
-                link.dataset.viewerMatchLink ||
-                link.target === "_blank" ||
-                link.hasAttribute("download") ||
-                href.startsWith("#") ||
-                href.startsWith("javascript:")
-            ) {
-                return;
-            }
-
-            const targetUrl = new URL(href, window.location.href);
-            const isViewerLink =
-                targetUrl.pathname.includes("/pdf/viewer/") ||
-                targetUrl.pathname.includes("/viewer/");
-
-            if (!isViewerLink || targetUrl.origin !== window.location.origin) {
-                return;
-            }
-
-            showLoading(
-                link.dataset.loadingTitle || "Opening Viewer",
-                link.dataset.loadingMessage || "Loading PDF viewer..."
+                        button.setAttribute(
+                            "aria-disabled",
+                            "true"
+                        );
+                    });
+                }
             );
         });
-    });
+
+    document
+        .querySelectorAll(
+            "a[data-loading='true']"
+        )
+        .forEach(function (link) {
+            link.addEventListener(
+                "click",
+                function () {
+                    const title =
+                        link.dataset.loadingTitle ||
+                        "Loading...";
+
+                    const message =
+                        link.dataset.loadingMessage ||
+                        "Please wait.";
+
+                    showLoading(title, message);
+                }
+            );
+        });
+
+    document
+        .querySelectorAll("a[href]")
+        .forEach(function (link) {
+            link.addEventListener(
+                "click",
+                function () {
+                    const href =
+                        link.getAttribute("href") || "";
+
+                    if (
+                        link.dataset.loading ||
+                        link.dataset.viewerMatchLink ||
+                        link.target === "_blank" ||
+                        link.hasAttribute("download") ||
+                        href.startsWith("#") ||
+                        href.startsWith(
+                            "javascript:"
+                        ) ||
+                        href.startsWith("mailto:") ||
+                        href.startsWith("tel:")
+                    ) {
+                        return;
+                    }
+
+                    let targetUrl;
+
+                    try {
+                        targetUrl = new URL(
+                            href,
+                            window.location.href
+                        );
+                    } catch (error) {
+                        return;
+                    }
+
+                    const isViewerLink =
+                        targetUrl.pathname.includes(
+                            "/pdf/viewer/"
+                        ) ||
+                        targetUrl.pathname.includes(
+                            "/viewer/"
+                        );
+
+                    const isInternalLink =
+                        targetUrl.origin ===
+                        window.location.origin;
+
+                    if (
+                        !isViewerLink ||
+                        !isInternalLink
+                    ) {
+                        return;
+                    }
+
+                    showLoading(
+                        link.dataset.loadingTitle ||
+                            "Opening Viewer",
+                        link.dataset.loadingMessage ||
+                            "Loading PDF viewer..."
+                    );
+                }
+            );
+        });
 });
 
+
+/*
+ * Service Worker 등록
+ */
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker.register("/service-worker.js").catch(function () {
-            // PWA support is optional, so the site should continue normally.
-        });
-    });
+    window.addEventListener(
+        "load",
+        function () {
+            navigator.serviceWorker
+                .register("/service-worker.js")
+                .catch(function (error) {
+                    console.warn(
+                        "Service Worker registration failed:",
+                        error
+                    );
+                });
+        }
+    );
 }

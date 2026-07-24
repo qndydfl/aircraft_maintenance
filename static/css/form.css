@@ -1,15 +1,5 @@
 /* static/css/form.css */
 
-/* Form Page */
-
-body.form-page .app-main {
-    min-height: auto;
-}
-
-body.form-page .app-container {
-    padding-bottom: var(--page-edge-gap);
-}
-
 /* Form Wrapper */
 
 .portal-form-wrap,

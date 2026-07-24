@@ -1,15 +1,5 @@
 /* static/css/calculator.css */
 
-/* Calculator Page */
-
-body.calculator-page .app-main {
-    min-height: auto;
-}
-
-body.calculator-page .app-container {
-    padding-bottom: var(--page-edge-gap);
-}
-
 .date-calculator-shell {
     max-width: 33.75rem;
     margin: 0 auto;

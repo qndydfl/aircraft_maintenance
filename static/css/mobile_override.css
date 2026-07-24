@@ -1,150 +1,105 @@
-/* static/css/mobile_override.css */
+/* static/css/mobile_override.css
+   Final mobile safety overrides.
+   Load this file after every page-specific stylesheet.
+*/
+
+/* Keep the first and last content edges equal on every standard page. */
+body:not(.pdf-viewer-page):not(.login-page) .app-main {
+    padding-top: var(--page-edge-gap) !important;
+    padding-bottom: var(--page-edge-gap) !important;
+}
+
+body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :first-child {
+    margin-top: 0 !important;
+}
+
+body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-child {
+    margin-bottom: 0 !important;
+}
 
 @media (max-width: 48rem) {
-    /* Bootstrap responsive helpers */
-
-    .d-none.d-md-block,
-    .d-none.d-md-flex,
-    .d-none.d-md-inline,
-    .d-none.d-md-inline-flex {
-        display: none !important;
+    html {
+        scroll-padding-top: 5rem;
     }
 
-    .d-md-none {
-        display: block !important;
+    body {
+        font-size: 0.8125rem;
+        line-height: 1.45;
+        overflow-x: hidden;
     }
 
-    .d-inline-flex.d-md-none {
-        display: inline-flex !important;
+    .page-eyebrow {
+        font-size: 0.6875rem;
     }
 
-    /* Mobile Filter / Page Nav */
-
-    .mobile-filter-toggle.d-md-none,
-    .mobile-page-nav.d-md-none {
-        display: flex !important;
+    .page-title {
+        font-size: 1.125rem;
+        line-height: 1.2;
     }
 
-    .mobile-filter-collapse.collapse:not(.show) {
-        display: none !important;
+    .page-subtitle {
+        font-size: 0.75rem;
+        line-height: 1.45;
     }
 
-    .mobile-filter-collapse.collapse.show {
-        display: block !important;
+    .section-title,
+    .card-title,
+    .aircraft-title {
+        font-size: 0.9375rem;
     }
 
-    .mobile-filter-toggle {
-        width: 100% !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        gap: 0.4rem;
-        min-height: var(--button-height);
-        margin-bottom: 0.625rem !important;
-        border: 0 !important;
-        border-radius: 999rem !important;
-        color: #fff !important;
-        background: linear-gradient(
-            180deg,
-            #2997ff,
-            var(--app-primary)
-        ) !important;
-        box-shadow: 0 10px 22px rgba(0, 122, 255, 0.22);
+    .portal-card h5,
+    .mel-dispatch-results h5 {
+        font-size: 1rem;
+        line-height: 1.25;
     }
 
-    .mobile-filter-toggle::after {
-        content: "⌃";
-        font-size: 0.85rem;
-        line-height: 1;
-        transition: transform 150ms ease;
+    .section-description,
+    .card-description,
+    .manual-card-note,
+    .text-muted,
+    small,
+    .small {
+        font-size: 0.75rem;
     }
 
-    .mobile-filter-toggle.collapsed::after {
-        content: "⌄";
+    .form-label {
+        font-size: 0.6875rem;
     }
 
-    /* Mobile Tabs */
-
-    .mobile-tab-scroll {
-        display: flex;
-        gap: 0.45rem;
-        overflow-x: auto;
-        padding: 0.0625rem 0.0625rem 0.5rem;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
+    img,
+    svg,
+    canvas,
+    video,
+    iframe {
+        max-width: 100%;
     }
 
-    .mobile-tab-scroll::-webkit-scrollbar {
-        display: none;
+    input,
+    select,
+    textarea {
+        font-size: 1rem;
     }
 
-    .mobile-tab-scroll .nav-link {
-        flex: 0 0 auto;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3125rem;
-        min-height: var(--button-height);
-        border-radius: 999px !important;
-        padding: 0.375rem clamp(0.65rem, 2.2vw, 0.9rem);
-        font-size: 0.875rem;
-        font-weight: 850;
-        color: #475569;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(203, 213, 225, 0.68);
-        box-shadow:
-            0 0.35rem 0.9rem rgba(15, 23, 42, 0.06),
-            inset 0 0.0625rem 0.0625rem rgba(255, 255, 255, 0.95);
-        white-space: nowrap;
+    body:not(.pdf-viewer-page) .btn,
+    body:not(.pdf-viewer-page) button,
+    body:not(.pdf-viewer-page) [role="button"] {
+        min-height: 2.75rem;
+        font-size: 0.75rem;
     }
 
-    .mobile-tab-scroll .nav-link span {
-        min-width: 1.2rem;
-        padding: 0.125rem 0.375rem;
-        border-radius: 999px;
-        background: rgba(15, 23, 42, 0.08);
-        color: #334155;
-        font-size: 0.72rem;
-        text-align: center;
-    }
-
-    .mobile-tab-scroll .nav-link.active {
-        color: #fff;
-        background: linear-gradient(
-            180deg,
-            #2997ff,
-            var(--app-primary)
-        );
-        border-color: var(--app-primary);
-        box-shadow: 0 8px 18px rgba(0, 122, 255, 0.22);
-    }
-
-    .mobile-tab-scroll .nav-link.active span {
-        color: var(--app-primary);
-        background: rgba(255, 255, 255, 0.92);
-    }
-
-    /* Text compact */
-
-    .common-result-snippet,
-    .candidate-snippet,
-    .dispatch-text-body,
-    .portal-form-guide,
-    .common-upload-guide {
-        font-size: var(--mobile-small) !important;
-        line-height: 1.4;
-    }
-
-    /* Card spacing compact */
-
-    .portal-card,
-    .portal-detail-card,
-    .manual-group-card,
-    .candidate-card,
-    .portal-list-card,
-    .delete-card,
-    .dispatch-ref-card,
-    .mel-result-card {
-        border-radius: var(--card-radius);
+    body:not(.pdf-viewer-page) .nav-link,
+    body:not(.pdf-viewer-page) .badge,
+    body:not(.pdf-viewer-page) .manual-badge,
+    body:not(.pdf-viewer-page) .portal-list-badge,
+    body:not(.pdf-viewer-page) .portal-detail-pill,
+    body:not(.pdf-viewer-page) .dispatch-status-badge {
+        font-size: 0.6875rem !important;
     }
 
     .portal-card .card-body,
@@ -152,86 +107,209 @@
     .manual-group-card .card-body,
     .candidate-card .card-body,
     .portal-list-card .card-body,
+    .dispatch-search-card .card-body,
+    .dispatch-detail-card .card-body,
     .delete-card .card-body {
-        padding: var(--card-padding);
+        padding: 0.875rem;
+    }
+
+    .page-hero {
+        align-items: center;
+        flex-direction: row;
+    }
+
+    .page-hero > div:first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .page-hero .page-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        width: auto;
+        margin-left: auto;
+        gap: 0.5rem;
+    }
+
+    .page-hero .page-actions .btn,
+    .page-hero .page-actions .app-action-btn {
+        width: auto !important;
+        min-width: 4.5rem;
+        padding-inline: 0.75rem;
+    }
+
+    .page-hero .page-actions .btn-outline-secondary:last-child {
+        margin-left: auto;
+    }
+
+    .mobile-nav-text {
+        font-size: 0.6875rem;
+    }
+
+    .app-user-name {
+        min-height: 2rem !important;
+        height: 2rem !important;
+    }
+
+    body.home-page .app-admin-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        min-height: 2rem;
+        height: 2rem;
+        padding: 0.3rem 0.625rem;
+        font-size: 0.6875rem;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .modal-dialog {
+        margin: 0.75rem;
+    }
+
+    .dropdown-menu {
+        max-width: calc(100vw - 1rem);
+    }
+
+    /* Shared mobile search layout for Manual and Dispatch Search. */
+    body.manual-search-page .mobile-filter-toggle,
+    body.dispatch-search-page .mobile-filter-toggle {
+        min-height: 2.5rem;
+        margin-bottom: 0.75rem !important;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 750;
+        line-height: 1.2;
+    }
+
+    body.manual-search-page .page-hero .page-subtitle,
+    body.dispatch-search-page .page-hero .page-subtitle {
+        display: none;
+    }
+
+    body.manual-search-page .mobile-filter-collapse,
+    body.dispatch-search-page .mobile-filter-collapse {
+        margin-bottom: 0.875rem !important;
+        border-radius: 0.75rem;
+    }
+
+    body.manual-search-page .mobile-filter-collapse > .card-body,
+    body.dispatch-search-page .mobile-filter-collapse > .card-body {
+        padding: 0.75rem;
+    }
+
+    body.manual-search-page .mobile-filter-collapse form .row,
+    body.dispatch-search-page .mobile-filter-collapse form .row {
+        --bs-gutter-x: 0.625rem;
+        --bs-gutter-y: 0.625rem;
+    }
+
+    body.manual-search-page .mobile-filter-collapse .form-label,
+    body.dispatch-search-page .mobile-filter-collapse .form-label {
+        margin-bottom: 0.25rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    body.manual-search-page .mobile-filter-collapse .app-form-control,
+    body.dispatch-search-page .mobile-filter-collapse .app-form-control {
+        min-height: 2.5rem;
+        padding-top: 0.375rem;
+        padding-bottom: 0.375rem;
+        font-size: 1rem;
+        line-height: 1.2;
+    }
+
+    body.manual-search-page .mobile-filter-collapse .form-select,
+    body.dispatch-search-page .mobile-filter-collapse .form-select {
+        font-size: 0.875rem;
+    }
+
+    body.manual-search-page .mobile-filter-collapse .form-control::placeholder,
+    body.dispatch-search-page .mobile-filter-collapse .form-control::placeholder {
+        font-size: 0.8125rem;
+    }
+
+    body.manual-search-page .mobile-filter-collapse .app-card-btn,
+    body.dispatch-search-page .mobile-filter-collapse .app-card-btn {
+        min-height: 2.5rem;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    body.manual-search-page .result-tabs,
+    body.dispatch-search-page .result-tabs {
+        margin-bottom: 0.75rem !important;
+    }
+
+    body.manual-search-page .result-tabs .nav-link,
+    body.dispatch-search-page .result-tabs .nav-link {
+        min-height: 2.25rem;
+        padding: 0.4rem 0.625rem;
+        font-size: 0.6875rem !important;
+        line-height: 1.2;
+    }
+
+    body.manual-search-page .result-tabs .nav-link {
+        font-size: 0.75rem !important;
+    }
+
+    body.manual-search-page .manual-group-info {
+        display: none;
+    }
+
+    .table-responsive {
+        margin-inline: -0.25rem;
+    }
+
+    .navbar-collapse {
+        max-height: calc(100vh - 5rem);
+        overflow-y: auto;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .portal-card:hover,
+    .portal-detail-card:hover,
+    .manual-group-card:hover,
+    .candidate-card:hover,
+    .portal-list-card:hover,
+    .dispatch-ref-card:hover,
+    .mel-result-card:hover,
+    .dispatch-search-card:hover,
+    .boeing-card:hover,
+    .airbus-card:hover {
+        transform: none !important;
     }
 }
 
 /* =========================================================
-   PDF Viewer Mobile Override
-   - 568px 이하
+   PWA standalone footer handling
 ========================================================= */
 
-@media (max-width: 35.5rem) {
-    body.pdf-viewer-page {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        overflow: hidden;
+@media (max-width: 48rem) {
+    body.pwa-standalone .app-footer,
+    body.pwa-standalone footer.app-footer {
+        display: none !important;
     }
 
-    body.pdf-viewer-page .app-main {
-        min-height: 100dvh !important;
+    body.pwa-standalone .app-main {
+        padding-bottom: var(--page-edge-gap) !important;
     }
 
-    body.pdf-viewer-page .app-container {
-        max-width: 100% !important;
-        padding: 0 !important;
+    body.pwa-standalone .mobile-bottom-nav {
+        padding-bottom: var(--safe-area-bottom);
     }
+}
 
-    body.pdf-viewer-page .viewer-topbar,
-    body.pdf-viewer-page .viewer-toolbar {
-        margin-left: 0.375rem;
-        margin-right: 0.375rem;
-    }
-
-    body.pdf-viewer-page .viewer-action-btn {
-        min-height: 2.125rem;
-        padding: 0.35rem 0.65rem;
-        font-size: 0.76rem;
-        white-space: nowrap;
-    }
-
-    body.pdf-viewer-page .viewer-tool-btn {
-        min-height: 2.125rem;
-        padding: 0.35rem 0.65rem;
-        font-size: 0.76rem;
-        white-space: nowrap;
-    }
-
-    body.pdf-viewer-page .viewer-search-input {
-        height: 2.125rem;
-        min-height: 2.125rem;
-        font-size: 0.78rem;
-        padding: 0.35rem 0.65rem;
-        border-radius: 999px !important;
-    }
-
-    body.pdf-viewer-page .viewer-query-badge,
-    body.pdf-viewer-page .viewer-match-badge,
-    body.pdf-viewer-page .viewer-zoom-badge {
-        max-width: 8rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        border-radius: 999px;
-        padding: 0.35rem 0.5rem;
-        font-size: 0.68rem;
-        white-space: nowrap;
-        line-height: 1.15;
-    }
-
-    body.pdf-viewer-page .mobile-page-btn {
-        min-width: 4.5rem;
-        height: 2.125rem;
-        min-height: 2.125rem;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.72rem;
-        white-space: nowrap;
-    }
-
-    body.pdf-viewer-page .mobile-page-indicator {
-        min-width: 4.25rem;
-        font-size: 0.78rem;
-        line-height: 1.2;
-        white-space: nowrap;
+@media (display-mode: standalone) and (max-width: 48rem) {
+    .app-footer,
+    footer.app-footer {
+        display: none !important;
     }
 }

@@ -7,7 +7,7 @@ dispatch-search-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=71">
 {% endblock css %}
 
 {% block js %}
@@ -399,7 +399,7 @@ dispatch-search-page
     <div class="nav nav-pills result-tab-scroll"
         role="tablist">
         {% if mel_page_data.item %}
-            <button class="nav-link rounded-pill active"
+            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--mel active"
                 id="dispatch-tab-mel"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-mel"
@@ -412,7 +412,7 @@ dispatch-search-page
         {% endif %}
 
         {% if fim_page_data.item %}
-            <button class="nav-link rounded-pill {% if not mel_page_data.item %}active{% endif %}"
+            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--fim {% if not mel_page_data.item %}active{% endif %}"
                 id="dispatch-tab-fim"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-fim"
@@ -425,7 +425,7 @@ dispatch-search-page
         {% endif %}
 
         {% if amm_page_data.item %}
-            <button class="nav-link rounded-pill {% if not mel_page_data.item and not fim_page_data.item %}active{% endif %}"
+            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--amm {% if not mel_page_data.item and not fim_page_data.item %}active{% endif %}"
                 id="dispatch-tab-amm"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-amm"
@@ -438,7 +438,7 @@ dispatch-search-page
         {% endif %}
 
         {% if ipc_page_data.item %}
-            <button class="nav-link rounded-pill {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}active{% endif %}"
+            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--ipc {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}active{% endif %}"
                 id="dispatch-tab-ipc"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-ipc"
@@ -451,7 +451,7 @@ dispatch-search-page
         {% endif %}
 
         {% if cdl_page_data.item %}
-            <button class="nav-link rounded-pill {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}active{% endif %}"
+            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--cdl {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}active{% endif %}"
                 id="dispatch-tab-cdl"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-cdl"

@@ -1,17 +1,5 @@
 /* static/css/manual_detail.css */
 
-/* Manual Detail Page */
-
-body.detail-page .app-main,
-body.aircraft-manual-detail-page .app-main {
-    min-height: auto;
-}
-
-body.detail-page .app-container,
-body.aircraft-manual-detail-page .app-container {
-    padding-bottom: var(--page-edge-gap);
-}
-
 /* Detail Card */
 
 .portal-detail-card {

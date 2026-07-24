@@ -6,7 +6,7 @@
 {% block title %} Manual Portal {% endblock title %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}" />
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=68" />
 {% endblock css %} 
 
 {% block content %}
@@ -118,6 +118,7 @@
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
+                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
                             Open Manuals
                         </a>
 
@@ -127,6 +128,7 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
+                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
                             Open MyBoeingFleet
                         </a>
                     </div>
@@ -201,6 +203,7 @@
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
+                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
                             Open Manuals
                         </a>
 
@@ -210,6 +213,7 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
+                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
                             Open Airbus World
                         </a>
                     </div>
@@ -226,7 +230,7 @@
     </div>
 </section>
 
-<section class="manual-section mb-4">
+<section class="manual-section common-manual-section mb-4">
     <div class="section-header justify-content-center">
         <div>
             <h4 class="section-title mb-1">Common Manuals</h4>

@@ -3,7 +3,7 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=59">
 {% endblock css %}
 
 {% block js %}
@@ -37,7 +37,7 @@ manual-search-page
     </div>
 </div>
 
-<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 {% if query %}collapsed{% endif %}"
+<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
     type="button"
     data-bs-toggle="collapse"
     data-bs-target="#manual-search-filter"
