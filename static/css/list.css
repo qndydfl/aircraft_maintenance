@@ -40,6 +40,13 @@ body.chapter-page .portal-chapter-search-actions .btn {
     white-space: nowrap;
 }
 
+body.chapter-page .portal-chapter-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
 body.chapter-page .portal-chapter-search-input {
     min-width: 0;
     height: var(--input-height);
@@ -50,6 +57,16 @@ body.chapter-page .chapter-search-summary,
 body.chapter-page .portal-card,
 body.chapter-page .alert {
     margin-bottom: var(--page-edge-gap) !important;
+}
+
+body.chapter-page .portal-card {
+    transition: none !important;
+}
+
+body.chapter-page .portal-card:hover {
+    transform: none !important;
+    border-color: transparent !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
 }
 
 body.chapter-page .app-container > :last-child {
@@ -698,20 +715,26 @@ body.chapter-page .portal-chapter-result-card {
 
     body.chapter-page .portal-chapter-search-group {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
-        padding: 0.625rem;
-        border-radius: 1.125rem;
+        gap: 0.4rem;
+        padding: 0.45rem;
+        border-radius: 0.875rem;
+    }
+
+    body.chapter-page .portal-chapter-search-input {
+        height: 2.35rem;
     }
 
     body.chapter-page .portal-chapter-search-actions {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.5rem;
+        gap: 0.4rem;
     }
 
     body.chapter-page .portal-chapter-search-actions .btn {
         width: 100%;
         min-width: 0;
+        min-height: 2.35rem;
+        padding: 0.3rem 0.75rem;
     }
 
     body.chapter-page .portal-chapter-search-actions .btn:only-child {
@@ -912,7 +935,7 @@ body.chapter-page .portal-chapter-result-card {
 
 @media (max-width: 35.5rem) {
     body.chapter-page .portal-chapter-search-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .portal-list-header-actions,

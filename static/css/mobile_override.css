@@ -154,12 +154,12 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         height: 2rem !important;
     }
 
-    body.home-page .app-admin-btn {
+    .app-admin-btn {
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
-        min-height: 2rem;
-        height: 2rem;
+        min-height: 2rem !important;
+        height: 2rem !important;
         padding: 0.3rem 0.625rem;
         font-size: 0.6875rem;
         line-height: 1;

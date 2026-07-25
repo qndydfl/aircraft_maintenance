@@ -21,6 +21,7 @@ body.login-page {
 
     padding-top: 0 !important;
     padding-bottom: 0;
+    overflow-x: hidden;
 }
 
 /* 로그인 화면에서는 하단 모바일 nav 숨김 */
@@ -32,6 +33,7 @@ body.login-page .mobile-bottom-nav {
 body.login-page .app-main {
     min-height: 100vh;
     min-height: 100dvh;
+    padding: 0 !important;
 }
 
 body.login-page .app-container {
