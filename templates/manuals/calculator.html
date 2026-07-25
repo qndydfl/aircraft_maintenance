@@ -10,11 +10,11 @@ Date Calculator
 {% endblock title %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=79">
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=80">
 {% endblock css %}
 
 {% block js %}
-<script defer src="{% static 'js/calculator.js' %}"></script>
+<script defer src="{% static 'js/calculator.js' %}?v=84"></script>
 {% endblock js %}
 
 {% block content %}
@@ -99,6 +99,14 @@ Date Calculator
             data-bs-toggle="modal"
             data-bs-target="#basic-calculator-modal">
             <span>일반 계산기</span>
+            <strong>Open</strong>
+        </button>
+
+        <button type="button"
+            class="date-tool-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#consumption-rate-modal">
+            <span>오일 소모율 계산기</span>
             <strong>Open</strong>
         </button>
     </div>
@@ -394,6 +402,108 @@ Date Calculator
                                 value=""
                                 placeholder="0">
                         </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer date-modal-footer">
+                <button type="button"
+                    class="btn btn-outline-secondary rounded-pill px-4"
+                    data-bs-dismiss="modal">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+    id="consumption-rate-modal"
+    tabindex="-1"
+    aria-labelledby="consumption-rate-modal-title"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content date-modal-content">
+            <div class="modal-header date-modal-header">
+                <div>
+                    <p class="date-result-label mb-1">
+                        Oil Tool
+                    </p>
+
+                    <h5 class="modal-title"
+                        id="consumption-rate-modal-title">
+                        오일 소모율 계산기
+                    </h5>
+                </div>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body date-modal-body">
+                <div class="date-result-card">
+                    <p class="date-result-label mb-1">
+                        Consumption Rate
+                    </p>
+
+                    <p id="consumption-rate-result"
+                        class="date-result-long fuel-result-value mb-1">
+                        0.000 qty/hr
+                    </p>
+
+                    <p id="consumption-rate-note"
+                        class="date-result-note mb-0">
+                        Add Qty와 Total Block Time을 입력하세요
+                    </p>
+                </div>
+
+                <form class="date-calculator-card"
+                    id="consumption-rate-form"
+                    data-local-submit="true">
+
+                    <div class="date-base-row">
+                        <label for="consumption-add-qty-input"
+                            class="form-label mb-1">
+                            Add Qty
+                        </label>
+
+                        <input id="consumption-add-qty-input"
+                            type="number"
+                            min="0"
+                            step="any"
+                            inputmode="decimal"
+                            class="form-control"
+                            value=""
+                            placeholder="0">
+
+                        <p class="calculator-input-help mb-0 text-center">
+                            보급한 오일량을 입력합니다.
+                        </p>
+                    </div>
+
+                    <div class="date-custom-row">
+                        <label for="consumption-hours-input"
+                            class="form-label mb-1">
+                            Total Block Time
+                        </label>
+
+                        <div class="date-input-wrap date-input-wrap-single">
+                            <input id="consumption-hours-input"
+                                type="text"
+                                inputmode="decimal"
+                                class="form-control time-calculator-input"
+                                value=""
+                                placeholder="0:00">
+                        </div>
+
+                        <p class="calculator-input-help mb-0 text-center">
+                            시간은 2:30 또는 2.5 형식으로 입력합니다.
+                        </p>
                     </div>
                 </form>
             </div>

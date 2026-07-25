@@ -564,6 +564,35 @@ body.dispatch-search-page table th {
         border-radius: 1.125rem;
     }
 
+    .mel-compact-card {
+        position: relative;
+        padding-right: 4.75rem;
+    }
+
+    .mel-compact-top {
+        display: block;
+        width: 100%;
+    }
+
+    .mel-compact-top > :first-child {
+        min-width: 0;
+    }
+
+    .mel-compact-top .mel-open-btn {
+        position: absolute;
+        top: 50%;
+        right: 0.625rem;
+        z-index: 2;
+        margin: 0;
+        transform: translateY(-50%);
+    }
+
+    .mel-compact-top .mel-open-btn:hover,
+    .mel-compact-top .mel-open-btn:focus,
+    .mel-compact-top .mel-open-btn:active {
+        transform: translateY(-50%);
+    }
+
     .candidate-top {
         display: grid;
         grid-template-columns: 1fr;
@@ -602,7 +631,7 @@ body.dispatch-search-page table th {
     }
 
     .candidate-pager .app-card-btn {
-        min-height: 2.125rem;
+        min-height: 2rem !important;
         padding: 0.25rem 0.625rem;
         border-radius: 999rem;
         font-size: 0.6875rem;

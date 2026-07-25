@@ -17,6 +17,12 @@
     const timeAddInput = document.getElementById("time-add-input");
     const timeCalculatorResult = document.getElementById("time-calculator-result");
     const timeCalculatorNote = document.getElementById("time-calculator-note");
+    const consumptionRateForm = document.getElementById("consumption-rate-form");
+    const consumptionRateModal = document.getElementById("consumption-rate-modal");
+    const consumptionAddQtyInput = document.getElementById("consumption-add-qty-input");
+    const consumptionHoursInput = document.getElementById("consumption-hours-input");
+    const consumptionRateResult = document.getElementById("consumption-rate-result");
+    const consumptionRateNote = document.getElementById("consumption-rate-note");
     const basicCalculatorDisplay = document.getElementById("basic-calculator-display");
     const basicCalculatorExpression = document.getElementById("basic-calculator-expression");
     const basicCalculatorModal = document.getElementById("basic-calculator-modal");
@@ -253,6 +259,82 @@
         updateTimeCalculator();
     }
 
+    function parseBlockHours(value) {
+        const normalizedValue = String(value || "").trim();
+
+        if (!normalizedValue) {
+            return 0;
+        }
+
+        const colonMatch = normalizedValue.match(/^(\d+):(\d{1,2})$/);
+
+        if (colonMatch) {
+            const hours = Number.parseInt(colonMatch[1], 10);
+            const minutes = Number.parseInt(colonMatch[2], 10);
+
+            return minutes < 60 ? hours + (minutes / 60) : null;
+        }
+
+        if (!/^\d+(?:\.\d+)?$/.test(normalizedValue)) {
+            return null;
+        }
+
+        const decimalHours = Number(normalizedValue);
+
+        return Number.isFinite(decimalHours) && decimalHours >= 0
+            ? decimalHours
+            : null;
+    }
+
+    function updateConsumptionRate() {
+        if (
+            !consumptionAddQtyInput
+            || !consumptionHoursInput
+            || !consumptionRateResult
+            || !consumptionRateNote
+        ) {
+            return;
+        }
+
+        const quantityText = consumptionAddQtyInput.value.trim();
+        const hoursText = consumptionHoursInput.value.trim();
+
+        if (!quantityText && !hoursText) {
+            consumptionRateResult.textContent = "0.000 qty/hr";
+            consumptionRateNote.textContent = "Add Qty와 Total Block Time을 입력하세요";
+            return;
+        }
+
+        const quantity = Number(quantityText);
+        const blockHours = parseBlockHours(hoursText);
+
+        if (!Number.isFinite(quantity) || quantity < 0) {
+            consumptionRateResult.textContent = "-";
+            consumptionRateNote.textContent = "Add Qty를 올바르게 입력하세요";
+            return;
+        }
+
+        if (blockHours === null || blockHours <= 0) {
+            consumptionRateResult.textContent = "-";
+            consumptionRateNote.textContent = "Total Block Time은 0보다 커야 합니다";
+            return;
+        }
+
+        const rate = quantity / blockHours;
+        consumptionRateResult.textContent = `${rate.toFixed(3)} qty/hr`;
+        consumptionRateNote.textContent = `${quantityText} ÷ ${hoursText} hr`;
+    }
+
+    function resetConsumptionRate() {
+        if (!consumptionAddQtyInput || !consumptionHoursInput) {
+            return;
+        }
+
+        consumptionAddQtyInput.value = "";
+        consumptionHoursInput.value = "";
+        updateConsumptionRate();
+    }
+
     function formatBasicNumber(value) {
         if (!Number.isFinite(value)) {
             return "Error";
@@ -470,6 +552,25 @@
         timeCalculatorModal.addEventListener("hidden.bs.modal", resetTimeCalculator);
     }
 
+    if (consumptionAddQtyInput) {
+        consumptionAddQtyInput.addEventListener("input", updateConsumptionRate);
+    }
+
+    if (consumptionHoursInput) {
+        consumptionHoursInput.addEventListener("input", updateConsumptionRate);
+    }
+
+    if (consumptionRateForm) {
+        consumptionRateForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            updateConsumptionRate();
+        });
+    }
+
+    if (consumptionRateModal) {
+        consumptionRateModal.addEventListener("hidden.bs.modal", resetConsumptionRate);
+    }
+
     basicCalculatorKeys.forEach((button) => {
         button.addEventListener("click", () => {
             if (button.dataset.basicCalcNumber !== undefined) {
@@ -493,6 +594,7 @@
 
     updateFuelDensity();
     updateTimeCalculator();
+    updateConsumptionRate();
     renderBasicCalculator();
     updateClock();
     window.setInterval(updateClock, 1000);
