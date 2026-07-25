@@ -565,8 +565,13 @@ def extract_mel_item(value):
 def extract_adc(value):
     value = normalize_dash(value).upper()
 
-    if value in ["CD", "RTG", "A", "D", "C"]:
+    if value in ["CD", "RTG", "A", "D", "C", "A/D/C"]:
         return value
+
+    combined_match = re.fullmatch(r"(RTG|CD)\s*(?:OR|/)\s*(RTG|CD)", value)
+
+    if combined_match and combined_match.group(1) != combined_match.group(2):
+        return f"{combined_match.group(1)} or {combined_match.group(2)}"
 
     return ""
 

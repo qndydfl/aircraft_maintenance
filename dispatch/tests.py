@@ -7,6 +7,7 @@ from django.urls import reverse
 from dispatch.models import DispatchReference, MelDispatchItem
 from dispatch.services import (
     clean_condition,
+    extract_adc,
     extract_airbus_mel_dispatch_blocks,
     extract_level,
     extract_mel_item,
@@ -345,6 +346,10 @@ class DispatchServiceTests(TestCase):
 
     def test_extract_mel_item_preserves_na_value(self):
         self.assertEqual(extract_mel_item("N/A"), "N/A")
+
+    def test_extract_adc_preserves_combined_rtg_or_cd_value(self):
+        self.assertEqual(extract_adc("RTG or CD"), "RTG or CD")
+        self.assertEqual(extract_adc("RTG / CD"), "RTG or CD")
 
     def test_clean_condition_removes_single_letter_noise(self):
         self.assertEqual(clean_condition("r"), "")
