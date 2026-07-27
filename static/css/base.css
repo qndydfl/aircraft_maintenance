@@ -122,9 +122,9 @@ body {
     background:
         linear-gradient(
             180deg,
-            #f8fafc 0%,
-            #f3f6fb 55%,
-            #eef3f9 100%
+            #e2e8f0 0%,
+            #cbd5e1 55%,
+            #b8c3d1 100%
         );
     font-family: var(--font-sans);
     font-size: var(--text-base);

@@ -1183,7 +1183,7 @@ body.manual-pdf-viewer-page .app-container {
 .page-hero {
     position: relative;
     overflow: hidden;
-    padding: clamp(1.4rem, 3vw, 2.25rem);
+    padding: clamp(1rem, 2vw, 1.5rem);
     background:
         linear-gradient(
             135deg,
