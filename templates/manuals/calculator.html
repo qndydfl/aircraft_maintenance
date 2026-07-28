@@ -10,11 +10,11 @@ Date Calculator
 {% endblock title %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=80">
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=82">
 {% endblock css %}
 
 {% block js %}
-<script defer src="{% static 'js/calculator.js' %}?v=84"></script>
+<script defer src="{% static 'js/calculator.js' %}?v=86"></script>
 {% endblock js %}
 
 {% block content %}
@@ -486,23 +486,39 @@ Date Calculator
                         </p>
                     </div>
 
-                    <div class="date-custom-row">
-                        <label for="consumption-hours-input"
+                    <div class="date-custom-row consumption-hours-section">
+                        <label for="consumption-hours-input-1"
                             class="form-label mb-1">
                             Total Block Time
                         </label>
 
-                        <div class="date-input-wrap date-input-wrap-single">
-                            <input id="consumption-hours-input"
-                                type="text"
-                                inputmode="decimal"
-                                class="form-control time-calculator-input"
-                                value=""
-                                placeholder="0:00">
+                        <div id="consumption-hours-list"
+                            class="consumption-hours-list">
+                            <div class="consumption-hours-row">
+                                <input id="consumption-hours-input-1"
+                                    type="text"
+                                    inputmode="decimal"
+                                    class="form-control time-calculator-input consumption-hours-input"
+                                    value=""
+                                    placeholder="0:00"
+                                    aria-label="Block time 1">
+                            </div>
                         </div>
 
+                        <button id="consumption-add-time-btn"
+                            type="button"
+                            class="btn btn-outline-primary consumption-add-time-btn">
+                            <span aria-hidden="true">+</span>
+                            Add Time
+                        </button>
+
+                        <p id="consumption-total-time"
+                            class="consumption-total-time mb-0">
+                            Total Block Time 0:00
+                        </p>
+
                         <p class="calculator-input-help mb-0 text-center">
-                            시간은 2:30 또는 2.5 형식으로 입력합니다.
+                            231은 2:31로 변환됩니다. 2:30 또는 2.5 형식도 사용할 수 있습니다.
                         </p>
                     </div>
                 </form>

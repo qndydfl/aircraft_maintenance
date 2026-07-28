@@ -68,11 +68,11 @@ dispatch-csv-upload-page
         </h5>
 
         <div class="csv-example-wrap">
-<pre class="csv-example">aircraft,eicas_message,status_message,fault_code,mel_number,fim_chapter,amm_chapter,description,note,message,level,condition,mel_item,adc,page_number,manual_file_id
-B747,PACK 1 OFF,,,,21-51-01,21-51-00,21-51-01,Pack 1 off condition,MEL 확인 후 FIM 수행,,,,,,
-B777,HYD PRESS SYS L,HYD PRESS LOW,,,,29-11-00,29-11-00,Left hydraulic pressure low,Status message 확인,,,,,,
-B747,,,,,,,R GEAR DOOR SENSOR,S Landing Gear Door Position Sensors,32-61-02,RTG,,,,
-B747,,,,,,,R GEAR UPLOCK SENSOR,S Landing Gear Uplock Position Sensors,32-61-03,RTG,,,,</pre>
+<pre class="csv-example">aircraft,eicas_message,status_message,fault_code,mel_number,fim_chapter,amm_chapter,description,note,message,condition,mel_item,page_number,manual_file_id
+B747,PACK 1 OFF,,,,21-51-01,21-51-00,Pack 1 off condition,MEL 확인 후 FIM 수행,,,,,
+B777,HYD PRESS SYS L,HYD PRESS LOW,,,,29-11-00,Left hydraulic pressure low,Status message 확인,,,,,
+B747,,,,,,,,,R GEAR DOOR SENSOR,Landing Gear Door Position Sensors,32-61-02,91,26
+B747,,,,,,,,,R GEAR UPLOCK SENSOR,Landing Gear Uplock Position Sensors,32-61-03,91,26</pre>
         </div>
     </div>
 </div>

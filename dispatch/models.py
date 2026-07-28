@@ -93,10 +93,8 @@ class MelDispatchItem(models.Model):
 
     message = models.CharField(max_length=255, db_index=True)
 
-    level = models.CharField(max_length=10, blank=True, default="")
     condition = models.TextField(blank=True, default="")
     mel_item = models.CharField(max_length=50, blank=True, default="", db_index=True)
-    adc = models.CharField(max_length=50, blank=True, default="")
 
     page_number = models.PositiveIntegerField(null=True, blank=True)
 
@@ -111,10 +109,8 @@ class MelDispatchItem(models.Model):
                     "aircraft",
                     "manual_file",
                     "message",
-                    "level",
                     "condition",
                     "mel_item",
-                    "adc",
                     "page_number",
                 ],
                 name="unique_mel_dispatch_full_row",

@@ -401,7 +401,7 @@ def build_mel_dispatch_search_q(fields, search_value, match_mode):
         return Q()
 
     if match_mode == "exact":
-        text_regex = rf"^\s*{text_regex}"
+        text_regex = rf"^\s*{text_regex}\s*$"
 
     filters = Q()
 
@@ -413,7 +413,11 @@ def build_mel_dispatch_search_q(fields, search_value, match_mode):
 
 def exclude_noisy_mel_dispatch_rows(queryset):
     return queryset.exclude(
-        Q(mel_item="", adc="") & (Q(condition="") | Q(condition__iregex=r"[A-Za-z]"))
+        Q(mel_item="")
+        & (
+            Q(condition="")
+            | Q(condition__iregex=r"^\s*[A-Za-z]\s*$")
+        )
     )
 
 
@@ -541,43 +545,58 @@ def clean_message(value):
     value = clean_noise_text(value)
 
     value = re.sub(r"^[a-zA-Z]\s+(?=[A-Z]{2,})", "", value)
+    value = re.sub(r"\bSTUART\b", "START", value, flags=re.IGNORECASE)
 
     return value.strip()
 
 
-def extract_level(value):
-    value = clean_cell(value).upper()
-    levels = re.findall(r"[ASML]", value)
-    return "".join(levels)
+def split_mel_messages(value):
+    raw_lines = str(value or "").splitlines()
+    lines = []
+
+    for raw_line in raw_lines:
+        line = clean_message(raw_line)
+
+        if not line or (len(line) == 1 and line.isalpha()):
+            continue
+
+        lines.append(line)
+
+    if not lines:
+        return []
+
+    first_words = [line.split()[0].upper() for line in lines if line.split()]
+    repeated_prefix = len(lines) > 1 and len(set(first_words)) == 1
+
+    if repeated_prefix:
+        return lines
+
+    return [clean_message(value)]
 
 
 def extract_mel_item(value):
     value = clean_cell(value)
     normalized = normalize_dash(value).upper()
 
-    if normalized in ["N/A", "NA"]:
+    if normalized in ["N/A", "NA"] or re.search(
+        r"(?<![A-Z])N\s*/\s*A(?![A-Z])",
+        normalized,
+    ):
         return "N/A"
+
+    if re.search(r"NONE\s*\(\s*NO\s+DISPATCH\s*\)", normalized):
+        return "None(No Dispatch)"
 
     match = re.search(r"\d{2}-\d{2}-\d{2}(?:-\d{2})?[A-Z]?", value)
     return match.group(0) if match else ""
 
 
-def extract_adc(value):
-    value = normalize_dash(value).upper()
-
-    if value in ["CD", "RTG", "A", "D", "C", "A/D/C"]:
-        return value
-
-    combined_match = re.fullmatch(r"(RTG|CD)\s*(?:OR|/)\s*(RTG|CD)", value)
-
-    if combined_match and combined_match.group(1) != combined_match.group(2):
-        return f"{combined_match.group(1)} or {combined_match.group(2)}"
-
-    return ""
-
-
 def clean_condition(value):
     value = clean_noise_text(value)
+
+    # Watermarks can be extracted as several leading lowercase letters on
+    # separate lines (for example "t n Proximity...").
+    value = re.sub(r"^(?:[a-z]\s+)+(?=[A-Z])", "", value).strip()
 
     noise_patterns = [
         r"^l\s+l\s+",
@@ -610,34 +629,83 @@ def clean_condition(value):
     return value
 
 
-def merge_mel_row_with_context(message, level, condition, mel_item, adc, current_row):
-    has_message = bool(message)
+def extract_mel_table_fields(row):
+    row = [clean_cell(cell) for cell in row]
 
-    if has_message:
-        current_row = {
-            "message": message,
-            "level": level or "",
-            "condition": condition or "",
-            "mel_item": mel_item or "",
-            "adc": adc or "",
-        }
-        return message, level, condition, mel_item, adc, current_row
+    if len(row) < 5:
+        return None
 
-    message = current_row["message"]
-    level = level or current_row["level"]
-    condition = condition or current_row["condition"]
-    mel_item = mel_item or current_row["mel_item"]
-    adc = adc or current_row["adc"]
+    message = clean_message(row[0])
+    condition = normalize_dash(clean_condition(row[2]))
+    mel_item = extract_mel_item(row[3])
 
-    current_row = {
-        "message": message,
-        "level": level or "",
-        "condition": condition or "",
-        "mel_item": mel_item or "",
-        "adc": adc or "",
+    # Respect the table columns first. References such as TIB-777-27-014 in
+    # Condition must not replace the actual MEL Item in the next column.
+    if not mel_item:
+        for cell in row[2:]:
+            found_mel = extract_mel_item(cell)
+            if found_mel:
+                mel_item = found_mel
+                break
+
+    return message, condition, mel_item
+
+
+def extract_mel_table_records(table):
+    records = []
+    current_messages = []
+    current_context = {
+        "condition": "",
+        "mel_item": "",
     }
 
-    return message, level, condition, mel_item, adc, current_row
+    for raw_row in table or []:
+        if not raw_row or len(raw_row) < 5:
+            continue
+
+        fields = extract_mel_table_fields(raw_row)
+
+        if not fields:
+            continue
+
+        _, condition, mel_item = fields
+        messages = split_mel_messages(raw_row[0])
+
+        if messages and messages[0].lower() == "message":
+            continue
+
+        has_row_context = bool(condition or mel_item)
+
+        if messages:
+            current_messages = messages
+
+            if has_row_context:
+                current_context = {
+                    "condition": condition,
+                    "mel_item": mel_item,
+                }
+
+        elif not current_messages:
+            continue
+        elif has_row_context:
+            current_context = {
+                "condition": condition,
+                "mel_item": mel_item,
+            }
+
+        if not has_row_context and not any(current_context.values()):
+            continue
+
+        for message in current_messages:
+            record = {
+                "message": message,
+                **current_context,
+            }
+
+            if record not in records:
+                records.append(record)
+
+    return records
 
 
 def extract_airbus_mel_dispatch_blocks(text):
@@ -676,19 +744,36 @@ def extract_airbus_mel_dispatch_blocks(text):
         results.append(
             {
                 "message": message,
-                "level": "",
                 "condition": (
                     clean_cell(condition_match.group("condition"))
                     if condition_match
-                    else "None(No Dispatch)" if no_dispatch else ""
+                    else ""
                 ),
-                "mel_item": item_match.group("mel_item").upper() if item_match else "N/A",
-                "adc": "",
+                "mel_item": (
+                    item_match.group("mel_item").upper()
+                    if item_match
+                    else "None(No Dispatch)"
+                ),
                 "is_none_dispatch": no_dispatch and not item_match,
             }
         )
 
     return results
+
+
+def is_eicas_message_page(text):
+    header = (text or "")[:500]
+    standalone_heading = re.search(
+        r"^\s*EICAS\s+MESSAGES?\s*$",
+        header,
+        re.IGNORECASE | re.MULTILINE,
+    )
+    collapsed_heading = re.search(
+        r"^\s*(?:PREAMBLE\s+)?(?:\S+\s+){0,3}MEL\s+EICAS\s+MESSAGES?\b",
+        " ".join(header.split()),
+        re.IGNORECASE,
+    )
+    return bool(standalone_heading or collapsed_heading)
 
 
 def storage_file_to_temp_file(django_file, suffix=""):
@@ -741,24 +826,28 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
             for page_index, page in enumerate(pdf.pages):
 
                 page_number = page_index + 1
+                page_text = page.extract_text() or ""
 
                 if manual_file.aircraft.maker == "AIRBUS":
                     for item in extract_airbus_mel_dispatch_blocks(
-                        page.extract_text() or ""
+                        page_text
                     ):
                         _, created = MelDispatchItem.objects.get_or_create(
                             aircraft=manual_file.aircraft,
                             manual_file=manual_file,
                             message=item["message"],
-                            level=item["level"],
                             condition=item["condition"],
                             mel_item=item["mel_item"],
-                            adc=item["adc"],
                             page_number=page_number,
                         )
 
                         if created:
                             count += 1
+
+                    continue
+
+                if not is_eicas_message_page(page_text):
+                    continue
 
                 tables = page.extract_tables()
 
@@ -767,92 +856,13 @@ def extract_mel_dispatch_items_from_pdf(manual_file):
                     if not table:
                         continue
 
-                    current_row = {
-                        "message": "",
-                        "level": "",
-                        "condition": "",
-                        "mel_item": "",
-                        "adc": "",
-                    }
-
-                    for row in table:
-
-                        if not row:
-                            continue
-
-                        raw_message = row[0] or ""
-
-                        message_line_count = len(
-                            [line for line in raw_message.splitlines() if line.strip()]
-                        )
-
-                        row = [clean_cell(cell) for cell in row]
-
-                        if len(row) < 5:
-                            continue
-
-                        message = clean_message(row[0])
-                        level = extract_level(row[1])
-                        condition = clean_condition(row[2])
-                        mel_item = extract_mel_item(row[3])
-                        adc = extract_adc(row[4])
-
-                        if level in ["A", "S"] and message_line_count >= 2:
-                            level = level + level
-
-                        if (
-                            message == "Message"
-                            or level == "L"
-                            or condition == "Condition"
-                            or mel_item == "MEL Item"
-                            or adc == "A/D/C"
-                        ):
-                            continue
-
-                        for cell in row[2:]:
-                            found_mel = extract_mel_item(cell)
-                            if found_mel:
-                                mel_item = found_mel
-                                break
-
-                        for cell in row[2:]:
-                            found_adc = extract_adc(cell)
-                            if found_adc:
-                                adc = found_adc
-                                break
-
-                        condition = normalize_dash(condition)
-
-                        (
-                            message,
-                            level,
-                            condition,
-                            mel_item,
-                            adc,
-                            current_row,
-                        ) = merge_mel_row_with_context(
-                            message,
-                            level,
-                            condition,
-                            mel_item,
-                            adc,
-                            current_row,
-                        )
-
-                        if not message:
-                            continue
-
-                        if not condition and not mel_item and not adc:
-                            continue
-
+                    for item in extract_mel_table_records(table):
                         obj, created = MelDispatchItem.objects.get_or_create(
                             aircraft=manual_file.aircraft,
                             manual_file=manual_file,
-                            message=message,
-                            level=level,
-                            condition=condition,
-                            mel_item=mel_item,
-                            adc=adc,
+                            message=item["message"],
+                            condition=item["condition"],
+                            mel_item=item["mel_item"],
                             page_number=page_number,
                         )
 

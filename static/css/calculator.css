@@ -286,6 +286,70 @@
     text-align: center;
 }
 
+.consumption-hours-section {
+    gap: 0.625rem;
+}
+
+.consumption-hours-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.consumption-hours-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.consumption-hours-row:only-child {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.consumption-hours-input {
+    min-height: 2.75rem;
+    border: 1px solid rgba(203, 213, 225, 0.95);
+    background: rgba(255, 255, 255, 0.96);
+    font-size: 1.12rem;
+    font-weight: 800;
+}
+
+.consumption-remove-time-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 50%;
+    color: #dc2626;
+    background: rgba(254, 242, 242, 0.96);
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.consumption-add-time-btn {
+    display: block;
+    width: fit-content;
+    margin: 0.5rem 0 0.5rem auto;
+    min-height: 2.5rem;
+    border-radius: 0.875rem;
+    font-weight: 800;
+}
+
+.consumption-add-time-btn span {
+    margin-right: 0.25rem;
+    font-size: 1.15rem;
+}
+
+.consumption-total-time {
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.75rem;
+    color: #0f4c81;
+    background: rgba(219, 234, 254, 0.72);
+    font-size: 0.95rem;
+    font-weight: 900;
+    text-align: center;
+}
+
 .date-input-wrap .app-card-btn {
     min-width: 7rem;
 }

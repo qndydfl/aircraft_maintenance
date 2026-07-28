@@ -1267,9 +1267,27 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                         "page_number",
                     )
 
-                matches = list(
-                    match_queryset.values("chapter_id", "page_number", "chapter__task")
-                )
+                matching_page_records = list(match_queryset.only(
+                    "chapter_id",
+                    "page_number",
+                    "text",
+                ))
+
+                # Manual/dispatch search results omit reference-index pages when
+                # real content pages exist. Keep the package viewer on that same
+                # page set so its match counter agrees with the result counter.
+                if match_scope != "chapter":
+                    matching_page_records = prefer_content_pages(
+                        matching_page_records
+                    )
+
+                matches = [
+                    {
+                        "chapter_id": page.chapter_id,
+                        "page_number": page.page_number,
+                    }
+                    for page in matching_page_records
+                ]
 
                 context["match_count"] = len(matches)
 
@@ -1528,17 +1546,12 @@ class ManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                         manual,
                         mel_item_query,
                     )
-                elif match_mode == "contains":
-                    page_filter = Q(text__icontains=search_value)
-                    matching_pages_list = list(
-                        ManualFilePDFPage.objects.filter(manual_file=manual)
-                        .filter(page_filter)
-                        .order_by("page_number")
-                        .values_list("page_number", flat=True)
-                        .distinct()
-                    )
                 else:
-                    page_filter = Q(text__iregex=text_regex)
+                    if match_mode == "contains":
+                        page_filter = Q(text__icontains=search_value)
+                    else:
+                        page_filter = Q(text__iregex=text_regex)
+
                     matching_page_records = list(
                         ManualFilePDFPage.objects.filter(manual_file=manual)
                         .filter(page_filter)
@@ -2024,13 +2037,16 @@ class CommonManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                 else:
                     page_filter = Q(text__iregex=text_regex)
 
-                matching_pages_list = list(
+                matching_page_records = list(
                     CommonManualPDFPage.objects.filter(common_file=common_file)
                     .filter(page_filter)
                     .order_by("page_number")
-                    .values_list("page_number", flat=True)
-                    .distinct()
+                    .only("page_number", "text")
                 )
+                matching_pages_list = [
+                    page.page_number
+                    for page in prefer_content_pages(matching_page_records)
+                ]
 
                 context["match_count"] = len(matching_pages_list)
                 context["matching_pages_json"] = json.dumps(matching_pages_list)
@@ -2530,13 +2546,16 @@ class OtherManualFilePDFViewerView(LoginRequiredMixin, DetailView):
                 else:
                     page_filter = Q(text__iregex=text_regex)
 
-                matching_pages_list = list(
+                matching_page_records = list(
                     OtherManualPDFPage.objects.filter(other_file=other_file)
                     .filter(page_filter)
                     .order_by("page_number")
-                    .values_list("page_number", flat=True)
-                    .distinct()
+                    .only("page_number", "text")
                 )
+                matching_pages_list = [
+                    page.page_number
+                    for page in prefer_content_pages(matching_page_records)
+                ]
 
                 context["match_count"] = len(matching_pages_list)
                 context["matching_pages_json"] = json.dumps(matching_pages_list)

@@ -23,7 +23,7 @@ dispatch-search-page
         <h2 class="page-title mb-2">Dispatch Search</h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            PDF 인덱스에서 MEL / FIM / AMM / IPC / CDL 후보를 자동 검색합니다.
+            PDF 인덱스에서 MEL / FIM / AMM 후보를 자동 검색합니다.
         </p>
     </div>
 
@@ -127,14 +127,16 @@ dispatch-search-page
     </div>
 {% endif %}
 
-{% if query and not mel_dispatch_rows and mel_page_data.item %}
-    <div class="alert alert-info app-alert">
-        MEL Dispatch Results에 일치하는 항목이 없습니다. 아래 MEL 결과에서 확인하세요.
-    </div>
-{% elif query and not mel_dispatch_rows and not saved_dispatch_results and not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item and not cdl_page_data.item %}
-    <div class="alert alert-warning app-alert">
-        검색 결과가 없습니다.
-    </div>
+{% if query and not mel_dispatch_rows %}
+    {% if mel_page_data.item or fim_page_data.item or amm_page_data.item %}
+        <div class="alert alert-info app-alert">
+            MEL Dispatch Results에 해당 EICAS Message가 없습니다. 아래 관련 매뉴얼에서 확인하세요.
+        </div>
+    {% elif not saved_dispatch_results and not ipc_page_data.item and not cdl_page_data.item %}
+        <div class="alert alert-warning app-alert">
+            입력한 검색어에 해당하는 내용이 없습니다.
+        </div>
+    {% endif %}
 {% endif %}
 
 {% if saved_dispatch_results %}
@@ -297,10 +299,8 @@ dispatch-search-page
                 <thead>
                     <tr>
                         <th>Message</th>
-                        <th style="width: 60px;">L</th>
                         <th>Condition</th>
                         <th style="width: 120px;">MEL Item</th>
-                        <th style="width: 80px;">A/D/C</th>
                         <th style="width: 100px;">PDF</th>
                     </tr>
                 </thead>
@@ -308,15 +308,13 @@ dispatch-search-page
                 <tbody>
                     {% for row in mel_dispatch_rows %}
                     <tr>
-                        <td class="fw-bold">{% firstof row.display_message row.message %}</td>
-                        <td>{{ row.level|default:"-" }}</td>
+                        <td class="fw-bold">{% firstof row.display_message row.message "-" %}</td>
                         <td class="mel-condition">{{ row.condition|default:"-" }}</td>
                         <td>{{ row.mel_item|default:"-" }}</td>
-                        <td>{{ row.adc|default:"-" }}</td>
                         <td>
                             {% if row.manual_file and row.page_number %}
                                 {% with mel_viewer_query=row.viewer_query|default:query %}
-                                {% if row.is_none_dispatch %}
+                                {% if not row.has_numeric_mel_item %}
                                     <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.viewer_page_number|default:row.page_number }}&q={{ mel_viewer_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -348,19 +346,17 @@ dispatch-search-page
                 <div class="mel-compact-top">
                     <div>
                         <h6 class="dispatch-card-title mb-1">
-                            {% firstof row.display_message row.message %}
+                            {% firstof row.display_message row.message "-" %}
                         </h6>
 
                         <div class="mel-compact-meta">
-                            <span>L {{ row.level|default:"-" }}</span>
                             <span>MEL {{ row.mel_item|default:"-" }}</span>
-                            <span>A/D/C {{ row.adc|default:"-" }}</span>
                         </div>
                     </div>
 
                     {% if row.manual_file and row.page_number %}
                         {% with mel_viewer_query=row.viewer_query|default:query %}
-                        {% if row.is_none_dispatch %}
+                        {% if not row.has_numeric_mel_item %}
                             <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.viewer_page_number|default:row.page_number }}&q={{ mel_viewer_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -379,12 +375,10 @@ dispatch-search-page
                     {% endif %}
                 </div>
 
-                {% if row.condition %}
-                    <details class="mel-condition-details">
-                        <summary>Condition 보기</summary>
-                        <p>{{ row.condition }}</p>
-                    </details>
-                {% endif %}
+                <details class="mel-condition-details">
+                    <summary>Condition 보기</summary>
+                    <p>{{ row.condition|default:"-" }}</p>
+                </details>
             </div>
             {% endfor %}
         </div>

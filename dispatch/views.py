@@ -40,6 +40,7 @@ from .services import (
     parse_manual_search_query,
     build_manual_text_regex,
     extract_airbus_mel_dispatch_blocks,
+    is_eicas_message_page,
 )
 
 
@@ -170,10 +171,8 @@ class DispatchCSVUploadView(LoginRequiredMixin, UserPassesTestMixin, FormView):
                 row_handled = True
 
             message = clean_value(row, "message")
-            level = clean_value(row, "level")
             condition = clean_value(row, "condition")
             mel_item = clean_value(row, "mel_item")
-            adc = clean_value(row, "adc")
             page_number = clean_int_value(row.get("page_number"))
 
             if message:
@@ -186,9 +185,7 @@ class DispatchCSVUploadView(LoginRequiredMixin, UserPassesTestMixin, FormView):
                     mel_item=mel_item,
                     page_number=page_number,
                     defaults={
-                        "level": level,
                         "condition": condition,
-                        "adc": adc,
                     },
                 )
 
@@ -707,6 +704,47 @@ class DispatchDetailPrintView(LoginRequiredMixin, DetailView):
 class DispatchSearchView(LoginRequiredMixin, TemplateView):
     template_name = "dispatch/dispatch_search.html"
 
+    mel_item_pattern = re.compile(
+        r"^\d{2}-\d{2}-\d{2}(?:-\d{2})?[A-Z]?$",
+        re.IGNORECASE,
+    )
+
+    def is_numeric_mel_item(self, value):
+        return bool(self.mel_item_pattern.fullmatch((value or "").strip()))
+
+    def filter_mel_rows_to_message_pages(self, rows):
+        rows = list(rows)
+        boeing_keys = {
+            (row.manual_file_id, row.page_number)
+            for row in rows
+            if getattr(row, "manual_file_id", None)
+            and getattr(row, "page_number", None)
+            and getattr(getattr(row, "aircraft", None), "maker", "") == "BOEING"
+        }
+
+        if not boeing_keys:
+            return rows
+
+        manual_file_ids = {key[0] for key in boeing_keys}
+        page_numbers = {key[1] for key in boeing_keys}
+        valid_keys = {
+            (page.manual_file_id, page.page_number)
+            for page in ManualFilePDFPage.objects.filter(
+                manual_file_id__in=manual_file_ids,
+                page_number__in=page_numbers,
+            ).only("manual_file_id", "page_number", "text")
+            if is_eicas_message_page(page.text)
+        }
+
+        return [
+            row
+            for row in rows
+            if getattr(getattr(row, "aircraft", None), "maker", "") != "BOEING"
+            or not getattr(row, "manual_file_id", None)
+            or not getattr(row, "page_number", None)
+            or (row.manual_file_id, row.page_number) in valid_keys
+        ]
+
     def build_manual_pdf_query(self, query):
         query = (query or "").strip()
 
@@ -717,13 +755,16 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
 
     def build_mel_dispatch_viewer_query(self, row, fallback_query):
         if getattr(row, "is_none_dispatch", False):
-            return (getattr(row, "message", "") or fallback_query).strip()
+            return (fallback_query or getattr(row, "message", "")).strip()
 
         mel_item = (getattr(row, "mel_item", "") or "").strip()
         message = (getattr(row, "message", "") or "").strip()
 
         if mel_item and mel_item.upper() not in {"N/A", "NA", "-"}:
             return mel_item
+
+        if fallback_query:
+            return fallback_query.strip()
 
         if message:
             return message
@@ -737,7 +778,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         manual_file = getattr(row, "manual_file", None)
         mel_item = (getattr(row, "mel_item", "") or "").strip()
 
-        if not manual_file or not mel_item:
+        if not manual_file or not self.is_numeric_mel_item(mel_item):
             return getattr(row, "page_number", None)
 
         item_pattern = re.compile(
@@ -867,10 +908,8 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
             "aircraft_id",
             "manual_file_id",
             "message",
-            "level",
             "condition",
             "mel_item",
-            "adc",
             "page_number",
         ):
             if sibling_regex.search(row.message or ""):
@@ -919,10 +958,8 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
             "aircraft_id",
             "manual_file_id",
             "message",
-            "level",
             "condition",
             "mel_item",
-            "adc",
             "page_number",
         ):
             message = row.message or ""
@@ -951,7 +988,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         message_pattern = r"[\s:：]+".join(token_patterns)
 
         return re.compile(
-            rf"{message_pattern}\s+(?P<level>[A-Z])\s+None\s*\(\s*No\s+Dispatch\s*\)",
+            rf"{message_pattern}\s+(?:[A-Z]\s+)?None\s*\(\s*No\s+Dispatch\s*\)",
             re.IGNORECASE,
         )
 
@@ -988,10 +1025,8 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
                     manual_file_id=page.manual_file_id,
                     message=query.upper(),
                     display_message=query.upper(),
-                    level=match.group("level"),
-                    condition="None(No Dispatch)",
+                    condition="",
                     mel_item="None(No Dispatch)",
-                    adc="",
                     page_number=page.page_number,
                     is_none_dispatch=True,
                 )
@@ -1043,10 +1078,8 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
                         manual_file=page.manual_file,
                         manual_file_id=page.manual_file_id,
                         message=item["message"],
-                        level=item["level"],
                         condition=item["condition"],
                         mel_item=item["mel_item"],
-                        adc=item["adc"],
                         page_number=page.page_number,
                         is_none_dispatch=item["is_none_dispatch"],
                     )
@@ -1136,7 +1169,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
                 MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
             ).filter(
                 build_mel_dispatch_search_q(
-                    ["message", "condition"],
+                    ["message"],
                     search_value,
                     match_mode,
                 )
@@ -1150,7 +1183,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
                 MelDispatchItem.objects.filter(aircraft__in=aircraft_qs)
             ).filter(
                 build_mel_dispatch_search_q(
-                    ["message", "condition", "mel_item"],
+                    ["message"],
                     search_value,
                     match_mode,
                 )
@@ -1159,7 +1192,9 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
                 "aircraft__name", "message", "page_number", "mel_item"
             )[:100]
 
-        mel_dispatch_rows = list(mel_dispatch_rows)
+        mel_dispatch_rows = self.filter_mel_rows_to_message_pages(
+            mel_dispatch_rows
+        )
 
         rows_by_id = {row.pk: row for row in mel_dispatch_rows}
 
@@ -1188,8 +1223,41 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
                 row.message or "",
             ),
         )
+        mel_dispatch_rows = self.filter_mel_rows_to_message_pages(
+            mel_dispatch_rows
+        )
 
         for row in mel_dispatch_rows:
+            mel_item = (getattr(row, "mel_item", "") or "").strip()
+            condition = (getattr(row, "condition", "") or "").strip()
+            condition_is_none_dispatch = bool(
+                re.fullmatch(
+                    r"NONE\s*\(\s*NO\s+DISPATCH\s*\)",
+                    condition,
+                    re.IGNORECASE,
+                )
+            )
+
+            if re.fullmatch(
+                r"NONE\s*\(\s*NO\s+DISPATCH\s*\)",
+                mel_item,
+                re.IGNORECASE,
+            ):
+                row.mel_item = "None(No Dispatch)"
+                row.is_none_dispatch = True
+
+                if condition_is_none_dispatch:
+                    row.condition = ""
+
+            if (
+                mel_item.upper() in {"N/A", "NA", "-", ""}
+                and condition_is_none_dispatch
+            ):
+                row.mel_item = "None(No Dispatch)"
+                row.condition = ""
+                row.is_none_dispatch = True
+
+            row.has_numeric_mel_item = self.is_numeric_mel_item(row.mel_item)
             self.apply_display_message(row, query)
             row.viewer_query = self.build_mel_dispatch_viewer_query(row, query)
             row.viewer_page_number = self.find_mel_dispatch_viewer_page(row)
@@ -1200,11 +1268,7 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         for row in mel_dispatch_rows:
             mel_item = (row.mel_item or "").strip()
 
-            if (
-                mel_item
-                and mel_item.upper() not in {"N/A", "NA", "-"}
-                and mel_item not in related_manual_queries
-            ):
+            if self.is_numeric_mel_item(mel_item) and mel_item not in related_manual_queries:
                 related_manual_queries.append(mel_item)
 
         context["related_manual_queries"] = related_manual_queries
@@ -1275,6 +1339,31 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         context["saved_dispatch_results"] = saved_dispatch_results
 
         # 3. Manual PDF 검색
+        manual_aircraft_qs = aircraft_qs
+
+        # With "All aircraft" selected, a message search can still resolve to
+        # one aircraft. Search related manuals for that aircraft only; otherwise
+        # the candidate total combines several PDFs while the viewer can open
+        # and count matches in only one PDF.
+        if not aircraft_id:
+            related_aircraft_ids = {
+                row.aircraft_id
+                for row in mel_dispatch_rows
+                if getattr(row, "aircraft_id", None)
+            }
+
+            if not related_aircraft_ids:
+                related_aircraft_ids = {
+                    item.aircraft_id
+                    for item in saved_dispatch_results
+                    if getattr(item, "aircraft_id", None)
+                }
+
+            if len(related_aircraft_ids) == 1:
+                manual_aircraft_qs = aircraft_qs.filter(
+                    pk=next(iter(related_aircraft_ids))
+                )
+
         manual_pdf_query = context["manual_pdf_query"]
         search_value, match_mode = parse_manual_search_query(manual_pdf_query)
 
@@ -1285,12 +1374,12 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
             "chapter",
             "chapter__package",
             "chapter__package__aircraft",
-        ).filter(chapter__package__aircraft__in=aircraft_qs)
+        ).filter(chapter__package__aircraft__in=manual_aircraft_qs)
 
         file_base = ManualFilePDFPage.objects.select_related(
             "manual_file",
             "manual_file__aircraft",
-        ).filter(manual_file__aircraft__in=aircraft_qs)
+        ).filter(manual_file__aircraft__in=manual_aircraft_qs)
 
         text_regex = build_manual_text_regex(search_value, match_mode)
 

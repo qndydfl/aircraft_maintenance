@@ -20,7 +20,9 @@
     const consumptionRateForm = document.getElementById("consumption-rate-form");
     const consumptionRateModal = document.getElementById("consumption-rate-modal");
     const consumptionAddQtyInput = document.getElementById("consumption-add-qty-input");
-    const consumptionHoursInput = document.getElementById("consumption-hours-input");
+    const consumptionHoursList = document.getElementById("consumption-hours-list");
+    const consumptionAddTimeButton = document.getElementById("consumption-add-time-btn");
+    const consumptionTotalTime = document.getElementById("consumption-total-time");
     const consumptionRateResult = document.getElementById("consumption-rate-result");
     const consumptionRateNote = document.getElementById("consumption-rate-note");
     const basicCalculatorDisplay = document.getElementById("basic-calculator-display");
@@ -56,6 +58,8 @@
     let basicStoredValue = null;
     let basicPendingOperator = null;
     let basicShouldResetDisplay = false;
+    let consumptionTimeCounter = 1;
+    let consumptionFormatTimer = null;
 
     function formatDate(date) {
         const year = date.getFullYear();
@@ -275,6 +279,12 @@
             return minutes < 60 ? hours + (minutes / 60) : null;
         }
 
+        if (/^\d+$/.test(normalizedValue)) {
+            const totalMinutes = parseHourMinute(normalizedValue);
+
+            return totalMinutes === null ? null : totalMinutes / 60;
+        }
+
         if (!/^\d+(?:\.\d+)?$/.test(normalizedValue)) {
             return null;
         }
@@ -286,10 +296,29 @@
             : null;
     }
 
+    function formatConsumptionTimeInput(inputElement) {
+        if (!inputElement) {
+            return;
+        }
+
+        const value = inputElement.value.trim();
+
+        if (!/^\d+$/.test(value)) {
+            return;
+        }
+
+        const totalMinutes = parseHourMinute(value);
+
+        if (totalMinutes !== null) {
+            inputElement.value = formatHourMinute(totalMinutes);
+        }
+    }
+
     function updateConsumptionRate() {
         if (
             !consumptionAddQtyInput
-            || !consumptionHoursInput
+            || !consumptionHoursList
+            || !consumptionTotalTime
             || !consumptionRateResult
             || !consumptionRateNote
         ) {
@@ -297,41 +326,112 @@
         }
 
         const quantityText = consumptionAddQtyInput.value.trim();
-        const hoursText = consumptionHoursInput.value.trim();
+        const hourValues = Array.from(
+            consumptionHoursList.querySelectorAll(".consumption-hours-input")
+        )
+            .map((inputElement) => inputElement.value.trim())
+            .filter(Boolean);
 
-        if (!quantityText && !hoursText) {
+        if (!quantityText && hourValues.length === 0) {
             consumptionRateResult.textContent = "0.000 qty/hr";
             consumptionRateNote.textContent = "Add Qty와 Total Block Time을 입력하세요";
+            consumptionTotalTime.textContent = "Total Block Time 0:00";
             return;
         }
 
         const quantity = Number(quantityText);
-        const blockHours = parseBlockHours(hoursText);
+        const parsedHours = hourValues.map(parseBlockHours);
 
-        if (!Number.isFinite(quantity) || quantity < 0) {
+        if (parsedHours.some((hours) => hours === null)) {
+            consumptionRateResult.textContent = "-";
+            consumptionRateNote.textContent = "시간은 2:30 또는 2.5 형식으로 입력하세요";
+            consumptionTotalTime.textContent = "Total Block Time -";
+            return;
+        }
+
+        const totalHours = parsedHours.reduce((sum, hours) => sum + hours, 0);
+        const totalTimeLabel = formatHourMinute(Math.round(totalHours * 60));
+        consumptionTotalTime.textContent = `Total Block Time ${totalTimeLabel}`;
+
+        if (!quantityText || !Number.isFinite(quantity) || quantity < 0) {
             consumptionRateResult.textContent = "-";
             consumptionRateNote.textContent = "Add Qty를 올바르게 입력하세요";
             return;
         }
 
-        if (blockHours === null || blockHours <= 0) {
+        if (totalHours <= 0) {
             consumptionRateResult.textContent = "-";
             consumptionRateNote.textContent = "Total Block Time은 0보다 커야 합니다";
             return;
         }
 
-        const rate = quantity / blockHours;
+        const rate = quantity / totalHours;
         consumptionRateResult.textContent = `${rate.toFixed(3)} qty/hr`;
-        consumptionRateNote.textContent = `${quantityText} ÷ ${hoursText} hr`;
+        consumptionRateNote.textContent = `${quantityText} ÷ 총 ${totalTimeLabel} hr`;
+    }
+
+    function addConsumptionTimeInput() {
+        if (!consumptionHoursList) {
+            return;
+        }
+
+        consumptionTimeCounter += 1;
+
+        const row = document.createElement("div");
+        row.className = "consumption-hours-row";
+
+        const inputElement = document.createElement("input");
+        inputElement.id = `consumption-hours-input-${consumptionTimeCounter}`;
+        inputElement.type = "text";
+        inputElement.inputMode = "decimal";
+        inputElement.className = (
+            "form-control time-calculator-input consumption-hours-input"
+        );
+        inputElement.placeholder = "0:00";
+        inputElement.setAttribute(
+            "aria-label",
+            `Block time ${consumptionTimeCounter}`
+        );
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "btn consumption-remove-time-btn";
+        removeButton.textContent = "×";
+        removeButton.title = "Remove time";
+        removeButton.setAttribute("aria-label", "Remove time");
+
+        row.append(inputElement, removeButton);
+        consumptionHoursList.append(row);
+        inputElement.focus();
     }
 
     function resetConsumptionRate() {
-        if (!consumptionAddQtyInput || !consumptionHoursInput) {
+        if (!consumptionAddQtyInput || !consumptionHoursList) {
             return;
         }
 
         consumptionAddQtyInput.value = "";
-        consumptionHoursInput.value = "";
+        const rows = consumptionHoursList.querySelectorAll(
+            ".consumption-hours-row"
+        );
+
+        rows.forEach((row, index) => {
+            if (index === 0) {
+                const inputElement = row.querySelector(
+                    ".consumption-hours-input"
+                );
+
+                if (inputElement) {
+                    inputElement.value = "";
+                }
+            } else {
+                row.remove();
+            }
+        });
+
+        consumptionTimeCounter = 1;
+        window.clearTimeout(consumptionFormatTimer);
+        consumptionFormatTimer = null;
         updateConsumptionRate();
     }
 
@@ -556,8 +656,46 @@
         consumptionAddQtyInput.addEventListener("input", updateConsumptionRate);
     }
 
-    if (consumptionHoursInput) {
-        consumptionHoursInput.addEventListener("input", updateConsumptionRate);
+    if (consumptionHoursList) {
+        consumptionHoursList.addEventListener("input", (event) => {
+            updateConsumptionRate();
+            window.clearTimeout(consumptionFormatTimer);
+
+            if (!event.target.matches(".consumption-hours-input")) {
+                return;
+            }
+
+            consumptionFormatTimer = window.setTimeout(() => {
+                formatConsumptionTimeInput(event.target);
+                updateConsumptionRate();
+            }, 600);
+        });
+        consumptionHoursList.addEventListener("focusout", (event) => {
+            if (!event.target.matches(".consumption-hours-input")) {
+                return;
+            }
+
+            window.clearTimeout(consumptionFormatTimer);
+            consumptionFormatTimer = null;
+            formatConsumptionTimeInput(event.target);
+            updateConsumptionRate();
+        });
+        consumptionHoursList.addEventListener("click", (event) => {
+            const removeButton = event.target.closest(
+                ".consumption-remove-time-btn"
+            );
+
+            if (!removeButton) {
+                return;
+            }
+
+            removeButton.closest(".consumption-hours-row")?.remove();
+            updateConsumptionRate();
+        });
+    }
+
+    if (consumptionAddTimeButton) {
+        consumptionAddTimeButton.addEventListener("click", addConsumptionTimeInput);
     }
 
     if (consumptionRateForm) {

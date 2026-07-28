@@ -6,8 +6,11 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from .forms import CommonManualCategoryForm
 from .models import (
     Aircraft,
+    ManualChapter,
     ManualFile,
     ManualFilePDFPage,
+    ManualPackage,
+    ManualPDFPage,
     CommonManualCategory,
     CommonManualFile,
 )
@@ -150,6 +153,80 @@ class ManualSearchContentPageTests(TestCase):
 
         self.assertEqual(response.context["match_count"], 1)
         self.assertEqual(response.context["matching_pages_json"], "[379]")
+
+    def test_manual_viewer_contains_search_uses_result_page_count(self):
+        response = self.client.get(
+            reverse("manual_file_pdf_viewer", kwargs={"pk": self.manual.pk}),
+            {
+                "page": 379,
+                "q": "NAV GNSS 1(2)(1+2) REJECTED BY IRs",
+                "from_search_page": 1,
+            },
+        )
+
+        self.assertEqual(response.context["match_count"], 1)
+        self.assertEqual(response.context["matching_pages_json"], "[379]")
+
+
+class ManualPackageViewerMatchCountTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="packageuser",
+            password="testpass123",
+        )
+        self.aircraft = Aircraft.objects.create(name="B777", maker="BOEING")
+        self.package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="FIM",
+            zip_file="manual_packages/fim.zip",
+        )
+        self.index_chapter = ManualChapter.objects.create(
+            package=self.package,
+            task="FM",
+            title="Front Matter",
+            pdf_relative_path="front-matter.pdf",
+        )
+        self.content_chapter = ManualChapter.objects.create(
+            package=self.package,
+            task="21-25",
+            title="Air Conditioning",
+            pdf_relative_path="21-25.pdf",
+        )
+        ManualPDFPage.objects.create(
+            chapter=self.index_chapter,
+            page_number=10,
+            text="TABLE OF CONTENTS OIL PRESS SENSORS L",
+        )
+        ManualPDFPage.objects.create(
+            chapter=self.content_chapter,
+            page_number=25,
+            text="FAULT ISOLATION OIL PRESS SENSORS L",
+        )
+        self.client.force_login(self.user)
+
+    def test_package_viewer_uses_manual_search_result_page_count(self):
+        search_response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "q": "oil press sensors l",
+            },
+        )
+        viewer_response = self.client.get(
+            reverse(
+                "manual_chapter_pdf_viewer",
+                kwargs={"pk": self.content_chapter.pk},
+            ),
+            {
+                "page": 25,
+                "q": "oil press sensors l",
+                "from_search_page": 1,
+            },
+        )
+
+        groups = search_response.context["result_groups"]
+        self.assertEqual(groups[0]["match_count"], 1)
+        self.assertEqual(viewer_response.context["match_count"], 1)
 
 
 class CommonManualCategoryFormTests(TestCase):
