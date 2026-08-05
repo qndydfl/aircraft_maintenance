@@ -480,8 +480,10 @@ def index_pdf_pages_for_manual_file(manual_file):
             manual_type=manual_file.manual_type,
         )
 
-        manual_file.revision_no = revision_no
-        manual_file.revision_date_text = revision_date
+        manual_file.revision_no = manual_file.revision_no.strip() or revision_no
+        manual_file.revision_date_text = (
+            manual_file.revision_date_text.strip() or revision_date
+        )
         manual_file.save(
             update_fields=[
                 "revision_no",
@@ -594,8 +596,10 @@ def index_pdf_pages_for_common_manual_file_safely(common_file):
             manual_type="COMMON",
         )
 
-        common_file.revision_no = revision_no
-        common_file.revision_date_text = revision_date
+        common_file.revision_no = common_file.revision_no.strip() or revision_no
+        common_file.revision_date_text = (
+            common_file.revision_date_text.strip() or revision_date
+        )
 
         common_file.save()
 
@@ -1059,8 +1063,8 @@ def save_package_revision_info(package, index_html_path):
         package.revision_source_file_name()
     )
 
-    package.revision_no = revision_no
-    package.revision_date_text = revision_date
+    package.revision_no = package.revision_no.strip() or revision_no
+    package.revision_date_text = package.revision_date_text.strip() or revision_date
     package.save(
         update_fields=[
             "revision_no",

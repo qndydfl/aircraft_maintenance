@@ -13,6 +13,19 @@ def get_filename_revision_info(file_field):
     return extract_revision_info_from_filename(file_field.name)
 
 
+def get_display_revision_info(instance, file_field):
+    filename_revision_no, filename_revision_date = get_filename_revision_info(
+        file_field
+    )
+
+    return (
+        (getattr(instance, "revision_no", "") or "").strip()
+        or filename_revision_no,
+        (getattr(instance, "revision_date_text", "") or "").strip()
+        or filename_revision_date,
+    )
+
+
 def build_snippet_from_text(text, query, length=180):
     if not text:
         return ""
@@ -216,12 +229,12 @@ class ManualFile(models.Model):
 
     @property
     def display_revision_no(self):
-        revision_no, _ = get_filename_revision_info(self.file)
+        revision_no, _ = get_display_revision_info(self, self.file)
         return revision_no
 
     @property
     def display_revision_date_text(self):
-        _, revision_date = get_filename_revision_info(self.file)
+        _, revision_date = get_display_revision_info(self, self.file)
         return revision_date
 
     def manual_order(self):
@@ -351,6 +364,9 @@ class ManualPackage(models.Model):
 
     @property
     def display_revision_no(self):
+        if self.revision_no.strip():
+            return self.revision_no.strip()
+
         revision_no, _ = extract_revision_info_from_filename(
             self.revision_source_file_name()
         )
@@ -358,6 +374,9 @@ class ManualPackage(models.Model):
 
     @property
     def display_revision_date_text(self):
+        if self.revision_date_text.strip():
+            return self.revision_date_text.strip()
+
         _, revision_date = extract_revision_info_from_filename(
             self.revision_source_file_name()
         )
@@ -381,6 +400,14 @@ class ManualChapter(models.Model):
     pdf_relative_path = models.CharField(max_length=500)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def display_revision_no(self):
+        return self.package.display_revision_no
+
+    @property
+    def display_revision_date_text(self):
+        return self.package.display_revision_date_text
 
     def get_pdf_full_path(self):
         if self.package and self.package.extracted_path:
@@ -493,12 +520,12 @@ class CommonManualFile(models.Model):
 
     @property
     def display_revision_no(self):
-        revision_no, _ = get_filename_revision_info(self.file)
+        revision_no, _ = get_display_revision_info(self, self.file)
         return revision_no
 
     @property
     def display_revision_date_text(self):
-        _, revision_date = get_filename_revision_info(self.file)
+        _, revision_date = get_display_revision_info(self, self.file)
         return revision_date
 
 
@@ -573,12 +600,12 @@ class OtherManualFile(models.Model):
 
     @property
     def display_revision_no(self):
-        revision_no, _ = get_filename_revision_info(self.file)
+        revision_no, _ = get_display_revision_info(self, self.file)
         return revision_no
 
     @property
     def display_revision_date_text(self):
-        _, revision_date = get_filename_revision_info(self.file)
+        _, revision_date = get_display_revision_info(self, self.file)
         return revision_date
 
     @property

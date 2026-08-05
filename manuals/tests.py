@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .forms import CommonManualCategoryForm
+from .services import save_package_revision_info
 from .models import (
     Aircraft,
     ManualChapter,
@@ -264,6 +265,69 @@ class CommonManualCategoryFormTests(TestCase):
         category = form.save()
 
         self.assertEqual(category.code, "FLIGHT_DECK_2")
+
+
+class ManualRevisionTests(TestCase):
+    def setUp(self):
+        self.aircraft = Aircraft.objects.create(name="B747", maker="BOEING")
+
+    def test_manual_file_prefers_manually_entered_revision(self):
+        manual = ManualFile.objects.create(
+            aircraft=self.aircraft,
+            manual_type="MEL",
+            file="manuals/B747_MEL_R10_01JAN2026.pdf",
+            revision_no="R11",
+            revision_date_text="15 FEB 2026",
+        )
+
+        self.assertEqual(manual.display_revision_no, "R11")
+        self.assertEqual(manual.display_revision_date_text, "15 FEB 2026")
+
+    def test_package_revision_is_inherited_by_each_chapter(self):
+        package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="AMM",
+            zip_file="manual_packages/B747_AMM_R20_05MAY2026.zip",
+            revision_no="R21",
+            revision_date_text="10 JUN 2026",
+        )
+        chapter = ManualChapter.objects.create(
+            package=package,
+            task="21-00",
+            title="Air Conditioning",
+            pdf_relative_path="21/21-00.pdf",
+        )
+
+        self.assertEqual(chapter.display_revision_no, "R21")
+        self.assertEqual(chapter.display_revision_date_text, "10 JUN 2026")
+
+    def test_package_reindex_preserves_manually_entered_revision(self):
+        package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="FIM",
+            zip_file="manual_packages/B747_FIM_R30_01JUL2026.zip",
+            revision_no="R31",
+            revision_date_text="05 AUG 2026",
+        )
+
+        save_package_revision_info(package, index_html_path=None)
+        package.refresh_from_db()
+
+        self.assertEqual(package.revision_no, "R31")
+        self.assertEqual(package.revision_date_text, "05 AUG 2026")
+
+    def test_package_uses_filename_when_revision_is_blank(self):
+        package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="IPC",
+            zip_file="manual_packages/B747_IPC_R40_05AUG2026.zip",
+        )
+
+        save_package_revision_info(package, index_html_path=None)
+        package.refresh_from_db()
+
+        self.assertEqual(package.revision_no, "R40")
+        self.assertEqual(package.revision_date_text, "05AUG2026")
 
 
 class CommonManualFileDeleteViewTests(TestCase):

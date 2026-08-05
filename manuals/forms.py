@@ -178,6 +178,7 @@ class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
             "manual_type",
             "zip_file",
             "revision_no",
+            "revision_date_text",
         ]
 
         widgets = {
@@ -190,6 +191,7 @@ class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
                 }
             ),
             "revision_no": forms.TextInput(attrs={"class": "form-control"}),
+            "revision_date_text": forms.TextInput(attrs={"class": "form-control"}),
         }
 
     def clean(self):

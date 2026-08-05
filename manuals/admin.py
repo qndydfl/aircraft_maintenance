@@ -33,6 +33,8 @@ class ManualFileAdmin(admin.ModelAdmin):
         "aircraft",
         "manual_type",
         "file",
+        "revision_no",
+        "revision_date_text",
         "uploaded_at",
     ]
 
@@ -74,6 +76,8 @@ class ManualPackageAdmin(admin.ModelAdmin):
         "aircraft",
         "manual_type",
         "zip_file",
+        "revision_no",
+        "revision_date_text",
         "processed",
         "uploaded_at",
     ]

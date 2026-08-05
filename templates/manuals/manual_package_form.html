@@ -142,6 +142,40 @@ form-page manual-package-form-page
                     {% endif %}
                 </div>
 
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">
+                        Revision Information
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Revision No</label>
+                            {{ form.revision_no }}
+
+                            {% if form.revision_no.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.revision_no.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Revision Date</label>
+                            {{ form.revision_date_text }}
+
+                            {% if form.revision_date_text.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.revision_date_text.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-text mt-2">
+                        입력한 값은 ZIP 안의 모든 PDF에 공통으로 적용됩니다. 비워 두면 파일명에서 자동으로 찾습니다.
+                    </div>
+                </div>
+
                 <div class="portal-form-actions">
                     <button type="submit"
                             class="btn btn-primary app-card-btn">
