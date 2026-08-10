@@ -121,7 +121,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "accounts",
-    "manuals",
+    "manuals.apps.ManualsConfig",
     "dispatch",
     "storages",
 ]

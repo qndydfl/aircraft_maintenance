@@ -1,4 +1,4 @@
-import os, shutil, json, re
+import os, shutil, json, re, logging, time
 from datetime import timedelta
 
 from django.urls import reverse_lazy, reverse
@@ -63,6 +63,9 @@ from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from urllib.parse import urlencode
+
+
+logger = logging.getLogger(__name__)
 
 
 def delete_file_field(file_field):
@@ -803,6 +806,28 @@ class ManualChapterPDFView(LoginRequiredMixin, DetailView):
 
 class ManualSearchView(LoginRequiredMixin, TemplateView):
     template_name = "manuals/manual_search.html"
+
+    def get(self, request, *args, **kwargs):
+        started_at = time.perf_counter()
+
+        try:
+            response = super().get(request, *args, **kwargs)
+        except Exception:
+            logger.exception(
+                "Manual search failed after %.2fs (aircraft=%s, manual_types=%s)",
+                time.perf_counter() - started_at,
+                request.GET.get("aircraft", ""),
+                request.GET.getlist("manual_type"),
+            )
+            raise
+
+        logger.info(
+            "Manual search completed in %.2fs (aircraft=%s, manual_types=%s)",
+            time.perf_counter() - started_at,
+            request.GET.get("aircraft", ""),
+            request.GET.getlist("manual_type"),
+        )
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
