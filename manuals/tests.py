@@ -142,6 +142,61 @@ class ManualSearchContentPageTests(TestCase):
         self.assertEqual(groups[0]["match_count"], 1)
         self.assertEqual(groups[0]["first_page"].page_number, 379)
 
+    def test_manual_search_accepts_multiple_manual_types(self):
+        cdl = ManualFile.objects.create(
+            aircraft=self.aircraft,
+            manual_type="CDL",
+            file="manuals/a350-cdl.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=cdl,
+            page_number=42,
+            text="NAV GNSS 1 REJECTED BY IR CDU MESSAGE",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": ["MEL", "CDL"],
+                "q": "nav gnss * rejected by*",
+            },
+        )
+
+        groups = response.context["result_groups"]
+
+        self.assertEqual(
+            {group["manual"] for group in groups},
+            {"MEL", "CDL"},
+        )
+        self.assertEqual(response.context["selected_manual_types"], ["MEL", "CDL"])
+
+    def test_manual_search_single_manual_type_excludes_unselected_types(self):
+        cdl = ManualFile.objects.create(
+            aircraft=self.aircraft,
+            manual_type="CDL",
+            file="manuals/a350-cdl.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=cdl,
+            page_number=42,
+            text="NAV GNSS 1 REJECTED BY IR CDU MESSAGE",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": "MEL",
+                "q": "nav gnss * rejected by*",
+            },
+        )
+
+        groups = response.context["result_groups"]
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["manual"], "MEL")
+
     def test_manual_viewer_match_navigation_excludes_table_of_contents(self):
         response = self.client.get(
             reverse("manual_file_pdf_viewer", kwargs={"pk": self.manual.pk}),

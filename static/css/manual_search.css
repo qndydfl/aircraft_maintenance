@@ -114,6 +114,71 @@ body.manual-search-page .app-container {
 
 /* Search / Result Section */
 
+.manual-type-fieldset {
+    min-width: 0;
+}
+
+.manual-type-fieldset .form-label {
+    float: none;
+    width: auto;
+    margin-bottom: 0.5rem;
+    font-size: inherit;
+}
+
+.manual-type-options {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.25rem;
+}
+
+.manual-type-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.4rem;
+    min-height: 2.25rem;
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.625rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+}
+
+.manual-type-options .btn-check:checked + .manual-type-option {
+    border-color: var(--app-primary);
+    color: #fff;
+    background: var(--app-primary);
+}
+
+.manual-type-help {
+    margin-top: 0.375rem;
+    font-size: 0.7rem;
+}
+
+.manual-search-query-row {
+    align-items: end;
+}
+
+.manual-search-query-field,
+.manual-search-submit {
+    min-width: 0;
+}
+
+.manual-search-query-field .app-form-control,
+.manual-search-submit .app-card-btn {
+    min-height: 2.75rem;
+}
+
+.manual-search-submit .app-card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 0.5rem;
+    line-height: 1;
+    text-align: center;
+}
+
 body.manual-search-page .search-section,
 body.manual-search-page .result-section {
     background: rgba(245, 248, 252, 0.82);
@@ -162,6 +227,40 @@ body.manual-search-page .result-section {
         grid-template-columns: 1fr;
         gap: 0.5rem;
         padding-bottom: 0.5rem;
+    }
+
+    .manual-type-options {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.1875rem;
+    }
+
+    .manual-type-option {
+        width: 100%;
+        min-width: 0;
+        min-height: 1.5rem !important;
+        padding: 0.8rem 0.2rem;
+        border-radius: 0.5rem;
+        font-size: 0.68rem;
+    }
+
+    .manual-search-filter-row {
+        --bs-gutter-y: 0.625rem;
+    }
+
+    .manual-search-query-row {
+        --bs-gutter-x: 0.375rem;
+        --bs-gutter-y: 0.375rem;
+        margin-top: 0.375rem !important;
+    }
+
+    .manual-search-query-field .form-label {
+        margin-bottom: 0.3125rem;
+    }
+
+    .manual-search-submit .app-card-btn {
+        width: 100%;
+        min-height: 2.375rem;
     }
 
     .manual-group-header .manual-badge {

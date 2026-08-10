@@ -1058,6 +1058,67 @@ def prefer_group_content_pages(pages, group_key):
     return preferred_pages
 
 
+def get_manual_search_prefilter(search_value):
+    tokens = re.findall(
+        r"[0-9A-Za-z가-힣][0-9A-Za-z가-힣/_-]*",
+        search_value or "",
+    )
+
+    if not tokens:
+        return ""
+
+    numeric_tokens = [
+        token
+        for token in tokens
+        if len(token) >= 4 and any(char.isdigit() for char in token)
+    ]
+    candidates = numeric_tokens or tokens
+    return max(candidates, key=len)
+
+
+def summarize_group_content_pages(pages, group_key, page_order_key):
+    grouped = {}
+
+    iterator = pages.iterator(chunk_size=250) if hasattr(pages, "iterator") else pages
+
+    for page in iterator:
+        key = group_key(page)
+        group = grouped.setdefault(
+            key,
+            {
+                "content_count": 0,
+                "content_first": None,
+                "content_order": None,
+                "reference_count": 0,
+                "reference_first": None,
+                "reference_order": None,
+            },
+        )
+        order = page_order_key(page)
+        prefix = "reference" if is_reference_index_page(page.text) else "content"
+        group[f"{prefix}_count"] += 1
+
+        if group[f"{prefix}_order"] is None or order < group[f"{prefix}_order"]:
+            group[f"{prefix}_first"] = page
+            group[f"{prefix}_order"] = order
+
+    summaries = []
+
+    for group in grouped.values():
+        if group["content_count"]:
+            page = group["content_first"]
+            count = group["content_count"]
+        else:
+            page = group["reference_first"]
+            count = group["reference_count"]
+
+        if page is not None:
+            page.search_match_count = count
+            summaries.append(page)
+
+    return summaries
+
+
 def save_package_revision_info(package, index_html_path):
     revision_no, revision_date = extract_revision_info_from_filename(
         package.revision_source_file_name()

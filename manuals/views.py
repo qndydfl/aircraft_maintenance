@@ -49,6 +49,8 @@ from .services import (
     build_snippet_from_regex,
     prefer_content_pages,
     prefer_group_content_pages,
+    get_manual_search_prefilter,
+    summarize_group_content_pages,
     index_pdf_pages_for_common_manual_file_safely,
     index_pdf_pages_for_manual_file_safely,
     index_pdf_pages_for_other_manual_file_safely,
@@ -807,7 +809,26 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
         query = self.request.GET.get("q", "").strip()
         aircraft_id = self.request.GET.get("aircraft", "").strip()
-        manual_type = self.request.GET.get("manual_type", "").strip()
+        manual_types = [
+            "AMM",
+            "FIM",
+            "IPC",
+            "MEL",
+            "CDL",
+            "OTHER",
+            "COMMON",
+        ]
+        selected_manual_types = []
+
+        for value in self.request.GET.getlist("manual_type"):
+            for manual_type in value.split(","):
+                manual_type = manual_type.strip().upper()
+
+                if (
+                    manual_type in manual_types
+                    and manual_type not in selected_manual_types
+                ):
+                    selected_manual_types.append(manual_type)
 
         package_pages = []
         file_pages = []
@@ -848,32 +869,37 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     other_file__category__aircraft_id=aircraft_id
                 )
 
-            if manual_type:
-                if manual_type in ["AMM", "FIM", "IPC"]:
+            if selected_manual_types:
+                selected_package_types = [
+                    value
+                    for value in selected_manual_types
+                    if value in {"AMM", "FIM", "IPC"}
+                ]
+                selected_file_types = [
+                    value
+                    for value in selected_manual_types
+                    if value in {"MEL", "CDL"}
+                ]
+
+                if selected_package_types:
                     package_pages_qs = package_pages_qs.filter(
-                        chapter__package__manual_type=manual_type
+                        chapter__package__manual_type__in=selected_package_types
                     )
-                    file_pages_qs = ManualFilePDFPage.objects.none()
-                    common_pages_qs = CommonManualPDFPage.objects.none()
-                    other_pages_qs = OtherManualPDFPage.objects.none()
+                else:
+                    package_pages_qs = ManualPDFPage.objects.none()
 
-                elif manual_type in ["MEL", "CDL"]:
+                if selected_file_types:
                     file_pages_qs = file_pages_qs.filter(
-                        manual_file__manual_type=manual_type
+                        manual_file__manual_type__in=selected_file_types
                     )
-                    package_pages_qs = ManualPDFPage.objects.none()
-                    common_pages_qs = CommonManualPDFPage.objects.none()
+                else:
+                    file_pages_qs = ManualFilePDFPage.objects.none()
+
+                if "OTHER" not in selected_manual_types:
                     other_pages_qs = OtherManualPDFPage.objects.none()
 
-                elif manual_type == "OTHER":
-                    package_pages_qs = ManualPDFPage.objects.none()
-                    file_pages_qs = ManualFilePDFPage.objects.none()
+                if "COMMON" not in selected_manual_types:
                     common_pages_qs = CommonManualPDFPage.objects.none()
-
-                elif manual_type == "COMMON":
-                    package_pages_qs = ManualPDFPage.objects.none()
-                    file_pages_qs = ManualFilePDFPage.objects.none()
-                    other_pages_qs = OtherManualPDFPage.objects.none()
 
             search_value, match_mode = parse_manual_search_query(query)
 
@@ -891,31 +917,51 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     other_pages_qs = other_pages_qs.filter(text__icontains=search_value)
 
                 else:
+                    prefilter = get_manual_search_prefilter(search_value)
+
+                    if prefilter:
+                        package_pages_qs = package_pages_qs.filter(
+                            text__icontains=prefilter
+                        )
+                        file_pages_qs = file_pages_qs.filter(
+                            text__icontains=prefilter
+                        )
+                        common_pages_qs = common_pages_qs.filter(
+                            text__icontains=prefilter
+                        )
+                        other_pages_qs = other_pages_qs.filter(
+                            text__icontains=prefilter
+                        )
+
                     package_pages_qs = package_pages_qs.filter(text__iregex=text_regex)
                     file_pages_qs = file_pages_qs.filter(text__iregex=text_regex)
                     common_pages_qs = common_pages_qs.filter(text__iregex=text_regex)
                     other_pages_qs = other_pages_qs.filter(text__iregex=text_regex)
 
-                package_pages = list(package_pages_qs)
-                file_pages = list(file_pages_qs)
-                common_pages = list(common_pages_qs)
-                other_pages = list(other_pages_qs)
-
-                package_pages = prefer_group_content_pages(
-                    package_pages,
+                package_pages = summarize_group_content_pages(
+                    package_pages_qs,
                     lambda page: page.chapter.package_id,
+                    lambda page: (
+                        page.chapter.task or "",
+                        page.chapter.subtask or "",
+                        page.page_number,
+                        page.pk,
+                    ),
                 )
-                file_pages = prefer_group_content_pages(
-                    file_pages,
+                file_pages = summarize_group_content_pages(
+                    file_pages_qs,
                     lambda page: page.manual_file_id,
+                    lambda page: (page.page_number, page.pk),
                 )
-                common_pages = prefer_group_content_pages(
-                    common_pages,
+                common_pages = summarize_group_content_pages(
+                    common_pages_qs,
                     lambda page: page.common_file_id,
+                    lambda page: (page.page_number, page.pk),
                 )
-                other_pages = prefer_group_content_pages(
-                    other_pages,
+                other_pages = summarize_group_content_pages(
+                    other_pages_qs,
                     lambda page: page.other_file_id,
+                    lambda page: (page.page_number, page.pk),
                 )
 
                 for page in package_pages:
@@ -1010,6 +1056,8 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         result_group_map = {}
 
         def append_result_group(key, page, group_data):
+            page_match_count = getattr(page, "search_match_count", 1)
+
             if key not in result_group_map:
                 result_group_map[key] = {
                     **group_data,
@@ -1019,7 +1067,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 }
 
             result_group_map[key]["pages"].append(page)
-            result_group_map[key]["match_count"] = len(result_group_map[key]["pages"])
+            result_group_map[key]["match_count"] += page_match_count
 
         for page in package_pages:
             package = page.chapter.package
@@ -1124,19 +1172,11 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
         context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
 
-        context["manual_types"] = [
-            "AMM",
-            "FIM",
-            "IPC",
-            "MEL",
-            "CDL",
-            "OTHER",
-            "COMMON",
-        ]
+        context["manual_types"] = manual_types
 
         context["query"] = query
         context["selected_aircraft"] = aircraft_id
-        context["selected_manual_type"] = manual_type
+        context["selected_manual_types"] = selected_manual_types
 
         return context
 

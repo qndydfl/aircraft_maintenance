@@ -3,7 +3,7 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=81">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=85">
 {% endblock css %}
 
 {% block js %}
@@ -50,10 +50,11 @@ manual-search-page
     class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse {% if not query %}show{% endif %} d-md-block">
     <div class="card-body">
         <form method="get"
+            class="manual-search-form"
             data-loading-title="Searching Manuals"
             data-loading-message="Scanning indexed manual pages...">
 
-            <div class="row g-3">
+            <div class="row g-3 manual-search-filter-row">
 
                 <div class="col-12 col-md-3">
                     <label class="form-label">Aircraft</label>
@@ -73,25 +74,34 @@ manual-search-page
                     </select>
                 </div>
 
-                <div class="col-12 col-md-2">
-                    <label class="form-label">Manual Type</label>
+                <fieldset class="col-12 col-md-9 manual-type-fieldset">
+                    <legend class="form-label">Manual Type</legend>
 
-                    <select name="manual_type"
-                        class="form-select app-form-control">
-                        <option value="">ALL</option>
-
+                    <div class="manual-type-options">
                         {% for type in manual_types %}
-                            <option value="{{ type }}"
-                                {% if selected_manual_type == type %}
-                                    selected
-                                {% endif %}>
+                            <input type="checkbox"
+                                class="btn-check"
+                                name="manual_type"
+                                value="{{ type }}"
+                                id="manual-type-{{ forloop.counter }}"
+                                autocomplete="off"
+                                {% if type in selected_manual_types %}checked{% endif %}>
+                            <label class="btn btn-outline-secondary manual-type-option"
+                                for="manual-type-{{ forloop.counter }}">
                                 {{ type }}
-                            </option>
+                            </label>
                         {% endfor %}
-                    </select>
-                </div>
+                    </div>
 
-                <div class="col-12 col-md-5">
+                    <div class="form-text manual-type-help">
+                        선택하지 않으면 전체 매뉴얼을 검색합니다.
+                    </div>
+                </fieldset>
+
+            </div>
+
+            <div class="row g-2 mt-1 manual-search-query-row">
+                <div class="col-12 col-md-10 manual-search-query-field">
                     <label class="form-label">Search</label>
 
                     <input type="text"
@@ -101,7 +111,7 @@ manual-search-page
                         placeholder="예: PACK VALVE, 21-51-01, REMOVAL">
                 </div>
 
-                <div class="col-12 col-md-2 d-flex align-items-end">
+                <div class="col-12 col-md-2 d-flex align-items-end manual-search-submit">
                     <button type="submit"
                         class="btn btn-primary w-100 app-card-btn">
                         Search
