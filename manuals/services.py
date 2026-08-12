@@ -480,9 +480,9 @@ def index_pdf_pages_for_manual_file(manual_file):
             manual_type=manual_file.manual_type,
         )
 
-        manual_file.revision_no = manual_file.revision_no.strip() or revision_no
+        manual_file.revision_no = revision_no or manual_file.revision_no.strip()
         manual_file.revision_date_text = (
-            manual_file.revision_date_text.strip() or revision_date
+            revision_date or manual_file.revision_date_text.strip()
         )
         manual_file.save(
             update_fields=[

@@ -713,8 +713,14 @@ class ReindexJob(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["target_type", "target_id", "-created_at"]),
-            models.Index(fields=["status", "created_at"]),
+            models.Index(
+                fields=["target_type", "target_id", "-created_at"],
+                name="manuals_rei_target_f70ac5_idx",
+            ),
+            models.Index(
+                fields=["status", "created_at"],
+                name="manuals_rei_status_9b0c60_idx",
+            ),
         ]
 
     def __str__(self):
