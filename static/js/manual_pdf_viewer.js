@@ -718,11 +718,6 @@ function renderTextLayer(pageNumber, page, viewport, requestId) {
         return;
     }
 
-    if (!parsedSearch.value) {
-        clearTextLayer();
-        return;
-    }
-
     textLayer.innerHTML = "";
     textLayer.style.width = viewport.width + "px";
     textLayer.style.height = viewport.height + "px";

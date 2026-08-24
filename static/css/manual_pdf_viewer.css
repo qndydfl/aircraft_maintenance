@@ -601,6 +601,8 @@ body.pdf-viewer-page .app-container {
 
     transform-origin: 0 0;
     pointer-events: auto;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 #text-layer span,
@@ -614,6 +616,14 @@ body.pdf-viewer-page .app-container {
 
     cursor: text;
     transform-origin: 0 0;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#text-layer span::selection,
+.dynamic-text-layer span::selection {
+    color: transparent;
+    background: rgba(0, 122, 255, 0.3);
 }
 
 .highlight-text {
