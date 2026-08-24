@@ -68,6 +68,11 @@ from urllib.parse import urlencode
 logger = logging.getLogger(__name__)
 
 
+def refresh_uploaded_at(instance):
+    instance.uploaded_at = timezone.now()
+    instance.save(update_fields=["uploaded_at"])
+
+
 def delete_file_field(file_field):
     if file_field:
         file_field.delete(save=False)
@@ -487,6 +492,10 @@ class ManualFileUpdateView(
 
     def form_valid(self, form):
         old_file = None
+        file_replaced = bool(
+            self.request.FILES.get("file")
+            or form.cleaned_data.get("r2_object_key")
+        )
 
         if self.object.pk:
             old_instance = ManualFile.objects.get(pk=self.object.pk)
@@ -496,6 +505,9 @@ class ManualFileUpdateView(
 
         if old_file and self.object.file and old_file.name != self.object.file.name:
             delete_file_field(old_file)
+
+        if file_replaced:
+            refresh_uploaded_at(self.object)
 
         queue_reindex_message(
             self.request,
@@ -1724,6 +1736,9 @@ class ManualPackageUpdateView(
     def form_valid(self, form):
         old_file = ManualPackage.objects.get(pk=self.object.pk).zip_file
         uploaded_zip = self.request.FILES.get("zip_file")
+        file_replaced = bool(
+            uploaded_zip or form.cleaned_data.get("r2_object_key")
+        )
 
         if uploaded_zip:
             form.instance.original_zip_file_name = uploaded_zip.name
@@ -1734,7 +1749,13 @@ class ManualPackageUpdateView(
             delete_file_field(old_file)
 
         self.object.processed = False
-        self.object.save(update_fields=["processed"])
+        update_fields = ["processed"]
+
+        if file_replaced:
+            self.object.uploaded_at = timezone.now()
+            update_fields.append("uploaded_at")
+
+        self.object.save(update_fields=update_fields)
 
         queue_reindex_message(
             self.request,
@@ -1831,7 +1852,8 @@ class ManualPackageReuploadView(
             delete_file_field(old_file)
 
         package.processed = False
-        package.save(update_fields=["processed"])
+        package.uploaded_at = timezone.now()
+        package.save(update_fields=["processed", "uploaded_at"])
 
         queue_reindex_message(
             self.request,
@@ -1965,6 +1987,7 @@ class CommonManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateV
     def form_valid(self, form):
         old_file = None
         old_pdf_file = None
+        file_replaced = bool(self.request.FILES.get("file"))
 
         if self.object.pk:
             old_instance = CommonManualFile.objects.get(pk=self.object.pk)
@@ -1976,6 +1999,9 @@ class CommonManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateV
         if old_file and self.object.file and old_file.name != self.object.file.name:
             delete_file_field(old_file)
             delete_file_field(old_pdf_file)
+
+        if file_replaced:
+            refresh_uploaded_at(self.object)
 
         queue_reindex_message(
             self.request,

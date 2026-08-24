@@ -1,7 +1,10 @@
-from django.test import TestCase
+from datetime import timedelta
+
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 
 from .forms import CommonManualCategoryForm
 from .services import save_package_revision_info
@@ -425,3 +428,141 @@ class CommonManualFileDeleteViewTests(TestCase):
                 kwargs={"pk": self.category.pk},
             ),
         )
+
+
+@override_settings(REINDEX_INLINE=False)
+class UploadedAtRefreshTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_superuser(
+            username="uploadadmin",
+            password="testpass123",
+            email="upload@example.com",
+        )
+        self.aircraft = Aircraft.objects.create(name="B777", maker="BOEING")
+        self.category = CommonManualCategory.objects.create(
+            name="Common",
+            code="COMMON",
+        )
+        self.client.force_login(self.user)
+        self.old_uploaded_at = timezone.now() - timedelta(days=7)
+
+    @staticmethod
+    def pdf_file(name):
+        return SimpleUploadedFile(
+            name,
+            b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF",
+            content_type="application/pdf",
+        )
+
+    def test_manual_pdf_reupload_refreshes_uploaded_at(self):
+        manual = ManualFile.objects.create(
+            aircraft=self.aircraft,
+            manual_type="MEL",
+            file=self.pdf_file("old-mel.pdf"),
+        )
+        ManualFile.objects.filter(pk=manual.pk).update(
+            uploaded_at=self.old_uploaded_at
+        )
+
+        response = self.client.post(
+            reverse("manual_file_update", kwargs={"pk": manual.pk}),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": "MEL",
+                "description": "Re-uploaded",
+                "revision_no": "",
+                "revision_date_text": "",
+                "file": self.pdf_file("new-mel.pdf"),
+            },
+        )
+
+        manual.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(manual.uploaded_at, self.old_uploaded_at)
+
+    def test_package_reupload_refreshes_uploaded_at(self):
+        package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="AMM",
+            zip_file=SimpleUploadedFile(
+                "old-amm.zip",
+                b"old zip",
+                content_type="application/zip",
+            ),
+        )
+        ManualPackage.objects.filter(pk=package.pk).update(
+            uploaded_at=self.old_uploaded_at
+        )
+
+        response = self.client.post(
+            reverse(
+                "manual_package_reupload",
+                kwargs={"package_pk": package.pk},
+            ),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": "AMM",
+                "revision_no": "",
+                "revision_date_text": "",
+                "zip_file": SimpleUploadedFile(
+                    "new-amm.zip",
+                    b"new zip",
+                    content_type="application/zip",
+                ),
+            },
+        )
+
+        package.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(package.uploaded_at, self.old_uploaded_at)
+
+    def test_common_manual_file_edit_refreshes_uploaded_at(self):
+        common_file = CommonManualFile.objects.create(
+            category=self.category,
+            title="Common Manual",
+            file=self.pdf_file("old-common.pdf"),
+        )
+        CommonManualFile.objects.filter(pk=common_file.pk).update(
+            uploaded_at=self.old_uploaded_at
+        )
+
+        response = self.client.post(
+            reverse("common_manual_file_update", kwargs={"pk": common_file.pk}),
+            {
+                "category": self.category.pk,
+                "title": "Common Manual",
+                "description": "Updated file",
+                "revision_no": "",
+                "revision_date_text": "",
+                "file": self.pdf_file("new-common.pdf"),
+            },
+        )
+
+        common_file.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(common_file.uploaded_at, self.old_uploaded_at)
+
+    def test_common_manual_metadata_edit_keeps_uploaded_at(self):
+        common_file = CommonManualFile.objects.create(
+            category=self.category,
+            title="Common Manual",
+            file=self.pdf_file("common.pdf"),
+        )
+        CommonManualFile.objects.filter(pk=common_file.pk).update(
+            uploaded_at=self.old_uploaded_at
+        )
+
+        response = self.client.post(
+            reverse("common_manual_file_update", kwargs={"pk": common_file.pk}),
+            {
+                "category": self.category.pk,
+                "title": "Renamed Common Manual",
+                "description": "Metadata only",
+                "revision_no": "",
+                "revision_date_text": "",
+            },
+        )
+
+        common_file.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(common_file.uploaded_at, self.old_uploaded_at)
