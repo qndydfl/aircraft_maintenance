@@ -1,214 +1,201 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-calculator-page
-{% endblock body_class %}
-
-{% block title %}
-Date Calculator
-{% endblock title %}
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} calculator-page {% endblock body_class %} 
+{% block title %} Date Calculator {% endblock title %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=82">
-{% endblock css %}
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=82" />
+{% endblock css %} 
 
 {% block js %}
 <script defer src="{% static 'js/calculator.js' %}?v=86"></script>
-{% endblock js %}
+{% endblock js %} 
+
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    <div>
+        <p class="page-eyebrow mb-1">CALCULATOR Tool</p>
+
+        <h2 class="page-title mb-2">CALCULATOR</h2>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %} 
 
 {% block content %}
 
-<div class="page-hero mb-4">
-    <div>
-        <p class="page-eyebrow mb-1">
-            CALCULATOR Tool
-        </p>
-
-        <h2 class="page-title mb-2">
-            CALCULATOR
-        </h2>
-    </div>
-
-    <div class="page-actions">
-        <a href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
-</div>
-
 <section class="date-calculator-shell">
     <div class="date-clock-card">
-        <p class="date-result-label mb-1">
-            UTC Time
-        </p>
+        <p class="date-result-label mb-1">UTC Time</p>
 
-        <strong id="utc-time"
-            class="date-utc-value">
-            <span class="date-clock-date">
-                {{ utc_now_date }}
-            </span>
-            <span class="date-clock-time">
-                {{ utc_now_time }}
-            </span>
+        <strong id="utc-time" class="date-utc-value">
+            <span class="date-clock-date"> {{ utc_now_date }} </span>
+            <span class="date-clock-time"> {{ utc_now_time }} </span>
         </strong>
 
-        <p class="date-result-label mt-3 mb-1">
-            Korea Time
-        </p>
+        <p class="date-result-label mt-3 mb-1">Korea Time</p>
 
-        <strong id="local-time"
-            class="date-local-value">
-            <span class="date-clock-date">
-                {{ local_now_date }}
-            </span>
-            <span class="date-clock-time">
-                {{ local_now_time }}
-            </span>
+        <strong id="local-time" class="date-local-value">
+            <span class="date-clock-date"> {{ local_now_date }} </span>
+            <span class="date-clock-time"> {{ local_now_time }} </span>
         </strong>
     </div>
 
     <div class="date-tool-grid">
-        <button type="button"
+        <button
+            type="button"
             class="date-tool-btn"
             data-bs-toggle="modal"
-            data-bs-target="#date-calculator-modal">
+            data-bs-target="#date-calculator-modal"
+        >
             <span>날짜 계산기</span>
             <strong>Open</strong>
         </button>
 
-        <button type="button"
+        <button
+            type="button"
             class="date-tool-btn"
             data-bs-toggle="modal"
-            data-bs-target="#fuel-density-modal">
+            data-bs-target="#fuel-density-modal"
+        >
             <span>연료 비중 변환기</span>
             <strong>Open</strong>
         </button>
 
-        <button type="button"
+        <button
+            type="button"
             class="date-tool-btn"
             data-bs-toggle="modal"
-            data-bs-target="#time-calculator-modal">
+            data-bs-target="#time-calculator-modal"
+        >
             <span>비행 로그 시간 계산기</span>
             <strong>Open</strong>
         </button>
 
-        <button type="button"
+        <button
+            type="button"
             class="date-tool-btn"
             data-bs-toggle="modal"
-            data-bs-target="#basic-calculator-modal">
+            data-bs-target="#basic-calculator-modal"
+        >
             <span>일반 계산기</span>
             <strong>Open</strong>
         </button>
 
-        <button type="button"
+        <button
+            type="button"
             class="date-tool-btn"
             data-bs-toggle="modal"
-            data-bs-target="#consumption-rate-modal">
+            data-bs-target="#consumption-rate-modal"
+        >
             <span>오일 소모율 계산기</span>
             <strong>Open</strong>
         </button>
     </div>
 </section>
 
-<div class="modal fade"
+<div
+    class="modal fade"
     id="date-calculator-modal"
     tabindex="-1"
     aria-labelledby="date-calculator-modal-title"
     aria-hidden="true"
     data-bs-backdrop="static"
-    data-bs-keyboard="false">
+    data-bs-keyboard="false"
+>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content date-modal-content">
             <div class="modal-header date-modal-header">
                 <div>
-                    <p class="date-result-label mb-1">
-                        Date Tool
-                    </p>
+                    <p class="date-result-label mb-1">Date Tool</p>
 
-                    <h5 class="modal-title"
-                        id="date-calculator-modal-title">
+                    <h5 class="modal-title" id="date-calculator-modal-title">
                         날짜 계산기
                     </h5>
                 </div>
 
-                <button type="button"
+                <button
+                    type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
-                </button>
+                    aria-label="Close"
+                ></button>
             </div>
 
             <div class="modal-body date-modal-body">
                 <div class="date-result-card">
-                    <p class="date-result-label mb-1">
-                        Result
-                    </p>
+                    <p class="date-result-label mb-1">Result</p>
 
-                    <span id="date-result"
+                    <span
+                        id="date-result"
                         class="visually-hidden"
-                        data-today="{{ today|date:'Y-m-d' }}">
+                        data-today="{{ today|date:'Y-m-d' }}"
+                    >
                         {{ target_date|date:"Y-m-d" }}
                     </span>
 
-                    <p id="date-result-long"
-                        class="date-result-long date-result-primary mb-2">
+                    <p
+                        id="date-result-long"
+                        class="date-result-long date-result-primary mb-2"
+                    >
                         {{ target_date_en }}
                     </p>
 
-                    <p id="date-result-note"
-                        class="date-result-note mb-0">
-                        {% if selected_days == 0 %}
-                            {{ base_date|date:"Y-m-d" }} 기준 날짜
-                        {% else %}
-                            {{ base_date|date:"Y-m-d" }} 기준, 선택 날짜 제외 {{ selected_days }}일 후
-                        {% endif %}
+                    <p id="date-result-note" class="date-result-note mb-0">
+                        {% if selected_days == 0 %} {{ base_date|date:"Y-m-d" }}
+                        기준 날짜 {% else %} {{ base_date|date:"Y-m-d" }} 기준,
+                        선택 날짜 제외 {{ selected_days }}일 후 {% endif %}
                     </p>
                 </div>
 
-                <form method="get"
+                <form
+                    method="get"
                     class="date-calculator-card"
                     id="date-calculator-form"
-                    data-local-submit="true">
-
+                    data-local-submit="true"
+                >
                     <div class="date-base-row">
-                        <label for="base-date-input"
-                            class="form-label mb-1">
+                        <label for="base-date-input" class="form-label mb-1">
                             Base date
                         </label>
 
-                        <input id="base-date-input"
+                        <input
+                            id="base-date-input"
                             name="base_date"
                             type="date"
                             class="form-control"
-                            value="{{ base_date|date:'Y-m-d' }}">
+                            value="{{ base_date|date:'Y-m-d' }}"
+                        />
 
                         <p class="calculator-input-help mb-0 text-center">
                             UTC 기준입니다. 필요시 날짜를 선택하세요.
                         </p>
                     </div>
 
-                    <div class="date-preset-grid"
+                    <div
+                        class="date-preset-grid"
                         role="group"
-                        aria-label="Preset days">
+                        aria-label="Preset days"
+                    >
                         {% for day in fixed_days %}
-                            <button type="button"
-                                class="date-preset-btn {% if selected_days == day %}active{% endif %}"
-                                data-days="{{ day }}">
-                                {{ day }} days
-                            </button>
+                        <button
+                            type="button"
+                            class="date-preset-btn {% if selected_days == day %}active{% endif %}"
+                            data-days="{{ day }}"
+                        >
+                            {{ day }} days
+                        </button>
                         {% endfor %}
                     </div>
 
                     <div class="date-custom-row">
-                        <label for="days-input"
-                            class="form-label mb-1">
+                        <label for="days-input" class="form-label mb-1">
                             Custom days
                         </label>
 
                         <div class="date-input-wrap date-input-wrap-single">
-                            <input id="days-input"
+                            <input
+                                id="days-input"
                                 name="days"
                                 type="number"
                                 min="0"
@@ -216,20 +203,24 @@ Date Calculator
                                 inputmode="numeric"
                                 class="form-control"
                                 value=""
-                                placeholder="0">
+                                placeholder="0"
+                            />
                         </div>
 
                         <p class="calculator-input-help mb-0 text-center">
-                            오늘 또는 기준 날짜는 제외하고 더할 일수를 입력합니다.
+                            오늘 또는 기준 날짜는 제외하고 더할 일수를
+                            입력합니다.
                         </p>
                     </div>
                 </form>
             </div>
 
             <div class="modal-footer date-modal-footer">
-                <button type="button"
+                <button
+                    type="button"
                     class="btn btn-outline-secondary rounded-pill px-4"
-                    data-bs-dismiss="modal">
+                    data-bs-dismiss="modal"
+                >
                     닫기
                 </button>
             </div>
@@ -237,83 +228,87 @@ Date Calculator
     </div>
 </div>
 
-<div class="modal fade"
+<div
+    class="modal fade"
     id="fuel-density-modal"
     tabindex="-1"
     aria-labelledby="fuel-density-modal-title"
     aria-hidden="true"
     data-bs-backdrop="static"
-    data-bs-keyboard="false">
+    data-bs-keyboard="false"
+>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content date-modal-content">
             <div class="modal-header date-modal-header">
                 <div>
-                    <p class="date-result-label mb-1">
-                        Fuel Tool
-                    </p>
+                    <p class="date-result-label mb-1">Fuel Tool</p>
 
-                    <h5 class="modal-title"
-                        id="fuel-density-modal-title">
+                    <h5 class="modal-title" id="fuel-density-modal-title">
                         연료 비중 변환기
                     </h5>
                 </div>
 
-                <button type="button"
+                <button
+                    type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
-                </button>
+                    aria-label="Close"
+                ></button>
             </div>
 
             <div class="modal-body date-modal-body">
                 <div class="date-result-card fuel-result-card">
-                    <p class="date-result-label mb-1">
-                        Density lbs/gal
-                    </p>
+                    <p class="date-result-label mb-1">Density lbs/gal</p>
 
-                    <p id="fuel-density-result"
-                        class="date-result-long fuel-result-value mb-1">
+                    <p
+                        id="fuel-density-result"
+                        class="date-result-long fuel-result-value mb-1"
+                    >
                         0.00
                     </p>
 
-                    <p id="fuel-density-note"
-                        class="date-result-note mb-0">
+                    <p id="fuel-density-note" class="date-result-note mb-0">
                         0.000 g/cm3 기준
                     </p>
                 </div>
 
-                <form class="date-calculator-card"
+                <form
+                    class="date-calculator-card"
                     id="fuel-density-form"
-                    data-local-submit="true">
-
+                    data-local-submit="true"
+                >
                     <div class="date-custom-row">
-                        <label for="fuel-density-input"
-                            class="form-label mb-1">
+                        <label for="fuel-density-input" class="form-label mb-1">
                             Density g/cm3
                         </label>
 
                         <div class="date-input-wrap date-input-wrap-single">
-                            <input id="fuel-density-input"
+                            <input
+                                id="fuel-density-input"
                                 type="number"
                                 min="0"
                                 step="0.001"
                                 inputmode="decimal"
                                 class="form-control"
                                 value="0"
-                                placeholder="0">
+                                placeholder="0"
+                            />
                         </div>
 
                         <p class="calculator-input-help mb-0 text-center">
-                            g/cm3 값을 입력하면 lbs/gal로 바로 환산됩니다. 예: 0.775 → 6.46
+                            g/cm3 값을 입력하면 lbs/gal로 바로 환산됩니다. 예:
+                            0.775 → 6.46
                         </p>
                     </div>
                 </form>
             </div>
 
             <div class="modal-footer date-modal-footer">
-                <button type="button"
+                <button
+                    type="button"
                     class="btn btn-outline-secondary rounded-pill px-4"
-                    data-bs-dismiss="modal">
+                    data-bs-dismiss="modal"
+                >
                     닫기
                 </button>
             </div>
@@ -321,95 +316,100 @@ Date Calculator
     </div>
 </div>
 
-<div class="modal fade"
+<div
+    class="modal fade"
     id="time-calculator-modal"
     tabindex="-1"
     aria-labelledby="time-calculator-modal-title"
     aria-hidden="true"
     data-bs-backdrop="static"
-    data-bs-keyboard="false">
+    data-bs-keyboard="false"
+>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content date-modal-content">
             <div class="modal-header date-modal-header">
                 <div>
-                    <p class="date-result-label mb-1">
-                        Time Tool
-                    </p>
+                    <p class="date-result-label mb-1">Time Tool</p>
 
-                    <h5 class="modal-title"
-                        id="time-calculator-modal-title">
+                    <h5 class="modal-title" id="time-calculator-modal-title">
                         비행 로그 시간 계산기
                     </h5>
                 </div>
 
-                <button type="button"
+                <button
+                    type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
-                </button>
+                    aria-label="Close"
+                ></button>
             </div>
 
             <div class="modal-body date-modal-body">
                 <div class="date-result-card">
-                    <p class="date-result-label mb-1">
-                        Result
-                    </p>
+                    <p class="date-result-label mb-1">Result</p>
 
-                    <p id="time-calculator-result"
-                        class="date-result-long fuel-result-value mb-1">
+                    <p
+                        id="time-calculator-result"
+                        class="date-result-long fuel-result-value mb-1"
+                    >
                         0:00
                     </p>
 
-                    <p id="time-calculator-note"
-                        class="date-result-note mb-0">
+                    <p id="time-calculator-note" class="date-result-note mb-0">
                         0:00 + 0:00 기준
                     </p>
                 </div>
 
-                <form class="date-calculator-card"
+                <form
+                    class="date-calculator-card"
                     id="time-calculator-form"
-                    data-local-submit="true">
-
+                    data-local-submit="true"
+                >
                     <p class="calculator-input-help ms-1 mb-2 text-center">
-                        시간 입력시 ' : '를 사용하지 않고 숫자만 입력해도 됩니다.
+                        시간 입력시 ' : '를 사용하지 않고 숫자만 입력해도
+                        됩니다.
                     </p>
 
                     <div class="date-base-row">
-                        <label for="time-base-input"
-                            class="form-label mb-1">
+                        <label for="time-base-input" class="form-label mb-1">
                             Base time
                         </label>
 
-                        <input id="time-base-input"
+                        <input
+                            id="time-base-input"
                             type="text"
                             inputmode="numeric"
                             class="form-control time-calculator-input"
                             value=""
-                            placeholder="0">
+                            placeholder="0"
+                        />
                     </div>
 
                     <div class="date-custom-row">
-                        <label for="time-add-input"
-                            class="form-label mb-1">
+                        <label for="time-add-input" class="form-label mb-1">
                             Add time
                         </label>
 
                         <div class="date-input-wrap date-input-wrap-single">
-                            <input id="time-add-input"
+                            <input
+                                id="time-add-input"
                                 type="text"
                                 inputmode="numeric"
                                 class="form-control time-calculator-input"
                                 value=""
-                                placeholder="0">
+                                placeholder="0"
+                            />
                         </div>
                     </div>
                 </form>
             </div>
 
             <div class="modal-footer date-modal-footer">
-                <button type="button"
+                <button
+                    type="button"
                     class="btn btn-outline-secondary rounded-pill px-4"
-                    data-bs-dismiss="modal">
+                    data-bs-dismiss="modal"
+                >
                     닫기
                 </button>
             </div>
@@ -417,69 +417,73 @@ Date Calculator
     </div>
 </div>
 
-<div class="modal fade"
+<div
+    class="modal fade"
     id="consumption-rate-modal"
     tabindex="-1"
     aria-labelledby="consumption-rate-modal-title"
     aria-hidden="true"
     data-bs-backdrop="static"
-    data-bs-keyboard="false">
+    data-bs-keyboard="false"
+>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content date-modal-content">
             <div class="modal-header date-modal-header">
                 <div>
-                    <p class="date-result-label mb-1">
-                        Oil Tool
-                    </p>
+                    <p class="date-result-label mb-1">Oil Tool</p>
 
-                    <h5 class="modal-title"
-                        id="consumption-rate-modal-title">
+                    <h5 class="modal-title" id="consumption-rate-modal-title">
                         오일 소모율 계산기
                     </h5>
                 </div>
 
-                <button type="button"
+                <button
+                    type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
-                </button>
+                    aria-label="Close"
+                ></button>
             </div>
 
             <div class="modal-body date-modal-body">
                 <div class="date-result-card">
-                    <p class="date-result-label mb-1">
-                        Consumption Rate
-                    </p>
+                    <p class="date-result-label mb-1">Consumption Rate</p>
 
-                    <p id="consumption-rate-result"
-                        class="date-result-long fuel-result-value mb-1">
+                    <p
+                        id="consumption-rate-result"
+                        class="date-result-long fuel-result-value mb-1"
+                    >
                         0.000 qty/hr
                     </p>
 
-                    <p id="consumption-rate-note"
-                        class="date-result-note mb-0">
+                    <p id="consumption-rate-note" class="date-result-note mb-0">
                         Add Qty와 Total Block Time을 입력하세요
                     </p>
                 </div>
 
-                <form class="date-calculator-card"
+                <form
+                    class="date-calculator-card"
                     id="consumption-rate-form"
-                    data-local-submit="true">
-
+                    data-local-submit="true"
+                >
                     <div class="date-base-row">
-                        <label for="consumption-add-qty-input"
-                            class="form-label mb-1">
+                        <label
+                            for="consumption-add-qty-input"
+                            class="form-label mb-1"
+                        >
                             Add Qty
                         </label>
 
-                        <input id="consumption-add-qty-input"
+                        <input
+                            id="consumption-add-qty-input"
                             type="number"
                             min="0"
                             step="any"
                             inputmode="decimal"
                             class="form-control"
                             value=""
-                            placeholder="0">
+                            placeholder="0"
+                        />
 
                         <p class="calculator-input-help mb-0 text-center">
                             보급한 오일량을 입력합니다.
@@ -487,47 +491,60 @@ Date Calculator
                     </div>
 
                     <div class="date-custom-row consumption-hours-section">
-                        <label for="consumption-hours-input-1"
-                            class="form-label mb-1">
+                        <label
+                            for="consumption-hours-input-1"
+                            class="form-label mb-1"
+                        >
                             Total Block Time
                         </label>
 
-                        <div id="consumption-hours-list"
-                            class="consumption-hours-list">
+                        <div
+                            id="consumption-hours-list"
+                            class="consumption-hours-list"
+                        >
                             <div class="consumption-hours-row">
-                                <input id="consumption-hours-input-1"
+                                <input
+                                    id="consumption-hours-input-1"
                                     type="text"
                                     inputmode="decimal"
                                     class="form-control time-calculator-input consumption-hours-input"
                                     value=""
                                     placeholder="0:00"
-                                    aria-label="Block time 1">
+                                    aria-label="Block time 1"
+                                />
                             </div>
                         </div>
 
-                        <button id="consumption-add-time-btn"
+                        <button
+                            id="consumption-add-time-btn"
                             type="button"
-                            class="btn btn-outline-primary consumption-add-time-btn">
+                            class="btn btn-outline-primary consumption-add-time-btn"
+                        >
                             <span aria-hidden="true">+</span>
                             Add Time
                         </button>
 
-                        <p id="consumption-total-time"
-                            class="consumption-total-time mb-0">
+                        <p
+                            id="consumption-total-time"
+                            class="consumption-total-time mb-0"
+                        >
                             Total Block Time 0:00
                         </p>
 
                         <p class="calculator-input-help mb-0 text-center">
-                            231은 2:31로 변환됩니다. 2:30 또는 2.5 형식도 사용할 수 있습니다.
+                            231은 2:31로 변환됩니다. 2:30 또는 2.5 형식도 사용할
+                            수 있습니다.
                         </p>
                     </div>
                 </form>
             </div>
 
             <div class="modal-footer date-modal-footer">
-                <button type="button"
+                <button
+                    type="button"
                     class="btn btn-outline-secondary rounded-pill px-4"
-                    data-bs-dismiss="modal">
+                    data-bs-dismiss="modal"
+                >
                     닫기
                 </button>
             </div>
@@ -535,150 +552,191 @@ Date Calculator
     </div>
 </div>
 
-<div class="modal fade"
+<div
+    class="modal fade"
     id="basic-calculator-modal"
     tabindex="-1"
     aria-labelledby="basic-calculator-modal-title"
     aria-hidden="true"
     data-bs-backdrop="static"
-    data-bs-keyboard="false">
+    data-bs-keyboard="false"
+>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content date-modal-content">
             <div class="modal-header date-modal-header">
                 <div>
-                    <p class="date-result-label mb-1">
-                        Calculator Tool
-                    </p>
+                    <p class="date-result-label mb-1">Calculator Tool</p>
 
-                    <h5 class="modal-title"
-                        id="basic-calculator-modal-title">
+                    <h5 class="modal-title" id="basic-calculator-modal-title">
                         일반 계산기
                     </h5>
                 </div>
 
-                <button type="button"
+                <button
+                    type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
-                </button>
+                    aria-label="Close"
+                ></button>
             </div>
 
             <div class="modal-body date-modal-body">
                 <div class="basic-calculator">
                     <div class="basic-calculator-display">
-                        <p id="basic-calculator-expression"
-                            class="basic-calculator-expression mb-1">
-                        </p>
+                        <p
+                            id="basic-calculator-expression"
+                            class="basic-calculator-expression mb-1"
+                        ></p>
 
-                        <strong id="basic-calculator-display">
-                            0
-                        </strong>
+                        <strong id="basic-calculator-display"> 0 </strong>
                     </div>
 
-                    <div class="basic-calculator-grid"
-                        aria-label="General calculator keypad">
-                        <button type="button"
+                    <div
+                        class="basic-calculator-grid"
+                        aria-label="General calculator keypad"
+                    >
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-muted"
-                            data-basic-calc-action="clear">
+                            data-basic-calc-action="clear"
+                        >
                             C
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-muted"
-                            data-basic-calc-action="backspace">
+                            data-basic-calc-action="backspace"
+                        >
                             ⌫
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-muted"
-                            data-basic-calc-action="percent">
+                            data-basic-calc-action="percent"
+                        >
                             %
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-operator"
-                            data-basic-calc-operator="/">
+                            data-basic-calc-operator="/"
+                        >
                             ÷
                         </button>
 
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="7">
+                            data-basic-calc-number="7"
+                        >
                             7
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="8">
+                            data-basic-calc-number="8"
+                        >
                             8
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="9">
+                            data-basic-calc-number="9"
+                        >
                             9
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-operator"
-                            data-basic-calc-operator="*">
+                            data-basic-calc-operator="*"
+                        >
                             ×
                         </button>
 
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="4">
+                            data-basic-calc-number="4"
+                        >
                             4
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="5">
+                            data-basic-calc-number="5"
+                        >
                             5
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="6">
+                            data-basic-calc-number="6"
+                        >
                             6
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-operator"
-                            data-basic-calc-operator="-">
+                            data-basic-calc-operator="-"
+                        >
                             −
                         </button>
 
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="1">
+                            data-basic-calc-number="1"
+                        >
                             1
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="2">
+                            data-basic-calc-number="2"
+                        >
                             2
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="3">
+                            data-basic-calc-number="3"
+                        >
                             3
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-operator"
-                            data-basic-calc-operator="+">
+                            data-basic-calc-operator="+"
+                        >
                             +
                         </button>
 
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-action="toggle-sign">
+                            data-basic-calc-action="toggle-sign"
+                        >
                             +/−
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-number="0">
+                            data-basic-calc-number="0"
+                        >
                             0
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key"
-                            data-basic-calc-action="decimal">
+                            data-basic-calc-action="decimal"
+                        >
                             .
                         </button>
-                        <button type="button"
+                        <button
+                            type="button"
                             class="basic-calculator-key basic-calculator-key-equals"
-                            data-basic-calc-action="equals">
+                            data-basic-calc-action="equals"
+                        >
                             =
                         </button>
                     </div>
@@ -686,9 +744,11 @@ Date Calculator
             </div>
 
             <div class="modal-footer date-modal-footer">
-                <button type="button"
+                <button
+                    type="button"
                     class="btn btn-outline-secondary rounded-pill px-4"
-                    data-bs-dismiss="modal">
+                    data-bs-dismiss="modal"
+                >
                     닫기
                 </button>
             </div>

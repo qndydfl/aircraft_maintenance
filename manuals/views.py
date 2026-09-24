@@ -64,7 +64,6 @@ from django.utils.dateparse import parse_date
 from django.utils import timezone
 from urllib.parse import urlencode
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -117,9 +116,7 @@ def process_reindex_job_inline(job):
             package = ManualPackage.objects.get(pk=job.target_id)
             result = process_manual_package_safely(package)
             page_count = result["page_count"]
-            message = (
-                f"{package.manual_type} re-index complete: {page_count} pages"
-            )
+            message = f"{package.manual_type} re-index complete: {page_count} pages"
         elif job.target_type == ReindexJob.TARGET_MANUAL_FILE:
             manual = ManualFile.objects.get(pk=job.target_id)
             page_count = index_pdf_pages_for_manual_file_safely(manual)
@@ -131,9 +128,7 @@ def process_reindex_job_inline(job):
                     f"{mel_count} MEL messages"
                 )
             else:
-                message = (
-                    f"{manual.manual_type} re-index complete: {page_count} pages"
-                )
+                message = f"{manual.manual_type} re-index complete: {page_count} pages"
         elif job.target_type == ReindexJob.TARGET_COMMON_FILE:
             common_file = CommonManualFile.objects.get(pk=job.target_id)
             page_count = index_pdf_pages_for_common_manual_file_safely(common_file)
@@ -258,7 +253,15 @@ class R2DirectUploadContextMixin:
         return context
 
 
-class HomeView(LoginRequiredMixin, TemplateView):
+class PortalHomeView(LoginRequiredMixin, TemplateView):
+    """
+    로그인 후 처음 표시되는 Manual Portal 메인 Dashboard.
+    """
+
+    template_name = "portal_home.html"
+
+
+class ManualHomeView(LoginRequiredMixin, TemplateView):
     template_name = "home.html"
 
     def get_context_data(self, **kwargs):
@@ -493,8 +496,7 @@ class ManualFileUpdateView(
     def form_valid(self, form):
         old_file = None
         file_replaced = bool(
-            self.request.FILES.get("file")
-            or form.cleaned_data.get("r2_object_key")
+            self.request.FILES.get("file") or form.cleaned_data.get("r2_object_key")
         )
 
         if self.object.pk:
@@ -913,9 +915,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     if value in {"AMM", "FIM", "IPC"}
                 ]
                 selected_file_types = [
-                    value
-                    for value in selected_manual_types
-                    if value in {"MEL", "CDL"}
+                    value for value in selected_manual_types if value in {"MEL", "CDL"}
                 ]
 
                 if selected_package_types:
@@ -960,9 +960,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                         package_pages_qs = package_pages_qs.filter(
                             text__icontains=prefilter
                         )
-                        file_pages_qs = file_pages_qs.filter(
-                            text__icontains=prefilter
-                        )
+                        file_pages_qs = file_pages_qs.filter(text__icontains=prefilter)
                         common_pages_qs = common_pages_qs.filter(
                             text__icontains=prefilter
                         )
@@ -1344,19 +1342,19 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                         "page_number",
                     )
 
-                matching_page_records = list(match_queryset.only(
-                    "chapter_id",
-                    "page_number",
-                    "text",
-                ))
+                matching_page_records = list(
+                    match_queryset.only(
+                        "chapter_id",
+                        "page_number",
+                        "text",
+                    )
+                )
 
                 # Manual/dispatch search results omit reference-index pages when
                 # real content pages exist. Keep the package viewer on that same
                 # page set so its match counter agrees with the result counter.
                 if match_scope != "chapter":
-                    matching_page_records = prefer_content_pages(
-                        matching_page_records
-                    )
+                    matching_page_records = prefer_content_pages(matching_page_records)
 
                 matches = [
                     {
@@ -1736,16 +1734,18 @@ class ManualPackageUpdateView(
     def form_valid(self, form):
         old_file = ManualPackage.objects.get(pk=self.object.pk).zip_file
         uploaded_zip = self.request.FILES.get("zip_file")
-        file_replaced = bool(
-            uploaded_zip or form.cleaned_data.get("r2_object_key")
-        )
+        file_replaced = bool(uploaded_zip or form.cleaned_data.get("r2_object_key"))
 
         if uploaded_zip:
             form.instance.original_zip_file_name = uploaded_zip.name
 
         response = super().form_valid(form)
 
-        if old_file and self.object.zip_file and old_file.name != self.object.zip_file.name:
+        if (
+            old_file
+            and self.object.zip_file
+            and old_file.name != self.object.zip_file.name
+        ):
             delete_file_field(old_file)
 
         self.object.processed = False

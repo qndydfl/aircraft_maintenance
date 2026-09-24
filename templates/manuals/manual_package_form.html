@@ -1,52 +1,39 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-form-page manual-package-form-page
-{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} form-page manual-package-form-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/form.css' %}?v=55">
-{% endblock css %}
-
-{% block js %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}?v=55" />
+{% endblock css %} 
+{% block js %} 
 {% if use_r2_direct_upload %}
 <script defer src="{% static 'js/r2_multipart_upload.js' %}"></script>
-{% endif %}
-{% endblock js %}
+{% endif %} 
+{% endblock js %} 
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
+    <div>
+        <p class="page-eyebrow mb-1">ZIP PACKAGE</p>
+
+        <h2 class="page-title mb-2">
+            {% if package %} Re-upload ZIP Manual Package {% else %} Upload ZIP
+            Manual Package {% endif %}
+        </h2>
+
+        <p class="text-muted mb-0 page-subtitle">
+            AMM / FIM / IPC ZIP 파일을 업로드합니다.
+        </p>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %} 
 
 {% block content %}
 
 <div class="portal-form-wrap">
-
-    <div class="page-hero mb-4">
-        <div>
-            <p class="page-eyebrow mb-1">ZIP PACKAGE</p>
-
-            <h2 class="page-title mb-2">
-                {% if package %}
-                    Re-upload ZIP Manual Package
-                {% else %}
-                    Upload ZIP Manual Package
-                {% endif %}
-            </h2>
-
-            <p class="text-muted mb-0 page-subtitle">
-                AMM / FIM / IPC ZIP 파일을 업로드합니다.
-            </p>
-        </div>
-
-        <div class="page-actions">
-            <a href="{{ back_url }}"
-                class="btn btn-outline-secondary app-action-btn">
-                Back
-            </a>
-        </div>
-    </div>
-
     <div class="card portal-card shadow-sm portal-form-card">
         <div class="card-body">
-            <form method="post"
+            <form
+                method="post"
                 enctype="multipart/form-data"
                 class="portal-form"
                 {% if use_r2_direct_upload %}
@@ -58,17 +45,12 @@ form-page manual-package-form-page
                 data-r2-abort-url="{% url 'r2_multipart_abort' %}"
                 {% endif %}
                 data-loading-title="Processing ZIP Manual"
-                data-loading-message="Extracting files and indexing PDF pages...">
-
-                {% csrf_token %}
-                {{ form.r2_object_key }}
-                {{ form.r2_original_name }}
-                {{ form.r2_file_size }}
-
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger app-alert">
-                        {{ form.non_field_errors }}
-                    </div>
+                data-loading-message="Extracting files and indexing PDF pages..."
+            >
+                {% csrf_token %} {{ form.r2_object_key }} {{ form.r2_original_name }} {{ form.r2_file_size }} {% if form.non_field_errors %}
+                <div class="alert alert-danger app-alert">
+                    {{ form.non_field_errors }}
+                </div>
                 {% endif %}
 
                 <div class="portal-form-section">
@@ -79,32 +61,26 @@ form-page manual-package-form-page
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label">Aircraft</label>
-                            {{ form.aircraft }}
-
-                            {% if form.aircraft.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.aircraft.errors }}
-                                </div>
+                            {{ form.aircraft }} {% if form.aircraft.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.aircraft.errors }}
+                            </div>
                             {% endif %}
                         </div>
 
                         <div class="col-12 col-md-6">
                             <label class="form-label">Manual Type</label>
-                            {{ form.manual_type }}
-
-                            {% if form.manual_type.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.manual_type.errors }}
-                                </div>
+                            {{ form.manual_type }} {% if form.manual_type.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.manual_type.errors }}
+                            </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
                 <div class="portal-form-section">
-                    <h5 class="portal-form-section-title">
-                        Upload ZIP
-                    </h5>
+                    <h5 class="portal-form-section-title">Upload ZIP</h5>
 
                     <label class="form-label">ZIP File</label>
                     {{ form.zip_file }}
@@ -113,31 +89,45 @@ form-page manual-package-form-page
                         <strong>ZIP 구조 안내</strong>
 
                         <div>
-                            index.html이 있는 매뉴얼 ZIP 또는 PDF 파일들이 들어있는 폴더 ZIP을 업로드할 수 있습니다.
+                            index.html이 있는 매뉴얼 ZIP 또는 PDF 파일들이
+                            들어있는 폴더 ZIP을 업로드할 수 있습니다.
                         </div>
 
                         <div class="text-muted small mt-1">
-                            Excel 파일은 먼저 PDF로 변환한 뒤 ZIP으로 압축해서 업로드하세요.
+                            Excel 파일은 먼저 PDF로 변환한 뒤 ZIP으로 압축해서
+                            업로드하세요.
                         </div>
                     </div>
 
                     {% if form.zip_file.errors %}
-                        <div class="text-danger small mt-1">
-                            {{ form.zip_file.errors }}
-                        </div>
-                    {% endif %}
-
-                    {% if use_r2_direct_upload %}
-                    <div class="r2-upload-progress d-none mt-3" data-r2-progress>
-                        <div class="progress" role="progressbar" aria-label="R2 upload progress">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                    <div class="text-danger small mt-1">
+                        {{ form.zip_file.errors }}
+                    </div>
+                    {% endif %} {% if use_r2_direct_upload %}
+                    <div
+                        class="r2-upload-progress d-none mt-3"
+                        data-r2-progress
+                    >
+                        <div
+                            class="progress"
+                            role="progressbar"
+                            aria-label="R2 upload progress"
+                        >
+                            <div
+                                class="progress-bar progress-bar-striped progress-bar-animated"
                                 data-r2-progress-bar
                                 aria-valuemin="0"
                                 aria-valuemax="100"
                                 aria-valuenow="0"
-                                style="width: 0%">0%</div>
+                                style="width: 0%"
+                            >
+                                0%
+                            </div>
                         </div>
-                        <div class="small text-muted mt-2" data-r2-progress-text></div>
+                        <div
+                            class="small text-muted mt-2"
+                            data-r2-progress-text
+                        ></div>
                     </div>
                     {% endif %}
                 </div>
@@ -150,52 +140,44 @@ form-page manual-package-form-page
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label">Revision No</label>
-                            {{ form.revision_no }}
-
-                            {% if form.revision_no.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.revision_no.errors }}
-                                </div>
+                            {{ form.revision_no }} {% if form.revision_no.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.revision_no.errors }}
+                            </div>
                             {% endif %}
                         </div>
 
                         <div class="col-12 col-md-6">
                             <label class="form-label">Revision Date</label>
-                            {{ form.revision_date_text }}
-
-                            {% if form.revision_date_text.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.revision_date_text.errors }}
-                                </div>
+                            {{ form.revision_date_text }} {% if form.revision_date_text.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.revision_date_text.errors }}
+                            </div>
                             {% endif %}
                         </div>
                     </div>
 
                     <div class="form-text mt-2">
-                        입력한 값은 ZIP 안의 모든 PDF에 공통으로 적용됩니다. 비워 두면 파일명에서 자동으로 찾습니다.
+                        입력한 값은 ZIP 안의 모든 PDF에 공통으로 적용됩니다.
+                        비워 두면 파일명에서 자동으로 찾습니다.
                     </div>
                 </div>
 
                 <div class="portal-form-actions">
-                    <button type="submit"
-                            class="btn btn-primary app-card-btn">
-                        {% if package %}
-                            Re-upload ZIP
-                        {% else %}
-                            Upload ZIP
-                        {% endif %}
+                    <button type="submit" class="btn btn-primary app-card-btn">
+                        {% if package %} Re-upload ZIP {% else %} Upload ZIP {% endif %}
                     </button>
 
-                    <a href="{{ back_url }}"
-                        class="btn btn-outline-secondary app-card-btn">
+                    <a
+                        href="{{ back_url }}"
+                        class="btn btn-outline-secondary app-card-btn"
+                    >
                         Cancel
                     </a>
                 </div>
-
             </form>
         </div>
     </div>
-
 </div>
 
 {% endblock content %}

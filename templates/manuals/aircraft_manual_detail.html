@@ -1,18 +1,14 @@
 {% extends 'base.html' %} 
 {% load static %} 
-
 {% block body_class %} detail-page aircraft-manual-detail-page {% endblock body_class %} 
-
-{% block title %} 
-{{ aircraft.name }} Manuals {% endblock title %} 
+{% block title %} {{ aircraft.name }} Manuals {% endblock title %} 
 
 {% block css %}
 <link href="{% static 'css/manual_detail.css' %}?v=55" rel="stylesheet" />
 {% endblock css %} 
 
-{% block content %}
-
-<div class="page-hero mb-4">
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div>
         <p class="page-eyebrow mb-1">{{ aircraft.maker }}</p>
 
@@ -47,15 +43,12 @@
             Print
         </a>
         {% endif %}
-
-        <a
-            href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn mobile-show-btn"
-        >
-            Back
-        </a>
     </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
+
+{% block content %}
 
 <div class="row g-3 g-md-4">
     {% for item in manual_items %}
@@ -78,33 +71,34 @@
 
                     {% if item.type == "OTHER" %} 
                         {% with folder=aircraft.other_categories.first %} 
-                        {% if folder and folder.files.count %}
-                        <span class="portal-detail-pill ready-pill"> READY </span>
+                            {% if folder and folder.files.count %}
+                            <span class="portal-detail-pill ready-pill"> READY </span>
+                            {% else %}
+                            <span class="portal-detail-pill empty-pill"> EMPTY </span>
+                            {% endif %} 
+                        {% endwith %} 
+                    {% elif item.package or item.file %}
+                    <span class="portal-detail-pill ready-pill"> READY </span>
                     {% else %}
-                        <span class="portal-detail-pill empty-pill"> EMPTY </span>
-                    {% endif %} 
-                        {% endwith %} {% elif item.package or item.file %}
-                        <span class="portal-detail-pill ready-pill"> READY </span>
-                    {% else %}
-                        <span class="portal-detail-pill empty-pill"> EMPTY </span>
+                    <span class="portal-detail-pill empty-pill"> EMPTY </span>
                     {% endif %}
                 </div>
 
                 {% if item.type == "OTHER" %} 
-                    {% with folder=aircraft.other_categories.first %} 
+                {% with folder=aircraft.other_categories.first %} 
                     {% if folder %} 
-                    {% if folder.files.count %}
-                        <p class="small mb-3">
-                        <span class="badge bg-success manual-badge"> READY </span>
-                            {{ folder.files.count }} file(s)
-                        </p>
-                    {% else %}
-                        <p class="small mb-3">
-                            <span class="badge bg-warning text-dark manual-badge">
-                                EMPTY
-                            </span>
-                            No files in OTHER folder
-                        </p>
+                        {% if folder.files.count %}
+                            <p class="small mb-3">
+                                <span class="badge bg-success manual-badge"> READY </span>
+                                {{ folder.files.count }} file(s)
+                            </p>
+                {% else %}
+                    <p class="small mb-3">
+                        <span class="badge bg-warning text-dark manual-badge">
+                            EMPTY
+                        </span>
+                        No files in OTHER folder
+                    </p>
                 {% endif %}
 
                 <div class="portal-detail-button-group">
@@ -117,7 +111,6 @@
                 </div>
 
                 {% else %} 
-                
                 {% if user.is_superuser %}
                 <a
                     href="{% url 'other_manual_category_create' %}?aircraft={{ aircraft.pk }}"
@@ -130,14 +123,13 @@
                     OTHER Manual Not Available
                 </p>
                 {% endif %} 
-                
                 {% endif %} 
                 {% endwith %} 
                 {% elif item.package %} 
                 {% if item.package.display_revision_no or item.package.display_revision_date_text %}
                 <p class="revision-info">
-                    {% if item.package.display_revision_no %} Rev
-                    {{ item.package.display_revision_no }} {% endif %}
+                    {% if item.package.display_revision_no %} Rev {{ item.package.display_revision_no }} 
+                    {% endif %} 
                     {% if item.package.display_revision_date_text %} · {{ item.package.display_revision_date_text }} {% endif %}
                 </p>
                 {% endif %}
@@ -219,9 +211,12 @@
                     {% endif %}
                 </div>
 
-                {% elif item.file %} {% if item.file.display_revision_no or item.file.display_revision_date_text %}
+                {% elif item.file %} 
+                {% if item.file.display_revision_no or item.file.display_revision_date_text %}
                 <p class="revision-info">
-                    {% if item.file.display_revision_no %} Rev {{ item.file.display_revision_no }} {% endif %} {% if item.file.display_revision_date_text %} · {{ item.file.display_revision_date_text }} {% endif %}
+                    {% if item.file.display_revision_no %} Rev {{ item.file.display_revision_no }} 
+                    {% endif %} 
+                    {% if item.file.display_revision_date_text %} · {{ item.file.display_revision_date_text }} {% endif %}
                 </p>
                 {% endif %}
 

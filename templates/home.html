@@ -2,21 +2,20 @@
 {% load static %} 
 
 {% block body_class %} home-page {% endblock body_class %} 
-
-{% block title %} Manual Portal {% endblock title %} 
+{% block title %} Manual Library | Manual Portal {% endblock title %} 
 
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}?v=68" />
 {% endblock css %} 
 
-{% block content %}
-
-<div class="page-hero mb-4">
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    
     <div>
-        <p class="page-eyebrow mb-1">Aircraft Manual Portal</p>
-        <h2 class="page-title mb-2">Manual Portal</h2>
+        <p class="page-eyebrow mb-1">AIRCRAFT MAINTENANCE MANUALS</p>
+        <h2 class="page-title mb-2">Manual Library</h2>
         <p class="text-muted mb-0 page-subtitle">
-            Boeing PDF / ZIP manuals and Airbus manual links
+            Boeing / Airbus / Common maintenance manuals
         </p>
     </div>
 
@@ -51,8 +50,11 @@
             Calculator
         </a>
     </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
 
+{% block content %}
 <section class="manual-section mb-4">
     <div class="section-header justify-content-center">
         <div>
@@ -100,13 +102,12 @@
                             >CDL</span
                         >
                         {% with other_folder=aircraft.other_categories.first %}
-                            <span
-                                class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
-                            >
-                                OTHER
-                            </span>
+                        <span
+                            class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            OTHER
+                        </span>
                         {% endwith %}
-
                     </div>
 
                     <p class="manual-card-note">
@@ -118,7 +119,9 @@
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
+                            <span class="home-mobile-manual-name"
+                                >{{ aircraft.name }}</span
+                            >
                             Open Manuals
                         </a>
 
@@ -128,7 +131,9 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
+                            <span class="home-mobile-manual-name"
+                                >{{ aircraft.name }}</span
+                            >
                             Open MyBoeingFleet
                         </a>
                     </div>
@@ -150,7 +155,8 @@
         <div>
             <h4 class="section-title mb-1">Airbus Manuals</h4>
             <p class="section-description mb-0">
-                AMM / IPC는 Airbus World, MEL / CDL은 PDF, OTHER는 폴더 방식입니다.
+                AMM / IPC는 Airbus World, MEL / CDL은 PDF, OTHER는 폴더
+                방식입니다.
             </p>
         </div>
     </div>
@@ -185,13 +191,12 @@
                             >CDL</span
                         >
                         {% with other_folder=aircraft.other_categories.first %}
-                            <span
-                                class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
-                            >
-                                OTHER
-                            </span>
+                        <span
+                            class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
+                        >
+                            OTHER
+                        </span>
                         {% endwith %}
-
                     </div>
 
                     <p class="manual-card-note">
@@ -203,7 +208,9 @@
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
+                            <span class="home-mobile-manual-name"
+                                >{{ aircraft.name }}</span
+                            >
                             Open Manuals
                         </a>
 
@@ -213,7 +220,9 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name">{{ aircraft.name }}</span>
+                            <span class="home-mobile-manual-name"
+                                >{{ aircraft.name }}</span
+                            >
                             Open Airbus World
                         </a>
                     </div>

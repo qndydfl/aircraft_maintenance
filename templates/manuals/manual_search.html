@@ -14,9 +14,8 @@
 manual-search-page
 {% endblock body_class %}
 
-{% block content %}
-
-<div class="page-hero mb-4">
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div>
         <p class="page-eyebrow mb-1">SEARCH</p>
 
@@ -28,14 +27,11 @@ manual-search-page
             매뉴얼별로 검색 결과를 분류해서 보여줍니다.
         </p>
     </div>
-
-    <div class="page-actions">
-        <a href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn hero-back-btn">
-            Back
-        </a>
-    </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %}
+
+{% block content %}
 
 <button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
     type="button"

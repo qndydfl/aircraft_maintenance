@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import DateCalculatorView, HomeView
+from .views import DateCalculatorView, PortalHomeView, ManualHomeView
 from .views import (
     AircraftManualDetailView,
     ManualFileDetailView,
@@ -56,7 +56,8 @@ from .r2_upload_views import (
 )
 
 urlpatterns = [
-    path("", HomeView.as_view(), name="home"),
+    path("", PortalHomeView.as_view(), name="home"),
+    path("manuals/", ManualHomeView.as_view(), name="manual_home"),
     path("date-calculator/", DateCalculatorView.as_view(), name="calculator"),
     path(
         "aircraft/<int:pk>/manuals/",

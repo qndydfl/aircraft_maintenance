@@ -1,64 +1,36 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-delete-confirm-page
-{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} delete-confirm-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/delete.css' %}?v=55">
-{% endblock css %}
+<link rel="stylesheet" href="{% static 'css/delete.css' %}?v=55" />
+{% endblock css %} 
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
+    <div>
+        <p class="page-eyebrow mb-1">DISPATCH</p>
+
+        <h2 class="page-title mb-2">Delete Dispatch</h2>
+
+        <p class="text-muted mb-0 page-subtitle">Dispatch 정보를 삭제합니다.</p>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %} 
 
 {% block content %}
 
-<div class="page-hero mb-4">
-
-    <div>
-        <p class="page-eyebrow mb-1">
-            DISPATCH
-        </p>
-
-        <h2 class="page-title mb-2">
-            Delete Dispatch
-        </h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            Dispatch 정보를 삭제합니다.
-        </p>
-    </div>
-
-    <div class="page-actions">
-        <a href="{% url 'dispatch_detail' dispatch.pk %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
-
-</div>
-
 <div class="card portal-card shadow-sm delete-card">
-
     <div class="card-body">
+        <div class="delete-icon">⚠️</div>
 
-        <div class="delete-icon">
-            ⚠️
-        </div>
+        <h4 class="delete-title">정말 삭제하시겠습니까?</h4>
 
-        <h4 class="delete-title">
-            정말 삭제하시겠습니까?
-        </h4>
-
-        <p class="delete-description">
-            삭제 후에는 복구할 수 없습니다.
-        </p>
+        <p class="delete-description">삭제 후에는 복구할 수 없습니다.</p>
 
         <div class="delete-info">
-
             <div>
                 <span>Aircraft</span>
-                <strong>
-                    {{ dispatch.aircraft.name }}
-                </strong>
+                <strong> {{ dispatch.aircraft.name }} </strong>
             </div>
 
             <div>
@@ -67,28 +39,23 @@ delete-confirm-page
                     {{ dispatch.eicas_message|default:dispatch.fault_code }}
                 </strong>
             </div>
-
         </div>
 
-        <form method="post"
-            class="delete-actions">
-
+        <form method="post" class="delete-actions">
             {% csrf_token %}
 
-            <button type="submit"
-                    class="btn btn-danger app-card-btn">
+            <button type="submit" class="btn btn-danger app-card-btn">
                 Delete Dispatch
             </button>
 
-            <a href="{% url 'dispatch_detail' dispatch.pk %}"
-                class="btn btn-outline-secondary app-card-btn">
+            <a
+                href="{% url 'dispatch_detail' dispatch.pk %}"
+                class="btn btn-outline-secondary app-card-btn"
+            >
                 Cancel
             </a>
-
         </form>
-
     </div>
-
 </div>
 
 {% endblock %}

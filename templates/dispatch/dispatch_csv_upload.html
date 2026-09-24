@@ -1,48 +1,38 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-dispatch-csv-upload-page
-{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} dispatch-csv-upload-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=55">
-{% endblock css %}
-
-{% block content %}
-
-<div class="page-hero mb-4">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=55" />
+{% endblock css %} 
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div>
         <p class="page-eyebrow mb-1">CSV UPLOAD</p>
 
-        <h2 class="page-title mb-2">
-            Dispatch CSV Upload
-        </h2>
+        <h2 class="page-title mb-2">Dispatch CSV Upload</h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            EICAS / Fault Code / MEL / FIM / AMM 데이터와 MEL Dispatch Item 행을 CSV로 업로드합니다.
+            EICAS / Fault Code / MEL / FIM / AMM 데이터와 MEL Dispatch Item 행을
+            CSV로 업로드합니다.
         </p>
     </div>
-
-    <div class="page-actions">
-        <a href="{% url 'dispatch_search' %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
+
+{% block content %}
 
 <div class="card portal-card shadow-sm mb-4">
     <div class="card-body">
-        <form method="post"
+        <form
+            method="post"
             enctype="multipart/form-data"
-            class="csv-upload-form">
+            class="csv-upload-form"
+        >
             {% csrf_token %}
 
             <div>
-                <label class="form-label">
-                    Dispatch CSV File
-                </label>
+                <label class="form-label"> Dispatch CSV File </label>
 
                 <input
                     type="file"
@@ -53,8 +43,7 @@ dispatch-csv-upload-page
                 />
             </div>
 
-            <button type="submit"
-                class="btn btn-danger app-card-btn">
+            <button type="submit" class="btn btn-danger app-card-btn">
                 Upload CSV
             </button>
         </form>
@@ -63,16 +52,16 @@ dispatch-csv-upload-page
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
-        <h5 class="fw-bold mb-3">
-            CSV 예시
-        </h5>
+        <h5 class="fw-bold mb-3">CSV 예시</h5>
 
         <div class="csv-example-wrap">
-<pre class="csv-example">aircraft,eicas_message,status_message,fault_code,mel_number,fim_chapter,amm_chapter,description,note,message,condition,mel_item,page_number,manual_file_id
+            <pre class="csv-example">
+aircraft,eicas_message,status_message,fault_code,mel_number,fim_chapter,amm_chapter,description,note,message,condition,mel_item,page_number,manual_file_id
 B747,PACK 1 OFF,,,,21-51-01,21-51-00,Pack 1 off condition,MEL 확인 후 FIM 수행,,,,,
 B777,HYD PRESS SYS L,HYD PRESS LOW,,,,29-11-00,Left hydraulic pressure low,Status message 확인,,,,,
 B747,,,,,,,,,R GEAR DOOR SENSOR,Landing Gear Door Position Sensors,32-61-02,91,26
-B747,,,,,,,,,R GEAR UPLOCK SENSOR,Landing Gear Uplock Position Sensors,32-61-03,91,26</pre>
+B747,,,,,,,,,R GEAR UPLOCK SENSOR,Landing Gear Uplock Position Sensors,32-61-03,91,26</pre
+            >
         </div>
     </div>
 </div>

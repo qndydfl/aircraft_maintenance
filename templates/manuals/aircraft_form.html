@@ -1,111 +1,83 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-form-page aircraft-form-page
-{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} form-page aircraft-form-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/form.css' %}?v=55">
-{% endblock css %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}?v=55" />
+{% endblock css %} 
+
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    <div>
+        <p class="page-eyebrow mb-1">AIRCRAFT</p>
+
+        <h2 class="page-title mb-2">
+            {% if aircraft %} Edit Aircraft {% else %} Add Aircraft {% endif %}
+        </h2>
+
+        <p class="text-muted mb-0 page-subtitle">
+            Boeing 또는 Airbus 기종을 등록합니다.
+        </p>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %} 
 
 {% block content %}
 
 <div class="portal-form-wrap">
-
-    <div class="page-hero mb-4">
-        <div>
-            <p class="page-eyebrow mb-1">
-                AIRCRAFT
-            </p>
-
-            <h2 class="page-title mb-2">
-                {% if aircraft %}
-                    Edit Aircraft
-                {% else %}
-                    Add Aircraft
-                {% endif %}
-            </h2>
-
-            <p class="text-muted mb-0 page-subtitle">
-                Boeing 또는 Airbus 기종을 등록합니다.
-            </p>
-        </div>
-
-        <div class="page-actions">
-            <a href="{% url 'aircraft_manage' %}"
-                class="btn btn-outline-secondary app-action-btn">
-                Back
-            </a>
-        </div>
-    </div>
-
     <div class="card portal-card shadow-sm portal-form-card">
         <div class="card-body">
-
             <form method="post" class="portal-form">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger app-alert">
-                        {{ form.non_field_errors }}
-                    </div>
+                {% csrf_token %} {% if form.non_field_errors %}
+                <div class="alert alert-danger app-alert">
+                    {{ form.non_field_errors }}
+                </div>
                 {% endif %}
 
                 <div class="portal-form-section">
-                    <h5 class="portal-form-section-title">
-                        Basic Information
-                    </h5>
+                    <h5 class="portal-form-section-title">Basic Information</h5>
 
                     <div class="mb-3">
                         <label class="form-label">Maker</label>
-                        {{ form.maker }}
-
-                        {% if form.maker.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.maker.errors }}
-                            </div>
+                        {{ form.maker }} {% if form.maker.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.maker.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Aircraft Name</label>
-                        {{ form.name }}
-
-                        {% if form.name.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.name.errors }}
-                            </div>
+                        {{ form.name }} {% if form.name.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.name.errors }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="portal-form-section">
-                    <h5 class="portal-form-section-title">
-                        Airbus World Link
-                    </h5>
+                    <h5 class="portal-form-section-title">Airbus World Link</h5>
 
                     <div class="mb-3">
                         <label class="form-label">Airbus URL</label>
                         {{ form.airbus_url }}
 
                         <div class="portal-form-guide mt-3">
-                            Boeing은 비워두세요.<br>
+                            Boeing은 비워두세요.<br />
                             Airbus만 Airbus World URL을 입력합니다.
                         </div>
 
                         {% if form.airbus_url.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.airbus_url.errors }}
-                            </div>
+                        <div class="text-danger small mt-1">
+                            {{ form.airbus_url.errors }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="portal-form-section">
-                    <h5 class="portal-form-section-title">
-                        Guide
-                    </h5>
+                    <h5 class="portal-form-section-title">Guide</h5>
 
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
@@ -129,22 +101,20 @@ form-page aircraft-form-page
                 </div>
 
                 <div class="portal-form-actions">
-                    <button type="submit"
-                            class="btn btn-primary app-card-btn">
+                    <button type="submit" class="btn btn-primary app-card-btn">
                         Save
                     </button>
 
-                    <a href="{% url 'aircraft_manage' %}"
-                        class="btn btn-outline-secondary app-card-btn">
+                    <a
+                        href="{% url 'aircraft_manage' %}"
+                        class="btn btn-outline-secondary app-card-btn"
+                    >
                         Cancel
                     </a>
                 </div>
-
             </form>
-
         </div>
     </div>
-
 </div>
 
 {% endblock content %}

@@ -1,0 +1,367 @@
+{% extends "base.html" %} 
+{% load static %} 
+{% block title %}Maintenance Command Center{% endblock title %} 
+{% block body_class %}portal-home-page{% endblock body_class %} 
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20260924-1" />
+{% endblock css %} 
+
+{% block js %}
+<script src="{% static 'js/portal_home.js' %}?v=20260924-1" defer></script>
+{% endblock js %} 
+
+{% block content %}
+
+<!-- Boot Screen -->
+<div id="portalBoot" class="command-boot" aria-hidden="true">
+    <div class="command-boot-inner">
+        <div class="command-boot-logo">
+            <span class="boot-wing boot-wing-left"></span>
+            <span class="boot-aircraft">✈</span>
+            <span class="boot-wing boot-wing-right"></span>
+        </div>
+
+        <p class="command-boot-eyebrow">AIRCRAFT MAINTENANCE SYSTEM</p>
+
+        <h1>MANUAL PORTAL</h1>
+
+        <div class="boot-progress">
+            <span id="bootProgressBar"></span>
+        </div>
+
+        <div class="boot-status">
+            <span id="bootStatus"> INITIALIZING SYSTEM </span>
+            <strong id="bootPercent">0%</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Main Command Center -->
+<section id="commandCenter" class="command-center">
+    <!-- Ambient background -->
+    <div class="command-background" aria-hidden="true">
+        <div class="command-grid"></div>
+
+        <div class="command-glow command-glow-one"></div>
+        <div class="command-glow command-glow-two"></div>
+
+        <div class="command-scan-line"></div>
+
+        <div class="command-stars">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <!-- =====================================================
+    HEADER
+    ====================================================== -->
+
+    <header class="command-header">
+        <div class="command-heading">
+            <div class="command-kicker">
+                <span class="command-live-dot"></span>
+                AIRCRAFT MAINTENANCE SYSTEM
+            </div>
+
+            <h1>Command Center</h1>
+
+            <p>Manuals · Technical Search · Dispatch · Engineering Tools</p>
+        </div>
+
+        <div class="command-system-status">
+            <div class="system-status-label">SYSTEM STATUS</div>
+
+            <div class="system-status-value">
+                <span></span>
+                OPERATIONAL
+            </div>
+        </div>
+    </header>
+
+    <!-- =====================================================
+    WORKSPACE
+    ====================================================== -->
+
+    <div id="commandWorkspace" class="command-workspace">
+        <!-- ================= LEFT ================= -->
+
+        <div class="command-side command-side-left">
+            <!-- Manuals -->
+
+            <a
+                href="{% url 'manual_home' %}"
+                class="hud-panel hud-panel-manuals"
+                data-tilt-panel
+            >
+                <div class="hud-panel-number">01</div>
+
+                <div class="hud-icon">
+                    <span>▤</span>
+                </div>
+
+                <div class="hud-content">
+                    <div class="hud-label">TECHNICAL LIBRARY</div>
+
+                    <h2>Manuals</h2>
+
+                    <p>Aircraft maintenance technical publications</p>
+
+                    <div class="hud-tags">
+                        <span>AMM</span>
+                        <span>FIM</span>
+                        <span>IPC</span>
+                        <span>MEL</span>
+                        <span>CDL</span>
+                    </div>
+                </div>
+
+                <div class="hud-enter">
+                    OPEN
+                    <strong>→</strong>
+                </div>
+            </a>
+
+            <!-- Dispatch -->
+
+            <a
+                href="{% url 'dispatch_search' %}"
+                class="hud-panel hud-panel-dispatch"
+                data-tilt-panel
+            >
+                <div class="hud-panel-number">03</div>
+
+                <div class="hud-icon">
+                    <span>!</span>
+                </div>
+
+                <div class="hud-content">
+                    <div class="hud-label">TROUBLESHOOTING</div>
+
+                    <h2>Dispatch</h2>
+
+                    <p>EICAS messages, faults and references</p>
+
+                    <div class="hud-tags">
+                        <span>EICAS</span>
+                        <span>FAULT</span>
+                        <span>MEL</span>
+                    </div>
+                </div>
+
+                <div class="hud-enter">
+                    OPEN
+                    <strong>→</strong>
+                </div>
+            </a>
+        </div>
+
+        <!-- ================= AIRCRAFT CENTER ================= -->
+
+        <div id="aircraftScene" class="aircraft-scene">
+            <div class="aircraft-scene-depth">
+                <!-- orbit -->
+                <div class="aircraft-orbit orbit-one"></div>
+                <div class="aircraft-orbit orbit-two"></div>
+                <div class="aircraft-orbit orbit-three"></div>
+
+                <div class="orbit-point orbit-point-one"></div>
+                <div class="orbit-point orbit-point-two"></div>
+
+                <!-- radar -->
+                <div class="radar-plane">
+                    <div class="radar-circle radar-circle-one"></div>
+                    <div class="radar-circle radar-circle-two"></div>
+                    <div class="radar-circle radar-circle-three"></div>
+                    <div class="radar-cross radar-cross-x"></div>
+                    <div class="radar-cross radar-cross-y"></div>
+                    <div class="radar-sweep"></div>
+                </div>
+
+                <!-- Aircraft -->
+                <div id="aircraftModel" class="aircraft-model">
+                    <div class="aircraft-shadow"></div>
+
+                    <div class="aircraft-body">
+                        <div class="aircraft-nose"></div>
+
+                        <div class="aircraft-fuselage"></div>
+
+                        <div class="aircraft-cockpit">
+                            <span></span>
+                            <span></span>
+                        </div>
+
+                        <div class="aircraft-wing aircraft-wing-left"></div>
+                        <div class="aircraft-wing aircraft-wing-right"></div>
+
+                        <div
+                            class="aircraft-tail-wing aircraft-tail-left"
+                        ></div>
+                        <div
+                            class="aircraft-tail-wing aircraft-tail-right"
+                        ></div>
+
+                        <div class="aircraft-tail"></div>
+
+                        <div class="aircraft-engine engine-left"></div>
+                        <div class="aircraft-engine engine-right"></div>
+
+                        <div class="aircraft-center-line"></div>
+                    </div>
+                </div>
+
+                <!-- HUD crosshair -->
+
+                <div class="aircraft-target">
+                    <span class="target-tl"></span>
+                    <span class="target-tr"></span>
+                    <span class="target-bl"></span>
+                    <span class="target-br"></span>
+                </div>
+
+                <!-- Aircraft Information -->
+
+                <div class="aircraft-info">
+                    <span class="aircraft-info-label">
+                        MAINTENANCE PLATFORM
+                    </span>
+
+                    <strong> TECHNICAL OPERATIONS </strong>
+
+                    <div class="aircraft-info-status">
+                        <span></span>
+                        SYSTEM READY
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT ================= -->
+
+        <div class="command-side command-side-right">
+            <!-- Search -->
+
+            <a
+                href="{% url 'manual_search' %}"
+                class="hud-panel hud-panel-search"
+                data-tilt-panel
+            >
+                <div class="hud-panel-number">02</div>
+
+                <div class="hud-icon">
+                    <span>⌕</span>
+                </div>
+
+                <div class="hud-content">
+                    <div class="hud-label">DOCUMENT INDEX</div>
+
+                    <h2>Manual Search</h2>
+
+                    <p>Search indexed PDF manual content</p>
+
+                    <div class="hud-tags">
+                        <span>PDF</span>
+                        <span>INDEX</span>
+                        <span>SEARCH</span>
+                    </div>
+                </div>
+
+                <div class="hud-enter">
+                    OPEN
+                    <strong>→</strong>
+                </div>
+            </a>
+
+            <!-- Calculator -->
+
+            <a
+                href="{% url 'calculator' %}"
+                class="hud-panel hud-panel-calculator"
+                data-tilt-panel
+            >
+                <div class="hud-panel-number">04</div>
+
+                <div class="hud-icon">
+                    <span>±</span>
+                </div>
+
+                <div class="hud-content">
+                    <div class="hud-label">ENGINEERING TOOL</div>
+
+                    <h2>Calculator</h2>
+
+                    <p>Maintenance date and time calculations</p>
+
+                    <div class="hud-tags">
+                        <span>DATE</span>
+                        <span>TIME</span>
+                        <span>TOOLS</span>
+                    </div>
+                </div>
+
+                <div class="hud-enter">
+                    OPEN
+                    <strong>→</strong>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- =====================================================
+    FOOTER HUD
+    ====================================================== -->
+
+    <footer class="command-footer">
+        <div class="command-footer-left">
+            <span class="footer-status">
+                <i></i>
+                DATABASE ONLINE
+            </span>
+
+            <span class="footer-divider"></span>
+
+            <span> BOEING </span>
+
+            <span> AIRBUS </span>
+
+            <span> COMMON </span>
+        </div>
+
+        <div class="command-quick-links">
+            <a
+                href="https://www.myboeingfleet.com"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                MYBOEINGFLEET
+                <span>↗</span>
+            </a>
+
+            <a
+                href="https://w3.airbus.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                AIRBUS WORLD
+                <span>↗</span>
+            </a>
+
+            {% if user.is_superuser %}
+            <a href="{% url 'admin:index' %}">
+                ADMIN
+                <span>→</span>
+            </a>
+            {% endif %}
+        </div>
+    </footer>
+</section>
+
+{% endblock content %}

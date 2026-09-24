@@ -4,6 +4,29 @@ document.addEventListener("DOMContentLoaded", function () {
     const bottomNav = document.querySelector(".mobile-bottom-nav");
     const bottomNavLinks = document.querySelectorAll(".mobile-bottom-nav a");
     const appMain = document.querySelector(".app-main");
+    const navbarBackButtons = document.querySelectorAll("[data-navbar-back]");
+
+    navbarBackButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const fallbackUrl = button.dataset.fallbackUrl || "/";
+            let hasInternalReferrer = false;
+
+            try {
+                hasInternalReferrer =
+                    Boolean(document.referrer) &&
+                    new URL(document.referrer).origin === window.location.origin;
+            } catch (error) {
+                hasInternalReferrer = false;
+            }
+
+            if (hasInternalReferrer && window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            window.location.assign(fallbackUrl);
+        });
+    });
 
     /*
      * PWA 실행 상태 확인

@@ -10,10 +10,8 @@ list-page dispatch-list-page
 <link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=55">
 {% endblock css %}
 
-{% block content %}
-
-<div class="page-hero mb-4">
-
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div>
         <p class="page-eyebrow mb-1">
             DISPATCH
@@ -41,15 +39,14 @@ list-page dispatch-list-page
             class="btn btn-outline-primary app-action-btn d-none d-md-inline-flex">
             Search
         </a>
-
-        <a href="{% url 'dispatch_search' %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-
     </div>
-
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %}
+
+{% block content %}
+
+
 
 <div class="card portal-card shadow-sm dispatch-search-card mb-4">
     <div class="card-body">

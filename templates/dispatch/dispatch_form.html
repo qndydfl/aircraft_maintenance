@@ -1,268 +1,190 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-dispatch-form-page
-{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} dispatch-form-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=55">
-{% endblock css %}
-
-{% block content %}
-
-<div class="page-hero mb-4">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=55" />
+{% endblock css %} 
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div>
         <p class="page-eyebrow mb-1">DISPATCH</p>
 
         <h2 class="page-title mb-2">
-            {% if dispatch %}
-                Edit Dispatch
-            {% else %}
-                Add Dispatch
-            {% endif %}
+            {% if dispatch %} Edit Dispatch {% else %} Add Dispatch {% endif %}
         </h2>
 
         <p class="text-muted mb-0 page-subtitle">
             EICAS / Fault Code / MEL / FIM / AMM Reference
         </p>
     </div>
-
-    <div class="page-actions">
-        {% if dispatch %}
-            <a href="{% url 'dispatch_detail' dispatch.pk %}"
-                class="btn btn-outline-secondary app-action-btn">
-                Back
-            </a>
-        {% else %}
-            <a href="{% url 'dispatch_list' %}"
-                class="btn btn-outline-secondary app-action-btn">
-                Back
-            </a>
-        {% endif %}
-    </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
+
+{% block content %}
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
         <form method="post" class="dispatch-form">
-            {% csrf_token %}
-
-            {{ form.mel_page_number }}
-            {{ form.fim_page_number }}
-            {{ form.amm_page_number }}
-            {{ form.mel_manual_file_id }}
-            {{ form.fim_chapter_id }}
-            {{ form.amm_chapter_id }}
-
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger app-alert">
-                    {{ form.non_field_errors }}
-                </div>
+            {% csrf_token %} {{ form.mel_page_number }} {{ form.fim_page_number }} {{ form.amm_page_number }} {{ form.mel_manual_file_id }} {{ form.fim_chapter_id }} {{ form.amm_chapter_id }} {% if form.non_field_errors %}
+            <div class="alert alert-danger app-alert">
+                {{ form.non_field_errors }}
+            </div>
             {% endif %}
 
             <div class="dispatch-form-section">
-                <h5 class="dispatch-form-section-title">
-                    Fault Information
-                </h5>
+                <h5 class="dispatch-form-section-title">Fault Information</h5>
 
                 <div class="row g-3">
                     <div class="col-12">
-                        <label class="form-label">
-                            Aircraft
-                        </label>
+                        <label class="form-label"> Aircraft </label>
 
-                        {{ form.aircraft }}
-
-                        {% if form.aircraft.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.aircraft.errors }}
-                            </div>
+                        {{ form.aircraft }} {% if form.aircraft.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.aircraft.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label">
-                            EICAS Message
-                        </label>
+                        <label class="form-label"> EICAS Message </label>
 
-                        {{ form.eicas_message }}
-
-                        {% if form.eicas_message.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.eicas_message.errors }}
-                            </div>
+                        {{ form.eicas_message }} {% if form.eicas_message.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.eicas_message.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label">
-                            Fault Code
-                        </label>
+                        <label class="form-label"> Fault Code </label>
 
-                        {{ form.fault_code }}
-
-                        {% if form.fault_code.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.fault_code.errors }}
-                            </div>
+                        {{ form.fault_code }} {% if form.fault_code.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.fault_code.errors }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="dispatch-form-section">
-                <h5 class="dispatch-form-section-title">
-                    Manual References
-                </h5>
+                <h5 class="dispatch-form-section-title">Manual References</h5>
 
                 <div class="row g-3">
                     <div class="col-12 col-md-4">
-                        <label class="form-label">
-                            MEL Number
-                        </label>
+                        <label class="form-label"> MEL Number </label>
 
-                        {{ form.mel_number }}
-
-                        {% if form.mel_number.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.mel_number.errors }}
-                            </div>
+                        {{ form.mel_number }} {% if form.mel_number.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.mel_number.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12 col-md-4">
-                        <label class="form-label">
-                            FIM Chapter
-                        </label>
+                        <label class="form-label"> FIM Chapter </label>
 
-                        {{ form.fim_chapter }}
-
-                        {% if form.fim_chapter.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.fim_chapter.errors }}
-                            </div>
+                        {{ form.fim_chapter }} {% if form.fim_chapter.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.fim_chapter.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12 col-md-4">
-                        <label class="form-label">
-                            AMM Chapter
-                        </label>
+                        <label class="form-label"> AMM Chapter </label>
 
-                        {{ form.amm_chapter }}
-
-                        {% if form.amm_chapter.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.amm_chapter.errors }}
-                            </div>
+                        {{ form.amm_chapter }} {% if form.amm_chapter.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.amm_chapter.errors }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="dispatch-form-section">
-                <h5 class="dispatch-form-section-title">
-                    Search Keywords
-                </h5>
+                <h5 class="dispatch-form-section-title">Search Keywords</h5>
 
                 <div class="row g-3">
                     <div class="col-12 col-md-4">
-                        <label class="form-label">
-                            MEL Search Keyword
-                        </label>
+                        <label class="form-label"> MEL Search Keyword </label>
 
-                        {{ form.mel_search_keyword }}
-
-                        {% if form.mel_search_keyword.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.mel_search_keyword.errors }}
-                            </div>
+                        {{ form.mel_search_keyword }} {% if form.mel_search_keyword.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.mel_search_keyword.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12 col-md-4">
-                        <label class="form-label">
-                            FIM Search Keyword
-                        </label>
+                        <label class="form-label"> FIM Search Keyword </label>
 
-                        {{ form.fim_search_keyword }}
-
-                        {% if form.fim_search_keyword.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.fim_search_keyword.errors }}
-                            </div>
+                        {{ form.fim_search_keyword }} {% if form.fim_search_keyword.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.fim_search_keyword.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12 col-md-4">
-                        <label class="form-label">
-                            AMM Search Keyword
-                        </label>
+                        <label class="form-label"> AMM Search Keyword </label>
 
-                        {{ form.amm_search_keyword }}
-
-                        {% if form.amm_search_keyword.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.amm_search_keyword.errors }}
-                            </div>
+                        {{ form.amm_search_keyword }} {% if form.amm_search_keyword.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.amm_search_keyword.errors }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="dispatch-form-section">
-                <h5 class="dispatch-form-section-title">
-                    Description / Note
-                </h5>
+                <h5 class="dispatch-form-section-title">Description / Note</h5>
 
                 <div class="row g-3">
                     <div class="col-12">
-                        <label class="form-label">
-                            Description
-                        </label>
+                        <label class="form-label"> Description </label>
 
-                        {{ form.description }}
-
-                        {% if form.description.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.description.errors }}
-                            </div>
+                        {{ form.description }} {% if form.description.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.description.errors }}
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label">
-                            Note
-                        </label>
+                        <label class="form-label"> Note </label>
 
-                        {{ form.note }}
-
-                        {% if form.note.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.note.errors }}
-                            </div>
+                        {{ form.note }} {% if form.note.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.note.errors }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="dispatch-form-actions">
-                <button type="submit"
-                    class="btn btn-warning app-card-btn">
+                <button type="submit" class="btn btn-warning app-card-btn">
                     Save
                 </button>
 
                 {% if dispatch %}
-                    <a href="{% url 'dispatch_detail' dispatch.pk %}"
-                        class="btn btn-outline-secondary app-card-btn">
-                        Cancel
-                    </a>
+                <a
+                    href="{% url 'dispatch_detail' dispatch.pk %}"
+                    class="btn btn-outline-secondary app-card-btn"
+                >
+                    Cancel
+                </a>
                 {% else %}
-                    <a href="{% url 'dispatch_list' %}"
-                        class="btn btn-outline-secondary app-card-btn">
-                        Cancel
-                    </a>
+                <a
+                    href="{% url 'dispatch_list' %}"
+                    class="btn btn-outline-secondary app-card-btn"
+                >
+                    Cancel
+                </a>
                 {% endif %}
             </div>
         </form>

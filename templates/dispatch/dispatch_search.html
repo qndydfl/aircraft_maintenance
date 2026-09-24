@@ -14,9 +14,8 @@ dispatch-search-page
 <script src="{% static 'js/dispatch_search.js' %}"></script>
 {% endblock js %}
 
-{% block content %}
-
-<div class="page-hero mb-4">
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div>
         <p class="page-eyebrow mb-1">SEARCH</p>
 
@@ -49,13 +48,14 @@ dispatch-search-page
             class="btn btn-outline-dark app-action-btn d-none d-md-inline-flex">
             Print
         </a>
-
-        <a href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
     </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %}
+
+{% block content %}
+
+
 
 <button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
     type="button"

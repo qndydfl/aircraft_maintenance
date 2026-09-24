@@ -1,0 +1,23 @@
+<div class="app-navbar-ending" aria-label="Page navigation">
+    <button
+        type="button"
+        class="app-navbar-ending-btn"
+        data-navbar-back
+        data-fallback-url="{% url 'home' %}"
+        aria-label="Back"
+        title="Back"
+    >
+        <span class="app-navbar-back-icon" aria-hidden="true">‹</span>
+        <span class="app-navbar-ending-label">Back</span>
+    </button>
+    
+    <a
+        href="{% url 'home' %}"
+        class="app-navbar-ending-btn"
+        aria-label="Home"
+        title="Home"
+    >
+        <span class="app-navbar-home-icon" aria-hidden="true">⌂</span>
+        <span class="app-navbar-ending-label">Home</span>
+    </a>    
+</div>

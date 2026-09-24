@@ -1,15 +1,12 @@
 {% extends 'base.html' %} 
 {% load static %} 
-
 {% block body_class %} list-page aircraft-manage-page {% endblock body_class %} 
-
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/list.css' %}?v=55" />
 {% endblock css %} 
 
-{% block content %}
-
-<div class="page-hero mb-4">
+{% block navbar_content %}
+<div class="app-navbar-page-content">
     <div>
         <p class="page-eyebrow mb-1">MANAGE</p>
 
@@ -36,15 +33,12 @@
             Add Common Manual
         </a>
         {% endif %}
-
-        <a
-            href="{% url 'home' %}"
-            class="btn btn-outline-secondary app-action-btn"
-        >
-            Back
-        </a>
     </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
+
+{% block content %}
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
@@ -81,10 +75,9 @@
                         <td class="fw-bold">{{ aircraft.name }}</td>
 
                         <td>
-                            {% if aircraft.maker == "BOEING" %} 
-                            AMM / FIM / IPC / MEL / CDL 
-                            {% else %} AMM / FIM / IPC Link, MEL / CDL PDF 
-                            {% endif %}
+                            {% if aircraft.maker == "BOEING" %} AMM / FIM / IPC
+                            / MEL / CDL {% else %} AMM / FIM / IPC Link, MEL /
+                            CDL PDF {% endif %}
                         </td>
 
                         <td>
@@ -138,7 +131,9 @@
                         </h5>
 
                         <p class="portal-list-card-desc mb-0">
-                            {% if aircraft.maker == "BOEING" %} AMM / FIM / IPC / MEL / CDL {% else %} AMM / FIM / IPC Link, MEL / CDL PDF {% endif %}
+                            {% if aircraft.maker == "BOEING" %} AMM / FIM / IPC
+                            / MEL / CDL {% else %} AMM / FIM / IPC Link, MEL /
+                            CDL PDF {% endif %}
                         </p>
                     </div>
                 </div>
@@ -210,7 +205,8 @@
                         </td>
 
                         <td>
-                            {{ category.description|default:"공통 매뉴얼 카테고리입니다." }}
+                            {{ category.description|default:"공통 매뉴얼
+                            카테고리입니다." }}
                         </td>
 
                         <td>{{ category.files.count }}</td>
@@ -258,7 +254,8 @@
                         </h5>
 
                         <p class="portal-list-card-desc mb-1">
-                            {{ category.description|default:"공통 매뉴얼 카테고리입니다." }}
+                            {{ category.description|default:"공통 매뉴얼
+                            카테고리입니다." }}
                         </p>
 
                         <p class="portal-list-card-desc mb-0">

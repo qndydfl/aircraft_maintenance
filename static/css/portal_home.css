@@ -1,0 +1,2160 @@
+/* =========================================================
+   Aircraft Maintenance Command Center
+========================================================= */
+
+body.portal-home-page {
+    --cmd-bg: #06101f;
+    --cmd-bg-deep: #020711;
+
+    --cmd-panel: rgba(10, 25, 45, 0.74);
+    --cmd-panel-hover: rgba(13, 36, 64, 0.92);
+
+    --cmd-line: rgba(83, 185, 255, 0.22);
+    --cmd-blue: #42b7ff;
+    --cmd-blue-bright: #7dd3fc;
+    --cmd-cyan: #22d3ee;
+    --cmd-green: #4ade80;
+
+    --cmd-text: #e8f4ff;
+    --cmd-muted: #7f9db7;
+
+    background:
+        radial-gradient(
+            circle at 50% 32%,
+            rgba(20, 100, 180, 0.16),
+            transparent 32rem
+        ),
+        linear-gradient(
+            145deg,
+            #071426,
+            #030914 70%
+        );
+
+    color: var(--cmd-text);
+}
+
+body.portal-home-page .app-main {
+    min-height: calc(
+        100dvh - var(--navbar-height)
+    );
+
+    overflow: hidden;
+}
+
+body.portal-home-page .app-container {
+    width: 100%;
+    max-width: 100%;
+
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+
+/* =========================================================
+   Command Center
+========================================================= */
+
+.command-center {
+    position: relative;
+
+    width: 100%;
+    max-width: 94rem;
+
+    min-height: calc(
+        100dvh
+        - var(--navbar-height)
+        - (var(--page-edge-gap) * 2)
+    );
+
+    margin: 0 auto;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(80, 170, 240, 0.18);
+    border-radius: 1.5rem;
+
+    background:
+        radial-gradient(
+            circle at 50% 42%,
+            rgba(0, 122, 255, 0.12),
+            transparent 36%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(5, 17, 32, 0.98),
+            rgba(2, 8, 18, 0.99)
+        );
+
+    box-shadow:
+        0 2rem 5rem rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    isolation: isolate;
+}
+
+
+/* =========================================================
+   Background
+========================================================= */
+
+.command-background {
+    position: absolute;
+    inset: 0;
+
+    z-index: -1;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+.command-grid {
+    position: absolute;
+    inset: -40%;
+
+    background-image:
+        linear-gradient(
+            rgba(61, 156, 220, 0.08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(61, 156, 220, 0.08) 1px,
+            transparent 1px
+        );
+
+    background-size: 3.5rem 3.5rem;
+
+    transform:
+        perspective(45rem)
+        rotateX(62deg)
+        translateY(26%);
+
+    transform-origin: center;
+
+    opacity: 0.48;
+
+    animation:
+        commandGridMove 16s linear infinite;
+}
+
+@keyframes commandGridMove {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position:
+            0 3.5rem;
+    }
+}
+
+.command-glow {
+    position: absolute;
+
+    width: 32rem;
+    height: 32rem;
+
+    border-radius: 50%;
+
+    filter: blur(5rem);
+
+    opacity: 0.13;
+}
+
+.command-glow-one {
+    top: -15rem;
+    left: -10rem;
+
+    background: #007aff;
+}
+
+.command-glow-two {
+    right: -12rem;
+    bottom: -18rem;
+
+    background: #22d3ee;
+}
+
+.command-scan-line {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    top: -10%;
+
+    height: 5rem;
+
+    background:
+        linear-gradient(
+            to bottom,
+            transparent,
+            rgba(60, 190, 255, 0.035),
+            transparent
+        );
+
+    animation:
+        commandScan 8s linear infinite;
+}
+
+@keyframes commandScan {
+    from {
+        transform: translateY(-10vh);
+    }
+
+    to {
+        transform: translateY(120vh);
+    }
+}
+
+
+/* Stars */
+
+.command-stars span {
+    position: absolute;
+
+    width: 2px;
+    height: 2px;
+
+    background: #7dd3fc;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0.5rem rgba(125, 211, 252, 0.9);
+
+    animation:
+        starPulse 3s ease-in-out infinite;
+}
+
+.command-stars span:nth-child(1) {
+    top: 14%;
+    left: 12%;
+}
+
+.command-stars span:nth-child(2) {
+    top: 27%;
+    left: 77%;
+    animation-delay: -1s;
+}
+
+.command-stars span:nth-child(3) {
+    top: 72%;
+    left: 17%;
+    animation-delay: -2s;
+}
+
+.command-stars span:nth-child(4) {
+    top: 84%;
+    left: 82%;
+    animation-delay: -0.5s;
+}
+
+.command-stars span:nth-child(5) {
+    top: 48%;
+    left: 9%;
+    animation-delay: -1.6s;
+}
+
+.command-stars span:nth-child(6) {
+    top: 11%;
+    left: 61%;
+}
+
+.command-stars span:nth-child(7) {
+    top: 63%;
+    left: 91%;
+    animation-delay: -2.4s;
+}
+
+.command-stars span:nth-child(8) {
+    top: 91%;
+    left: 48%;
+    animation-delay: -0.8s;
+}
+
+@keyframes starPulse {
+    0%,
+    100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(2);
+    }
+}
+
+
+/* =========================================================
+   Header
+========================================================= */
+
+.command-header {
+    position: relative;
+    z-index: 5;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    padding: 1.5rem 1.75rem 0;
+}
+
+.command-kicker {
+    display: flex;
+    align-items: center;
+
+    gap: 0.5rem;
+
+    margin-bottom: 0.35rem;
+
+    color: var(--cmd-blue);
+
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+.command-live-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+
+    border-radius: 50%;
+
+    background: var(--cmd-green);
+
+    box-shadow:
+        0 0 0 0.22rem rgba(74, 222, 128, 0.12),
+        0 0 0.9rem rgba(74, 222, 128, 0.65);
+
+    animation:
+        livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+.command-heading h1 {
+    margin: 0;
+
+    color: #f5fbff;
+
+    font-size: clamp(1.45rem, 2.3vw, 2.2rem);
+    font-weight: 900;
+
+    letter-spacing: -0.025em;
+}
+
+.command-heading p {
+    margin: 0.35rem 0 0;
+
+    color: var(--cmd-muted);
+
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+
+/* Status */
+
+.command-system-status {
+    min-width: 9.5rem;
+
+    padding: 0.65rem 0.8rem;
+
+    background: rgba(7, 23, 40, 0.72);
+
+    border:
+        1px solid rgba(73, 172, 237, 0.22);
+
+    border-radius: 0.65rem;
+
+    backdrop-filter: blur(1rem);
+}
+
+.system-status-label {
+    margin-bottom: 0.3rem;
+
+    color: #6687a2;
+
+    font-size: 0.52rem;
+    font-weight: 900;
+
+    letter-spacing: 0.14em;
+}
+
+.system-status-value {
+    display: flex;
+    align-items: center;
+
+    gap: 0.4rem;
+
+    color: #b7f7ca;
+
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+.system-status-value span {
+    width: 0.4rem;
+    height: 0.4rem;
+
+    background: var(--cmd-green);
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0.6rem var(--cmd-green);
+}
+
+
+/* =========================================================
+   Workspace
+========================================================= */
+
+.command-workspace {
+    position: relative;
+    z-index: 3;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(15rem, 0.9fr)
+        minmax(22rem, 1.35fr)
+        minmax(15rem, 0.9fr);
+
+    align-items: center;
+
+    gap: 1rem;
+
+    min-height: 31rem;
+
+    padding: 1rem 1.75rem;
+
+    perspective: 75rem;
+}
+
+.command-side {
+    position: relative;
+    z-index: 6;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 1rem;
+}
+
+
+/* =========================================================
+   HUD Panels
+========================================================= */
+
+.hud-panel {
+    --panel-color: #42b7ff;
+    --panel-soft: rgba(66, 183, 255, 0.09);
+
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns:
+        auto minmax(0, 1fr);
+
+    gap: 0.8rem;
+
+    min-height: 10.4rem;
+
+    padding: 1rem;
+
+    overflow: hidden;
+
+    color: inherit;
+    text-decoration: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(10, 29, 51, 0.87),
+            rgba(5, 17, 31, 0.76)
+        );
+
+    border:
+        1px solid rgba(79, 173, 235, 0.2);
+
+    border-radius: 0.9rem;
+
+    box-shadow:
+        0 0.9rem 2rem rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+    backdrop-filter:
+        blur(1.25rem)
+        saturate(140%);
+
+    transform-style: preserve-3d;
+
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.hud-panel::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 2.5rem;
+    height: 2.5rem;
+
+    border-top:
+        2px solid var(--panel-color);
+
+    border-left:
+        2px solid var(--panel-color);
+
+    border-radius:
+        0.85rem 0 0 0;
+}
+
+.hud-panel::after {
+    content: "";
+
+    position: absolute;
+
+    right: -3rem;
+    bottom: -3rem;
+
+    width: 8rem;
+    height: 8rem;
+
+    background:
+        radial-gradient(
+            circle,
+            var(--panel-soft),
+            transparent 70%
+        );
+
+    transition:
+        transform 250ms ease;
+}
+
+.hud-panel:hover {
+    color: inherit;
+
+    border-color:
+        color-mix(
+            in srgb,
+            var(--panel-color) 55%,
+            transparent
+        );
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(14, 40, 69, 0.96),
+            rgba(6, 22, 39, 0.9)
+        );
+
+    box-shadow:
+        0 1.4rem 3rem rgba(0, 0, 0, 0.3),
+        0 0 2rem var(--panel-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.hud-panel:hover::after {
+    transform: scale(1.4);
+}
+
+
+/* Colors */
+
+.hud-panel-manuals {
+    --panel-color: #42b7ff;
+    --panel-soft: rgba(66, 183, 255, 0.13);
+}
+
+.hud-panel-search {
+    --panel-color: #22d3ee;
+    --panel-soft: rgba(34, 211, 238, 0.13);
+}
+
+.hud-panel-dispatch {
+    --panel-color: #fb7185;
+    --panel-soft: rgba(251, 113, 133, 0.12);
+}
+
+.hud-panel-calculator {
+    --panel-color: #c084fc;
+    --panel-soft: rgba(192, 132, 252, 0.12);
+}
+
+
+/* Number */
+
+.hud-panel-number {
+    position: absolute;
+
+    top: 0.65rem;
+    right: 0.7rem;
+
+    color:
+        color-mix(
+            in srgb,
+            var(--panel-color) 48%,
+            transparent
+        );
+
+    font-size: 0.58rem;
+    font-weight: 900;
+
+    letter-spacing: 0.1em;
+}
+
+
+/* Icon */
+
+.hud-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 2.6rem;
+    height: 2.6rem;
+
+    margin-top: 0.2rem;
+
+    color: var(--panel-color);
+
+    background: var(--panel-soft);
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--panel-color) 28%,
+            transparent
+        );
+
+    border-radius: 0.65rem;
+
+    font-size: 1.25rem;
+    font-weight: 900;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    transform: translateZ(1.4rem);
+}
+
+
+/* Content */
+
+.hud-content {
+    min-width: 0;
+
+    transform: translateZ(0.9rem);
+}
+
+.hud-label {
+    margin-bottom: 0.15rem;
+
+    color: var(--panel-color);
+
+    font-size: 0.52rem;
+    font-weight: 900;
+
+    letter-spacing: 0.11em;
+}
+
+.hud-content h2 {
+    margin: 0;
+
+    color: #edf8ff;
+
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.hud-content p {
+    margin: 0.3rem 0 0;
+
+    color: #7894aa;
+
+    font-size: 0.69rem;
+    line-height: 1.4;
+}
+
+
+/* Tags */
+
+.hud-tags {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 0.22rem;
+
+    margin-top: 0.55rem;
+}
+
+.hud-tags span {
+    padding: 0.17rem 0.32rem;
+
+    color: var(--panel-color);
+
+    background: var(--panel-soft);
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--panel-color) 20%,
+            transparent
+        );
+
+    border-radius: 0.25rem;
+
+    font-size: 0.48rem;
+    font-weight: 900;
+
+    letter-spacing: 0.04em;
+}
+
+
+/* Enter */
+
+.hud-enter {
+    position: absolute;
+
+    right: 0.75rem;
+    bottom: 0.65rem;
+
+    display: flex;
+    align-items: center;
+
+    gap: 0.35rem;
+
+    color: #6687a2;
+
+    font-size: 0.5rem;
+    font-weight: 900;
+
+    letter-spacing: 0.1em;
+}
+
+.hud-enter strong {
+    color: var(--panel-color);
+
+    font-size: 0.9rem;
+
+    transition:
+        transform 160ms ease;
+}
+
+.hud-panel:hover .hud-enter strong {
+    transform: translateX(0.2rem);
+}
+
+
+/* =========================================================
+   Aircraft Scene
+========================================================= */
+
+.aircraft-scene {
+    position: relative;
+
+    z-index: 2;
+
+    min-height: 30rem;
+
+    perspective: 60rem;
+
+    pointer-events: none;
+}
+
+.aircraft-scene-depth {
+    position: absolute;
+    inset: 0;
+
+    transform-style: preserve-3d;
+
+    transition:
+        transform 100ms linear;
+}
+
+
+/* =========================================================
+   Radar
+========================================================= */
+
+.radar-plane {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: 21rem;
+    height: 21rem;
+
+    transform:
+        translate(-50%, -50%)
+        rotateX(68deg);
+
+    transform-style: preserve-3d;
+
+    border-radius: 50%;
+
+    opacity: 0.55;
+}
+
+.radar-circle {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    border:
+        1px solid rgba(67, 185, 255, 0.24);
+
+    border-radius: 50%;
+
+    transform:
+        translate(-50%, -50%);
+}
+
+.radar-circle-one {
+    width: 100%;
+    height: 100%;
+}
+
+.radar-circle-two {
+    width: 68%;
+    height: 68%;
+}
+
+.radar-circle-three {
+    width: 34%;
+    height: 34%;
+}
+
+.radar-cross {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    background:
+        rgba(66, 183, 255, 0.16);
+}
+
+.radar-cross-x {
+    width: 100%;
+    height: 1px;
+
+    transform:
+        translate(-50%, -50%);
+}
+
+.radar-cross-y {
+    width: 1px;
+    height: 100%;
+
+    transform:
+        translate(-50%, -50%);
+}
+
+.radar-sweep {
+    position: absolute;
+
+    inset: 0;
+
+    border-radius: 50%;
+
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 310deg,
+            rgba(66, 183, 255, 0.18) 355deg,
+            rgba(66, 183, 255, 0.38) 360deg
+        );
+
+    animation:
+        radarSweep 5s linear infinite;
+}
+
+@keyframes radarSweep {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   Orbit
+========================================================= */
+
+.aircraft-orbit {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    border:
+        1px solid rgba(67, 185, 255, 0.14);
+
+    border-radius: 50%;
+}
+
+.orbit-one {
+    width: 20rem;
+    height: 20rem;
+
+    transform:
+        translate(-50%, -50%)
+        rotateX(70deg)
+        rotateZ(12deg);
+}
+
+.orbit-two {
+    width: 25rem;
+    height: 13rem;
+
+    transform:
+        translate(-50%, -50%)
+        rotate(-18deg);
+
+    animation:
+        orbitFloat 9s ease-in-out infinite;
+}
+
+.orbit-three {
+    width: 13rem;
+    height: 25rem;
+
+    transform:
+        translate(-50%, -50%)
+        rotate(35deg);
+
+    opacity: 0.5;
+}
+
+@keyframes orbitFloat {
+    50% {
+        transform:
+            translate(-50%, -50%)
+            rotate(-10deg);
+    }
+}
+
+.orbit-point {
+    position: absolute;
+
+    width: 0.35rem;
+    height: 0.35rem;
+
+    background: var(--cmd-cyan);
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 1rem var(--cmd-cyan);
+}
+
+.orbit-point-one {
+    top: 28%;
+    left: 20%;
+
+    animation:
+        orbitPointPulse 2s ease-in-out infinite;
+}
+
+.orbit-point-two {
+    right: 18%;
+    bottom: 30%;
+
+    animation:
+        orbitPointPulse 2s ease-in-out infinite -1s;
+}
+
+@keyframes orbitPointPulse {
+    50% {
+        transform: scale(2);
+        opacity: 0.4;
+    }
+}
+
+
+/* =========================================================
+   CSS Aircraft
+========================================================= */
+
+.aircraft-model {
+    position: absolute;
+
+    top: 49%;
+    left: 50%;
+
+    width: 19rem;
+    height: 19rem;
+
+    transform:
+        translate(-50%, -50%)
+        rotateX(54deg)
+        rotateZ(-3deg);
+
+    transform-style: preserve-3d;
+
+    filter:
+        drop-shadow(
+            0 1.4rem 1.6rem
+            rgba(0, 0, 0, 0.35)
+        );
+
+    animation:
+        aircraftHover 5s ease-in-out infinite;
+}
+
+@keyframes aircraftHover {
+    0%,
+    100% {
+        margin-top: -0.3rem;
+    }
+
+    50% {
+        margin-top: 0.45rem;
+    }
+}
+
+.aircraft-body {
+    position: absolute;
+
+    inset: 0;
+
+    transform-style: preserve-3d;
+}
+
+
+/* Fuselage */
+
+.aircraft-fuselage {
+    position: absolute;
+
+    top: 2rem;
+    left: 50%;
+
+    width: 2.4rem;
+    height: 15.2rem;
+
+    transform:
+        translateX(-50%)
+        translateZ(1.4rem);
+
+    border-radius:
+        70% 70% 42% 42%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #64748b 0%,
+            #e2e8f0 23%,
+            #f8fafc 48%,
+            #94a3b8 78%,
+            #475569 100%
+        );
+
+    box-shadow:
+        inset -0.4rem 0 0.8rem rgba(15, 23, 42, 0.22),
+        inset 0.35rem 0 0.5rem rgba(255, 255, 255, 0.35);
+}
+
+
+/* Nose */
+
+.aircraft-nose {
+    position: absolute;
+
+    z-index: 5;
+
+    top: 0.45rem;
+    left: 50%;
+
+    width: 2.25rem;
+    height: 4.3rem;
+
+    transform:
+        translateX(-50%)
+        translateZ(1.5rem);
+
+    border-radius:
+        55% 55% 35% 35%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #64748b,
+            #f8fafc 45%,
+            #94a3b8
+        );
+
+    clip-path:
+        polygon(
+            50% 0,
+            80% 17%,
+            100% 100%,
+            0 100%,
+            20% 17%
+        );
+}
+
+
+/* Cockpit */
+
+.aircraft-cockpit {
+    position: absolute;
+
+    z-index: 8;
+
+    top: 2.65rem;
+    left: 50%;
+
+    display: flex;
+
+    gap: 0.15rem;
+
+    transform:
+        translateX(-50%)
+        translateZ(1.7rem);
+}
+
+.aircraft-cockpit span {
+    width: 0.55rem;
+    height: 0.3rem;
+
+    background: #0c4a6e;
+
+    border:
+        1px solid rgba(125, 211, 252, 0.65);
+
+    border-radius: 50% 50% 25% 25%;
+
+    box-shadow:
+        0 0 0.35rem rgba(56, 189, 248, 0.35);
+}
+
+
+/* Main Wings */
+
+.aircraft-wing {
+    position: absolute;
+
+    z-index: 1;
+
+    top: 7.1rem;
+
+    width: 8.9rem;
+    height: 5.7rem;
+
+    background:
+        linear-gradient(
+            155deg,
+            #cbd5e1,
+            #64748b 72%
+        );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.aircraft-wing-left {
+    right: 50%;
+
+    transform:
+        translateZ(0.7rem)
+        skewY(-8deg);
+
+    clip-path:
+        polygon(
+            100% 0,
+            88% 100%,
+            0 82%,
+            0 62%
+        );
+}
+
+.aircraft-wing-right {
+    left: 50%;
+
+    transform:
+        translateZ(0.7rem)
+        skewY(8deg);
+
+    clip-path:
+        polygon(
+            0 0,
+            12% 100%,
+            100% 82%,
+            100% 62%
+        );
+}
+
+
+/* Tail Wings */
+
+.aircraft-tail-wing {
+    position: absolute;
+
+    z-index: 2;
+
+    top: 14rem;
+
+    width: 4.5rem;
+    height: 2.6rem;
+
+    background:
+        linear-gradient(
+            150deg,
+            #94a3b8,
+            #475569
+        );
+}
+
+.aircraft-tail-left {
+    right: 50%;
+
+    clip-path:
+        polygon(
+            100% 0,
+            85% 100%,
+            0 82%,
+            0 62%
+        );
+}
+
+.aircraft-tail-right {
+    left: 50%;
+
+    clip-path:
+        polygon(
+            0 0,
+            15% 100%,
+            100% 82%,
+            100% 62%
+        );
+}
+
+
+/* Vertical tail */
+
+.aircraft-tail {
+    position: absolute;
+
+    z-index: 7;
+
+    top: 13.1rem;
+    left: 50%;
+
+    width: 1.1rem;
+    height: 3.7rem;
+
+    transform:
+        translateX(-50%)
+        translateZ(2.3rem)
+        rotateX(-25deg);
+
+    clip-path:
+        polygon(
+            50% 0,
+            100% 100%,
+            0 100%
+        );
+
+    background:
+        linear-gradient(
+            90deg,
+            #1d4ed8,
+            #60a5fa
+        );
+}
+
+
+/* Engines */
+
+.aircraft-engine {
+    position: absolute;
+
+    z-index: 6;
+
+    top: 8.9rem;
+
+    width: 1.35rem;
+    height: 2.7rem;
+
+    transform:
+        translateZ(1.3rem);
+
+    border-radius:
+        45% 45% 50% 50%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #334155,
+            #cbd5e1,
+            #475569
+        );
+
+    box-shadow:
+        0 0.25rem 0.4rem rgba(0, 0, 0, 0.25);
+}
+
+.engine-left {
+    left: 4.4rem;
+}
+
+.engine-right {
+    right: 4.4rem;
+}
+
+
+/* Center detail */
+
+.aircraft-center-line {
+    position: absolute;
+
+    z-index: 9;
+
+    top: 5.3rem;
+    left: 50%;
+
+    width: 1px;
+    height: 7rem;
+
+    transform:
+        translateX(-50%)
+        translateZ(1.8rem);
+
+    background:
+        linear-gradient(
+            transparent,
+            rgba(14, 116, 144, 0.35),
+            transparent
+        );
+}
+
+
+/* Shadow */
+
+.aircraft-shadow {
+    position: absolute;
+
+    top: 53%;
+    left: 50%;
+
+    width: 11rem;
+    height: 4rem;
+
+    transform:
+        translate(-50%, -50%)
+        translateZ(-3rem);
+
+    background:
+        rgba(0, 0, 0, 0.45);
+
+    filter: blur(1.7rem);
+
+    border-radius: 50%;
+}
+
+
+/* =========================================================
+   Target
+========================================================= */
+
+.aircraft-target {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: 16rem;
+    height: 16rem;
+
+    transform:
+        translate(-50%, -50%);
+
+    opacity: 0.6;
+}
+
+.aircraft-target span {
+    position: absolute;
+
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.target-tl {
+    top: 0;
+    left: 0;
+
+    border-top: 1px solid var(--cmd-blue);
+    border-left: 1px solid var(--cmd-blue);
+}
+
+.target-tr {
+    top: 0;
+    right: 0;
+
+    border-top: 1px solid var(--cmd-blue);
+    border-right: 1px solid var(--cmd-blue);
+}
+
+.target-bl {
+    bottom: 0;
+    left: 0;
+
+    border-bottom: 1px solid var(--cmd-blue);
+    border-left: 1px solid var(--cmd-blue);
+}
+
+.target-br {
+    right: 0;
+    bottom: 0;
+
+    border-right: 1px solid var(--cmd-blue);
+    border-bottom: 1px solid var(--cmd-blue);
+}
+
+
+/* =========================================================
+   Aircraft Info
+========================================================= */
+
+.aircraft-info {
+    position: absolute;
+
+    left: 50%;
+    bottom: 1.25rem;
+
+    min-width: 13rem;
+
+    padding: 0.65rem 0.8rem;
+
+    text-align: center;
+
+    transform:
+        translateX(-50%);
+
+    background:
+        rgba(5, 20, 35, 0.66);
+
+    border:
+        1px solid rgba(66, 183, 255, 0.18);
+
+    border-radius: 0.5rem;
+
+    backdrop-filter: blur(0.8rem);
+}
+
+.aircraft-info-label {
+    display: block;
+
+    margin-bottom: 0.15rem;
+
+    color: #55758f;
+
+    font-size: 0.48rem;
+    font-weight: 900;
+
+    letter-spacing: 0.13em;
+}
+
+.aircraft-info strong {
+    display: block;
+
+    color: #dff5ff;
+
+    font-size: 0.68rem;
+    font-weight: 900;
+
+    letter-spacing: 0.08em;
+}
+
+.aircraft-info-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 0.3rem;
+
+    margin-top: 0.25rem;
+
+    color: #6ee7b7;
+
+    font-size: 0.48rem;
+    font-weight: 850;
+}
+
+.aircraft-info-status span {
+    width: 0.3rem;
+    height: 0.3rem;
+
+    background: #4ade80;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0.4rem #4ade80;
+}
+
+
+/* =========================================================
+   Footer
+========================================================= */
+
+.command-footer {
+    position: relative;
+    z-index: 6;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    margin: 0 1.75rem 1.25rem;
+
+    padding: 0.7rem 0.9rem;
+
+    background:
+        rgba(4, 17, 30, 0.72);
+
+    border:
+        1px solid rgba(70, 160, 220, 0.17);
+
+    border-radius: 0.65rem;
+
+    backdrop-filter: blur(1rem);
+}
+
+.command-footer-left,
+.command-quick-links {
+    display: flex;
+    align-items: center;
+
+    gap: 0.8rem;
+}
+
+.command-footer-left {
+    color: #617f97;
+
+    font-size: 0.53rem;
+    font-weight: 850;
+
+    letter-spacing: 0.07em;
+}
+
+.footer-status {
+    display: flex;
+    align-items: center;
+
+    gap: 0.35rem;
+
+    color: #6ee7b7;
+}
+
+.footer-status i {
+    width: 0.35rem;
+    height: 0.35rem;
+
+    background: #4ade80;
+
+    border-radius: 50%;
+}
+
+.footer-divider {
+    width: 1px;
+    height: 0.8rem;
+
+    background:
+        rgba(125, 211, 252, 0.16);
+}
+
+.command-quick-links a {
+    color: #7394ad;
+
+    font-size: 0.52rem;
+    font-weight: 900;
+
+    letter-spacing: 0.06em;
+
+    text-decoration: none;
+
+    transition: color 150ms ease;
+}
+
+.command-quick-links a span {
+    margin-left: 0.15rem;
+
+    color: var(--cmd-blue);
+}
+
+.command-quick-links a:hover {
+    color: #dff5ff;
+}
+
+
+/* =========================================================
+   Boot Screen
+========================================================= */
+
+.command-boot {
+    position: fixed;
+    inset: 0;
+
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #0b2340,
+            #020711 60%
+        );
+
+    transition:
+        opacity 500ms ease,
+        visibility 500ms ease;
+}
+
+.command-boot.is-finished {
+    opacity: 0;
+    visibility: hidden;
+
+    pointer-events: none;
+}
+
+.command-boot-inner {
+    width: min(25rem, calc(100vw - 3rem));
+
+    text-align: center;
+}
+
+.command-boot-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 0.8rem;
+
+    margin-bottom: 1.25rem;
+}
+
+.boot-aircraft {
+    color: #7dd3fc;
+
+    font-size: 2.3rem;
+
+    filter:
+        drop-shadow(
+            0 0 0.8rem rgba(56, 189, 248, 0.55)
+        );
+
+    animation:
+        bootAircraft 1.5s ease-in-out infinite;
+}
+
+@keyframes bootAircraft {
+    50% {
+        transform:
+            translateY(-0.25rem);
+    }
+}
+
+.boot-wing {
+    width: 3rem;
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #38bdf8
+        );
+}
+
+.boot-wing-right {
+    transform: rotate(180deg);
+}
+
+.command-boot-eyebrow {
+    margin: 0 0 0.35rem;
+
+    color: #38bdf8;
+
+    font-size: 0.58rem;
+    font-weight: 900;
+
+    letter-spacing: 0.2em;
+}
+
+.command-boot h1 {
+    margin: 0 0 1.5rem;
+
+    color: #f0f9ff;
+
+    font-size: 1.65rem;
+    font-weight: 900;
+
+    letter-spacing: 0.12em;
+}
+
+.boot-progress {
+    height: 0.18rem;
+
+    overflow: hidden;
+
+    background:
+        rgba(125, 211, 252, 0.12);
+
+    border-radius: 99rem;
+}
+
+.boot-progress span {
+    display: block;
+
+    width: 0%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #0284c7,
+            #67e8f9
+        );
+
+    box-shadow:
+        0 0 0.8rem #38bdf8;
+
+    transition:
+        width 180ms ease;
+}
+
+.boot-status {
+    display: flex;
+    justify-content: space-between;
+
+    margin-top: 0.55rem;
+
+    color: #52718a;
+
+    font-size: 0.52rem;
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+}
+
+.boot-status strong {
+    color: #7dd3fc;
+}
+
+
+/* =========================================================
+   Entrance Animation
+========================================================= */
+
+.command-center {
+    opacity: 0;
+
+    transform:
+        translateY(0.6rem)
+        scale(0.99);
+
+    transition:
+        opacity 650ms ease,
+        transform 650ms ease;
+}
+
+body.command-ready .command-center {
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+/* =========================================================
+   Tablet
+========================================================= */
+
+@media
+(min-width: 48.0625rem)
+and
+(max-width: 64rem) {
+
+    .command-workspace {
+        grid-template-columns:
+            minmax(13rem, 1fr)
+            minmax(18rem, 1.15fr)
+            minmax(13rem, 1fr);
+
+        gap: 0.65rem;
+
+        padding-inline: 1rem;
+    }
+
+    .hud-panel {
+        min-height: 9.7rem;
+
+        padding: 0.8rem;
+    }
+
+    .aircraft-model {
+        transform:
+            translate(-50%, -50%)
+            rotateX(54deg)
+            rotateZ(-3deg)
+            scale(0.82);
+    }
+
+    .aircraft-target {
+        transform:
+            translate(-50%, -50%)
+            scale(0.85);
+    }
+
+    .command-footer {
+        margin-inline: 1rem;
+    }
+}
+
+
+/* =========================================================
+   Mobile
+========================================================= */
+
+@media (max-width: 48rem) {
+
+    body.portal-home-page {
+        padding-bottom:
+            calc(
+                var(--bottom-nav-height)
+                + var(--safe-area-bottom)
+            ) !important;
+    }
+
+    body.portal-home-page .app-main {
+        overflow: visible;
+    }
+
+    body.portal-home-page .app-container {
+        padding-inline: 0.65rem;
+    }
+
+    .command-center {
+        min-height: auto;
+
+        border-radius: 1rem;
+
+        overflow: hidden;
+    }
+
+
+    /* Header */
+
+    .command-header {
+        align-items: center;
+
+        padding:
+            1rem 0.9rem 0.4rem;
+    }
+
+    .command-kicker {
+        font-size: 0.52rem;
+
+        letter-spacing: 0.1em;
+    }
+
+    .command-heading h1 {
+        font-size: 1.25rem;
+    }
+
+    .command-heading p {
+        display: none;
+    }
+
+    .command-system-status {
+        min-width: auto;
+
+        padding: 0.45rem 0.55rem;
+    }
+
+    .system-status-label {
+        display: none;
+    }
+
+    .system-status-value {
+        font-size: 0.53rem;
+    }
+
+
+    /* Workspace */
+
+    .command-workspace {
+        display: flex;
+        flex-direction: column;
+
+        min-height: auto;
+
+        padding:
+            0.4rem 0.7rem 0.8rem;
+    }
+
+
+    /* Aircraft first */
+
+    .aircraft-scene {
+        order: 1;
+
+        width: 100%;
+        min-height: 13rem;
+    }
+
+    .command-side-left {
+        order: 2;
+    }
+
+    .command-side-right {
+        order: 3;
+    }
+
+    .command-side {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        width: 100%;
+
+        gap: 0.45rem;
+    }
+
+
+    /* Aircraft */
+
+    .aircraft-model {
+        top: 48%;
+
+        transform:
+            translate(-50%, -50%)
+            rotateX(54deg)
+            rotateZ(-3deg)
+            scale(0.58);
+    }
+
+    .radar-plane {
+        width: 14rem;
+        height: 14rem;
+    }
+
+    .orbit-one {
+        width: 12rem;
+        height: 12rem;
+    }
+
+    .orbit-two {
+        width: 15rem;
+        height: 8rem;
+    }
+
+    .orbit-three {
+        width: 8rem;
+        height: 15rem;
+    }
+
+    .aircraft-target {
+        top: 48%;
+
+        transform:
+            translate(-50%, -50%)
+            scale(0.62);
+    }
+
+    .aircraft-info {
+        bottom: 0;
+
+        min-width: 10rem;
+
+        padding: 0.45rem;
+    }
+
+    .aircraft-info-label {
+        display: none;
+    }
+
+
+    /* Cards */
+
+    .hud-panel {
+        display: block;
+
+        min-height: 7.6rem;
+
+        padding: 0.7rem;
+
+        border-radius: 0.7rem;
+    }
+
+    .hud-icon {
+        width: 2rem;
+        height: 2rem;
+
+        margin-bottom: 0.45rem;
+
+        font-size: 0.95rem;
+    }
+
+    .hud-label {
+        display: none;
+    }
+
+    .hud-content h2 {
+        font-size: 0.82rem;
+    }
+
+    .hud-content p {
+        display: none;
+    }
+
+    .hud-tags {
+        margin-top: 0.35rem;
+    }
+
+    .hud-tags span {
+        padding: 0.12rem 0.2rem;
+
+        font-size: 0.43rem;
+    }
+
+    .hud-panel-number {
+        font-size: 0.48rem;
+    }
+
+    .hud-enter {
+        right: 0.55rem;
+        bottom: 0.45rem;
+
+        font-size: 0.42rem;
+    }
+
+
+    /* Footer */
+
+    .command-footer {
+        display: block;
+
+        margin:
+            0 0.7rem 0.7rem;
+
+        padding: 0.55rem;
+    }
+
+    .command-footer-left {
+        display: none;
+    }
+
+    .command-quick-links {
+        justify-content: center;
+
+        gap: 0.65rem;
+
+        overflow-x: auto;
+    }
+
+    .command-quick-links a {
+        flex-shrink: 0;
+
+        font-size: 0.47rem;
+    }
+}
+
+
+/* =========================================================
+   Small Mobile
+========================================================= */
+
+@media (max-width: 35.5rem) {
+
+    .command-side {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .aircraft-scene {
+        min-height: 11.5rem;
+    }
+
+    .hud-panel {
+        min-height: 7rem;
+    }
+}
+
+
+/* =========================================================
+   Reduced Motion
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .command-grid,
+    .command-scan-line,
+    .radar-sweep,
+    .aircraft-model,
+    .orbit-two,
+    .orbit-point,
+    .command-stars span,
+    .command-live-dot,
+    .boot-aircraft {
+        animation: none !important;
+    }
+
+    .aircraft-scene-depth,
+    .hud-panel {
+        transition: none !important;
+    }
+}
+
+
+/* =========================================================
+   Touch
+========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+    .hud-panel:hover {
+        transform: none !important;
+    }
+}
+
+body.command-paused .aircraft-model,
+body.command-paused .radar-sweep,
+body.command-paused .command-grid,
+body.command-paused .command-scan-line,
+body.command-paused .command-stars span {
+    animation-play-state: paused !important;
+}

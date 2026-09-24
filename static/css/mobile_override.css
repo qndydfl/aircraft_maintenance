@@ -14,6 +14,123 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container {
     padding-bottom: 0 !important;
 }
 
+/* Inner pages replace the standard navbar content with their page identity. */
+.app-navbar-page-content {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.app-navbar-ending {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.app-navbar-ending-btn {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.625rem;
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.app-navbar-ending-btn:hover,
+.app-navbar-ending-btn:focus-visible {
+    color: #0f172a;
+    background: #f8fafc;
+    border-color: #f8fafc;
+}
+
+.app-navbar-home-icon,
+.app-navbar-back-icon {
+    font-size: 1.125rem;
+    line-height: 0.8;
+}
+
+.app-navbar-back-icon {
+    font-size: 1.5rem;
+    transform: translateY(-0.0625rem);
+}
+
+.app-navbar-page-content > div:nth-child(2) {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.app-navbar-page-content .page-eyebrow {
+    margin: 0 0 0.125rem !important;
+    color: #7dd3fc;
+    font-size: 0.625rem;
+    line-height: 1;
+}
+
+.app-navbar-page-content .page-title {
+    margin: 0 !important;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-navbar-page-content .page-subtitle {
+    margin: 0.125rem 0 0 !important;
+    overflow: hidden;
+    color: #cbd5e1 !important;
+    font-size: 0.6875rem;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-navbar-page-content .page-actions {
+    max-width: 55%;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+}
+
+.app-navbar-page-content .page-actions::-webkit-scrollbar {
+    display: none;
+}
+
+.app-navbar-page-content .page-actions .btn {
+    min-height: 2.125rem !important;
+    padding: 0.375rem 0.75rem;
+    color: #f8fafc;
+    border-color: rgba(248, 250, 252, 0.45);
+    font-size: 0.75rem;
+}
+
+.app-navbar-page-content .page-actions .btn:hover,
+.app-navbar-page-content .page-actions .btn:focus-visible {
+    color: #0f172a;
+    background: #f8fafc;
+    border-color: #f8fafc;
+}
+
 body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :first-child {
     margin-top: 0 !important;
 }
@@ -31,6 +148,45 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         font-size: 0.8125rem;
         line-height: 1.45;
         overflow-x: hidden;
+    }
+
+    .app-navbar-page-content {
+        gap: 0.5rem;
+    }
+
+    .app-navbar-ending {
+        gap: 0.25rem;
+        padding-left: 0.5rem;
+    }
+
+    .app-navbar-ending-btn {
+        min-width: 2rem;
+        min-height: 2rem !important;
+        padding: 0.25rem 0.4375rem;
+    }
+
+    .app-navbar-ending-label {
+        display: none;
+    }
+
+    .app-navbar-page-content .page-eyebrow,
+    .app-navbar-page-content .page-subtitle {
+        display: none;
+    }
+
+    .app-navbar-page-content .page-title {
+        font-size: 1rem;
+    }
+
+    .app-navbar-page-content .page-actions {
+        max-width: 48%;
+        gap: 0.375rem;
+    }
+
+    .app-navbar-page-content .page-actions .btn {
+        min-width: auto;
+        padding-inline: 0.625rem;
+        font-size: 0.6875rem;
     }
 
     .page-eyebrow {

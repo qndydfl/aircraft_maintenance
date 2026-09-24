@@ -1,21 +1,12 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block body_class %}
-chapter-page
-{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %} chapter-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=78">
-{% endblock css %}
-
-{% block title %}
-{{ package.aircraft.name }} {{ package.manual_type }} Chapters
-{% endblock title %}
-
-{% block content %}
-
-<div class="page-hero">
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=78" />
+{% endblock css %} 
+{% block title %} {{ package.aircraft.name }} {{ package.manual_type }} Chapters {% endblock title %} 
+{% block navbar_content %}
+<div class="app-navbar-page-content">    
     <div class="portal-chapter-hero-content">
         <p class="page-eyebrow text-uppercase text-primary fw-bold mb-1 small">
             {{ package.manual_type }}
@@ -29,14 +20,11 @@ chapter-page
             ZIP index.html에서 추출된 chapter 목록.
         </p>
     </div>
-
-    <div class="page-actions">
-        <a href="{% url 'aircraft_manual_detail' package.aircraft.pk %}"
-            class="btn btn-outline-secondary app-action-btn">
-            Back
-        </a>
-    </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
+
+{% block content %}
 
 <form
     method="get"
@@ -51,192 +39,185 @@ chapter-page
             value="{{ q }}"
             class="form-control portal-chapter-search-input"
             placeholder="Task, Subtask, Title, PDF 내용 검색..."
-        >
+        />
 
         <div class="portal-chapter-search-actions">
-            <button type="submit" class="btn btn-primary">
-                Search
-            </button>
+            <button type="submit" class="btn btn-primary">Search</button>
 
             {% if q %}
-                <a href="?" class="btn btn-outline-secondary portal-chapter-clear-btn">
-                    Clear
-                </a>
+            <a
+                href="?"
+                class="btn btn-outline-secondary portal-chapter-clear-btn"
+            >
+                Clear
+            </a>
             {% endif %}
         </div>
     </div>
 </form>
 
 {% if q %}
-    <div class="chapter-search-summary app-alert mb-4">
-        <span>Search Result</span>
-        <strong>{{ q }}</strong>
-    </div>
-{% endif %}
+<div class="chapter-search-summary app-alert mb-4">
+    <span>Search Result</span>
+    <strong>{{ q }}</strong>
+</div>
+{% endif %} {% if not q %}
+<div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
+    <div class="card-body p-4">
+        <div class="portal-chapter-card-header mb-4">
+            <div>
+                <h5 class="mb-1 fw-bold text-dark">Chapter Contents</h5>
 
-{% if not q %}
-    <div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
-        <div class="card-body p-4">
-            <div class="portal-chapter-card-header mb-4">
-                <div>
-                    <h5 class="mb-1 fw-bold text-dark">
-                        Chapter Contents
-                    </h5>
-
-                    <p class="text-muted small mb-0">
-                        Chapter를 선택하면 PDF viewer로 열립니다.
-                    </p>
-                </div>
-            </div>
-
-            <div class="portal-chapter-bookmark-grid">
-                {% for chapter in chapter_bookmarks %}
-                    <a href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?back={{ request.get_full_path|urlencode }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="portal-chapter-bookmark-item d-flex align-items-start p-3 rounded-3 text-decoration-none">
-
-                        <span class="portal-chapter-bookmark-icon text-primary me-3">
-                            📄
-                        </span>
-
-                        <span class="portal-chapter-bookmark-text text-dark flex-grow-1">
-                            <div class="fw-bold text-truncate-1">
-                                {{ chapter.task }}
-
-                                {% if chapter.subtask %}
-                                    <span class="text-secondary fw-normal">
-                                        / {{ chapter.subtask }}
-                                    </span>
-                                {% endif %}
-                            </div>
-
-                            <div class="text-muted small mt-1 text-truncate-2">
-                                {{ chapter.title|default:"No Title" }}
-                            </div>
-                        </span>
-                    </a>
-                {% empty %}
-                    <div class="text-muted text-center py-5 w-100">
-                        <p class="mb-0">
-                            표시할 Chapter가 없습니다.
-                        </p>
-                    </div>
-                {% endfor %}
+                <p class="text-muted small mb-0">
+                    Chapter를 선택하면 PDF viewer로 열립니다.
+                </p>
             </div>
         </div>
+
+        <div class="portal-chapter-bookmark-grid">
+            {% for chapter in chapter_bookmarks %}
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?back={{ request.get_full_path|urlencode }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="portal-chapter-bookmark-item d-flex align-items-start p-3 rounded-3 text-decoration-none"
+            >
+                <span class="portal-chapter-bookmark-icon text-primary me-3">
+                    📄
+                </span>
+
+                <span
+                    class="portal-chapter-bookmark-text text-dark flex-grow-1"
+                >
+                    <div class="fw-bold text-truncate-1">
+                        {{ chapter.task }} {% if chapter.subtask %}
+                        <span class="text-secondary fw-normal">
+                            / {{ chapter.subtask }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-muted small mt-1 text-truncate-2">
+                        {{ chapter.title|default:"No Title" }}
+                    </div>
+                </span>
+            </a>
+            {% empty %}
+            <div class="text-muted text-center py-5 w-100">
+                <p class="mb-0">표시할 Chapter가 없습니다.</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-{% endif %}
+</div>
+{% endif %} {% if q and matching_chapters %}
+<div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
+    <div class="card-body p-4">
+        <div class="portal-chapter-card-header mb-3">
+            <div>
+                <h5 class="mb-1 fw-bold text-dark">관련 Chapter</h5>
 
-{% if q and matching_chapters %}
-    <div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
-        <div class="card-body p-4">
-            <div class="portal-chapter-card-header mb-3">
-                <div>
-                    <h5 class="mb-1 fw-bold text-dark">
-                        관련 Chapter
-                    </h5>
-
-                    <p class="text-muted small mb-0">
-                        검색어와 일치하는 Chapter 결과입니다.
-                    </p>
-                </div>
+                <p class="text-muted small mb-0">
+                    검색어와 일치하는 Chapter 결과입니다.
+                </p>
             </div>
+        </div>
 
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover align-middle chapter-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 150px">Task</th>
-                            <th style="width: 150px">Subtask</th>
-                            <th>Title</th>
-                            <th style="width: 140px">Pages</th>
-                            <th style="width: 140px" class="text-center">
-                                Action
-                            </th>
-                        </tr>
-                    </thead>
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-hover align-middle chapter-table">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 150px">Task</th>
+                        <th style="width: 150px">Subtask</th>
+                        <th>Title</th>
+                        <th style="width: 140px">Pages</th>
+                        <th style="width: 140px" class="text-center">Action</th>
+                    </tr>
+                </thead>
 
-                    <tbody>
-                        {% for chapter in matching_chapters %}
-                            <tr>
-                                <td class="fw-bold text-primary">
-                                    {{ chapter.chapter__task }}
-                                </td>
+                <tbody>
+                    {% for chapter in matching_chapters %}
+                    <tr>
+                        <td class="fw-bold text-primary">
+                            {{ chapter.chapter__task }}
+                        </td>
 
-                                <td class="text-secondary">
-                                    {{ chapter.chapter__subtask|default:"-" }}
-                                </td>
+                        <td class="text-secondary">
+                            {{ chapter.chapter__subtask|default:"-" }}
+                        </td>
 
-                                <td class="text-dark fw-medium">
-                                    {{ chapter.chapter__title|default:"-" }}
-                                </td>
+                        <td class="text-dark fw-medium">
+                            {{ chapter.chapter__title|default:"-" }}
+                        </td>
 
-                                <td>
-                                    <span class="badge bg-light text-dark border">
-                                        {{ chapter.match_count }} page(s)
-                                    </span>
-                                </td>
-
-                                <td class="text-center">
-                                    <a href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="btn btn-sm btn-primary rounded-pill px-3">
-                                        Open Chapter
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="chapter-result-list d-md-none">
-                {% for chapter in matching_chapters %}
-                    <div class="portal-chapter-result-card p-3 mb-3 border rounded-3 shadow-sm bg-white">
-                        <div class="chapter-result-top d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <p class="chapter-result-label text-uppercase text-muted small fw-bold mb-0">
-                                    TASK
-                                </p>
-
-                                <h6 class="chapter-result-title fw-bold text-dark mb-0">
-                                    {{ chapter.chapter__task }}
-
-                                    {% if chapter.chapter__subtask %}
-                                        <span class="text-secondary fw-normal">
-                                            / {{ chapter.chapter__subtask }}
-                                        </span>
-                                    {% endif %}
-                                </h6>
-                            </div>
-
-                            <span class="badge bg-primary rounded-pill">
+                        <td>
+                            <span class="badge bg-light text-dark border">
                                 {{ chapter.match_count }} page(s)
                             </span>
-                        </div>
+                        </td>
 
-                        <p class="chapter-result-description text-muted small mb-3">
-                            {{ chapter.chapter__title|default:"-" }}
+                        <td class="text-center">
+                            <a
+                                href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-sm btn-primary rounded-pill px-3"
+                            >
+                                Open Chapter
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="chapter-result-list d-md-none">
+            {% for chapter in matching_chapters %}
+            <div
+                class="portal-chapter-result-card p-3 mb-3 border rounded-3 shadow-sm bg-white"
+            >
+                <div
+                    class="chapter-result-top d-flex justify-content-between align-items-start mb-2"
+                >
+                    <div>
+                        <p
+                            class="chapter-result-label text-uppercase text-muted small fw-bold mb-0"
+                        >
+                            TASK
                         </p>
 
-                        <a href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="btn btn-primary w-100 app-card-btn rounded-pill">
-                            Open Chapter
-                        </a>
+                        <h6 class="chapter-result-title fw-bold text-dark mb-0">
+                            {{ chapter.chapter__task }} {% if chapter.chapter__subtask %}
+                            <span class="text-secondary fw-normal">
+                                / {{ chapter.chapter__subtask }}
+                            </span>
+                            {% endif %}
+                        </h6>
                     </div>
-                {% endfor %}
-            </div>
 
+                    <span class="badge bg-primary rounded-pill">
+                        {{ chapter.match_count }} page(s)
+                    </span>
+                </div>
+
+                <p class="chapter-result-description text-muted small mb-3">
+                    {{ chapter.chapter__title|default:"-" }}
+                </p>
+
+                <a
+                    href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-primary w-100 app-card-btn rounded-pill"
+                >
+                    Open Chapter
+                </a>
+            </div>
+            {% endfor %}
         </div>
     </div>
+</div>
 {% elif q %}
-    <div class="alert alert-warning app-alert">
-        검색 결과가 없습니다.
-    </div>
-{% endif %}
-
-{% endblock content %}
+<div class="alert alert-warning app-alert">검색 결과가 없습니다.</div>
+{% endif %} {% endblock content %}

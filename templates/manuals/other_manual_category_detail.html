@@ -1,15 +1,13 @@
 {% extends 'base.html' %} 
 {% load static %} 
-
 {% block body_class %} detail-page other-manual-detail-page {% endblock body_class %} 
-
 {% block css %}
 <link href="{% static 'css/manual_detail.css' %}?v=55" rel="stylesheet" />
 {% endblock css %} 
 
-{% block content %}
-
-<div class="page-hero mb-4">
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    
     <div>
         <p class="page-eyebrow mb-1">{{ category.aircraft.name }} / OTHER</p>
 
@@ -43,15 +41,12 @@
             Delete Folder
         </a>
         {% endif %}
-
-        <a
-            href="{{ back_url }}"
-            class="btn btn-outline-secondary app-action-btn"
-        >
-            Back
-        </a>
     </div>
+    {% include 'includes/navbar_ending.html' %}
 </div>
+{% endblock navbar_content %} 
+
+{% block content %}
 
 <div class="row g-3 g-md-4 justify-content-center">
     {% for file in files %}
