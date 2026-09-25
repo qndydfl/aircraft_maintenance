@@ -1,32 +1,61 @@
-{% extends 'base.html' %} 
-{% load static %} 
-
-{% block body_class %}
-pdf-viewer-page
-{% endblock body_class %}
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}pdf-viewer-page{% if embedded %} pdf-viewer-embedded{% endif %}{% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_pdf_viewer.css' %}?v=73" />
+<link
+    rel="stylesheet"
+    href="{% static 'css/manual_pdf_viewer.css' %}?20260925-4"
+/>
 {% endblock css %} 
 
 {% block js %}
 <script>
     window.PDF_VIEWER_CONFIG = {
         pdfUrl: "{{ pdf_url }}",
+
         fallbackPdfUrl: "{{ pdf_fallback_url|default:''|escapejs }}",
+
         initialPage: parseInt("{{ page_number|default:'1' }}", 10),
+
         searchQuery: "{{ query|escapejs }}".trim().toLowerCase(),
+
         viewerType: "{{ viewer_type }}",
-        matchingPages: {{ matching_pages_json|default:"[]"|safe }},
-        matchItems: {{ matching_match_items_json|default:"[]"|safe }},
-        currentMatchIndex: parseInt("{{ current_match_index|default:'0' }}", 10),
-        matchCount: parseInt("{{ match_count|default:'0' }}", 10),
-        viewMode: "{{ view_mode|default:'single' }}",
 
-        /* 🔄 [추가] 장고 서버에서 가져온 챕터/서브태스크 데이터를 JS 트리 생성기가 쓸 수 있도록 전달 */
-        packageChapters: {% if package_chapters_json %}{{ package_chapters_json|safe }}{% else %}[]{% endif %},
+        embedded: {% if embedded %}true{% else %}false{% endif %},
 
-        workerSrc: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
+        chapterId:{% if chapter %}{{ chapter.pk }}{% else %}null{% endif %},
+
+        matchingPages:
+            {{ matching_pages_json|default:"[]"|safe }},
+
+        matchItems:
+            {{ matching_match_items_json|default:"[]"|safe }},
+
+        currentMatchIndex:
+            parseInt(
+                "{{ current_match_index|default:'0' }}",
+                10
+            ),
+
+        matchCount:
+            parseInt(
+                "{{ match_count|default:'0' }}",
+                10
+            ),
+
+        viewMode:
+            "{{ view_mode|default:'single' }}",
+
+        packageChapters:
+            {% if package_chapters_json %}
+                {{ package_chapters_json|safe }}
+            {% else %}
+                []
+            {% endif %},
+
+        workerSrc:
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
     };
 </script>
 
@@ -34,64 +63,43 @@ pdf-viewer-page
     defer
     src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ></script>
-<script defer src="{% static 'js/manual_pdf_viewer.js' %}?v=20260824.1"></script>
-{% endblock js %} 
 
+<script
+    defer
+    src="{% static 'js/manual_pdf_viewer.js' %}?v=20260925-6"
+></script>
+{% endblock js %}
 {% block nav %} {% endblock nav %} 
 
 {% block content %}
-<div class="viewer-page{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}">
-    <div class="viewer-topbar">
-        <div class="viewer-title-area">
-            <h4 class="viewer-title mb-1">{{ viewer_title }}</h4>
-            <p class="viewer-subtitle mb-0">
-                {{ viewer_subtitle|default:"PDF Viewer" }}
-            </p>
-        </div>
+<div
+    class="viewer-page{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}"
+>
+    <div class="viewer-commandbar">
+        <div class="viewer-commandbar-left">
+            <div class="viewer-title-area">
+                <h4 class="viewer-title mb-1">{{ viewer_title }}</h4>
+                <p class="viewer-subtitle mb-0">
+                    {{ viewer_subtitle|default:"PDF Viewer" }}
+                </p>
+            </div>
 
-        <div class="viewer-top-actions">
-            <a
-                href="{{ pdf_url }}"
-                target="_blank"
-                class="btn btn-outline-primary viewer-action-btn d-none d-md-inline-flex"
-            >
-                Original
-            </a>
-            <a
-                href="{{ pdf_url }}"
-                class="btn btn-outline-primary viewer-action-btn d-inline-flex d-md-none"
-                download
-            >
-                Original
-            </a>
+            <div class="viewer-primary-tools">
+                <button
+                    id="toggle-outline"
+                    class="btn btn-outline-dark viewer-tool-btn"
+                >
+                    Contents
+                </button>
 
-            <button
-                id="viewer-exit-btn"
-                type="button"
-                class="btn btn-outline-danger viewer-action-btn"
-                data-fallback-url="{{ back_url }}"
-            >
-                Exit
-            </button>
-        </div>
-    </div>
-
-    <div class="viewer-toolbar">
-        <div class="viewer-toolbar-left">
-            <button
-                id="toggle-outline"
-                class="btn btn-outline-dark viewer-tool-btn"
-            >
-                Contents
-            </button>
-
-            <button
-                id="focus-viewer"
-                class="btn btn-outline-dark viewer-tool-btn"
-                type="button"
-            >
-                Focus
-            </button>
+                <button
+                    id="focus-viewer"
+                    class="btn btn-outline-dark viewer-tool-btn"
+                    type="button"
+                >
+                    Focus
+                </button>
+            </div>
         </div>
 
         <div class="viewer-toolbar-center">
@@ -154,80 +162,106 @@ pdf-viewer-page
             </button>
         </div>
 
-        <div
-            id="viewer-mobile-search"
-            class="viewer-toolbar-right viewer-search-panel d-flex d-md-flex"
-        >
-            <div class="viewer-search-row">
-                {% if not from_search_page %}
-                <input
-                    id="viewer-search-input"
-                    type="text"
-                    value="{{ query }}"
-                    class="form-control viewer-search-input"
-                    placeholder="Find in PDF"
-                />
-                <button
-                    id="viewer-search-btn"
-                    type="button"
-                    class="btn btn-primary viewer-tool-btn"
-                >
-                    Find
-                </button>
-                <button
-                    id="viewer-search-prev"
-                    type="button"
-                    class="btn btn-outline-secondary viewer-tool-btn"
-                >
-                    ◀
-                </button>
-                <span
-                    id="viewer-search-count"
-                    class="badge bg-primary viewer-match-badge"
-                    >0 / 0</span
-                >
-                <button
-                    id="viewer-search-next"
-                    type="button"
-                    class="btn btn-outline-secondary viewer-tool-btn"
-                >
-                    ▶
-                </button>
-                {% endif %}
-                
-                {% if query %}
-                <span class="badge bg-warning text-dark viewer-query-badge"
-                    >{{ query }}
-                </span>
-                {% endif %} {% if query and match_count %} {% if match_count > 1 %}
-                <a
-                    href="{% if prev_match_url %}{{ prev_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
-                    class="btn btn-outline-secondary viewer-tool-btn"
-                    data-viewer-match-link="1"
-                    data-viewer-match-direction="prev"
-                    >Prev Match</a
-                >
-                {% endif %}
+        <div class="viewer-commandbar-right">
+            <div
+                id="viewer-mobile-search"
+                class="viewer-toolbar-right viewer-search-panel d-flex"
+            >
+                <div class="viewer-search-row">
+                    {% if not from_search_page %}
+                    <input
+                        id="viewer-search-input"
+                        type="text"
+                        value="{{ query }}"
+                        class="form-control viewer-search-input"
+                        placeholder="Find in PDF"
+                    />
+                    <button
+                        id="viewer-search-btn"
+                        type="button"
+                        class="btn btn-primary viewer-tool-btn"
+                    >
+                        Find
+                    </button>
+                    <button
+                        id="viewer-search-prev"
+                        type="button"
+                        class="btn btn-outline-secondary viewer-tool-btn"
+                    >
+                        ◀
+                    </button>
+                    <span
+                        id="viewer-search-count"
+                        class="badge bg-primary viewer-match-badge"
+                        >0 / 0</span
+                    >
+                    <button
+                        id="viewer-search-next"
+                        type="button"
+                        class="btn btn-outline-secondary viewer-tool-btn"
+                    >
+                        ▶
+                    </button>
+                    {% endif %} {% if query %}
+                    <span class="badge bg-warning text-dark viewer-query-badge"
+                        >{{ query }}
+                    </span>
+                    {% endif %} {% if query and match_count %} {% if match_count > 1 %}
+                    <a
+                        href="{% if prev_match_url %}{{ prev_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
+                        class="btn btn-outline-secondary viewer-tool-btn"
+                        data-viewer-match-link="1"
+                        data-viewer-match-direction="prev"
+                        >Prev Match</a
+                    >
+                    {% endif %}
 
-                <span
-                    id="server-match-count"
-                    class="badge bg-primary viewer-match-badge"
-                    >{{ current_match_index }} / {{ match_count }}</span
-                >
+                    <span
+                        id="server-match-count"
+                        class="badge bg-primary viewer-match-badge"
+                        >{{ current_match_index }} / {{ match_count }}</span
+                    >
 
-                {% if match_count > 1 %}
+                    {% if match_count > 1 %}
+                    <a
+                        href="{% if next_match_url %}{{ next_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
+                        class="btn btn-outline-secondary viewer-tool-btn"
+                        data-viewer-match-link="1"
+                        data-viewer-match-direction="next"
+                        >Next Match</a
+                    >
+                    {% endif %} {% elif query %}
+                    <span class="badge bg-secondary viewer-match-badge"
+                        >No match</span
+                    >
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="viewer-top-actions">
                 <a
-                    href="{% if next_match_url %}{{ next_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
-                    class="btn btn-outline-secondary viewer-tool-btn"
-                    data-viewer-match-link="1"
-                    data-viewer-match-direction="next"
-                    >Next Match</a
+                    href="{{ pdf_url }}"
+                    target="_blank"
+                    class="btn btn-outline-primary viewer-action-btn d-none d-md-inline-flex"
                 >
-                {% endif %} {% elif query %}
-                <span class="badge bg-secondary viewer-match-badge"
-                    >No match</span
+                    Original
+                </a>
+                <a
+                    href="{{ pdf_url }}"
+                    class="btn btn-outline-primary viewer-action-btn d-inline-flex d-md-none"
+                    download
                 >
-                {% endif %}
+                    Original
+                </a>
+
+                <button
+                    id="viewer-exit-btn"
+                    type="button"
+                    class="btn btn-outline-danger viewer-action-btn{% if embedded %} d-none{% endif %}"
+                    data-fallback-url="{{ back_url }}"
+                >
+                    Exit
+                </button>
             </div>
         </div>
     </div>
@@ -257,7 +291,10 @@ pdf-viewer-page
         <div class="pdf-viewer-scroll">
             <div id="single-page-viewer" class="pdf-viewer-wrap">
                 <div id="viewer-loading" class="viewer-loading">
-                    <div class="spinner-border text-primary" role="status"></div>
+                    <div
+                        class="spinner-border text-primary"
+                        role="status"
+                    ></div>
                     <div class="viewer-loading-title">Loading PDF...</div>
                 </div>
                 <canvas id="pdf-canvas"></canvas>

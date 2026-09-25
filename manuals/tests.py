@@ -287,6 +287,61 @@ class ManualPackageViewerMatchCountTests(TestCase):
         self.assertEqual(groups[0]["match_count"], 1)
         self.assertEqual(viewer_response.context["match_count"], 1)
 
+    def test_chapter_list_starts_without_selected_viewer(self):
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            ),
+            {"q": "oil press sensors l"},
+        )
+
+        self.assertEqual(response.context["initial_viewer_url"], "")
+        self.assertIsNone(response.context["initial_chapter"])
+        self.assertEqual(len(response.context["matching_chapters"]), 1)
+
+    def test_chapter_list_restores_requested_embedded_viewer(self):
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            ),
+            {
+                "chapter": self.content_chapter.pk,
+                "page": 25,
+            },
+        )
+
+        initial_viewer_url = response.context["initial_viewer_url"]
+
+        self.assertIn(
+            reverse(
+                "manual_chapter_pdf_viewer",
+                kwargs={"pk": self.content_chapter.pk},
+            ),
+            initial_viewer_url,
+        )
+        self.assertIn("embedded=1", initial_viewer_url)
+        self.assertIn("page=25", initial_viewer_url)
+
+    def test_chapter_viewer_preserves_embedded_mode(self):
+        response = self.client.get(
+            reverse(
+                "manual_chapter_pdf_viewer",
+                kwargs={"pk": self.content_chapter.pk},
+            ),
+            {
+                "page": 25,
+                "q": "oil press sensors l",
+                "scope": "chapter",
+                "embedded": 1,
+            },
+        )
+
+        self.assertTrue(response.context["embedded"])
+        self.assertEqual(response.headers["X-Frame-Options"], "SAMEORIGIN")
+        self.assertIn("embedded=1", response.context["package_chapters_json"])
+
 
 class CommonManualCategoryFormTests(TestCase):
     def test_category_form_accepts_rendered_fields_only(self):

@@ -1,5 +1,5 @@
 /* =========================================================
-   Aircraft Maintenance Command Center
+Aircraft Maintenance Command Center
 ========================================================= */
 
 body.portal-home-page {
@@ -24,19 +24,13 @@ body.portal-home-page {
             rgba(20, 100, 180, 0.16),
             transparent 32rem
         ),
-        linear-gradient(
-            145deg,
-            #071426,
-            #030914 70%
-        );
+        linear-gradient(145deg, #071426, #030914 70%);
 
     color: var(--cmd-text);
 }
 
 body.portal-home-page .app-main {
-    min-height: calc(
-        100dvh - var(--navbar-height)
-    );
+    min-height: calc(100dvh - var(--navbar-height));
 
     overflow: hidden;
 }
@@ -49,9 +43,8 @@ body.portal-home-page .app-container {
     padding-right: 1rem;
 }
 
-
 /* =========================================================
-   Command Center
+Command Center
 ========================================================= */
 
 .command-center {
@@ -61,9 +54,7 @@ body.portal-home-page .app-container {
     max-width: 94rem;
 
     min-height: calc(
-        100dvh
-        - var(--navbar-height)
-        - (var(--page-edge-gap) * 2)
+        100dvh - var(--navbar-height) - (var(--page-edge-gap) * 2)
     );
 
     margin: 0 auto;
@@ -79,11 +70,7 @@ body.portal-home-page .app-container {
             rgba(0, 122, 255, 0.12),
             transparent 36%
         ),
-        linear-gradient(
-            145deg,
-            rgba(5, 17, 32, 0.98),
-            rgba(2, 8, 18, 0.99)
-        );
+        linear-gradient(145deg, rgba(5, 17, 32, 0.98), rgba(2, 8, 18, 0.99));
 
     box-shadow:
         0 2rem 5rem rgba(0, 0, 0, 0.32),
@@ -92,9 +79,8 @@ body.portal-home-page .app-container {
     isolation: isolate;
 }
 
-
 /* =========================================================
-   Background
+Background
 ========================================================= */
 
 .command-background {
@@ -113,29 +99,18 @@ body.portal-home-page .app-container {
     inset: -40%;
 
     background-image:
-        linear-gradient(
-            rgba(61, 156, 220, 0.08) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(61, 156, 220, 0.08) 1px,
-            transparent 1px
-        );
+        linear-gradient(rgba(61, 156, 220, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61, 156, 220, 0.08) 1px, transparent 1px);
 
     background-size: 3.5rem 3.5rem;
 
-    transform:
-        perspective(45rem)
-        rotateX(62deg)
-        translateY(26%);
+    transform: perspective(45rem) rotateX(62deg) translateY(26%);
 
     transform-origin: center;
 
     opacity: 0.48;
 
-    animation:
-        commandGridMove 16s linear infinite;
+    animation: commandGridMove 16s linear infinite;
 }
 
 @keyframes commandGridMove {
@@ -144,8 +119,7 @@ body.portal-home-page .app-container {
     }
 
     to {
-        background-position:
-            0 3.5rem;
+        background-position: 0 3.5rem;
     }
 }
 
@@ -185,16 +159,14 @@ body.portal-home-page .app-container {
 
     height: 5rem;
 
-    background:
-        linear-gradient(
-            to bottom,
-            transparent,
-            rgba(60, 190, 255, 0.035),
-            transparent
-        );
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(60, 190, 255, 0.035),
+        transparent
+    );
 
-    animation:
-        commandScan 8s linear infinite;
+    animation: commandScan 8s linear infinite;
 }
 
 @keyframes commandScan {
@@ -206,7 +178,6 @@ body.portal-home-page .app-container {
         transform: translateY(120vh);
     }
 }
-
 
 /* Stars */
 
@@ -220,11 +191,9 @@ body.portal-home-page .app-container {
 
     border-radius: 50%;
 
-    box-shadow:
-        0 0 0.5rem rgba(125, 211, 252, 0.9);
+    box-shadow: 0 0 0.5rem rgba(125, 211, 252, 0.9);
 
-    animation:
-        starPulse 3s ease-in-out infinite;
+    animation: starPulse 3s ease-in-out infinite;
 }
 
 .command-stars span:nth-child(1) {
@@ -286,9 +255,8 @@ body.portal-home-page .app-container {
     }
 }
 
-
 /* =========================================================
-   Header
+Header
 ========================================================= */
 
 .command-header {
@@ -331,8 +299,7 @@ body.portal-home-page .app-container {
         0 0 0 0.22rem rgba(74, 222, 128, 0.12),
         0 0 0.9rem rgba(74, 222, 128, 0.65);
 
-    animation:
-        livePulse 2s ease-in-out infinite;
+    animation: livePulse 2s ease-in-out infinite;
 }
 
 @keyframes livePulse {
@@ -361,7 +328,6 @@ body.portal-home-page .app-container {
     font-weight: 650;
 }
 
-
 /* Status */
 
 .command-system-status {
@@ -371,8 +337,7 @@ body.portal-home-page .app-container {
 
     background: rgba(7, 23, 40, 0.72);
 
-    border:
-        1px solid rgba(73, 172, 237, 0.22);
+    border: 1px solid rgba(73, 172, 237, 0.22);
 
     border-radius: 0.65rem;
 
@@ -410,13 +375,11 @@ body.portal-home-page .app-container {
 
     border-radius: 50%;
 
-    box-shadow:
-        0 0 0.6rem var(--cmd-green);
+    box-shadow: 0 0 0.6rem var(--cmd-green);
 }
 
-
 /* =========================================================
-   Workspace
+Workspace
 ========================================================= */
 
 .command-workspace {
@@ -451,9 +414,8 @@ body.portal-home-page .app-container {
     gap: 1rem;
 }
 
-
 /* =========================================================
-   HUD Panels
+HUD Panels
 ========================================================= */
 
 .hud-panel {
@@ -464,8 +426,7 @@ body.portal-home-page .app-container {
 
     display: grid;
 
-    grid-template-columns:
-        auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
 
     gap: 0.8rem;
 
@@ -478,15 +439,13 @@ body.portal-home-page .app-container {
     color: inherit;
     text-decoration: none;
 
-    background:
-        linear-gradient(
-            135deg,
-            rgba(10, 29, 51, 0.87),
-            rgba(5, 17, 31, 0.76)
-        );
+    background: linear-gradient(
+        135deg,
+        rgba(10, 29, 51, 0.87),
+        rgba(5, 17, 31, 0.76)
+    );
 
-    border:
-        1px solid rgba(79, 173, 235, 0.2);
+    border: 1px solid rgba(79, 173, 235, 0.2);
 
     border-radius: 0.9rem;
 
@@ -494,9 +453,7 @@ body.portal-home-page .app-container {
         0 0.9rem 2rem rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.035);
 
-    backdrop-filter:
-        blur(1.25rem)
-        saturate(140%);
+    backdrop-filter: blur(1.25rem) saturate(140%);
 
     transform-style: preserve-3d;
 
@@ -518,14 +475,11 @@ body.portal-home-page .app-container {
     width: 2.5rem;
     height: 2.5rem;
 
-    border-top:
-        2px solid var(--panel-color);
+    border-top: 2px solid var(--panel-color);
 
-    border-left:
-        2px solid var(--panel-color);
+    border-left: 2px solid var(--panel-color);
 
-    border-radius:
-        0.85rem 0 0 0;
+    border-radius: 0.85rem 0 0 0;
 }
 
 .hud-panel::after {
@@ -539,33 +493,21 @@ body.portal-home-page .app-container {
     width: 8rem;
     height: 8rem;
 
-    background:
-        radial-gradient(
-            circle,
-            var(--panel-soft),
-            transparent 70%
-        );
+    background: radial-gradient(circle, var(--panel-soft), transparent 70%);
 
-    transition:
-        transform 250ms ease;
+    transition: transform 250ms ease;
 }
 
 .hud-panel:hover {
     color: inherit;
 
-    border-color:
-        color-mix(
-            in srgb,
-            var(--panel-color) 55%,
-            transparent
-        );
+    border-color: color-mix(in srgb, var(--panel-color) 55%, transparent);
 
-    background:
-        linear-gradient(
-            135deg,
-            rgba(14, 40, 69, 0.96),
-            rgba(6, 22, 39, 0.9)
-        );
+    background: linear-gradient(
+        135deg,
+        rgba(14, 40, 69, 0.96),
+        rgba(6, 22, 39, 0.9)
+    );
 
     box-shadow:
         0 1.4rem 3rem rgba(0, 0, 0, 0.3),
@@ -576,7 +518,6 @@ body.portal-home-page .app-container {
 .hud-panel:hover::after {
     transform: scale(1.4);
 }
-
 
 /* Colors */
 
@@ -600,7 +541,6 @@ body.portal-home-page .app-container {
     --panel-soft: rgba(192, 132, 252, 0.12);
 }
 
-
 /* Number */
 
 .hud-panel-number {
@@ -609,19 +549,13 @@ body.portal-home-page .app-container {
     top: 0.65rem;
     right: 0.7rem;
 
-    color:
-        color-mix(
-            in srgb,
-            var(--panel-color) 48%,
-            transparent
-        );
+    color: color-mix(in srgb, var(--panel-color) 48%, transparent);
 
     font-size: 0.58rem;
     font-weight: 900;
 
     letter-spacing: 0.1em;
 }
-
 
 /* Icon */
 
@@ -639,25 +573,17 @@ body.portal-home-page .app-container {
 
     background: var(--panel-soft);
 
-    border:
-        1px solid
-        color-mix(
-            in srgb,
-            var(--panel-color) 28%,
-            transparent
-        );
+    border: 1px solid color-mix(in srgb, var(--panel-color) 28%, transparent);
 
     border-radius: 0.65rem;
 
     font-size: 1.25rem;
     font-weight: 900;
 
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
     transform: translateZ(1.4rem);
 }
-
 
 /* Content */
 
@@ -696,7 +622,6 @@ body.portal-home-page .app-container {
     line-height: 1.4;
 }
 
-
 /* Tags */
 
 .hud-tags {
@@ -715,13 +640,7 @@ body.portal-home-page .app-container {
 
     background: var(--panel-soft);
 
-    border:
-        1px solid
-        color-mix(
-            in srgb,
-            var(--panel-color) 20%,
-            transparent
-        );
+    border: 1px solid color-mix(in srgb, var(--panel-color) 20%, transparent);
 
     border-radius: 0.25rem;
 
@@ -730,7 +649,6 @@ body.portal-home-page .app-container {
 
     letter-spacing: 0.04em;
 }
-
 
 /* Enter */
 
@@ -758,17 +676,15 @@ body.portal-home-page .app-container {
 
     font-size: 0.9rem;
 
-    transition:
-        transform 160ms ease;
+    transition: transform 160ms ease;
 }
 
 .hud-panel:hover .hud-enter strong {
     transform: translateX(0.2rem);
 }
 
-
 /* =========================================================
-   Aircraft Scene
+Aircraft Scene
 ========================================================= */
 
 .aircraft-scene {
@@ -789,13 +705,11 @@ body.portal-home-page .app-container {
 
     transform-style: preserve-3d;
 
-    transition:
-        transform 100ms linear;
+    transition: transform 100ms linear;
 }
 
-
 /* =========================================================
-   Radar
+Radar
 ========================================================= */
 
 .radar-plane {
@@ -807,9 +721,7 @@ body.portal-home-page .app-container {
     width: 21rem;
     height: 21rem;
 
-    transform:
-        translate(-50%, -50%)
-        rotateX(68deg);
+    transform: translate(-50%, -50%) rotateX(68deg);
 
     transform-style: preserve-3d;
 
@@ -824,13 +736,11 @@ body.portal-home-page .app-container {
     top: 50%;
     left: 50%;
 
-    border:
-        1px solid rgba(67, 185, 255, 0.24);
+    border: 1px solid rgba(67, 185, 255, 0.24);
 
     border-radius: 50%;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
 
 .radar-circle-one {
@@ -854,24 +764,21 @@ body.portal-home-page .app-container {
     top: 50%;
     left: 50%;
 
-    background:
-        rgba(66, 183, 255, 0.16);
+    background: rgba(66, 183, 255, 0.16);
 }
 
 .radar-cross-x {
     width: 100%;
     height: 1px;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
 
 .radar-cross-y {
     width: 1px;
     height: 100%;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
 
 .radar-sweep {
@@ -881,17 +788,15 @@ body.portal-home-page .app-container {
 
     border-radius: 50%;
 
-    background:
-        conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            transparent 310deg,
-            rgba(66, 183, 255, 0.18) 355deg,
-            rgba(66, 183, 255, 0.38) 360deg
-        );
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 310deg,
+        rgba(66, 183, 255, 0.18) 355deg,
+        rgba(66, 183, 255, 0.38) 360deg
+    );
 
-    animation:
-        radarSweep 5s linear infinite;
+    animation: radarSweep 5s linear infinite;
 }
 
 @keyframes radarSweep {
@@ -900,9 +805,8 @@ body.portal-home-page .app-container {
     }
 }
 
-
 /* =========================================================
-   Orbit
+Orbit
 ========================================================= */
 
 .aircraft-orbit {
@@ -911,8 +815,7 @@ body.portal-home-page .app-container {
     top: 50%;
     left: 50%;
 
-    border:
-        1px solid rgba(67, 185, 255, 0.14);
+    border: 1px solid rgba(67, 185, 255, 0.14);
 
     border-radius: 50%;
 }
@@ -921,40 +824,30 @@ body.portal-home-page .app-container {
     width: 20rem;
     height: 20rem;
 
-    transform:
-        translate(-50%, -50%)
-        rotateX(70deg)
-        rotateZ(12deg);
+    transform: translate(-50%, -50%) rotateX(70deg) rotateZ(12deg);
 }
 
 .orbit-two {
     width: 25rem;
     height: 13rem;
 
-    transform:
-        translate(-50%, -50%)
-        rotate(-18deg);
+    transform: translate(-50%, -50%) rotate(-18deg);
 
-    animation:
-        orbitFloat 9s ease-in-out infinite;
+    animation: orbitFloat 9s ease-in-out infinite;
 }
 
 .orbit-three {
     width: 13rem;
     height: 25rem;
 
-    transform:
-        translate(-50%, -50%)
-        rotate(35deg);
+    transform: translate(-50%, -50%) rotate(35deg);
 
     opacity: 0.5;
 }
 
 @keyframes orbitFloat {
     50% {
-        transform:
-            translate(-50%, -50%)
-            rotate(-10deg);
+        transform: translate(-50%, -50%) rotate(-10deg);
     }
 }
 
@@ -968,24 +861,21 @@ body.portal-home-page .app-container {
 
     border-radius: 50%;
 
-    box-shadow:
-        0 0 1rem var(--cmd-cyan);
+    box-shadow: 0 0 1rem var(--cmd-cyan);
 }
 
 .orbit-point-one {
     top: 28%;
     left: 20%;
 
-    animation:
-        orbitPointPulse 2s ease-in-out infinite;
+    animation: orbitPointPulse 2s ease-in-out infinite;
 }
 
 .orbit-point-two {
     right: 18%;
     bottom: 30%;
 
-    animation:
-        orbitPointPulse 2s ease-in-out infinite -1s;
+    animation: orbitPointPulse 2s ease-in-out infinite -1s;
 }
 
 @keyframes orbitPointPulse {
@@ -995,9 +885,8 @@ body.portal-home-page .app-container {
     }
 }
 
-
 /* =========================================================
-   CSS Aircraft
+CSS Aircraft
 ========================================================= */
 
 .aircraft-model {
@@ -1009,21 +898,13 @@ body.portal-home-page .app-container {
     width: 19rem;
     height: 19rem;
 
-    transform:
-        translate(-50%, -50%)
-        rotateX(54deg)
-        rotateZ(-3deg);
+    transform: translate(-50%, -50%) rotateX(54deg) rotateZ(-3deg);
 
     transform-style: preserve-3d;
 
-    filter:
-        drop-shadow(
-            0 1.4rem 1.6rem
-            rgba(0, 0, 0, 0.35)
-        );
+    filter: drop-shadow(0 1.4rem 1.6rem rgba(0, 0, 0, 0.35));
 
-    animation:
-        aircraftHover 5s ease-in-out infinite;
+    animation: aircraftHover 5s ease-in-out infinite;
 }
 
 @keyframes aircraftHover {
@@ -1045,7 +926,6 @@ body.portal-home-page .app-container {
     transform-style: preserve-3d;
 }
 
-
 /* Fuselage */
 
 .aircraft-fuselage {
@@ -1057,28 +937,23 @@ body.portal-home-page .app-container {
     width: 2.4rem;
     height: 15.2rem;
 
-    transform:
-        translateX(-50%)
-        translateZ(1.4rem);
+    transform: translateX(-50%) translateZ(1.4rem);
 
-    border-radius:
-        70% 70% 42% 42%;
+    border-radius: 70% 70% 42% 42%;
 
-    background:
-        linear-gradient(
-            90deg,
-            #64748b 0%,
-            #e2e8f0 23%,
-            #f8fafc 48%,
-            #94a3b8 78%,
-            #475569 100%
-        );
+    background: linear-gradient(
+        90deg,
+        #64748b 0%,
+        #e2e8f0 23%,
+        #f8fafc 48%,
+        #94a3b8 78%,
+        #475569 100%
+    );
 
     box-shadow:
         inset -0.4rem 0 0.8rem rgba(15, 23, 42, 0.22),
         inset 0.35rem 0 0.5rem rgba(255, 255, 255, 0.35);
 }
-
 
 /* Nose */
 
@@ -1093,31 +968,14 @@ body.portal-home-page .app-container {
     width: 2.25rem;
     height: 4.3rem;
 
-    transform:
-        translateX(-50%)
-        translateZ(1.5rem);
+    transform: translateX(-50%) translateZ(1.5rem);
 
-    border-radius:
-        55% 55% 35% 35%;
+    border-radius: 55% 55% 35% 35%;
 
-    background:
-        linear-gradient(
-            90deg,
-            #64748b,
-            #f8fafc 45%,
-            #94a3b8
-        );
+    background: linear-gradient(90deg, #64748b, #f8fafc 45%, #94a3b8);
 
-    clip-path:
-        polygon(
-            50% 0,
-            80% 17%,
-            100% 100%,
-            0 100%,
-            20% 17%
-        );
+    clip-path: polygon(50% 0, 80% 17%, 100% 100%, 0 100%, 20% 17%);
 }
-
 
 /* Cockpit */
 
@@ -1133,9 +991,7 @@ body.portal-home-page .app-container {
 
     gap: 0.15rem;
 
-    transform:
-        translateX(-50%)
-        translateZ(1.7rem);
+    transform: translateX(-50%) translateZ(1.7rem);
 }
 
 .aircraft-cockpit span {
@@ -1144,15 +1000,12 @@ body.portal-home-page .app-container {
 
     background: #0c4a6e;
 
-    border:
-        1px solid rgba(125, 211, 252, 0.65);
+    border: 1px solid rgba(125, 211, 252, 0.65);
 
     border-radius: 50% 50% 25% 25%;
 
-    box-shadow:
-        0 0 0.35rem rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 0.35rem rgba(56, 189, 248, 0.35);
 }
-
 
 /* Main Wings */
 
@@ -1166,49 +1019,26 @@ body.portal-home-page .app-container {
     width: 8.9rem;
     height: 5.7rem;
 
-    background:
-        linear-gradient(
-            155deg,
-            #cbd5e1,
-            #64748b 72%
-        );
+    background: linear-gradient(155deg, #cbd5e1, #64748b 72%);
 
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .aircraft-wing-left {
     right: 50%;
 
-    transform:
-        translateZ(0.7rem)
-        skewY(-8deg);
+    transform: translateZ(0.7rem) skewY(-8deg);
 
-    clip-path:
-        polygon(
-            100% 0,
-            88% 100%,
-            0 82%,
-            0 62%
-        );
+    clip-path: polygon(100% 0, 88% 100%, 0 82%, 0 62%);
 }
 
 .aircraft-wing-right {
     left: 50%;
 
-    transform:
-        translateZ(0.7rem)
-        skewY(8deg);
+    transform: translateZ(0.7rem) skewY(8deg);
 
-    clip-path:
-        polygon(
-            0 0,
-            12% 100%,
-            100% 82%,
-            100% 62%
-        );
+    clip-path: polygon(0 0, 12% 100%, 100% 82%, 100% 62%);
 }
-
 
 /* Tail Wings */
 
@@ -1222,38 +1052,20 @@ body.portal-home-page .app-container {
     width: 4.5rem;
     height: 2.6rem;
 
-    background:
-        linear-gradient(
-            150deg,
-            #94a3b8,
-            #475569
-        );
+    background: linear-gradient(150deg, #94a3b8, #475569);
 }
 
 .aircraft-tail-left {
     right: 50%;
 
-    clip-path:
-        polygon(
-            100% 0,
-            85% 100%,
-            0 82%,
-            0 62%
-        );
+    clip-path: polygon(100% 0, 85% 100%, 0 82%, 0 62%);
 }
 
 .aircraft-tail-right {
     left: 50%;
 
-    clip-path:
-        polygon(
-            0 0,
-            15% 100%,
-            100% 82%,
-            100% 62%
-        );
+    clip-path: polygon(0 0, 15% 100%, 100% 82%, 100% 62%);
 }
-
 
 /* Vertical tail */
 
@@ -1268,26 +1080,12 @@ body.portal-home-page .app-container {
     width: 1.1rem;
     height: 3.7rem;
 
-    transform:
-        translateX(-50%)
-        translateZ(2.3rem)
-        rotateX(-25deg);
+    transform: translateX(-50%) translateZ(2.3rem) rotateX(-25deg);
 
-    clip-path:
-        polygon(
-            50% 0,
-            100% 100%,
-            0 100%
-        );
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
 
-    background:
-        linear-gradient(
-            90deg,
-            #1d4ed8,
-            #60a5fa
-        );
+    background: linear-gradient(90deg, #1d4ed8, #60a5fa);
 }
-
 
 /* Engines */
 
@@ -1301,22 +1099,13 @@ body.portal-home-page .app-container {
     width: 1.35rem;
     height: 2.7rem;
 
-    transform:
-        translateZ(1.3rem);
+    transform: translateZ(1.3rem);
 
-    border-radius:
-        45% 45% 50% 50%;
+    border-radius: 45% 45% 50% 50%;
 
-    background:
-        linear-gradient(
-            90deg,
-            #334155,
-            #cbd5e1,
-            #475569
-        );
+    background: linear-gradient(90deg, #334155, #cbd5e1, #475569);
 
-    box-shadow:
-        0 0.25rem 0.4rem rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0.25rem 0.4rem rgba(0, 0, 0, 0.25);
 }
 
 .engine-left {
@@ -1326,7 +1115,6 @@ body.portal-home-page .app-container {
 .engine-right {
     right: 4.4rem;
 }
-
 
 /* Center detail */
 
@@ -1341,18 +1129,14 @@ body.portal-home-page .app-container {
     width: 1px;
     height: 7rem;
 
-    transform:
-        translateX(-50%)
-        translateZ(1.8rem);
+    transform: translateX(-50%) translateZ(1.8rem);
 
-    background:
-        linear-gradient(
-            transparent,
-            rgba(14, 116, 144, 0.35),
-            transparent
-        );
+    background: linear-gradient(
+        transparent,
+        rgba(14, 116, 144, 0.35),
+        transparent
+    );
 }
-
 
 /* Shadow */
 
@@ -1365,21 +1149,17 @@ body.portal-home-page .app-container {
     width: 11rem;
     height: 4rem;
 
-    transform:
-        translate(-50%, -50%)
-        translateZ(-3rem);
+    transform: translate(-50%, -50%) translateZ(-3rem);
 
-    background:
-        rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.45);
 
     filter: blur(1.7rem);
 
     border-radius: 50%;
 }
 
-
 /* =========================================================
-   Target
+Target
 ========================================================= */
 
 .aircraft-target {
@@ -1391,8 +1171,7 @@ body.portal-home-page .app-container {
     width: 16rem;
     height: 16rem;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 
     opacity: 0.6;
 }
@@ -1436,9 +1215,8 @@ body.portal-home-page .app-container {
     border-bottom: 1px solid var(--cmd-blue);
 }
 
-
 /* =========================================================
-   Aircraft Info
+Aircraft Info
 ========================================================= */
 
 .aircraft-info {
@@ -1453,14 +1231,11 @@ body.portal-home-page .app-container {
 
     text-align: center;
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
 
-    background:
-        rgba(5, 20, 35, 0.66);
+    background: rgba(5, 20, 35, 0.66);
 
-    border:
-        1px solid rgba(66, 183, 255, 0.18);
+    border: 1px solid rgba(66, 183, 255, 0.18);
 
     border-radius: 0.5rem;
 
@@ -1514,13 +1289,11 @@ body.portal-home-page .app-container {
 
     border-radius: 50%;
 
-    box-shadow:
-        0 0 0.4rem #4ade80;
+    box-shadow: 0 0 0.4rem #4ade80;
 }
 
-
 /* =========================================================
-   Footer
+Footer
 ========================================================= */
 
 .command-footer {
@@ -1537,11 +1310,9 @@ body.portal-home-page .app-container {
 
     padding: 0.7rem 0.9rem;
 
-    background:
-        rgba(4, 17, 30, 0.72);
+    background: rgba(4, 17, 30, 0.72);
 
-    border:
-        1px solid rgba(70, 160, 220, 0.17);
+    border: 1px solid rgba(70, 160, 220, 0.17);
 
     border-radius: 0.65rem;
 
@@ -1558,10 +1329,7 @@ body.portal-home-page .app-container {
 
 .command-footer-left {
     color: #617f97;
-
-    font-size: 0.53rem;
     font-weight: 850;
-
     letter-spacing: 0.07em;
 }
 
@@ -1587,14 +1355,12 @@ body.portal-home-page .app-container {
     width: 1px;
     height: 0.8rem;
 
-    background:
-        rgba(125, 211, 252, 0.16);
+    background: rgba(125, 211, 252, 0.16);
 }
 
 .command-quick-links a {
     color: #7394ad;
 
-    font-size: 0.52rem;
     font-weight: 900;
 
     letter-spacing: 0.06em;
@@ -1614,9 +1380,8 @@ body.portal-home-page .app-container {
     color: #dff5ff;
 }
 
-
 /* =========================================================
-   Boot Screen
+Boot Screen
 ========================================================= */
 
 .command-boot {
@@ -1629,12 +1394,7 @@ body.portal-home-page .app-container {
     align-items: center;
     justify-content: center;
 
-    background:
-        radial-gradient(
-            circle at center,
-            #0b2340,
-            #020711 60%
-        );
+    background: radial-gradient(circle at center, #0b2340, #020711 60%);
 
     transition:
         opacity 500ms ease,
@@ -1669,19 +1429,14 @@ body.portal-home-page .app-container {
 
     font-size: 2.3rem;
 
-    filter:
-        drop-shadow(
-            0 0 0.8rem rgba(56, 189, 248, 0.55)
-        );
+    filter: drop-shadow(0 0 0.8rem rgba(56, 189, 248, 0.55));
 
-    animation:
-        bootAircraft 1.5s ease-in-out infinite;
+    animation: bootAircraft 1.5s ease-in-out infinite;
 }
 
 @keyframes bootAircraft {
     50% {
-        transform:
-            translateY(-0.25rem);
+        transform: translateY(-0.25rem);
     }
 }
 
@@ -1689,12 +1444,7 @@ body.portal-home-page .app-container {
     width: 3rem;
     height: 1px;
 
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            #38bdf8
-        );
+    background: linear-gradient(90deg, transparent, #38bdf8);
 }
 
 .boot-wing-right {
@@ -1728,8 +1478,7 @@ body.portal-home-page .app-container {
 
     overflow: hidden;
 
-    background:
-        rgba(125, 211, 252, 0.12);
+    background: rgba(125, 211, 252, 0.12);
 
     border-radius: 99rem;
 }
@@ -1740,18 +1489,11 @@ body.portal-home-page .app-container {
     width: 0%;
     height: 100%;
 
-    background:
-        linear-gradient(
-            90deg,
-            #0284c7,
-            #67e8f9
-        );
+    background: linear-gradient(90deg, #0284c7, #67e8f9);
 
-    box-shadow:
-        0 0 0.8rem #38bdf8;
+    box-shadow: 0 0 0.8rem #38bdf8;
 
-    transition:
-        width 180ms ease;
+    transition: width 180ms ease;
 }
 
 .boot-status {
@@ -1772,17 +1514,14 @@ body.portal-home-page .app-container {
     color: #7dd3fc;
 }
 
-
 /* =========================================================
-   Entrance Animation
+Entrance Animation
 ========================================================= */
 
 .command-center {
     opacity: 0;
 
-    transform:
-        translateY(0.6rem)
-        scale(0.99);
+    transform: translateY(0.6rem) scale(0.99);
 
     transition:
         opacity 650ms ease,
@@ -1792,21 +1531,14 @@ body.portal-home-page .app-container {
 body.command-ready .command-center {
     opacity: 1;
 
-    transform:
-        translateY(0)
-        scale(1);
+    transform: translateY(0) scale(1);
 }
 
-
 /* =========================================================
-   Tablet
+Tablet
 ========================================================= */
 
-@media
-(min-width: 48.0625rem)
-and
-(max-width: 64rem) {
-
+@media (min-width: 48.0625rem) and (max-width: 64rem) {
     .command-workspace {
         grid-template-columns:
             minmax(13rem, 1fr)
@@ -1825,17 +1557,12 @@ and
     }
 
     .aircraft-model {
-        transform:
-            translate(-50%, -50%)
-            rotateX(54deg)
-            rotateZ(-3deg)
+        transform: translate(-50%, -50%) rotateX(54deg) rotateZ(-3deg)
             scale(0.82);
     }
 
     .aircraft-target {
-        transform:
-            translate(-50%, -50%)
-            scale(0.85);
+        transform: translate(-50%, -50%) scale(0.85);
     }
 
     .command-footer {
@@ -1843,19 +1570,15 @@ and
     }
 }
 
-
 /* =========================================================
-   Mobile
+Mobile
 ========================================================= */
 
 @media (max-width: 48rem) {
-
     body.portal-home-page {
-        padding-bottom:
-            calc(
-                var(--bottom-nav-height)
-                + var(--safe-area-bottom)
-            ) !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        ) !important;
     }
 
     body.portal-home-page .app-main {
@@ -1874,14 +1597,12 @@ and
         overflow: hidden;
     }
 
-
     /* Header */
 
     .command-header {
         align-items: center;
 
-        padding:
-            1rem 0.9rem 0.4rem;
+        padding: 1rem 0.9rem 0.4rem;
     }
 
     .command-kicker {
@@ -1912,7 +1633,6 @@ and
         font-size: 0.53rem;
     }
 
-
     /* Workspace */
 
     .command-workspace {
@@ -1921,10 +1641,8 @@ and
 
         min-height: auto;
 
-        padding:
-            0.4rem 0.7rem 0.8rem;
+        padding: 0.4rem 0.7rem 0.8rem;
     }
-
 
     /* Aircraft first */
 
@@ -1946,24 +1664,19 @@ and
     .command-side {
         display: grid;
 
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
 
         width: 100%;
 
         gap: 0.45rem;
     }
 
-
     /* Aircraft */
 
     .aircraft-model {
         top: 48%;
 
-        transform:
-            translate(-50%, -50%)
-            rotateX(54deg)
-            rotateZ(-3deg)
+        transform: translate(-50%, -50%) rotateX(54deg) rotateZ(-3deg)
             scale(0.58);
     }
 
@@ -1990,9 +1703,7 @@ and
     .aircraft-target {
         top: 48%;
 
-        transform:
-            translate(-50%, -50%)
-            scale(0.62);
+        transform: translate(-50%, -50%) scale(0.62);
     }
 
     .aircraft-info {
@@ -2006,7 +1717,6 @@ and
     .aircraft-info-label {
         display: none;
     }
-
 
     /* Cards */
 
@@ -2062,14 +1772,12 @@ and
         font-size: 0.42rem;
     }
 
-
     /* Footer */
 
     .command-footer {
         display: block;
 
-        margin:
-            0 0.7rem 0.7rem;
+        margin: 0 0.7rem 0.7rem;
 
         padding: 0.55rem;
     }
@@ -2093,16 +1801,13 @@ and
     }
 }
 
-
 /* =========================================================
-   Small Mobile
+Small Mobile
 ========================================================= */
 
 @media (max-width: 35.5rem) {
-
     .command-side {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .aircraft-scene {
@@ -2114,13 +1819,11 @@ and
     }
 }
 
-
 /* =========================================================
-   Reduced Motion
+Reduced Motion
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
     .command-grid,
     .command-scan-line,
     .radar-sweep,
@@ -2139,13 +1842,11 @@ and
     }
 }
 
-
 /* =========================================================
-   Touch
+Touch
 ========================================================= */
 
 @media (hover: none) and (pointer: coarse) {
-
     .hud-panel:hover {
         transform: none !important;
     }

@@ -3,9 +3,11 @@ const config = window.PDF_VIEWER_CONFIG || {};
 const matchingPages = Array.isArray(config.matchingPages)
     ? config.matchingPages
     : [];
-const matchItems = Array.isArray(config.matchItems)
-    ? config.matchItems
-    : [];
+const matchItems = Array.isArray(config.matchItems) ? config.matchItems : [];
+
+const embedded = Boolean(config.embedded);
+
+const chapterId = config.chapterId || null;
 
 const viewMode = config.viewMode || "single";
 
@@ -71,6 +73,70 @@ let serverMatchIndex = Number.isFinite(initialServerMatchIndex)
     : 0;
 let isFocusMode = sessionStorage.getItem(VIEWER_FOCUS_KEY) === "true";
 
+/* =========================================================
+   Chapter Workspace Communication
+========================================================= */
+
+function postWorkspaceMessage(type, extraData) {
+    if (!embedded || window.parent === window) {
+        return;
+    }
+
+    const payload = {
+        source: "manual-pdf-viewer",
+        type: type,
+
+        chapterId: chapterId,
+
+        pageNumber:
+            typeof currentPage !== "undefined" ? currentPage : initialPage,
+
+        currentMatchIndex:
+            typeof serverMatchIndex !== "undefined"
+                ? serverMatchIndex
+                : initialServerMatchIndex,
+
+        matchCount: serverMatchTotal || 0,
+    };
+
+    if (extraData && typeof extraData === "object") {
+        Object.assign(payload, extraData);
+    }
+
+    window.parent.postMessage(payload, window.location.origin);
+}
+
+window.addEventListener("message", function (event) {
+    if (
+        !embedded ||
+        event.origin !== window.location.origin ||
+        event.source !== window.parent
+    ) {
+        return;
+    }
+
+    const data = event.data || {};
+
+    if (
+        data.source !== "manual-chapter-workspace" ||
+        data.type !== "go-to-page"
+    ) {
+        return;
+    }
+
+    const pageNumber = parseInt(data.pageNumber, 10);
+
+    if (
+        !pdfDoc ||
+        !Number.isFinite(pageNumber) ||
+        pageNumber < 1 ||
+        pageNumber > pdfDoc.numPages
+    ) {
+        return;
+    }
+
+    goToPage(pageNumber, { silent: true });
+});
 
 let scale = 1.0;
 let scaleMode = isMobileViewport() ? "width" : "page";
@@ -81,6 +147,19 @@ const MAX_SCALE = 6;
 const pdfPageCache = new Map();
 const textContentCache = new Map();
 const prefetchingPages = new Set();
+let outlinePageEntries = [];
+let outlineWorkspaceEntries = [];
+let outlineEntryOrder = 0;
+let activeOutlineRow = null;
+
+function setScaleMode(mode) {
+    scaleMode = mode;
+    pdfContainer.classList.toggle("viewer-scale-width", mode === "width");
+    pdfContainer.classList.toggle("viewer-scale-page", mode === "page");
+    pdfContainer.classList.toggle("viewer-scale-custom", mode === "custom");
+}
+
+setScaleMode(scaleMode);
 
 function isMobileViewport() {
     return window.innerWidth <= 768;
@@ -99,7 +178,7 @@ function parseViewerSearchQuery(query) {
     const trimmed = query.trim().toLowerCase();
     const tokenChars = "0-9a-z가-힣";
     const maintenanceMessageMatch = trimmed.match(
-        /^maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})$/i
+        /^maintenance\s+messages?\s*[:：]\s*(\d{2}-\d{3,5})$/i,
     );
 
     if (maintenanceMessageMatch) {
@@ -180,9 +259,9 @@ function parseViewerSearchQuery(query) {
 
     const exactRegexText = exactWords
         .map(function (word) {
-            return "(?<![0-9a-z가-힣])" +
-                escapeRegExp(word) +
-                "(?![0-9a-z가-힣])";
+            return (
+                "(?<![0-9a-z가-힣])" + escapeRegExp(word) + "(?![0-9a-z가-힣])"
+            );
         })
         .join("\\s+");
 
@@ -234,7 +313,8 @@ function showViewerError(message) {
 }
 
 if (viewerBackLink) {
-    const fallbackUrl = viewerBackLink.dataset.fallbackUrl || viewerBackLink.href;
+    const fallbackUrl =
+        viewerBackLink.dataset.fallbackUrl || viewerBackLink.href;
 
     viewerBackLink.addEventListener("click", function (event) {
         event.preventDefault();
@@ -286,20 +366,26 @@ viewerMatchLinks.forEach(function (link) {
         }
 
         const targetUrl = new URL(href, window.location.href);
+
         const isSameViewer = targetUrl.pathname === window.location.pathname;
+
         const direction = link.dataset.viewerMatchDirection;
 
         event.preventDefault();
+
         const globalLoading = document.getElementById("global-loading");
 
         if (globalLoading) {
             globalLoading.classList.add("d-none");
         }
 
+        /* =================================================
+           Package Match Navigation
+        ================================================= */
+
         if (matchItems.length && serverMatchIndex > 0 && direction) {
-            let nextServerIndex = direction === "prev"
-                ? serverMatchIndex - 2
-                : serverMatchIndex;
+            let nextServerIndex =
+                direction === "prev" ? serverMatchIndex - 2 : serverMatchIndex;
 
             if (nextServerIndex < 0) {
                 nextServerIndex = matchItems.length - 1;
@@ -310,48 +396,92 @@ viewerMatchLinks.forEach(function (link) {
             const nextItem = matchItems[nextServerIndex];
 
             if (nextItem && nextItem.viewerUrl) {
-                const nextUrl = new URL(nextItem.viewerUrl, window.location.href);
+                const nextUrl = new URL(
+                    nextItem.viewerUrl,
+                    window.location.href,
+                );
+
                 const nextPage = parseInt(
                     nextUrl.searchParams.get("page") ||
-                    nextItem.pageNumber ||
-                    "",
-                    10
+                        nextItem.pageNumber ||
+                        "",
+                    10,
                 );
+
+                /* -----------------------------------------
+                   Same Chapter
+                ----------------------------------------- */
 
                 if (
                     nextUrl.pathname === window.location.pathname &&
                     Number.isFinite(nextPage)
                 ) {
                     window.history.replaceState({}, "", nextUrl.href);
+
                     updateServerMatchCountByDirection(direction);
-                    goToPage(nextPage, { silent: true });
+
+                    postWorkspaceMessage("match-change", {
+                        pageNumber: nextPage,
+
+                        currentMatchIndex: serverMatchIndex,
+
+                        matchCount: serverMatchTotal,
+                    });
+
+                    goToPage(nextPage, {
+                        silent: true,
+                    });
+
                     return;
                 }
 
+                /* -----------------------------------------
+                   Different Chapter
+                ----------------------------------------- */
+
+                postWorkspaceMessage("navigation-start", {
+                    targetChapterId: nextItem.chapterId || null,
+
+                    targetPageNumber: Number.isFinite(nextPage)
+                        ? nextPage
+                        : null,
+                });
+
                 showViewerLoading("Loading next match...");
+
                 window.location.replace(nextUrl.href);
+
                 return;
             }
         }
 
+        /* =================================================
+           Current PDF Match Navigation
+        ================================================= */
+
         const currentMatchPageIndex = getCurrentMatchingPageIndex();
-        const canUseLocalMatchNavigation = (
+
+        const canUseLocalMatchNavigation =
             isSameViewer &&
             direction &&
             matchingPages.length > 0 &&
             currentMatchPageIndex !== -1 &&
-            (
-                !serverMatchTotal ||
-                serverMatchTotal === matchingPages.length
-            )
-        );
+            (!serverMatchTotal || serverMatchTotal === matchingPages.length);
 
         if (canUseLocalMatchNavigation) {
             goToRelativeMatch(direction);
+
             return;
         }
 
+        /* =================================================
+           Server Navigation
+        ================================================= */
+
+        postWorkspaceMessage("navigation-start");
+
         showViewerLoading("Loading next match...");
+
         window.location.replace(targetUrl.href);
     });
 });
@@ -393,8 +523,7 @@ function updateServerMatchCountByDirection(direction) {
         serverMatchIndex = 1;
     }
 
-    serverMatchCount.textContent =
-        serverMatchIndex + " / " + serverMatchTotal;
+    serverMatchCount.textContent = serverMatchIndex + " / " + serverMatchTotal;
 }
 
 function goToRelativeMatch(direction) {
@@ -404,9 +533,7 @@ function goToRelativeMatch(direction) {
         return;
     }
 
-    let nextIndex = direction === "prev"
-        ? currentIndex - 1
-        : currentIndex + 1;
+    let nextIndex = direction === "prev" ? currentIndex - 1 : currentIndex + 1;
 
     if (nextIndex < 0) {
         nextIndex = matchingPages.length - 1;
@@ -415,12 +542,26 @@ function goToRelativeMatch(direction) {
     }
 
     const pageNumber = matchingPages[nextIndex];
+
     const url = new URL(window.location.href);
+
     url.searchParams.set("page", pageNumber);
+
     window.history.replaceState({}, "", url.href);
 
     updateServerMatchCountByDirection(direction);
-    goToPage(pageNumber, { silent: true });
+
+    postWorkspaceMessage("match-change", {
+        pageNumber: pageNumber,
+
+        currentMatchIndex: serverMatchIndex,
+
+        matchCount: serverMatchTotal,
+    });
+
+    goToPage(pageNumber, {
+        silent: true,
+    });
 }
 
 function escapeRegExp(value) {
@@ -480,7 +621,7 @@ function containsWildcardSearchWord(text, searchWord) {
 
     const regex = new RegExp(
         "(^|[^0-9a-z가-힣])" + escapeRegExp(searchWord) + "[0-9a-z가-힣/_-]*",
-        "i"
+        "i",
     );
 
     return regex.test(text);
@@ -561,17 +702,23 @@ function buildTextItemMatchIndexes(textItems, parsed) {
 
 function getFitScale(page) {
     const viewport = page.getViewport({ scale: 1 });
-
-    const padding = isMobileViewport() ? 4 : 16;
+    const containerStyle = window.getComputedStyle(pdfContainer);
+    const horizontalPadding =
+        (parseFloat(containerStyle.paddingLeft) || 0) +
+        (parseFloat(containerStyle.paddingRight) || 0);
+    const verticalPadding =
+        (parseFloat(containerStyle.paddingTop) || 0) +
+        (parseFloat(containerStyle.paddingBottom) || 0);
+    const roundingAllowance = 2;
 
     const containerWidth = Math.max(
-        pdfContainer.clientWidth - padding,
-        1
+        pdfContainer.clientWidth - horizontalPadding - roundingAllowance,
+        1,
     );
 
     const containerHeight = Math.max(
-        pdfContainer.clientHeight - padding,
-        1
+        pdfContainer.clientHeight - verticalPadding - roundingAllowance,
+        1,
     );
 
     if (scaleMode === "width") {
@@ -581,7 +728,7 @@ function getFitScale(page) {
     if (scaleMode === "page") {
         return Math.min(
             containerWidth / viewport.width,
-            containerHeight / viewport.height
+            containerHeight / viewport.height,
         );
     }
 
@@ -635,9 +782,7 @@ function getTextContentForPage(pageNumber, page) {
         return Promise.resolve(textContentCache.get(pageNumber));
     }
 
-    const pagePromise = page
-        ? Promise.resolve(page)
-        : getPdfPage(pageNumber);
+    const pagePromise = page ? Promise.resolve(page) : getPdfPage(pageNumber);
 
     return pagePromise.then(function (resolvedPage) {
         return resolvedPage.getTextContent().then(function (textContent) {
@@ -669,19 +814,35 @@ function getPrefetchMatchPages() {
 
     if (matchItems.length && serverMatchIndex > 0) {
         for (let offset = 1; offset <= 3; offset += 1) {
-            addPage(matchItems[(serverMatchIndex - 1 + offset) % matchItems.length].pageNumber);
+            addPage(
+                matchItems[(serverMatchIndex - 1 + offset) % matchItems.length]
+                    .pageNumber,
+            );
         }
 
-        addPage(matchItems[(serverMatchIndex - 2 + matchItems.length) % matchItems.length].pageNumber);
+        addPage(
+            matchItems[
+                (serverMatchIndex - 2 + matchItems.length) % matchItems.length
+            ].pageNumber,
+        );
     } else if (matchingPages.length) {
         const currentIndex = getCurrentMatchingPageIndex();
 
         if (currentIndex !== -1) {
             for (let offset = 1; offset <= 3; offset += 1) {
-                addPage(matchingPages[(currentIndex + offset) % matchingPages.length]);
+                addPage(
+                    matchingPages[
+                        (currentIndex + offset) % matchingPages.length
+                    ],
+                );
             }
 
-            addPage(matchingPages[(currentIndex - 1 + matchingPages.length) % matchingPages.length]);
+            addPage(
+                matchingPages[
+                    (currentIndex - 1 + matchingPages.length) %
+                        matchingPages.length
+                ],
+            );
         }
     }
 
@@ -731,7 +892,7 @@ function renderTextLayer(pageNumber, page, viewport, requestId) {
 
         const matchedItemIndexes = buildTextItemMatchIndexes(
             textContent.items,
-            parsedSearch
+            parsedSearch,
         );
 
         textContent.items.forEach(function (item, index) {
@@ -742,12 +903,13 @@ function renderTextLayer(pageNumber, page, viewport, requestId) {
 
             const transform = pdfjsLib.Util.transform(
                 viewport.transform,
-                item.transform
+                item.transform,
             );
 
             const fontHeight = Math.hypot(transform[2], transform[3]);
             const fontWidthScale =
-                Math.hypot(transform[0], transform[1]) / Math.max(fontHeight, 1);
+                Math.hypot(transform[0], transform[1]) /
+                Math.max(fontHeight, 1);
 
             span.style.left = transform[4] + "px";
             span.style.top = transform[5] - fontHeight + "px";
@@ -767,7 +929,9 @@ function renderPage(pageNumber) {
     pageRendering = true;
 
     const requestId = ++renderRequestId;
+
     const showRenderLoading = !skipRenderLoadingOnce;
+
     skipRenderLoadingOnce = false;
 
     clearTextLayer();
@@ -783,18 +947,25 @@ function renderPage(pageNumber) {
             }
 
             const pageScale = getFitScale(page);
-            const viewport = page.getViewport({ scale: pageScale });
+
+            const viewport = page.getViewport({
+                scale: pageScale,
+            });
 
             canvas.height = viewport.height;
+
             canvas.width = viewport.width;
 
             canvas.style.width = viewport.width + "px";
+
             canvas.style.height = viewport.height + "px";
 
             singlePageViewer.style.width = viewport.width + "px";
+
             singlePageViewer.style.height = viewport.height + "px";
 
             textLayer.style.width = viewport.width + "px";
+
             textLayer.style.height = viewport.height + "px";
 
             const renderTask = page.render({
@@ -808,23 +979,50 @@ function renderPage(pageNumber) {
                 }
 
                 renderTextLayer(pageNumber, page, viewport, requestId);
+
                 updateZoomLabel(pageScale);
+
                 hideViewerLoading();
+
                 prefetchMatchPages();
 
                 pageRendering = false;
 
+                /*
+                 * PDF page is now
+                 * successfully rendered.
+                 *
+                 * Notify parent
+                 * Chapter Workspace.
+                 */
+
+                postWorkspaceMessage("page-change", {
+                    pageNumber: pageNumber,
+
+                    currentMatchIndex: serverMatchIndex,
+
+                    matchCount: serverMatchTotal,
+                });
+
                 if (pagePending !== null) {
                     const pendingPage = pagePending;
+
                     pagePending = null;
+
                     renderPage(pendingPage);
                 }
             });
         })
         .catch(function (error) {
             console.error("PDF Page Render Error:", error);
+
             hideViewerLoading();
+
             pageRendering = false;
+
+            postWorkspaceMessage("render-error", {
+                pageNumber: pageNumber,
+            });
         });
 
     pageNumberInput.value = pageNumber;
@@ -857,6 +1055,7 @@ function goToPage(pageNumber, options) {
 
     currentPage = pageNumber;
     skipRenderLoadingOnce = Boolean(options.silent);
+    syncOutlineToPage(currentPage);
 
     if (
         isMobileViewport() &&
@@ -898,7 +1097,162 @@ function goToDestination(dest) {
     });
 }
 
-function createOutlineTree(items, depth = 0) {
+function getDestinationPageNumber(dest) {
+    return resolveDestination(dest).then(function (resolvedDest) {
+        if (!resolvedDest || !resolvedDest.length) {
+            return null;
+        }
+
+        const pageRef = resolvedDest[0];
+
+        if (typeof pageRef === "number") {
+            return pageRef + 1;
+        }
+
+        return pdfDoc.getPageIndex(pageRef).then(function (pageIndex) {
+            return pageIndex + 1;
+        });
+    });
+}
+
+function expandOutlineAncestors(row) {
+    let parentList = row.parentElement ? row.parentElement.parentElement : null;
+
+    while (parentList && parentList !== outlineContainer) {
+        if (
+            parentList.classList &&
+            parentList.classList.contains("outline-list") &&
+            parentList.classList.contains("outline-children-collapsed")
+        ) {
+            parentList.classList.remove("outline-children-collapsed");
+
+            const parentItem = parentList.parentElement;
+            const parentToggle = parentItem
+                ? parentItem.querySelector(
+                      ":scope > .outline-row .outline-toggle-btn",
+                  )
+                : null;
+
+            if (parentToggle) {
+                const iconSpan = parentToggle.querySelector(".toggle-icon");
+
+                parentToggle.classList.add("is-open");
+                parentToggle.setAttribute("aria-expanded", "true");
+                parentToggle.setAttribute("aria-label", "하위 목차 접기");
+
+                if (iconSpan) {
+                    iconSpan.innerHTML = "▼";
+                }
+            }
+        }
+
+        parentList = parentList.parentElement;
+    }
+}
+
+function scrollActiveOutlineIntoView(row) {
+    if (
+        !outlinePanel ||
+        !row ||
+        manualPdfLayout.classList.contains("outline-hidden") ||
+        outlinePanel.getClientRects().length === 0
+    ) {
+        return;
+    }
+
+    const panelRect = outlinePanel.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    const isVisible =
+        rowRect.top >= panelRect.top && rowRect.bottom <= panelRect.bottom;
+
+    if (isVisible) {
+        return;
+    }
+
+    outlinePanel.scrollTo({
+        top:
+            outlinePanel.scrollTop +
+            rowRect.top -
+            panelRect.top -
+            (outlinePanel.clientHeight - rowRect.height) / 2,
+        behavior: "smooth",
+    });
+}
+
+function syncOutlineToPage(pageNumber) {
+    if (!outlinePageEntries.length) {
+        return;
+    }
+
+    let matchingEntry = null;
+
+    for (let index = 0; index < outlinePageEntries.length; index += 1) {
+        const entry = outlinePageEntries[index];
+
+        if (entry.pageNumber > pageNumber) {
+            break;
+        }
+
+        matchingEntry = entry;
+    }
+
+    if (!matchingEntry) {
+        matchingEntry = outlinePageEntries[0];
+    }
+
+    if (activeOutlineRow === matchingEntry.row) {
+        scrollActiveOutlineIntoView(activeOutlineRow);
+        return;
+    }
+
+    if (activeOutlineRow) {
+        activeOutlineRow.classList.remove("is-active");
+        activeOutlineRow.removeAttribute("aria-current");
+    }
+
+    activeOutlineRow = matchingEntry.row;
+    activeOutlineRow.classList.add("is-active");
+    activeOutlineRow.setAttribute("aria-current", "page");
+    expandOutlineAncestors(activeOutlineRow);
+    scrollActiveOutlineIntoView(activeOutlineRow);
+}
+
+function registerOutlineDestination(item, row, depth) {
+    const order = outlineEntryOrder++;
+    const workspaceEntry = {
+        title: item.title || "Untitled",
+        pageNumber: null,
+        depth: depth,
+        order: order,
+    };
+
+    outlineWorkspaceEntries.push(workspaceEntry);
+
+    if (!item.dest) {
+        return Promise.resolve();
+    }
+
+    return getDestinationPageNumber(item.dest)
+        .then(function (pageNumber) {
+            if (!pageNumber) {
+                return;
+            }
+
+            row.dataset.pageNumber = pageNumber;
+            workspaceEntry.pageNumber = pageNumber;
+            outlinePageEntries.push({
+                pageNumber: pageNumber,
+                row: row,
+                depth: depth,
+                order: order,
+            });
+        })
+        .catch(function (error) {
+            console.warn("PDF Outline Destination Error:", error);
+        });
+}
+
+function createOutlineTree(items, depth = 0, destinationPromises = []) {
     const ul = document.createElement("ul");
     ul.className = "outline-list depth-" + depth;
 
@@ -914,6 +1268,8 @@ function createOutlineTree(items, depth = 0) {
 
         const hasChildren = item.items && item.items.length > 0;
         let childUl = null;
+
+        destinationPromises.push(registerOutlineDestination(item, row, depth));
 
         if (hasChildren) {
             const toggleBtn = document.createElement("button");
@@ -933,7 +1289,7 @@ function createOutlineTree(items, depth = 0) {
 
             function toggleFolder() {
                 const isCollapsed = childUl.classList.contains(
-                    "outline-children-collapsed"
+                    "outline-children-collapsed",
                 );
                 const iconSpan = toggleBtn.querySelector(".toggle-icon");
 
@@ -966,13 +1322,14 @@ function createOutlineTree(items, depth = 0) {
         link.addEventListener("click", function (event) {
             event.preventDefault();
 
-            document
-                .querySelectorAll(".outline-row")
-                .forEach(function (r) {
-                    r.classList.remove("is-active");
-                });
+            if (activeOutlineRow && activeOutlineRow !== row) {
+                activeOutlineRow.classList.remove("is-active");
+                activeOutlineRow.removeAttribute("aria-current");
+            }
 
+            activeOutlineRow = row;
             row.classList.add("is-active");
+            row.setAttribute("aria-current", "page");
 
             if (isMobileViewport() && manualPdfLayout) {
                 manualPdfLayout.classList.add("outline-hidden");
@@ -988,7 +1345,11 @@ function createOutlineTree(items, depth = 0) {
         li.appendChild(row);
 
         if (hasChildren) {
-            childUl = createOutlineTree(item.items, depth + 1);
+            childUl = createOutlineTree(
+                item.items,
+                depth + 1,
+                destinationPromises,
+            );
             childUl.classList.add("outline-children-collapsed");
             li.appendChild(childUl);
         }
@@ -1012,7 +1373,7 @@ function extractAtaParts(title) {
 
     const cleaned = title.replace(/^\s*(ATA\s*)?/i, "").trim();
     const match = cleaned.match(
-        /^(\d{2})(?:[-\.\s]*(\d{2}))?(?:[-\.\s]*(\d{2}))?\b/
+        /^(\d{2})(?:[-\.\s]*(\d{2}))?(?:[-\.\s]*(\d{2}))?\b/,
     );
 
     if (!match) {
@@ -1132,17 +1493,48 @@ function loadOutline() {
             if (!outline || outline.length === 0) {
                 outlineContainer.innerHTML =
                     '<div class="outline-empty">이 PDF에는 Bookmark / Contents 정보가 없습니다.</div>';
+                postWorkspaceMessage("outline-ready", { outline: [] });
                 return;
             }
 
             const outlineItems = buildAtaOutline(outline);
-            outlineContainer.appendChild(createOutlineTree(outlineItems));
+            const destinationPromises = [];
+
+            outlinePageEntries = [];
+            outlineWorkspaceEntries = [];
+            outlineEntryOrder = 0;
+            activeOutlineRow = null;
+            outlineContainer.appendChild(
+                createOutlineTree(outlineItems, 0, destinationPromises),
+            );
+
+            Promise.allSettled(destinationPromises).then(function () {
+                outlinePageEntries.sort(function (a, b) {
+                    return a.pageNumber - b.pageNumber || a.order - b.order;
+                });
+                syncOutlineToPage(currentPage);
+                postWorkspaceMessage("outline-ready", {
+                    outline: outlineWorkspaceEntries
+                        .slice()
+                        .sort(function (a, b) {
+                            return a.order - b.order;
+                        })
+                        .map(function (entry) {
+                            return {
+                                title: entry.title,
+                                pageNumber: entry.pageNumber,
+                                depth: entry.depth,
+                            };
+                        }),
+                });
+            });
         })
         .catch(function (error) {
             console.error("PDF Outline Load Error:", error);
 
             outlineContainer.innerHTML =
                 '<div class="outline-empty">Bookmark 정보를 불러오지 못했습니다.</div>';
+            postWorkspaceMessage("outline-ready", { outline: [] });
         });
 }
 
@@ -1159,19 +1551,19 @@ pageNumberInput.addEventListener("change", function () {
 });
 
 zoomInBtn.addEventListener("click", function () {
-    scaleMode = "custom";
+    setScaleMode("custom");
     scale = Math.min(scale + 0.1, MAX_SCALE);
     queueRenderPage(currentPage);
 });
 
 zoomOutBtn.addEventListener("click", function () {
-    scaleMode = "custom";
+    setScaleMode("custom");
     scale = Math.max(scale - 0.1, MIN_SCALE);
     queueRenderPage(currentPage);
 });
 
 fitWidthBtn.addEventListener("click", function () {
-    scaleMode = "width";
+    setScaleMode("width");
 
     requestAnimationFrame(function () {
         queueRenderPage(currentPage);
@@ -1179,7 +1571,7 @@ fitWidthBtn.addEventListener("click", function () {
 });
 
 fitPageBtn.addEventListener("click", function () {
-    scaleMode = "page";
+    setScaleMode("page");
 
     requestAnimationFrame(function () {
         queueRenderPage(currentPage);
@@ -1211,7 +1603,7 @@ function rerenderOnResize() {
     }
 
     if (isMobileViewport() && scaleMode === "page") {
-        scaleMode = "width";
+        setScaleMode("width");
     }
 
     if (scaleMode !== "custom") {
@@ -1265,9 +1657,10 @@ window.addEventListener("resize", rerenderOnResize);
         let newWidth = event.clientX - layoutRect.left;
 
         const minWidth = window.innerWidth <= 991 ? 170 : 220;
-        const maxWidth = window.innerWidth <= 991
-            ? window.innerWidth * 0.82
-            : window.innerWidth * 0.6;
+        const maxWidth =
+            window.innerWidth <= 991
+                ? window.innerWidth * 0.82
+                : window.innerWidth * 0.6;
 
         newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
 
@@ -1301,7 +1694,7 @@ window.addEventListener("resize", rerenderOnResize);
 
         localStorage.setItem(
             OUTLINE_WIDTH_KEY,
-            Math.round(outlinePanel.getBoundingClientRect().width)
+            Math.round(outlinePanel.getBoundingClientRect().width),
         );
 
         if (scaleMode !== "custom") {
@@ -1351,12 +1744,13 @@ toggleOutlineBtn.addEventListener("click", function () {
 
     const isHidden = manualPdfLayout.classList.contains("outline-hidden");
 
-    sessionStorage.setItem(
-        outlineStorageKey,
-        isHidden ? "true" : "false"
-    );
+    sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
 
     setTimeout(function () {
+        if (!isHidden) {
+            syncOutlineToPage(currentPage);
+        }
+
         if (scaleMode !== "custom") {
             queueRenderPage(currentPage);
         }
@@ -1387,7 +1781,7 @@ function loadPdfDocument(sourceUrl, triedFallback) {
                 singlePageViewer.classList.remove("d-none");
                 multiPageViewer.classList.add("d-none");
 
-                scaleMode = isMobileViewport() ? "width" : "page";
+                setScaleMode(isMobileViewport() ? "width" : "page");
                 applyFocusMode(isFocusMode, { skipRender: true });
                 renderPage(currentPage);
             }
@@ -1441,7 +1835,7 @@ function createTextLayerForPage(pageNumber, page, viewport, wrapper) {
     getTextContentForPage(pageNumber, page).then(function (textContent) {
         const matchedItemIndexes = buildTextItemMatchIndexes(
             textContent.items,
-            parsedSearch
+            parsedSearch,
         );
 
         textContent.items.forEach(function (item, index) {
@@ -1452,12 +1846,13 @@ function createTextLayerForPage(pageNumber, page, viewport, wrapper) {
 
             const transform = pdfjsLib.Util.transform(
                 viewport.transform,
-                item.transform
+                item.transform,
             );
 
             const fontHeight = Math.hypot(transform[2], transform[3]);
             const fontWidthScale =
-                Math.hypot(transform[0], transform[1]) / Math.max(fontHeight, 1);
+                Math.hypot(transform[0], transform[1]) /
+                Math.max(fontHeight, 1);
 
             span.style.position = "absolute";
             span.style.whiteSpace = "pre";
@@ -1567,9 +1962,7 @@ function isTextMatchedByParsedSearch(text, parsed) {
     const normalizedText = normalizeText(text);
 
     if (parsed.mode === "wildcard") {
-        return parsed.regex
-            ? parsed.regex.test(normalizedText)
-            : false;
+        return parsed.regex ? parsed.regex.test(normalizedText) : false;
     }
 
     return parsed.regex
@@ -1668,7 +2061,7 @@ pdfContainer.addEventListener(
             event.preventDefault();
             event.stopPropagation();
 
-            scaleMode = "custom";
+            setScaleMode("custom");
 
             if (event.deltaY < 0) {
                 scale = Math.min(scale + 0.1, 4);
@@ -1705,7 +2098,7 @@ pdfContainer.addEventListener(
     },
     {
         passive: false,
-    }
+    },
 );
 
 let touchStartDistance = null;
@@ -1724,7 +2117,7 @@ pdfContainer.addEventListener(
             touchStartDistance = getDistance(event.touches);
         }
     },
-    { passive: true }
+    { passive: true },
 );
 
 pdfContainer.addEventListener(
@@ -1745,35 +2138,28 @@ pdfContainer.addEventListener(
 
         const delta = (currentDistance - touchStartDistance) / 250;
 
-        scaleMode = "custom";
+        setScaleMode("custom");
 
-        scale = Math.min(
-            Math.max(scale + delta, MIN_SCALE),
-            MAX_SCALE
-        );
+        scale = Math.min(Math.max(scale + delta, MIN_SCALE), MAX_SCALE);
 
         touchStartDistance = currentDistance;
 
         queueRenderPage(currentPage);
     },
-    { passive: false }
+    { passive: false },
 );
 
 pdfContainer.addEventListener("touchend", function () {
     touchStartDistance = null;
 });
 
-const mobilePrev =
-    document.getElementById("mobile-prev-page");
+const mobilePrev = document.getElementById("mobile-prev-page");
 
-const mobileNext =
-    document.getElementById("mobile-next-page");
+const mobileNext = document.getElementById("mobile-next-page");
 
-const mobileCurrent =
-    document.getElementById("mobile-page-current");
+const mobileCurrent = document.getElementById("mobile-page-current");
 
-const mobileTotal =
-    document.getElementById("mobile-page-total");
+const mobileTotal = document.getElementById("mobile-page-total");
 
 if (mobileTotal && pageCountSpan) {
     mobileTotal.textContent = pageCountSpan.textContent;

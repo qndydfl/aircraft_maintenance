@@ -1,223 +1,358 @@
 {% extends 'base.html' %} 
 {% load static %} 
 {% block body_class %} chapter-page {% endblock body_class %} 
+
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=78" />
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+/>
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20260925-12" />
 {% endblock css %} 
+
+{% block js %}
+<script
+    defer
+    src="{% static 'js/manual_chapter_workspace.js' %}?v=20260925-10"
+></script>
+{% endblock js %}
 {% block title %} {{ package.aircraft.name }} {{ package.manual_type }} Chapters {% endblock title %} 
 {% block navbar_content %}
-<div class="app-navbar-page-content">    
-    <div class="portal-chapter-hero-content">
+<div class="app-navbar-page-content">
+    <div class="app-navbar-title portal-chapter-hero-content">
         <p class="page-eyebrow text-uppercase text-primary fw-bold mb-1 small">
             {{ package.manual_type }}
         </p>
 
-        <h2 class="page-title fw-extrabold text-dark mb-2">
+        <h2 class="page-title fw-extrabold mb-2">
             {{ package.aircraft.name }} Chapters
         </h2>
 
         <p class="text-muted mb-0 page-subtitle small">
-            ZIP index.html에서 추출된 chapter 목록.
+            Chapter Navigator & PDF Workspace
         </p>
     </div>
+
     {% include 'includes/navbar_ending.html' %}
 </div>
 {% endblock navbar_content %} 
 
 {% block content %}
 
-<form
-    method="get"
-    class="portal-chapter-search-form mt-4 mb-4"
-    data-loading-title="Searching Chapters"
-    data-loading-message="Scanning indexed chapter pages..."
+<section
+    class="manual-workspace"
+    data-chapter-workspace
+    data-active-pane="chapters"
 >
-    <div class="portal-chapter-search-group shadow-sm">
-        <input
-            type="text"
-            name="q"
-            value="{{ q }}"
-            class="form-control portal-chapter-search-input"
-            placeholder="Task, Subtask, Title, PDF 내용 검색..."
-        />
+    <!-- =====================================================
+         MOBILE WORKSPACE TABS
+    ====================================================== -->
 
-        <div class="portal-chapter-search-actions">
-            <button type="submit" class="btn btn-primary">Search</button>
+    <div
+        class="manual-workspace-tabs"
+        role="tablist"
+        aria-label="Manual workspace"
+    >
+        <button
+            type="button"
+            class="manual-workspace-tab is-active"
+            role="tab"
+            aria-selected="true"
+            data-workspace-pane-button="chapters"
+        >
+            <i class="bi bi-list-ul" aria-hidden="true"></i>
 
-            {% if q %}
-            <a
-                href="?"
-                class="btn btn-outline-secondary portal-chapter-clear-btn"
-            >
-                Clear
-            </a>
+            <span> Chapters </span>
+        </button>
+
+        <button
+            type="button"
+            class="manual-workspace-tab"
+            role="tab"
+            aria-selected="false"
+            data-workspace-pane-button="viewer"
+            {% if not initial_viewer_url %}
+            disabled
             {% endif %}
-        </div>
+        >
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+
+            <span> Viewer </span>
+        </button>
     </div>
-</form>
 
-{% if q %}
-<div class="chapter-search-summary app-alert mb-4">
-    <span>Search Result</span>
-    <strong>{{ q }}</strong>
-</div>
-{% endif %} {% if not q %}
-<div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
-    <div class="card-body p-4">
-        <div class="portal-chapter-card-header mb-4">
+    <!-- =====================================================
+         LEFT : CHAPTER NAVIGATOR
+    ====================================================== -->
+
+    <aside class="manual-workspace-sidebar" data-workspace-pane="chapters">
+        <!-- =================================================
+             SIDEBAR HEADER
+        ================================================== -->
+
+        <div class="manual-workspace-sidebar-header">
             <div>
-                <h5 class="mb-1 fw-bold text-dark">Chapter Contents</h5>
-
-                <p class="text-muted small mb-0">
-                    Chapter를 선택하면 PDF viewer로 열립니다.
-                </p>
-            </div>
-        </div>
-
-        <div class="portal-chapter-bookmark-grid">
-            {% for chapter in chapter_bookmarks %}
-            <a
-                href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?back={{ request.get_full_path|urlencode }}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="portal-chapter-bookmark-item d-flex align-items-start p-3 rounded-3 text-decoration-none"
-            >
-                <span class="portal-chapter-bookmark-icon text-primary me-3">
-                    📄
+                <span class="manual-workspace-eyebrow">
+                    {{ package.manual_type }}
                 </span>
 
-                <span
-                    class="portal-chapter-bookmark-text text-dark flex-grow-1"
-                >
-                    <div class="fw-bold text-truncate-1">
-                        {{ chapter.task }} {% if chapter.subtask %}
-                        <span class="text-secondary fw-normal">
-                            / {{ chapter.subtask }}
-                        </span>
-                        {% endif %}
-                    </div>
+                <h3>
+                    {% if q %} Search Results {% else %} Chapter Contents {% endif %}
+                </h3>
 
-                    <div class="text-muted small mt-1 text-truncate-2">
-                        {{ chapter.title|default:"No Title" }}
-                    </div>
-                </span>
-            </a>
-            {% empty %}
-            <div class="text-muted text-center py-5 w-100">
-                <p class="mb-0">표시할 Chapter가 없습니다.</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-{% endif %} {% if q and matching_chapters %}
-<div class="card portal-card border-0 shadow-sm mb-4 rounded-3">
-    <div class="card-body p-4">
-        <div class="portal-chapter-card-header mb-3">
-            <div>
-                <h5 class="mb-1 fw-bold text-dark">관련 Chapter</h5>
-
-                <p class="text-muted small mb-0">
-                    검색어와 일치하는 Chapter 결과입니다.
+                <p>
+                    {% if q %} PDF pages matching "{{ q }}" {% else %} Select a
+                    chapter to open the PDF immediately. {% endif %}
                 </p>
             </div>
+
+            <span class="manual-workspace-chapter-count" title="Chapter count">
+                {% if q %} {{ matching_chapters|length }} {% else %} {{ chapter_bookmarks|length }} {% endif %}
+            </span>
         </div>
 
-        <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover align-middle chapter-table">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 150px">Task</th>
-                        <th style="width: 150px">Subtask</th>
-                        <th>Title</th>
-                        <th style="width: 140px">Pages</th>
-                        <th style="width: 140px" class="text-center">Action</th>
-                    </tr>
-                </thead>
+        <!-- =================================================
+             SEARCH
+        ================================================== -->
 
-                <tbody>
-                    {% for chapter in matching_chapters %}
-                    <tr>
-                        <td class="fw-bold text-primary">
-                            {{ chapter.chapter__task }}
-                        </td>
+        <form
+            method="get"
+            class="manual-workspace-search"
+            data-loading-title="Searching Chapters"
+            data-loading-message="Scanning indexed PDF pages..."
+        >
+            <div class="manual-workspace-search-row">
+                <div class="manual-workspace-search-input-wrap">
+                    <i class="bi bi-search" aria-hidden="true"></i>
 
-                        <td class="text-secondary">
-                            {{ chapter.chapter__subtask|default:"-" }}
-                        </td>
-
-                        <td class="text-dark fw-medium">
-                            {{ chapter.chapter__title|default:"-" }}
-                        </td>
-
-                        <td>
-                            <span class="badge bg-light text-dark border">
-                                {{ chapter.match_count }} page(s)
-                            </span>
-                        </td>
-
-                        <td class="text-center">
-                            <a
-                                href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="btn btn-sm btn-primary rounded-pill px-3"
-                            >
-                                Open Chapter
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="chapter-result-list d-md-none">
-            {% for chapter in matching_chapters %}
-            <div
-                class="portal-chapter-result-card p-3 mb-3 border rounded-3 shadow-sm bg-white"
-            >
-                <div
-                    class="chapter-result-top d-flex justify-content-between align-items-start mb-2"
-                >
-                    <div>
-                        <p
-                            class="chapter-result-label text-uppercase text-muted small fw-bold mb-0"
-                        >
-                            TASK
-                        </p>
-
-                        <h6 class="chapter-result-title fw-bold text-dark mb-0">
-                            {{ chapter.chapter__task }} {% if chapter.chapter__subtask %}
-                            <span class="text-secondary fw-normal">
-                                / {{ chapter.chapter__subtask }}
-                            </span>
-                            {% endif %}
-                        </h6>
-                    </div>
-
-                    <span class="badge bg-primary rounded-pill">
-                        {{ chapter.match_count }} page(s)
-                    </span>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ q }}"
+                        class="form-control manual-workspace-search-input"
+                        placeholder="Search PDF contents..."
+                        autocomplete="off"
+                    />
                 </div>
 
-                <p class="chapter-result-description text-muted small mb-3">
-                    {{ chapter.chapter__title|default:"-" }}
-                </p>
-
-                <a
-                    href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&scope=chapter&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-primary w-100 app-card-btn rounded-pill"
+                <button
+                    type="submit"
+                    class="btn btn-primary manual-workspace-search-btn"
+                    title="Search"
                 >
-                    Open Chapter
+                    <i class="bi bi-search" aria-hidden="true"></i>
+
+                    <span> Search </span>
+                </button>
+            </div>
+
+            {% if q %}
+
+            <div class="manual-workspace-search-active">
+                <span>
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
+
+                    {{ q }}
+                </span>
+
+                <a href="?" class="manual-workspace-clear" data-loading="false">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+
+                    Clear
                 </a>
             </div>
-            {% endfor %}
+
+            {% endif %}
+        </form>
+
+        <!-- =================================================
+             SEARCH SUMMARY
+        ================================================== -->
+
+        {% if q %}
+
+        <div class="manual-workspace-result-summary">
+            <div class="manual-workspace-result-stat">
+                <span> Chapters </span>
+
+                <strong> {{ matching_chapters|length }} </strong>
+            </div>
+
+            <div class="manual-workspace-result-stat">
+                <span> Matches </span>
+
+                <strong> {{ total_match_count }} </strong>
+            </div>
         </div>
-    </div>
-</div>
-{% elif q %}
-<div class="alert alert-warning app-alert">검색 결과가 없습니다.</div>
-{% endif %} {% endblock content %}
+
+        {% endif %}
+
+        <!-- =================================================
+             CHAPTER LIST
+        ================================================== -->
+
+        <div class="manual-workspace-chapters">
+            <!-- =============================================
+                 SEARCH RESULTS
+            ============================================== -->
+
+            {% if q %} {% for chapter in matching_chapters %}
+
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&from_search_page=1&embedded=1&back={{ workspace_back_url|urlencode }}"
+                class="manual-workspace-chapter{% if initial_chapter and chapter.chapter_id == initial_chapter.pk %} is-active{% endif %}"
+                data-chapter-viewer-link
+                data-chapter-id="{{ chapter.chapter_id }}"
+                data-chapter-task="{{ chapter.chapter__task }}"
+                data-first-match-page="{{ chapter.first_page }}"
+                data-match-count="{{ chapter.match_count }}"
+                data-loading="false"
+            >
+                <span class="manual-workspace-chapter-main">
+                    <strong>
+                        {{ chapter.chapter__task }} {% if chapter.chapter__subtask %}
+                        <span> / {{ chapter.chapter__subtask }} </span>
+                        {% endif %}
+                    </strong>
+
+                    <small>
+                        {{ chapter.chapter__title|default:"No title" }}
+                    </small>
+                </span>
+
+                <span class="manual-workspace-chapter-tail">
+                    <span
+                        class="manual-workspace-match-count"
+                        title="{{ chapter.match_count }} matching pages"
+                    >
+                        {{ chapter.match_count }}
+                    </span>
+                    <span class="manual-workspace-arrow" aria-hidden="true">›</span>
+                </span>
+            </a>
+
+            {% empty %}
+
+            <div class="manual-workspace-empty">
+                <i class="bi bi-search" aria-hidden="true"></i>
+
+                <strong> No PDF matches </strong>
+
+                <span> No indexed PDF page contains "{{ q }}". </span>
+            </div>
+
+            {% endfor %}
+
+            <!-- =============================================
+                 NORMAL CHAPTER LIST
+            ============================================== -->
+
+            {% else %} {% for chapter in chapter_bookmarks %}
+
+            <a
+                href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?page=1&embedded=1&back={{ workspace_back_url|urlencode }}"
+                class="manual-workspace-chapter{% if initial_chapter and chapter.pk == initial_chapter.pk %} is-active{% endif %}"
+                data-chapter-viewer-link
+                data-chapter-id="{{ chapter.pk }}"
+                data-chapter-task="{{ chapter.task }}"
+                data-loading="false"
+            >
+                <span class="manual-workspace-chapter-main">
+                    <strong>
+                        {{ chapter.task }} {% if chapter.subtask %}
+                        <span> / {{ chapter.subtask }} </span>
+                        {% endif %}
+                    </strong>
+
+                    <small> {{ chapter.title|default:"No title" }} </small>
+                </span>
+
+                <span class="manual-workspace-open" aria-hidden="true">
+                    <span class="manual-workspace-arrow">›</span>
+                </span>
+            </a>
+
+            {% empty %}
+
+            <div class="manual-workspace-empty">
+                <i class="bi bi-journal-x" aria-hidden="true"></i>
+
+                <strong> No chapters </strong>
+
+                <span>
+                    Re-index the uploaded ZIP to create the chapter list.
+                </span>
+            </div>
+
+            {% endfor %} {% endif %}
+        </div>
+    </aside>
+
+    <!-- =====================================================
+         RIGHT : PDF VIEWER
+    ====================================================== -->
+
+    <section class="manual-workspace-viewer" data-workspace-pane="viewer">
+
+        <!-- =================================================
+             VIEWER BODY
+        ================================================== -->
+
+        <div class="manual-workspace-viewer-body">
+            <div
+                class="chapter-viewer-loading{% if not initial_viewer_url %} is-hidden{% endif %}"
+                data-chapter-viewer-loading
+            >
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden"> Loading... </span>
+                </div>
+
+                <strong> Loading PDF Viewer... </strong>
+            </div>
+
+            <iframe
+                id="chapter-viewer-frame"
+                name="chapter-viewer-frame"
+                class="chapter-viewer-frame{% if not initial_viewer_url %} is-empty{% endif %}"
+                src="{% if initial_viewer_url %}{{ initial_viewer_url }}{% else %}about:blank{% endif %}"
+                data-has-viewer="{% if initial_viewer_url %}true{% else %}false{% endif %}"
+                title="{{ package.aircraft.name }} {{ package.manual_type }} PDF Viewer"
+                allowfullscreen
+            ></iframe>
+
+            <div
+                class="manual-workspace-empty manual-workspace-viewer-empty"
+                data-chapter-viewer-empty
+                {% if initial_viewer_url %}hidden{% endif %}
+            >
+                {% if q and matching_chapters %}
+
+                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+
+                <strong> No chapter selected </strong>
+
+                <span> Choose a search result from the navigator. </span>
+
+                {% elif q %}
+
+                <i class="bi bi-search" aria-hidden="true"></i>
+
+                <strong> No PDF matches </strong>
+
+                <span> Try another search term. </span>
+
+                {% else %}
+
+                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+
+                <strong> No chapter selected </strong>
+
+                <span> Choose an indexed chapter from the navigator. </span>
+
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</section>
+
+{% endblock content %}

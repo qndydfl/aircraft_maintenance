@@ -62,6 +62,8 @@ from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
@@ -709,11 +711,13 @@ class ManualPackageCreateView(
         )
 
 
-class ManualChapterListView(ListView):
+class ManualChapterListView(
+    LoginRequiredMixin,
+    ListView,
+):
     model = ManualChapter
     template_name = "manuals/manual_chapter_list.html"
     context_object_name = "chapters"
-    paginate_by = 50
 
     def get_queryset(self):
         self.package = ManualPackage.objects.get(pk=self.kwargs["package_pk"])
@@ -723,75 +727,277 @@ class ManualChapterListView(ListView):
             "subtask",
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(
+        self,
+        **kwargs,
+    ):
         context = super().get_context_data(**kwargs)
 
-        q = self.request.GET.get("q", "").strip()
+        # =====================================================
+        # Request Parameters
+        # =====================================================
+
+        q = self.request.GET.get(
+            "q",
+            "",
+        ).strip()
+
+        requested_chapter_id = safe_int(
+            self.request.GET.get(
+                "chapter",
+                "",
+            ),
+            default=None,
+        )
+
+        requested_page_number = safe_int(
+            self.request.GET.get(
+                "page",
+                "",
+            ),
+            default=None,
+        )
 
         context["package"] = self.package
         context["q"] = q
 
-        context["chapter_bookmarks"] = ManualChapter.objects.filter(
-            package=self.package
-        ).order_by(
+        # =====================================================
+        # All Chapters
+        # =====================================================
+
+        all_chapters = ManualChapter.objects.filter(package=self.package).order_by(
             "task",
             "subtask",
         )
 
+        # Normal mode:
+        # show all chapters.
+        context["chapter_bookmarks"] = all_chapters
+
+        # Search mode:
+        # grouped PDF page results.
         context["matching_chapters"] = []
 
+        context["total_match_count"] = 0
+
+        # =====================================================
+        # Initial Viewer State
+        # =====================================================
+
+        initial_chapter_id = None
+        initial_page_number = 1
+
+        # =====================================================
+        # Search
+        # =====================================================
+
         if q:
-            search_value, match_mode = parse_manual_search_query(q)
-            text_regex = build_manual_text_regex(
+            (
                 search_value,
                 match_mode,
-            )
+            ) = parse_manual_search_query(q)
 
-            if match_mode == "contains":
-                page_filter = Q(text__icontains=search_value)
-                chapter_filter = (
-                    Q(task__icontains=search_value)
-                    | Q(subtask__icontains=search_value)
-                    | Q(title__icontains=search_value)
+            if search_value:
+                text_regex = build_manual_text_regex(
+                    search_value,
+                    match_mode,
                 )
 
-            elif match_mode == "startswith":
-                page_filter = Q(text__iregex=text_regex)
-                chapter_filter = (
-                    Q(task__istartswith=search_value)
-                    | Q(subtask__istartswith=search_value)
-                    | Q(title__istartswith=search_value)
+                # =============================================
+                # PDF Page Filter
+                # =============================================
+
+                if match_mode == "contains":
+                    page_filter = Q(text__icontains=search_value)
+
+                else:
+                    page_filter = Q(text__iregex=text_regex)
+
+                # =============================================
+                # PDF Page Search
+                # =============================================
+
+                matching_page_records = list(
+                    ManualPDFPage.objects.select_related("chapter")
+                    .filter(chapter__package=self.package)
+                    .filter(page_filter)
+                    .only(
+                        "id",
+                        "chapter_id",
+                        "page_number",
+                        "text",
+                        "chapter__task",
+                        "chapter__subtask",
+                        "chapter__title",
+                    )
+                    .order_by(
+                        "chapter__task",
+                        "chapter__subtask",
+                        "page_number",
+                    )
                 )
 
-            else:
-                page_filter = Q(text__iregex=text_regex)
-                chapter_filter = (
-                    Q(task__iexact=search_value)
-                    | Q(subtask__iexact=search_value)
-                    | Q(title__iexact=search_value)
+                # =============================================
+                # Keep exactly the same page set as
+                # package PDF Viewer search.
+                # =============================================
+
+                matching_page_records = prefer_content_pages(matching_page_records)
+
+                # =============================================
+                # Group Results by Chapter
+                # =============================================
+
+                matching_chapter_map = {}
+
+                for page in matching_page_records:
+                    chapter = page.chapter
+
+                    if chapter.pk not in matching_chapter_map:
+                        matching_chapter_map[chapter.pk] = {
+                            "chapter_id": chapter.pk,
+                            "chapter__task": chapter.task,
+                            "chapter__subtask": chapter.subtask,
+                            "chapter__title": chapter.title,
+                            "match_count": 0,
+                            "first_page": page.page_number,
+                        }
+
+                    chapter_data = matching_chapter_map[chapter.pk]
+
+                    chapter_data["match_count"] += 1
+
+                    if page.page_number < chapter_data["first_page"]:
+                        chapter_data["first_page"] = page.page_number
+
+                matching_chapters = list(matching_chapter_map.values())
+
+                context["matching_chapters"] = matching_chapters
+
+                # =============================================
+                # Total Match Count
+                # =============================================
+
+                context["total_match_count"] = sum(
+                    item["match_count"] for item in matching_chapters
                 )
 
-            context["chapter_bookmarks"] = (
-                ManualChapter.objects.filter(package=self.package)
-                .filter(chapter_filter | Q(pages__text__iregex=text_regex))
-                .distinct()
-                .order_by("task", "subtask")
-            )
+                # =============================================
+                # Search Navigator
+                #
+                # Only chapters containing real PDF matches.
+                # =============================================
 
-            context["matching_chapters"] = (
-                ManualPDFPage.objects.filter(chapter__package=self.package)
-                .filter(page_filter)
-                .values(
-                    "chapter_id",
-                    "chapter__task",
-                    "chapter__subtask",
-                    "chapter__title",
+                matching_chapter_ids = [
+                    item["chapter_id"] for item in matching_chapters
+                ]
+
+                context["chapter_bookmarks"] = ManualChapter.objects.filter(
+                    package=self.package,
+                    pk__in=matching_chapter_ids,
+                ).order_by(
+                    "task",
+                    "subtask",
                 )
-                .annotate(
-                    match_count=Count("id"),
-                    first_page=Min("page_number"),
+
+        # =====================================================
+        # Restore Workspace URL State
+        #
+        # ?q=PACK&chapter=123&page=17
+        # =====================================================
+
+        requested_chapter = None
+
+        if requested_chapter_id:
+            requested_chapter = ManualChapter.objects.filter(
+                pk=requested_chapter_id,
+                package=self.package,
+            ).first()
+
+        if requested_chapter:
+            initial_chapter_id = requested_chapter.pk
+
+            if requested_page_number and requested_page_number >= 1:
+                initial_page_number = requested_page_number
+
+        # =====================================================
+        # Keep the workspace unselected on first entry.
+        # A chapter/page in the URL restores an existing selection.
+        # =====================================================
+
+        # =====================================================
+        # Initial Chapter Object
+        # =====================================================
+
+        initial_chapter = None
+
+        if initial_chapter_id:
+            initial_chapter = ManualChapter.objects.filter(
+                pk=initial_chapter_id,
+                package=self.package,
+            ).first()
+
+        context["initial_chapter"] = initial_chapter
+
+        context["initial_page_number"] = initial_page_number
+
+        # =====================================================
+        # Workspace Back URL
+        #
+        # chapter/page are intentionally excluded.
+        # =====================================================
+
+        workspace_back_url = reverse(
+            "manual_chapter_list",
+            kwargs={
+                "package_pk": self.package.pk,
+            },
+        )
+
+        workspace_back_params = {}
+
+        if q:
+            workspace_back_params["q"] = q
+
+        if workspace_back_params:
+            workspace_back_url += "?" + urlencode(workspace_back_params)
+
+        context["workspace_back_url"] = workspace_back_url
+
+        # =====================================================
+        # Initial Viewer URL
+        # =====================================================
+
+        context["initial_viewer_url"] = ""
+
+        if initial_chapter:
+            viewer_params = {
+                "page": initial_page_number,
+                "embedded": "1",
+                "back": workspace_back_url,
+            }
+
+            # Package-wide search.
+            #
+            # IMPORTANT:
+            # Do not add scope=chapter here.
+            if q:
+                viewer_params.update(
+                    {
+                        "q": q,
+                        "from_search_page": "1",
+                    }
                 )
-                .order_by("chapter__task", "chapter__subtask")
+
+            context["initial_viewer_url"] = (
+                reverse(
+                    "manual_chapter_pdf_viewer",
+                    kwargs={
+                        "pk": initial_chapter.pk,
+                    },
+                )
+                + "?"
+                + urlencode(viewer_params)
             )
 
         return context
@@ -1216,62 +1422,160 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
+@method_decorator(xframe_options_sameorigin, name="dispatch")
+class ManualChapterPDFViewerView(
+    LoginRequiredMixin,
+    DetailView,
+):
     model = ManualChapter
     template_name = "manuals/manual_pdf_viewer.html"
     context_object_name = "chapter"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(
+        self,
+        **kwargs,
+    ):
         context = super().get_context_data(**kwargs)
 
         chapter = self.object
-        page_number = safe_int(self.request.GET.get("page", "1"), default=1)
-        query = self.request.GET.get("q", "").strip()
-        view_mode = self.request.GET.get("mode", "single")
-        back_url = self.request.GET.get("back", "")
-        match_scope = self.request.GET.get("scope", "").strip()
+
+        # =====================================================
+        # Request Parameters
+        # =====================================================
+
+        page_number = safe_int(
+            self.request.GET.get(
+                "page",
+                "1",
+            ),
+            default=1,
+        )
+
+        query = self.request.GET.get(
+            "q",
+            "",
+        ).strip()
+
+        view_mode = self.request.GET.get(
+            "mode",
+            "single",
+        )
+
+        back_url = self.request.GET.get(
+            "back",
+            "",
+        )
+
+        match_scope = self.request.GET.get(
+            "scope",
+            "",
+        ).strip()
+
+        embedded = self.request.GET.get(
+            "embedded",
+            "",
+        ).lower() in {
+            "1",
+            "true",
+            "yes",
+        }
+
+        # =====================================================
+        # Viewer Information
+        # =====================================================
 
         context["viewer_title"] = (
             f"{chapter.package.aircraft.name} / "
             f"{chapter.package.manual_type} / "
             f"{chapter.task}"
         )
+
         context["viewer_subtitle"] = chapter.title or "PDF Viewer"
-        context["pdf_url"] = reverse("manual_chapter_pdf", kwargs={"pk": chapter.pk})
+
+        context["pdf_url"] = reverse(
+            "manual_chapter_pdf",
+            kwargs={
+                "pk": chapter.pk,
+            },
+        )
+
+        # =====================================================
+        # Back URL
+        # =====================================================
 
         if back_url:
             context["back_url"] = back_url
+
         else:
             context["back_url"] = reverse(
                 "manual_chapter_list",
-                kwargs={"package_pk": chapter.package.pk},
+                kwargs={
+                    "package_pk": chapter.package.pk,
+                },
             )
 
+        # =====================================================
+        # Search Origin
+        # =====================================================
+
         back_url_lower = (back_url or "").lower()
-        from_search_flag = self.request.GET.get("from_search_page", "").lower()
+
+        from_search_flag = self.request.GET.get(
+            "from_search_page",
+            "",
+        ).lower()
 
         context["from_search_page"] = (
-            from_search_flag in {"1", "true", "yes"}
+            from_search_flag
+            in {
+                "1",
+                "true",
+                "yes",
+            }
             or (bool(query) and match_scope == "chapter")
-            or "manual-search" in back_url_lower
-            or "manual_search" in back_url_lower
-            or "dispatch_search" in back_url_lower
-            or "/dispatch/" in back_url_lower
+            or ("manual-search" in back_url_lower)
+            or ("manual_search" in back_url_lower)
+            or ("dispatch_search" in back_url_lower)
+            or ("/dispatch/" in back_url_lower)
         )
 
+        # =====================================================
+        # Basic Context
+        # =====================================================
+
         context["page_number"] = page_number
+
         context["query"] = query
+
         context["viewer_type"] = "chapter"
+
         context["view_mode"] = view_mode
 
+        context["embedded"] = embedded
+
+        # =====================================================
+        # Match Defaults
+        # =====================================================
+
         context["prev_match_url"] = None
+
         context["next_match_url"] = None
+
         context["current_match_index"] = 0
+
         context["match_count"] = 0
+
         context["matching_pages_json"] = json.dumps([])
+
         context["matching_match_items_json"] = json.dumps([])
 
-        def build_viewer_query_params(page):
+        # =====================================================
+        # Viewer Query Builder
+        # =====================================================
+
+        def build_viewer_query_params(
+            page,
+        ):
             params = {
                 "page": page,
                 "mode": view_mode,
@@ -1289,10 +1593,20 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
             if match_scope:
                 params["scope"] = match_scope
 
+            # Preserve Workspace iframe mode
+            # during cross-chapter navigation.
+            if embedded:
+                params["embedded"] = "1"
+
             return urlencode(params)
 
+        # =====================================================
+        # Package Chapters
+        # =====================================================
+
         all_chapters = ManualChapter.objects.filter(package=chapter.package).order_by(
-            "task", "subtask"
+            "task",
+            "subtask",
         )
 
         chapters_data = []
@@ -1305,7 +1619,12 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                     "subtask": ch.subtask or "",
                     "title": ch.title or "",
                     "viewer_url": (
-                        reverse("manual_chapter_pdf_viewer", kwargs={"pk": ch.pk})
+                        reverse(
+                            "manual_chapter_pdf_viewer",
+                            kwargs={
+                                "pk": ch.pk,
+                            },
+                        )
                         + "?"
                         + build_viewer_query_params(1)
                     ),
@@ -1314,14 +1633,29 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
 
         context["package_chapters_json"] = json.dumps(chapters_data)
 
+        # =====================================================
+        # Search
+        # =====================================================
+
         if query:
-            search_value, match_mode = parse_manual_search_query(query)
+            (
+                search_value,
+                match_mode,
+            ) = parse_manual_search_query(query)
 
             if search_value:
-                text_regex = build_manual_text_regex(search_value, match_mode)
+                text_regex = build_manual_text_regex(
+                    search_value,
+                    match_mode,
+                )
+
+                # =============================================
+                # Page Filter
+                # =============================================
 
                 if match_mode == "contains":
                     page_filter = Q(text__icontains=search_value)
+
                 else:
                     page_filter = Q(text__iregex=text_regex)
 
@@ -1329,10 +1663,19 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                     page_filter
                 )
 
+                # =============================================
+                # Chapter-only Search
+                # =============================================
+
                 if match_scope == "chapter":
                     match_queryset = match_queryset.filter(chapter=chapter).order_by(
                         "page_number"
                     )
+
+                # =============================================
+                # Package-wide Search
+                # =============================================
+
                 else:
                     match_queryset = match_queryset.filter(
                         chapter__package=chapter.package
@@ -1350,11 +1693,16 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                     )
                 )
 
-                # Manual/dispatch search results omit reference-index pages when
-                # real content pages exist. Keep the package viewer on that same
-                # page set so its match counter agrees with the result counter.
+                # =============================================
+                # Same page set as Manual/Dispatch Search
+                # =============================================
+
                 if match_scope != "chapter":
                     matching_page_records = prefer_content_pages(matching_page_records)
+
+                # =============================================
+                # Match Data
+                # =============================================
 
                 matches = [
                     {
@@ -1366,64 +1714,110 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
 
                 context["match_count"] = len(matches)
 
+                # =============================================
+                # Current Match
+                # =============================================
+
                 current_index = None
 
-                for index, item in enumerate(matches):
+                # Exact current chapter/page
+                for (
+                    index,
+                    item,
+                ) in enumerate(matches):
                     if (
                         item["chapter_id"] == chapter.pk
                         and item["page_number"] == page_number
                     ):
                         current_index = index
+
                         break
 
+                # Next matching page in current chapter
                 if current_index is None:
-                    for index, item in enumerate(matches):
+                    for (
+                        index,
+                        item,
+                    ) in enumerate(matches):
                         if (
                             item["chapter_id"] == chapter.pk
                             and item["page_number"] >= page_number
                         ):
                             current_index = index
+
                             break
 
+                # Fallback
                 if current_index is None and matches:
                     current_index = 0
 
+                # =============================================
+                # Match Navigation
+                # =============================================
+
                 if current_index is not None:
+
+                    # Chapter-only viewer opened at page 1:
+                    # jump to first match.
                     if match_scope == "chapter" and page_number == 1:
                         page_number = matches[current_index]["page_number"]
+
                         context["page_number"] = page_number
 
                     context["current_match_index"] = current_index + 1
 
+                    # -----------------------------------------
+                    # Previous Match
+                    # -----------------------------------------
+
                     if current_index > 0:
                         prev_item = matches[current_index - 1]
+
                         context["prev_match_url"] = (
                             reverse(
                                 "manual_chapter_pdf_viewer",
-                                kwargs={"pk": prev_item["chapter_id"]},
+                                kwargs={
+                                    "pk": prev_item["chapter_id"],
+                                },
                             )
                             + "?"
                             + build_viewer_query_params(prev_item["page_number"])
                         )
 
+                    # -----------------------------------------
+                    # Next Match
+                    # -----------------------------------------
+
                     if current_index < len(matches) - 1:
                         next_item = matches[current_index + 1]
+
                         context["next_match_url"] = (
                             reverse(
                                 "manual_chapter_pdf_viewer",
-                                kwargs={"pk": next_item["chapter_id"]},
+                                kwargs={
+                                    "pk": next_item["chapter_id"],
+                                },
                             )
                             + "?"
                             + build_viewer_query_params(next_item["page_number"])
                         )
 
+                # =============================================
+                # Current Chapter Matching Pages
+                # =============================================
+
                 matching_pages_list = [
                     item["page_number"]
                     for item in matches
-                    if item["chapter_id"] == chapter.pk
+                    if (item["chapter_id"] == chapter.pk)
                 ]
 
                 context["matching_pages_json"] = json.dumps(matching_pages_list)
+
+                # =============================================
+                # Package-wide Match Items
+                # =============================================
+
                 context["matching_match_items_json"] = json.dumps(
                     [
                         {
@@ -1432,7 +1826,9 @@ class ManualChapterPDFViewerView(LoginRequiredMixin, DetailView):
                             "viewerUrl": (
                                 reverse(
                                     "manual_chapter_pdf_viewer",
-                                    kwargs={"pk": item["chapter_id"]},
+                                    kwargs={
+                                        "pk": item["chapter_id"],
+                                    },
                                 )
                                 + "?"
                                 + build_viewer_query_params(item["page_number"])
