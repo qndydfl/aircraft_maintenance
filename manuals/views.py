@@ -55,6 +55,8 @@ from .services import (
     index_pdf_pages_for_manual_file_safely,
     index_pdf_pages_for_other_manual_file_safely,
     process_manual_package_safely,
+    find_index_html,
+    extract_ipc_chapter_titles,
 )
 from django.http import FileResponse, Http404
 from django.db.models import Q, Count, Min, Prefetch
@@ -765,10 +767,33 @@ class ManualChapterListView(
         # All Chapters
         # =====================================================
 
-        all_chapters = ManualChapter.objects.filter(package=self.package).order_by(
-            "task",
-            "subtask",
+        # all_chapters = ManualChapter.objects.filter(package=self.package).order_by(
+        #     "task",
+        #     "subtask",
+        # )
+
+        all_chapters = list(
+            ManualChapter.objects.filter(package=self.package).order_by(
+                "task",
+                "subtask",
+            )
         )
+
+        for chapter in all_chapters:
+            viewer_params = {
+                "page": 1,
+                "embedded": "1",
+                "back": self.request.get_full_path(),
+            }
+
+            chapter.viewer_url = (
+                reverse(
+                    "manual_chapter_pdf_viewer",
+                    kwargs={"pk": chapter.pk},
+                )
+                + "?"
+                + urlencode(viewer_params)
+            )
 
         # Normal mode:
         # show all chapters.
@@ -855,6 +880,7 @@ class ManualChapterListView(
 
                     if chapter.pk not in matching_chapter_map:
                         matching_chapter_map[chapter.pk] = {
+                            "pk": chapter.pk,
                             "chapter_id": chapter.pk,
                             "chapter__task": chapter.task,
                             "chapter__subtask": chapter.subtask,
@@ -871,6 +897,27 @@ class ManualChapterListView(
                         chapter_data["first_page"] = page.page_number
 
                 matching_chapters = list(matching_chapter_map.values())
+
+                # -----------------------------------------------------
+                # Viewer URL은 Python에서 안전하게 생성
+                # -----------------------------------------------------
+                for item in matching_chapters:
+                    viewer_params = {
+                        "page": item["first_page"],
+                        "q": q,
+                        "from_search_page": "1",
+                        "embedded": "1",
+                        "back": self.request.get_full_path(),
+                    }
+
+                    item["viewer_url"] = (
+                        reverse(
+                            "manual_chapter_pdf_viewer",
+                            kwargs={"pk": item["chapter_id"]},
+                        )
+                        + "?"
+                        + urlencode(viewer_params)
+                    )
 
                 context["matching_chapters"] = matching_chapters
 
@@ -889,7 +936,9 @@ class ManualChapterListView(
                 # =============================================
 
                 matching_chapter_ids = [
-                    item["chapter_id"] for item in matching_chapters
+                    item.get("pk", item.get("chapter_id"))
+                    for item in matching_chapters
+                    if item.get("pk") is not None or item.get("chapter_id") is not None
                 ]
 
                 context["chapter_bookmarks"] = ManualChapter.objects.filter(
@@ -899,6 +948,260 @@ class ManualChapterListView(
                     "task",
                     "subtask",
                 )
+
+        # =====================================================
+        # Chapter hierarchy
+        #
+        # AMM/FIM tasks such as 06___107 stay as direct entries. IPC follows
+        # the Boeing index.html hierarchy: chapter heading, then PDF sections.
+        # =====================================================
+
+        manual_type = (self.package.manual_type or "").strip().upper()
+        ipc_chapter_titles = {}
+        amm_chapter_titles = {}
+
+        if manual_type == "IPC":
+            index_html_path = find_index_html(self.package.extracted_path)
+            ipc_chapter_titles = extract_ipc_chapter_titles(index_html_path)
+
+            amm_chapters = ManualChapter.objects.filter(
+                package__aircraft=self.package.aircraft,
+                package__manual_type="AMM",
+            ).only("task", "title")
+
+            for amm_chapter in amm_chapters:
+                chapter_match = re.match(
+                    r"^(?P<chapter>\d{2})(?:_{2,}|$)",
+                    (amm_chapter.task or "").strip(),
+                )
+                title = (amm_chapter.title or "").strip()
+
+                if chapter_match and title:
+                    amm_chapter_titles.setdefault(
+                        chapter_match.group("chapter"),
+                        title,
+                    )
+
+        def build_chapter_groups(items, task_getter):
+            """
+            Chapter navigator grouping.
+
+            AMM/FIM:
+                기존 task를 그대로 개별 chapter로 표시.
+
+            IPC:
+                11-00___116
+                11-10___...
+                11-20___...
+                같은 IPC section 형식만 Chapter 11 그룹으로 묶는다.
+
+            중요한 점:
+                - -00 항목을 children에서 제거하지 않는다.
+                - group header는 실제 ManualChapter를 parent로 사용하지 않는다.
+                - 따라서 11-00 자체도 정상적인 클릭 가능한 section으로 남는다.
+            """
+
+            items = list(items)
+
+            # ---------------------------------------------------------
+            # IPC가 아니면 기존 chapter를 그대로 표시
+            # ---------------------------------------------------------
+
+            if manual_type != "IPC":
+                return [
+                    {
+                        "key": f"item-{index}",
+                        "is_group": False,
+                        "item": item,
+                    }
+                    for index, item in enumerate(items)
+                ]
+
+            # ---------------------------------------------------------
+            # IPC
+            # ---------------------------------------------------------
+
+            entries = []
+            group_map = {}
+
+            def ipc_task_info(item):
+                task = (task_getter(item) or "").strip()
+
+                match = re.match(
+                    r"^(?P<chapter>\d{2})-"
+                    r"(?P<section>[0-9A-Za-z]{2})"
+                    r"(?:_{2,}.*)?$",
+                    task,
+                    re.IGNORECASE,
+                )
+
+                if not match:
+                    return None
+
+                return {
+                    "task": task,
+                    "chapter": match.group("chapter"),
+                    "section": match.group("section"),
+                }
+
+            def ipc_item_title(item):
+                if isinstance(item, dict):
+                    return (
+                        item.get("chapter__title")
+                        or item.get("title")
+                        or ""
+                    ).strip()
+
+                return (getattr(item, "title", "") or "").strip()
+
+            # AMM/index.html may not be available yet on an older deployment.
+            # In that case, use the IPC 00 section title as a reliable fallback.
+            ipc_section_titles = {}
+            for item in items:
+                info = ipc_task_info(item)
+                if not info or info["section"] != "00":
+                    continue
+
+                title = ipc_item_title(item)
+                description_match = re.match(
+                    r"^(?:SECTION\s+)?\d{2}-00\s*[,:-]\s*(.+)$",
+                    title,
+                    re.IGNORECASE,
+                )
+                if description_match:
+                    ipc_section_titles.setdefault(
+                        info["chapter"],
+                        f"CHAPTER {info['chapter']} - "
+                        f"{description_match.group(1).strip()}",
+                    )
+
+            def ipc_sort_key(item):
+                info = ipc_task_info(item)
+
+                if not info:
+                    return (
+                        1,
+                        10**9,
+                        (task_getter(item) or "").lower(),
+                    )
+
+                section = info["section"]
+
+                if section.lower() == "fm":
+                    return (
+                        0,
+                        -1,
+                        info["task"].lower(),
+                    )
+
+                if section.isdigit():
+                    return (
+                        0,
+                        int(section),
+                        info["task"].lower(),
+                    )
+
+                number_match = re.match(r"^(\d+)", section)
+
+                if number_match:
+                    return (
+                        0,
+                        int(number_match.group(1)),
+                        section.lower(),
+                    )
+
+                return (
+                    0,
+                    10**9,
+                    section.lower(),
+                )
+
+            # ---------------------------------------------------------
+            # Group by ATA chapter
+            #
+            # 11-00
+            # 11-10
+            # 11-20
+            #     ↓
+            # Chapter 11
+            # ---------------------------------------------------------
+
+            for item in items:
+                info = ipc_task_info(item)
+
+                # IPC section 형식이 아니면 독립 항목으로 유지
+                if not info:
+                    entries.append(
+                        {
+                            "key": f"item-{len(entries)}",
+                            "is_group": False,
+                            "item": item,
+                        }
+                    )
+                    continue
+
+                chapter_no = info["chapter"]
+
+                if chapter_no not in group_map:
+                    group = {
+                        "key": chapter_no,
+                        "is_group": True,
+
+                        # 중요:
+                        # 실제 chapter object를 group parent로 사용하지 않는다.
+                        "parent": None,
+
+                        "chapter_no": chapter_no,
+                        "label": amm_chapter_titles.get(
+                            chapter_no,
+                            ipc_chapter_titles.get(
+                                chapter_no,
+                                ipc_section_titles.get(
+                                    chapter_no,
+                                    f"CHAPTER {chapter_no}",
+                                ),
+                            ),
+                        ),
+
+                        "items": [],
+                        "count": 0,
+                    }
+
+                    group_map[chapter_no] = group
+                    entries.append(group)
+
+                group_map[chapter_no]["items"].append(item)
+
+            # ---------------------------------------------------------
+            # Sort each IPC group
+            # ---------------------------------------------------------
+
+            result = []
+
+            for entry in entries:
+                if not entry["is_group"]:
+                    result.append(entry)
+                    continue
+
+                entry["items"].sort(
+                    key=ipc_sort_key,
+                )
+
+                entry["count"] = len(entry["items"])
+
+                # section 하나뿐이라도 IPC chapter 구조는 유지
+                result.append(entry)
+
+            return result
+
+        context["chapter_groups"] = build_chapter_groups(
+            context["chapter_bookmarks"],
+            lambda chapter: chapter.task,
+        )
+        context["matching_chapter_groups"] = build_chapter_groups(
+            context["matching_chapters"],
+            lambda chapter: chapter["chapter__task"],
+        )
 
         # =====================================================
         # Restore Workspace URL State

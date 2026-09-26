@@ -322,6 +322,33 @@ def find_index_html(extract_to):
     return None
 
 
+def extract_ipc_chapter_titles(index_html_path):
+    if not index_html_path or not os.path.exists(index_html_path):
+        return {}
+
+    with open(index_html_path, "r", encoding="utf-8", errors="ignore") as file:
+        soup = BeautifulSoup(file, "html.parser")
+
+    chapter_titles = {}
+
+    for item in soup.select("li.tocHead"):
+        heading_node = item.find(
+            string=re.compile(r"^\s*CHAPTER\s+\d{2}\s+-", re.IGNORECASE),
+            recursive=False,
+        )
+
+        if not heading_node:
+            continue
+
+        heading = re.sub(r"\s+", " ", str(heading_node)).strip()
+        chapter_match = re.match(r"^CHAPTER\s+(\d{2})\b", heading, re.IGNORECASE)
+
+        if chapter_match:
+            chapter_titles[chapter_match.group(1)] = heading
+
+    return chapter_titles
+
+
 def extract_task_from_text(text):
     pattern = r"\b\d{2}-\d{2}-\d{2}\b"
     match = re.search(pattern, text)

@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", function () {
         "[data-chapter-viewer-link]",
     );
 
+    const chapterGroupToggles = workspace.querySelectorAll(
+        "[data-chapter-group-toggle]",
+    );
+
     const viewerButton = workspace.querySelector(
         '[data-workspace-pane-button="viewer"]',
     );
@@ -33,15 +37,217 @@ document.addEventListener("DOMContentLoaded", function () {
     const viewerMatch = workspace.querySelector("[data-viewer-match]");
 
     const viewerStatus = workspace.querySelector("[data-viewer-status]");
+    const workspaceSidebar = workspace.querySelector(
+        ".manual-workspace-sidebar",
+    );
+    const workspaceResizer = workspace.querySelector(
+        "[data-workspace-resizer]",
+    );
+    const workspaceSidebarToggle = workspace.querySelector(
+        "[data-workspace-sidebar-toggle]",
+    );
 
     const mobileQuery = window.matchMedia("(max-width: 48rem)");
+    const sidebarWidthStorageKey = "manualChapterSidebarWidthV1";
+    const sidebarCollapsedStorageKey = "manualChapterSidebarCollapsedV1";
     const outlineCache = new Map();
     let activeChapterId = "";
     let activePageNumber = null;
 
     /* =================================================
-           Pane
+           Resizable Sidebar
         ================================================= */
+
+    function getSidebarWidthLimits() {
+        const workspaceWidth = workspace.getBoundingClientRect().width;
+
+        return {
+            min: 280,
+            max: Math.max(280, Math.min(640, workspaceWidth * 0.55)),
+        };
+    }
+
+    function setSidebarWidth(width, persist) {
+        if (!Number.isFinite(width)) {
+            return;
+        }
+
+        const limits = getSidebarWidthLimits();
+        const nextWidth = Math.round(
+            Math.min(limits.max, Math.max(limits.min, width)),
+        );
+
+        workspace.style.setProperty(
+            "--workspace-sidebar-width",
+            nextWidth + "px",
+        );
+
+        if (workspaceResizer) {
+            workspaceResizer.setAttribute("aria-valuemax", String(limits.max));
+            workspaceResizer.setAttribute("aria-valuenow", String(nextWidth));
+        }
+
+        if (persist) {
+            try {
+                window.localStorage.setItem(
+                    sidebarWidthStorageKey,
+                    String(nextWidth),
+                );
+            } catch (error) {
+                // Storage may be unavailable in private browsing mode.
+            }
+        }
+    }
+
+    function getCurrentSidebarWidth() {
+        if (workspaceSidebar) {
+            const renderedWidth = workspaceSidebar.getBoundingClientRect().width;
+
+            if (renderedWidth > 0) {
+                return renderedWidth;
+            }
+        }
+
+        return 320;
+    }
+
+    function setSidebarCollapsed(collapsed, persist) {
+        workspace.classList.toggle("is-sidebar-collapsed", collapsed);
+
+        if (workspaceSidebarToggle) {
+            workspaceSidebarToggle.setAttribute(
+                "aria-expanded",
+                collapsed ? "false" : "true",
+            );
+            workspaceSidebarToggle.setAttribute(
+                "aria-label",
+                collapsed ? "Show chapter sidebar" : "Hide chapter sidebar",
+            );
+            workspaceSidebarToggle.title = collapsed
+                ? "Show chapter sidebar"
+                : "Hide chapter sidebar";
+        }
+
+        if (persist) {
+            try {
+                window.localStorage.setItem(
+                    sidebarCollapsedStorageKey,
+                    collapsed ? "true" : "false",
+                );
+            } catch (error) {
+                // Storage may be unavailable in private browsing mode.
+            }
+        }
+    }
+
+    if (workspaceResizer) {
+        let savedWidth = 0;
+        let sidebarCollapsed = false;
+
+        try {
+            savedWidth = Number(
+                window.localStorage.getItem(sidebarWidthStorageKey),
+            );
+            sidebarCollapsed =
+                window.localStorage.getItem(sidebarCollapsedStorageKey) ===
+                "true";
+        } catch (error) {
+            // Keep the CSS default when storage is unavailable.
+        }
+
+        setSidebarWidth(
+            Number.isFinite(savedWidth) && savedWidth > 0
+                ? savedWidth
+                : getCurrentSidebarWidth(),
+            false,
+        );
+        setSidebarCollapsed(sidebarCollapsed, false);
+
+        if (workspaceSidebarToggle) {
+            workspaceSidebarToggle.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                setSidebarCollapsed(
+                    !workspace.classList.contains("is-sidebar-collapsed"),
+                    true,
+                );
+            });
+        }
+
+        workspaceResizer.addEventListener("pointerdown", function (event) {
+            if (
+                mobileQuery.matches ||
+                event.button !== 0 ||
+                event.target.closest("[data-workspace-sidebar-toggle]") ||
+                workspace.classList.contains("is-sidebar-collapsed")
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            workspaceResizer.setPointerCapture(event.pointerId);
+            workspace.classList.add("is-resizing");
+            document.body.classList.add("manual-workspace-resizing");
+        });
+
+        workspaceResizer.addEventListener("pointermove", function (event) {
+            if (!workspaceResizer.hasPointerCapture(event.pointerId)) {
+                return;
+            }
+
+            const workspaceLeft = workspace.getBoundingClientRect().left;
+            setSidebarWidth(event.clientX - workspaceLeft, false);
+        });
+
+        function finishSidebarResize(event) {
+            if (!workspaceResizer.hasPointerCapture(event.pointerId)) {
+                return;
+            }
+
+            workspaceResizer.releasePointerCapture(event.pointerId);
+            workspace.classList.remove("is-resizing");
+            document.body.classList.remove("manual-workspace-resizing");
+
+            setSidebarWidth(getCurrentSidebarWidth(), true);
+        }
+
+        workspaceResizer.addEventListener("pointerup", finishSidebarResize);
+        workspaceResizer.addEventListener("pointercancel", finishSidebarResize);
+
+        workspaceResizer.addEventListener("keydown", function (event) {
+            const currentWidth = getCurrentSidebarWidth();
+            const limits = getSidebarWidthLimits();
+            let nextWidth = currentWidth;
+
+            if (event.key === "ArrowLeft") {
+                nextWidth -= 16;
+            } else if (event.key === "ArrowRight") {
+                nextWidth += 16;
+            } else if (event.key === "Home") {
+                nextWidth = limits.min;
+            } else if (event.key === "End") {
+                nextWidth = limits.max;
+            } else {
+                return;
+            }
+
+            event.preventDefault();
+            setSidebarWidth(nextWidth, true);
+        });
+
+        window.addEventListener("resize", function () {
+            if (
+                !mobileQuery.matches &&
+                !workspace.classList.contains("is-sidebar-collapsed")
+            ) {
+                setSidebarWidth(getCurrentSidebarWidth(), false);
+            }
+        });
+    }
+
+    /* =================================================
+    Pane
+    ================================================= */
 
     function setActivePane(pane) {
         workspace.dataset.activePane = pane;
@@ -54,6 +260,40 @@ document.addEventListener("DOMContentLoaded", function () {
             button.setAttribute("aria-selected", isActive ? "true" : "false");
         });
     }
+
+    function setChapterGroupExpanded(toggle, expanded) {
+        const group = toggle ? toggle.closest("[data-chapter-group]") : null;
+        const items = group
+            ? group.querySelector(":scope > .manual-workspace-chapter-group-items")
+            : null;
+
+        if (!items) {
+            return;
+        }
+
+        items.hidden = !expanded;
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    }
+
+    function expandChapterGroupForLink(link) {
+        const group = link ? link.closest("[data-chapter-group]") : null;
+        const toggle = group
+            ? group.querySelector(":scope > [data-chapter-group-toggle]")
+            : null;
+
+        if (toggle) {
+            setChapterGroupExpanded(toggle, true);
+        }
+    }
+
+    chapterGroupToggles.forEach(function (toggle) {
+        toggle.addEventListener("click", function () {
+            setChapterGroupExpanded(
+                toggle,
+                toggle.getAttribute("aria-expanded") !== "true",
+            );
+        });
+    });
 
     /* =================================================
            Loading
@@ -540,6 +780,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        expandChapterGroupForLink(activeLink);
         renderChapterOutline(chapterId);
 
         if (chapterChanged) {
@@ -664,10 +905,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
                 activePageNumber = requestedPage;
+                if (viewerPage) {
+                    viewerPage.textContent = "Page " + requestedPage;
+                }
                 updateWorkspaceUrl(chapterId, requestedPage);
                 syncActiveSubchapter(chapterId, requestedPage);
             } catch (error) {
                 activePageNumber = 1;
+                if (viewerPage) {
+                    viewerPage.textContent = "Page 1";
+                }
                 updateWorkspaceUrl(chapterId, 1);
             }
 
@@ -695,6 +942,12 @@ document.addEventListener("DOMContentLoaded", function () {
              * PDF.js 렌더 완료 상태는
              * postMessage가 알려준다.
              */
+
+            // The embedded viewer has its own PDF loading state. Remove the
+            // workspace cover once the iframe document (including a 404/500
+            // response) is visible so an error page can never be hidden by an
+            // endless outer spinner.
+            hideFrameLoading();
 
             try {
                 const viewerUrl = frame.contentWindow.location.href;
@@ -733,6 +986,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = event.data || {};
 
         if (data.source !== "manual-pdf-viewer") {
+            return;
+        }
+
+        if (data.type === "viewer-ready") {
+            hideFrameLoading();
+            return;
+        }
+
+        if (data.type === "load-error" || data.type === "render-error") {
+            hideFrameLoading();
             return;
         }
 

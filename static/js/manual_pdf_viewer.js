@@ -106,6 +106,8 @@ function postWorkspaceMessage(type, extraData) {
     window.parent.postMessage(payload, window.location.origin);
 }
 
+postWorkspaceMessage("viewer-ready");
+
 window.addEventListener("message", function (event) {
     if (
         !embedded ||
@@ -1016,7 +1018,7 @@ function renderPage(pageNumber) {
         .catch(function (error) {
             console.error("PDF Page Render Error:", error);
 
-            hideViewerLoading();
+            showViewerError("PDF 페이지를 표시하지 못했습니다.");
 
             pageRendering = false;
 
@@ -1805,6 +1807,9 @@ function loadPdfDocument(sourceUrl, triedFallback) {
                 '<div class="outline-empty">PDF를 불러오지 못했습니다.</div>';
 
             showViewerError("PDF를 불러오지 못했습니다.");
+            postWorkspaceMessage("load-error", {
+                message: "PDF를 불러오지 못했습니다.",
+            });
         });
 }
 
@@ -1812,6 +1817,9 @@ if (!pdfUrl) {
     outlineContainer.innerHTML =
         '<div class="outline-empty">PDF를 불러올 수 없습니다.</div>';
     showViewerError("PDF를 불러올 수 없습니다.");
+    postWorkspaceMessage("load-error", {
+        message: "PDF를 불러올 수 없습니다.",
+    });
 } else {
     loadPdfDocument(pdfUrl, false);
 }

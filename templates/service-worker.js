@@ -1,4 +1,4 @@
-const CACHE_NAME = "manual-portal-static-v106";
+const CACHE_NAME = "manual-portal-static-v117";
 
 const STATIC_ASSETS = [
     "/static/manifest.webmanifest",

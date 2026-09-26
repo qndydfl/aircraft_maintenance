@@ -1,22 +1,23 @@
 {% extends 'base.html' %} 
 {% load static %} 
 {% block body_class %} chapter-page {% endblock body_class %} 
-
 {% block css %}
 <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
 />
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20260925-12" />
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20260926-7" />
 {% endblock css %} 
 
 {% block js %}
 <script
     defer
-    src="{% static 'js/manual_chapter_workspace.js' %}?v=20260925-10"
+    src="{% static 'js/manual_chapter_workspace.js' %}?v=20260926-4"
 ></script>
 {% endblock js %}
+
 {% block title %} {{ package.aircraft.name }} {{ package.manual_type }} Chapters {% endblock title %} 
+
 {% block navbar_content %}
 <div class="app-navbar-page-content">
     <div class="app-navbar-title portal-chapter-hero-content">
@@ -45,7 +46,7 @@
     data-active-pane="chapters"
 >
     <!-- =====================================================
-         MOBILE WORKSPACE TABS
+    MOBILE WORKSPACE TABS
     ====================================================== -->
 
     <div
@@ -71,9 +72,7 @@
             role="tab"
             aria-selected="false"
             data-workspace-pane-button="viewer"
-            {% if not initial_viewer_url %}
-            disabled
-            {% endif %}
+            {% if not initial_viewer_url %}disabled{% endif %}
         >
             <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
 
@@ -82,12 +81,12 @@
     </div>
 
     <!-- =====================================================
-         LEFT : CHAPTER NAVIGATOR
+    LEFT : CHAPTER NAVIGATOR
     ====================================================== -->
 
     <aside class="manual-workspace-sidebar" data-workspace-pane="chapters">
         <!-- =================================================
-             SIDEBAR HEADER
+        SIDEBAR HEADER
         ================================================== -->
 
         <div class="manual-workspace-sidebar-header">
@@ -106,13 +105,27 @@
                 </p>
             </div>
 
-            <span class="manual-workspace-chapter-count" title="Chapter count">
-                {% if q %} {{ matching_chapters|length }} {% else %} {{ chapter_bookmarks|length }} {% endif %}
-            </span>
+            <div class="manual-workspace-sidebar-meta">
+                <span
+                    class="manual-workspace-current-page"
+                    data-viewer-page
+                    aria-live="polite"
+                >
+                    {% if initial_viewer_url %} Page {{ initial_page_number }}
+                    {% else %} Page - {% endif %}
+                </span>
+
+                <span
+                    class="manual-workspace-chapter-count"
+                    title="Chapter count"
+                >
+                    {% if q %} {{ matching_chapters|length }} {% else %} {{ chapter_bookmarks|length }} {% endif %}
+                </span>
+            </div>
         </div>
 
         <!-- =================================================
-             SEARCH
+        SEARCH
         ================================================== -->
 
         <form
@@ -166,7 +179,7 @@
         </form>
 
         <!-- =================================================
-             SEARCH SUMMARY
+        SEARCH SUMMARY
         ================================================== -->
 
         {% if q %}
@@ -188,114 +201,220 @@
         {% endif %}
 
         <!-- =================================================
-             CHAPTER LIST
+        CHAPTER LIST
         ================================================== -->
 
         <div class="manual-workspace-chapters">
-            <!-- =============================================
-                 SEARCH RESULTS
-            ============================================== -->
+            {% if q %} {% for entry in matching_chapter_groups %} {% if entry.is_group %}
+            <div class="manual-workspace-chapter-group" data-chapter-group>
+                <div class="manual-workspace-chapter-group-header">
+                    <button
+                        type="button"
+                        class="manual-workspace-chapter-group-toggle"
+                        aria-expanded="false"
+                        aria-label="Toggle {{ entry.label }}"
+                        data-chapter-group-toggle
+                    >
+                        <span class="manual-workspace-arrow" aria-hidden="true"
+                            >›</span
+                        >
+                    </button>
+                    <button
+                        type="button"
+                        class="manual-workspace-chapter-group-parent manual-workspace-chapter-group-parent-static"
+                        data-chapter-group-toggle
+                    >
+                        <strong class="manual-workspace-chapter-group-label">
+                            {{ entry.label }}
+                        </strong>
+                        <span class="manual-workspace-chapter-group-count"
+                            >{{ entry.count }}</span
+                        >
+                    </button>
+                </div>
 
-            {% if q %} {% for chapter in matching_chapters %}
+                <div class="manual-workspace-chapter-group-items" hidden>
+                    {% for chapter in entry.items %}
+                    <a
+                        href="{{ chapter.viewer_url }}"
+                        class="manual-workspace-chapter{% if initial_chapter and chapter.pk == initial_chapter.pk %} is-active{% endif %}"
+                        data-chapter-viewer-link
+                        data-chapter-id="{{ chapter.pk }}"
+                        data-chapter-task="{{ chapter.chapter__task }}"
+                        data-first-match-page="{{ chapter.first_page }}"
+                        data-match-count="{{ chapter.match_count }}"
+                        data-loading="false"
+                    >
+                        <span class="manual-workspace-chapter-main">
+                            <strong>
+                                {{ chapter.chapter__title|default:chapter.chapter__task }}
+                            </strong>
+                        </span>
 
+                        <span class="manual-workspace-chapter-tail">
+                            <span
+                                class="manual-workspace-match-count"
+                                title="{{ chapter.match_count }} matching pages"
+                                >{{ chapter.match_count }}</span
+                            >
+                            <span
+                                class="manual-workspace-arrow"
+                                aria-hidden="true"
+                                >›</span
+                            >
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif entry.item.pk %}
             <a
-                href="{% url 'manual_chapter_pdf_viewer' chapter.chapter_id %}?page={{ chapter.first_page }}&q={{ q|urlencode }}&from_search_page=1&embedded=1&back={{ workspace_back_url|urlencode }}"
-                class="manual-workspace-chapter{% if initial_chapter and chapter.chapter_id == initial_chapter.pk %} is-active{% endif %}"
+                href="{{ entry.item.viewer_url }}"
+                class="manual-workspace-chapter{% if initial_chapter and entry.item.pk == initial_chapter.pk %} is-active{% endif %}"
                 data-chapter-viewer-link
-                data-chapter-id="{{ chapter.chapter_id }}"
-                data-chapter-task="{{ chapter.chapter__task }}"
-                data-first-match-page="{{ chapter.first_page }}"
-                data-match-count="{{ chapter.match_count }}"
+                data-chapter-id="{{ entry.item.pk }}"
+                data-chapter-task="{{ entry.item.chapter__task }}"
+                data-first-match-page="{{ entry.item.first_page }}"
+                data-match-count="{{ entry.item.match_count }}"
                 data-loading="false"
             >
                 <span class="manual-workspace-chapter-main">
                     <strong>
-                        {{ chapter.chapter__task }} {% if chapter.chapter__subtask %}
-                        <span> / {{ chapter.chapter__subtask }} </span>
-                        {% endif %}
+                        {{ entry.item.chapter__task }} {% if entry.item.chapter__subtask %}<span>
+                            / {{ entry.item.chapter__subtask }} </span
+                        >{% endif %}
                     </strong>
-
-                    <small>
-                        {{ chapter.chapter__title|default:"No title" }}
-                    </small>
-                </span>
-
-                <span class="manual-workspace-chapter-tail">
-                    <span
-                        class="manual-workspace-match-count"
-                        title="{{ chapter.match_count }} matching pages"
+                    <small
+                        >{{ entry.item.chapter__title|default:"No title" }}
+                    </small
                     >
-                        {{ chapter.match_count }}
-                    </span>
-                    <span class="manual-workspace-arrow" aria-hidden="true">›</span>
+                </span>
+                <span class="manual-workspace-chapter-tail">
+                    <span class="manual-workspace-match-count"
+                        >{{ entry.item.match_count }}</span
+                    >
+                    <span class="manual-workspace-arrow" aria-hidden="true"
+                        >›</span
+                    >
                 </span>
             </a>
-
-            {% empty %}
-
+            {% endif %} {% empty %}
             <div class="manual-workspace-empty">
                 <i class="bi bi-search" aria-hidden="true"></i>
-
                 <strong> No PDF matches </strong>
-
                 <span> No indexed PDF page contains "{{ q }}". </span>
             </div>
+            {% endfor %} {% else %}{% for entry in chapter_groups %} {% if entry.is_group %}
 
-            {% endfor %}
+            <div class="manual-workspace-chapter-group" data-chapter-group>
+                <div class="manual-workspace-chapter-group-header">
+                    <button
+                        type="button"
+                        class="manual-workspace-chapter-group-toggle"
+                        aria-expanded="false"
+                        aria-label="Toggle {{ entry.label }}"
+                        data-chapter-group-toggle
+                    >
+                        <span class="manual-workspace-arrow" aria-hidden="true">
+                            ›
+                        </span>
+                    </button>
 
-            <!-- =============================================
-                 NORMAL CHAPTER LIST
-            ============================================== -->
+                    <button
+                        type="button"
+                        class="manual-workspace-chapter-group-parent manual-workspace-chapter-group-parent-static"
+                        data-chapter-group-toggle
+                    >
+                        <strong class="manual-workspace-chapter-group-label">
+                            {{ entry.label }}
+                        </strong>
 
-            {% else %} {% for chapter in chapter_bookmarks %}
+                        <span class="manual-workspace-chapter-group-count">
+                            {{ entry.count }}
+                        </span>
+                    </button>
+                </div>
+
+                <div class="manual-workspace-chapter-group-items" hidden>
+                    {% for chapter in entry.items %}
+
+                    <a
+                        href="{{ chapter.viewer_url }}"
+                        class="manual-workspace-chapter {% if initial_chapter and chapter.pk == initial_chapter.pk %} is-active {% endif %}"
+                        data-chapter-viewer-link
+                        data-chapter-id="{{ chapter.pk }}"
+                        data-chapter-task="{{ chapter.task }}"
+                        data-loading="false"
+                    >
+                        <span class="manual-workspace-chapter-main">
+                            <strong> {{ chapter.title|default:chapter.task }} </strong>
+                        </span>
+
+                        <span class="manual-workspace-open" aria-hidden="true">
+                            ›
+                        </span>
+                    </a>
+
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% else %} {% with chapter=entry.item %} {% if chapter.pk %}
 
             <a
-                href="{% url 'manual_chapter_pdf_viewer' chapter.pk %}?page=1&embedded=1&back={{ workspace_back_url|urlencode }}"
-                class="manual-workspace-chapter{% if initial_chapter and chapter.pk == initial_chapter.pk %} is-active{% endif %}"
+                href="{{ chapter.viewer_url }}"
+                class="manual-workspace-chapter {% if initial_chapter and chapter.pk == initial_chapter.pk %} is-active {% endif %}"
                 data-chapter-viewer-link
                 data-chapter-id="{{ chapter.pk }}"
                 data-chapter-task="{{ chapter.task }}"
                 data-loading="false"
             >
                 <span class="manual-workspace-chapter-main">
-                    <strong>
-                        {{ chapter.task }} {% if chapter.subtask %}
-                        <span> / {{ chapter.subtask }} </span>
-                        {% endif %}
-                    </strong>
+                    <strong> {{ chapter.task }} </strong>
 
-                    <small> {{ chapter.title|default:"No title" }} </small>
+                    {% if chapter.title %}
+                    <small> {{ chapter.title }} </small>
+                    {% endif %}
                 </span>
 
                 <span class="manual-workspace-open" aria-hidden="true">
-                    <span class="manual-workspace-arrow">›</span>
+                    ›
                 </span>
             </a>
 
-            {% empty %}
-
-            <div class="manual-workspace-empty">
-                <i class="bi bi-journal-x" aria-hidden="true"></i>
-
-                <strong> No chapters </strong>
-
-                <span>
-                    Re-index the uploaded ZIP to create the chapter list.
-                </span>
-            </div>
-
-            {% endfor %} {% endif %}
+            {% endif %} {% endwith %} {% endif %} {% endfor %} {% endif %}
         </div>
     </aside>
 
+    <div
+        class="manual-workspace-resizer"
+        data-workspace-resizer
+        role="separator"
+        aria-label="Resize chapter sidebar"
+        aria-orientation="vertical"
+        aria-valuemin="280"
+        tabindex="0"
+    >
+        <button
+            type="button"
+            class="manual-workspace-sidebar-toggle"
+            data-workspace-sidebar-toggle
+            aria-expanded="true"
+            aria-label="Hide chapter sidebar"
+            title="Hide chapter sidebar"
+        >
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+        </button>
+        <span class="manual-workspace-resizer-grip" aria-hidden="true"></span>
+    </div>
+
     <!-- =====================================================
-         RIGHT : PDF VIEWER
+    RIGHT : PDF VIEWER
     ====================================================== -->
 
     <section class="manual-workspace-viewer" data-workspace-pane="viewer">
-
         <!-- =================================================
-             VIEWER BODY
+        VIEWER BODY
         ================================================== -->
 
         <div class="manual-workspace-viewer-body">

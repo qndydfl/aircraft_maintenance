@@ -1,4 +1,6 @@
 from datetime import timedelta
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
@@ -7,7 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
 from .forms import CommonManualCategoryForm
-from .services import save_package_revision_info
+from .services import extract_ipc_chapter_titles, save_package_revision_info
 from .models import (
     Aircraft,
     ManualChapter,
@@ -18,6 +20,34 @@ from .models import (
     CommonManualCategory,
     CommonManualFile,
 )
+
+
+class IPCIndexNavigationTests(TestCase):
+    def test_extracts_original_boeing_chapter_headings(self):
+        html = """
+        <ul>
+            <li class="tocHead">CHAPTER 11 - PLACARDS AND MARKINGS
+                <ul><li><a href="11-00.pdf">SECTION 11-00</a></li></ul>
+            </li>
+            <li class="tocHead">CHAPTER 21 - AIR CONDITIONING
+                <ul><li><a href="21-fm.pdf">FRONT MATTER</a></li></ul>
+            </li>
+        </ul>
+        """
+
+        with TemporaryDirectory() as temp_dir:
+            index_path = Path(temp_dir) / "index.html"
+            index_path.write_text(html, encoding="utf-8")
+            chapter_titles = extract_ipc_chapter_titles(str(index_path))
+
+        self.assertEqual(
+            chapter_titles["11"],
+            "CHAPTER 11 - PLACARDS AND MARKINGS",
+        )
+        self.assertEqual(
+            chapter_titles["21"],
+            "CHAPTER 21 - AIR CONDITIONING",
+        )
 
 
 class AircraftManualAccessTests(TestCase):
@@ -300,6 +330,262 @@ class ManualPackageViewerMatchCountTests(TestCase):
         self.assertIsNone(response.context["initial_chapter"])
         self.assertEqual(len(response.context["matching_chapters"]), 1)
 
+    def test_chapter_list_search_results_expose_valid_pk_for_viewer_links(self):
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            ),
+            {"q": "oil press sensors l"},
+        )
+
+        self.assertTrue(response.context["matching_chapters"])
+        for item in response.context["matching_chapters"]:
+            self.assertTrue(item.get("pk"))
+            self.assertIsNotNone(item.get("pk"))
+
+    def test_chapter_list_renders_regular_chapter_links_without_chapter_id(self):
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["chapter_bookmarks"])
+
+    def test_chapter_list_keeps_zero_section_inside_ipc_group(self):
+        self.package.manual_type = "IPC"
+        self.package.save(update_fields=["manual_type"])
+
+        front_matter = ManualChapter.objects.create(
+            package=self.package,
+            task="21-fm___116",
+            title="CHAPTER 21, FRONT MATTER",
+            pdf_relative_path="21-fm.pdf",
+        )
+        zero_section = ManualChapter.objects.create(
+            package=self.package,
+            task="21-00___116",
+            title="General",
+            pdf_relative_path="21-00.pdf",
+        )
+        ManualChapter.objects.create(
+            package=self.package,
+            task="21-31___116",
+            title="Outflow Valve",
+            pdf_relative_path="21-31.pdf",
+        )
+
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+        ata_21_group = next(
+            group
+            for group in response.context["chapter_groups"]
+            if group["key"] == "21"
+        )
+
+        self.assertTrue(ata_21_group["is_group"])
+        self.assertIsNone(ata_21_group["parent"])
+        self.assertEqual(ata_21_group["items"][0], front_matter)
+        self.assertEqual(ata_21_group["items"][1], zero_section)
+        self.assertEqual(len(ata_21_group["items"]), 4)
+
+    def test_ipc_group_uses_same_aircraft_amm_chapter_title(self):
+        self.package.manual_type = "IPC"
+        self.package.save(update_fields=["manual_type"])
+        amm_package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="AMM",
+            zip_file="manual_packages/amm.zip",
+        )
+        ManualChapter.objects.create(
+            package=amm_package,
+            task="21___107",
+            title="CHAPTER 21 - AIR CONDITIONING",
+            pdf_relative_path="21.pdf",
+        )
+        ipc_section = ManualChapter.objects.create(
+            package=self.package,
+            task="21-31___116",
+            title="SECTION 21-31, PRESSURIZATION",
+            pdf_relative_path="21-31.pdf",
+        )
+
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+        ata_21_group = next(
+            group
+            for group in response.context["chapter_groups"]
+            if group["key"] == "21"
+        )
+
+        self.assertEqual(
+            ata_21_group["label"],
+            "CHAPTER 21 - AIR CONDITIONING",
+        )
+        self.assertIn(ipc_section, ata_21_group["items"])
+
+    def test_ipc_group_uses_section_title_when_amm_title_is_unavailable(self):
+        self.package.manual_type = "IPC"
+        self.package.save(update_fields=["manual_type"])
+        ipc_section = ManualChapter.objects.create(
+            package=self.package,
+            task="11-00___001",
+            title="SECTION 11-00, PLACARDS AND MARKINGS",
+            pdf_relative_path="11-00.pdf",
+        )
+
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+        ata_11_group = next(
+            group
+            for group in response.context["chapter_groups"]
+            if group["key"] == "11"
+        )
+
+        self.assertEqual(
+            ata_11_group["label"],
+            "CHAPTER 11 - PLACARDS AND MARKINGS",
+        )
+        self.assertIn(ipc_section, ata_11_group["items"])
+
+    def test_chapter_list_groups_ipc_tasks_by_ata_section_and_earliest_subsection(self):
+        self.package.manual_type = "IPC"
+        self.package.save(update_fields=["manual_type"])
+
+        ManualChapter.objects.create(
+            package=self.package,
+            task="22-32___116",
+            title="Hydraulics",
+            pdf_relative_path="22-32.pdf",
+        )
+        representative = ManualChapter.objects.create(
+            package=self.package,
+            task="22-31___116",
+            title="Fuel",
+            pdf_relative_path="22-31.pdf",
+        )
+        ManualChapter.objects.create(
+            package=self.package,
+            task="22-33___116",
+            title="Pneumatics",
+            pdf_relative_path="22-33.pdf",
+        )
+
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+
+        ata_22_group = next(
+            group
+            for group in response.context["chapter_groups"]
+            if group["key"] == "22"
+        )
+
+        self.assertTrue(ata_22_group["is_group"])
+        self.assertIsNone(ata_22_group["parent"])
+        self.assertEqual(ata_22_group["items"][0], representative)
+        self.assertEqual(len(ata_22_group["items"]), 3)
+
+    def test_chapter_list_keeps_non_ipc_hyphen_task_direct(self):
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+
+        content_entry = next(
+            entry
+            for entry in response.context["chapter_groups"]
+            if entry["item"] == self.content_chapter
+        )
+
+        self.assertFalse(content_entry["is_group"])
+
+    def test_ipc_search_group_renders_section_viewer_links(self):
+        self.package.manual_type = "IPC"
+        self.package.save(update_fields=["manual_type"])
+        zero_section = ManualChapter.objects.create(
+            package=self.package,
+            task="21-00___116",
+            title="General",
+            pdf_relative_path="21-00.pdf",
+        )
+        detail_section = ManualChapter.objects.create(
+            package=self.package,
+            task="21-31___116",
+            title="Outflow Valve",
+            pdf_relative_path="21-31.pdf",
+        )
+        ManualPDFPage.objects.create(
+            chapter=zero_section,
+            page_number=3,
+            text="IPC GROUP SEARCH",
+        )
+        ManualPDFPage.objects.create(
+            chapter=detail_section,
+            page_number=8,
+            text="IPC GROUP SEARCH",
+        )
+
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            ),
+            {"q": "ipc group search"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse("manual_chapter_pdf_viewer", kwargs={"pk": zero_section.pk}),
+        )
+        self.assertContains(
+            response,
+            reverse("manual_chapter_pdf_viewer", kwargs={"pk": detail_section.pk}),
+        )
+
+    def test_chapter_list_keeps_non_section_task_without_parent(self):
+        direct_chapter = ManualChapter.objects.create(
+            package=self.package,
+            task="06___107",
+            title="Dimensions and Areas",
+            pdf_relative_path="06.pdf",
+        )
+
+        response = self.client.get(
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+        )
+        direct_entry = next(
+            entry
+            for entry in response.context["chapter_groups"]
+            if not entry["is_group"] and entry["item"] == direct_chapter
+        )
+
+        self.assertFalse(direct_entry["is_group"])
+
     def test_chapter_list_restores_requested_embedded_viewer(self):
         response = self.client.get(
             reverse(
@@ -515,9 +801,7 @@ class UploadedAtRefreshTests(TestCase):
             manual_type="MEL",
             file=self.pdf_file("old-mel.pdf"),
         )
-        ManualFile.objects.filter(pk=manual.pk).update(
-            uploaded_at=self.old_uploaded_at
-        )
+        ManualFile.objects.filter(pk=manual.pk).update(uploaded_at=self.old_uploaded_at)
 
         response = self.client.post(
             reverse("manual_file_update", kwargs={"pk": manual.pk}),
