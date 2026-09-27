@@ -1859,3 +1859,187 @@ body.command-paused .command-scan-line,
 body.command-paused .command-stars span {
     animation-play-state: paused !important;
 }
+
+/* =========================================================
+Calm Operations Dashboard
+========================================================= */
+
+.command-boot,
+.command-background,
+.aircraft-scene {
+    display: none;
+}
+
+.command-center {
+    max-width: 72rem;
+    min-height: auto;
+
+    border-radius: 0.5rem;
+    background: #071525;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.2);
+}
+
+.command-header {
+    align-items: center;
+    padding: 1.5rem 1.75rem 1rem;
+}
+
+.command-workspace {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    min-height: auto;
+    padding: 0.5rem 1.75rem 1.5rem;
+    perspective: none;
+}
+
+.command-side {
+    display: contents;
+}
+
+.hud-panel {
+    min-height: 9.25rem;
+
+    border-radius: 0.5rem;
+    background: #0b1d31;
+    box-shadow: none;
+    transform: none !important;
+}
+
+.hud-panel::before,
+.hud-panel::after {
+    display: none;
+}
+
+.hud-panel:hover {
+    background: #0d243c;
+    box-shadow: none;
+}
+
+.hud-panel-number,
+.hud-tags {
+    display: none;
+}
+
+.hud-icon,
+.hud-content {
+    transform: none;
+}
+
+.command-footer {
+    margin-top: 0;
+    border-radius: 0.5rem;
+}
+
+.command-footer-left {
+    display: none;
+}
+
+.command-quick-links {
+    width: 100%;
+    justify-content: flex-end;
+}
+
+@media (max-width: 48rem) {
+    .command-center {
+        border-radius: 0.5rem;
+    }
+
+    .command-workspace {
+        display: grid;
+        grid-template-columns: 1fr;
+        padding: 0.4rem 0.7rem 0.9rem;
+    }
+
+    .command-side {
+        display: contents;
+    }
+
+    .hud-panel {
+        display: grid;
+        min-height: 6.5rem;
+    }
+
+    .hud-content p {
+        display: block;
+    }
+}
+
+/* Final readability pass for the calm dashboard layout. */
+.command-kicker {
+    font-size: 0.75rem;
+}
+
+.command-heading p {
+    font-size: 0.86rem;
+}
+
+.system-status-label {
+    font-size: 0.62rem;
+}
+
+.system-status-value {
+    font-size: 0.8rem;
+}
+
+.hud-panel {
+    min-height: 10rem;
+    padding: 1.1rem;
+}
+
+.hud-label {
+    font-size: 0.64rem;
+}
+
+.hud-content h2 {
+    font-size: 1.16rem;
+}
+
+.hud-content p {
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.command-quick-links a {
+    font-size: 0.74rem;
+}
+
+@media (max-width: 48rem) {
+    .command-header {
+        padding: 1rem 0.9rem 0.55rem;
+    }
+
+    .command-kicker {
+        font-size: 0.64rem;
+    }
+
+    .command-heading h1 {
+        font-size: 1.35rem;
+    }
+
+    .command-heading p {
+        font-size: 0.76rem;
+    }
+
+    .system-status-value {
+        font-size: 0.64rem;
+    }
+
+    .hud-panel {
+        min-height: 7.4rem;
+        padding: 0.85rem;
+    }
+
+    .hud-content h2 {
+        font-size: 1rem;
+    }
+
+    .hud-content p {
+        font-size: 0.74rem;
+        line-height: 1.4;
+    }
+
+    .command-quick-links a {
+        font-size: 0.64rem;
+    }
+}

@@ -45,8 +45,7 @@
         </div>
 
         <div class="portal-detail-button-group">
-            {% if manual.manual_type == "MEL" or manual.manual_type == "CDL" or
-            manual.manual_type == "OTHER" %}
+            {% if manual.manual_type == "MEL" or manual.manual_type == "CDL" or manual.manual_type == "OTHER" %}
             <a
                 href="{% url 'manual_file_pdf_viewer' manual.pk %}?back={{ request.get_full_path|urlencode }}"
                 target="_blank"

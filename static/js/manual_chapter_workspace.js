@@ -5,6 +5,24 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    const searchInput = workspace.querySelector(
+        ".manual-workspace-search-input",
+    );
+    const clearInput = workspace.querySelector("[data-search-input-clear]");
+    if (searchInput && clearInput) {
+        const syncClearInput = () => {
+            clearInput.hidden = searchInput.value.length === 0;
+        };
+        searchInput.addEventListener("input", syncClearInput);
+        window.addEventListener("pageshow", syncClearInput);
+        clearInput.addEventListener("click", () => {
+            searchInput.value = "";
+            syncClearInput();
+            searchInput.focus();
+        });
+        syncClearInput();
+    }
+
     /* =================================================
            Elements
         ================================================= */
@@ -32,8 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const viewerChapter = workspace.querySelector("[data-viewer-chapter]");
 
-    const viewerPage = workspace.querySelector("[data-viewer-page]");
-
     const viewerMatch = workspace.querySelector("[data-viewer-match]");
 
     const viewerStatus = workspace.querySelector("[data-viewer-status]");
@@ -53,6 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const outlineCache = new Map();
     let activeChapterId = "";
     let activePageNumber = null;
+    let mergedViewerReady = false;
 
     /* =================================================
            Resizable Sidebar
@@ -101,7 +118,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function getCurrentSidebarWidth() {
         if (workspaceSidebar) {
-            const renderedWidth = workspaceSidebar.getBoundingClientRect().width;
+            const renderedWidth =
+                workspaceSidebar.getBoundingClientRect().width;
 
             if (renderedWidth > 0) {
                 return renderedWidth;
@@ -264,7 +282,9 @@ document.addEventListener("DOMContentLoaded", function () {
     function setChapterGroupExpanded(toggle, expanded) {
         const group = toggle ? toggle.closest("[data-chapter-group]") : null;
         const items = group
-            ? group.querySelector(":scope > .manual-workspace-chapter-group-items")
+            ? group.querySelector(
+                  ":scope > .manual-workspace-chapter-group-items",
+              )
             : null;
 
         if (!items) {
@@ -421,6 +441,9 @@ document.addEventListener("DOMContentLoaded", function () {
         ================================================= */
 
     function getOutlineContainer(link, chapterId) {
+        const mergedNode = link.closest("[data-merged-chapter]");
+        if (mergedNode)
+            return mergedNode.querySelector(".manual-workspace-subchapters");
         let container = link.nextElementSibling;
 
         if (
@@ -506,8 +529,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const link = Array.from(chapterLinks).find(function (item) {
-            return String(item.dataset.chapterId || getChapterId(item.href)) ===
-                String(chapterId);
+            return (
+                String(item.dataset.chapterId || getChapterId(item.href)) ===
+                String(chapterId)
+            );
         });
 
         if (!link) {
@@ -585,18 +610,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function goToOutlinePage(chapterId, pageNumber) {
+        const targetLink = Array.from(chapterLinks).find(
+            (link) => String(link.dataset.chapterId) === String(chapterId),
+        );
+        if (
+            targetLink &&
+            targetLink.closest("[data-merged-chapter]") &&
+            !mergedViewerReady
+        ) {
+            const url = new URL(targetLink.href, window.location.href);
+            url.searchParams.set("page", pageNumber);
+            showFrameLoading();
+            frame.src = url.href;
+            activePageNumber = pageNumber;
+            setActiveChapter(chapterId);
+            updateWorkspaceUrl(chapterId, pageNumber);
+            if (viewerButton) viewerButton.disabled = false;
+            if (mobileQuery.matches) setActivePane("viewer");
+            return;
+        }
         activePageNumber = pageNumber;
         syncActiveSubchapter(chapterId, pageNumber);
-
-        if (viewerPage) {
-            viewerPage.textContent = "Page " + pageNumber;
-        }
 
         updateWorkspaceUrl(chapterId, pageNumber);
         frame.contentWindow.postMessage(
             {
                 source: "manual-chapter-workspace",
                 type: "go-to-page",
+                chapterId: chapterId,
                 pageNumber: pageNumber,
             },
             window.location.origin,
@@ -655,7 +696,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             item.dataset.outlinePage = pageNumber;
             page.className = "manual-workspace-subchapter-page";
-            page.textContent = pageNumber;
+            const mergedNode = workspace.querySelector(
+                '[data-merged-chapter] [data-chapter-id="' + chapterId + '"]',
+            );
+            const start = mergedNode
+                ? Number(
+                      mergedNode.closest("[data-merged-chapter]").dataset
+                          .pageStart,
+                  )
+                : 1;
+            page.textContent = start + pageNumber - 1;
             item.appendChild(title);
             item.appendChild(page);
             item.addEventListener("click", function () {
@@ -697,15 +747,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderChapterOutline(chapterId, forceRender) {
         const link = Array.from(chapterLinks).find(function (item) {
-            return String(item.dataset.chapterId || getChapterId(item.href)) ===
-                String(chapterId);
+            return (
+                String(item.dataset.chapterId || getChapterId(item.href)) ===
+                String(chapterId)
+            );
         });
 
         document
             .querySelectorAll(".manual-workspace-subchapters")
             .forEach(function (container) {
-                container.hidden =
-                    container.dataset.outlineChapterId !== String(chapterId);
+                if (!container.closest("[data-merged-chapter]")) {
+                    container.hidden =
+                        container.dataset.outlineChapterId !==
+                            String(chapterId) ||
+                        container.dataset.userCollapsed === "true";
+                }
             });
 
         if (!link || !outlineCache.has(String(chapterId))) {
@@ -715,7 +771,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const outline = outlineCache.get(String(chapterId));
         const container = getOutlineContainer(link, chapterId);
 
+        if (container.dataset.userCollapsed === "true") {
+            return;
+        }
+
         container.hidden = false;
+        const mergedNode = link.closest("[data-merged-chapter]");
+        if (mergedNode)
+            mergedNode
+                .querySelector("[data-merged-toggle]")
+                .setAttribute("aria-expanded", "true");
 
         if (container.dataset.outlineRendered === "true" && !forceRender) {
             syncActiveSubchapter(chapterId, activePageNumber);
@@ -744,6 +809,51 @@ document.addEventListener("DOMContentLoaded", function () {
     /* =================================================
            Active Chapter
         ================================================= */
+
+    workspace
+        .querySelectorAll("[data-merged-chapter]")
+        .forEach(function (node) {
+            const toggle = node.querySelector("[data-merged-toggle]");
+            const link = node.querySelector("[data-chapter-id]");
+            const container = node.querySelector(
+                ".manual-workspace-subchapters",
+            );
+            const id = link.dataset.chapterId;
+            let pending = null;
+            toggle.addEventListener("click", async function () {
+                const expanded =
+                    toggle.getAttribute("aria-expanded") !== "true";
+                toggle.setAttribute("aria-expanded", String(expanded));
+                container.hidden = !expanded;
+                if (!expanded) return;
+                try {
+                    if (!outlineCache.has(id)) {
+                        container.textContent = "Loading contents...";
+                        if (!pending)
+                            pending = fetch(node.dataset.outlineUrl, {
+                                credentials: "same-origin",
+                            })
+                                .then((response) => {
+                                    if (!response.ok)
+                                        throw new Error(
+                                            "Outline request failed",
+                                        );
+                                    return response.json();
+                                })
+                                .finally(() => {
+                                    pending = null;
+                                });
+                        const data = await pending;
+                        outlineCache.set(id, data.outline || []);
+                    }
+                    if (toggle.getAttribute("aria-expanded") === "true")
+                        renderChapterOutline(id, true);
+                } catch (error) {
+                    container.textContent =
+                        "Unable to load contents. Reopen to retry.";
+                }
+            });
+        });
 
     function setActiveChapter(chapterId) {
         if (!chapterId) {
@@ -812,9 +922,8 @@ document.addEventListener("DOMContentLoaded", function () {
         Page
         ============================================= */
 
-        if (viewerPage && Number.isFinite(Number(data.pageNumber))) {
+        if (Number.isFinite(Number(data.pageNumber))) {
             activePageNumber = Number(data.pageNumber);
-            viewerPage.textContent = "Page " + Number(data.pageNumber);
             syncActiveSubchapter(data.chapterId, activePageNumber);
         }
 
@@ -883,9 +992,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            showFrameLoading();
-
             const chapterId = link.dataset.chapterId || getChapterId(viewerUrl);
+            const outline = getOutlineContainer(link, chapterId);
+
+            if (
+                String(activeChapterId) === String(chapterId) &&
+                !outline.hidden
+            ) {
+                outline.hidden = true;
+                outline.dataset.userCollapsed = "true";
+                return;
+            }
+
+            if (
+                String(activeChapterId) === String(chapterId) &&
+                outline.dataset.userCollapsed === "true"
+            ) {
+                delete outline.dataset.userCollapsed;
+                renderChapterOutline(chapterId);
+                return;
+            }
+
+            showFrameLoading();
 
             setActiveChapter(chapterId);
 
@@ -905,20 +1033,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
                 activePageNumber = requestedPage;
-                if (viewerPage) {
-                    viewerPage.textContent = "Page " + requestedPage;
-                }
                 updateWorkspaceUrl(chapterId, requestedPage);
                 syncActiveSubchapter(chapterId, requestedPage);
             } catch (error) {
                 activePageNumber = 1;
-                if (viewerPage) {
-                    viewerPage.textContent = "Page 1";
-                }
                 updateWorkspaceUrl(chapterId, 1);
             }
 
-            frame.src = viewerUrl;
+            if (mergedViewerReady) {
+                goToOutlinePage(chapterId, activePageNumber || 1);
+            } else {
+                frame.src = viewerUrl;
+            }
 
             if (viewerButton) {
                 viewerButton.disabled = false;
@@ -989,6 +1115,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (data.type === "page-change") {
+            mergedViewerReady = Boolean(data.merged);
+        }
+        if (data.type === "load-error") mergedViewerReady = false;
+
         if (data.type === "viewer-ready") {
             hideFrameLoading();
             return;
@@ -1003,6 +1134,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const outline = Array.isArray(data.outline) ? data.outline : [];
 
             outlineCache.set(String(data.chapterId), outline);
+            if (
+                data.merged &&
+                String(data.chapterId) !== String(activeChapterId)
+            )
+                return;
             renderChapterOutline(data.chapterId, true);
             syncActiveSubchapter(data.chapterId, data.pageNumber);
             return;
@@ -1037,10 +1173,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (data.targetChapterId) {
                 setActiveChapter(data.targetChapterId);
-            }
-
-            if (viewerPage && data.targetPageNumber) {
-                viewerPage.textContent = "Page " + data.targetPageNumber;
             }
 
             if (data.targetChapterId) {

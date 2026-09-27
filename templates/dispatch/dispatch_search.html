@@ -44,10 +44,6 @@ dispatch-search-page
             CSV Download
         </a>
 
-        <a href="{% url 'dispatch_print' %}?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}"
-            class="btn btn-outline-dark app-action-btn d-none d-md-inline-flex">
-            Print
-        </a>
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>

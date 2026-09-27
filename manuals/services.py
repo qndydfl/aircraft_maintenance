@@ -488,6 +488,7 @@ def index_pdf_pages_for_package(package):
 def extract_pdf_revision_info(pdf_path, source_file_name="", manual_type=""):
     return extract_revision_info_from_filename(source_file_name or pdf_path)
 
+
 def index_pdf_pages_for_manual_file(manual_file):
     if manual_file.manual_type not in ["MEL", "CDL", "OTHER"]:
         return 0
@@ -840,7 +841,7 @@ def process_manual_package_safely(package):
             package.processed = False
             package.save(update_fields=["extracted_path", "processed"])
 
-        page_count = index_pdf_pages_for_package(package=package)
+            page_count = index_pdf_pages_for_package(package=package)
 
         package.processed = True
         package.save(update_fields=["processed"])

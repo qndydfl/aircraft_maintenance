@@ -88,6 +88,13 @@ class Aircraft(models.Model):
 
     airbus_url = models.URLField(blank=True, null=True)
 
+    image = models.ImageField(
+        upload_to="aircraft_images/",
+        blank=True,
+        null=True,
+        help_text="Aircraft image shown on the Manual Library card.",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -95,6 +102,10 @@ class Aircraft(models.Model):
 
     def __str__(self):
         return f"{self.maker} - {self.name}"
+
+    @property
+    def image_url(self):
+        return self.image.url if self.image else ""
 
     def get_ordered_manuals(self):
         manuals = list(self.manuals.all())
@@ -478,6 +489,12 @@ class CommonManualCategory(models.Model):
     code = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
+    image = models.ImageField(
+        upload_to="common_manual_images/",
+        blank=True,
+        null=True,
+        help_text="Image shown on the Common Manuals library card.",
+    )
 
     class Meta:
         ordering = ["order", "name"]

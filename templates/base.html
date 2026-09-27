@@ -36,9 +36,9 @@
             rel="stylesheet"
         />
 
-        <link href="{% static 'css/base.css' %}?v=59" rel="stylesheet" />
+        <link href="{% static 'css/base.css' %}?v=61" rel="stylesheet" />
         <link
-            href="{% static 'css/portal_components.css' %}?v=59"
+            href="{% static 'css/portal_components.css' %}?v=60"
             rel="stylesheet"
         />
 
@@ -52,7 +52,7 @@
         {% block css %}{% endblock css %}
 
         <link
-            href="{% static 'css/mobile_override.css' %}?v=82"
+            href="{% static 'css/mobile_override.css' %}?v=84"
             rel="stylesheet"
         />
 
@@ -80,6 +80,13 @@
 
                 <div class="d-flex align-items-center gap-3">
                     {% if user.is_superuser %}
+                    <a
+                        href="{% url 'aircraft_manage' %}"
+                        class="btn btn-outline-primary app-action-btn admin-only-action"
+                    >
+                        Aircraft Manage
+                    </a>
+
                     <a
                         href="{% url 'admin:index' %}"
                         class="btn btn-outline-warning app-admin-btn"

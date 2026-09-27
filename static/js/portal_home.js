@@ -9,18 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const workspace = document.getElementById("commandWorkspace");
     const aircraftScene = document.getElementById("aircraftScene");
 
-    const tiltPanels = document.querySelectorAll(
-        "[data-tilt-panel]"
-    );
+    const tiltPanels = document.querySelectorAll("[data-tilt-panel]");
 
     const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
+        "(prefers-reduced-motion: reduce)",
     ).matches;
 
     const coarsePointer = window.matchMedia(
-        "(hover: none) and (pointer: coarse)"
+        "(hover: none) and (pointer: coarse)",
     ).matches;
-
 
     /* =====================================================
        Boot Sequence
@@ -49,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
         },
     ];
 
-
     function updateBoot(step) {
         if (!bootBar || !bootPercent || !bootStatus) {
             return;
@@ -60,7 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
         bootStatus.textContent = step.text;
     }
 
-
     function finishBoot() {
         body.classList.add("command-ready");
 
@@ -68,7 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
             boot.classList.add("is-finished");
         }
     }
-
 
     function runBootSequence() {
         if (!boot) {
@@ -94,9 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
          * Show full boot animation only once
          * per browser session.
          */
-        const alreadyBooted = sessionStorage.getItem(
-            "manualPortalBooted"
-        );
+        const alreadyBooted = sessionStorage.getItem("manualPortalBooted");
 
         if (alreadyBooted === "1") {
             boot.classList.add("is-finished");
@@ -115,10 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (index >= bootSteps.length) {
                 window.clearInterval(timer);
 
-                sessionStorage.setItem(
-                    "manualPortalBooted",
-                    "1"
-                );
+                sessionStorage.setItem("manualPortalBooted", "1");
 
                 window.setTimeout(() => {
                     finishBoot();
@@ -133,66 +122,43 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 210);
     }
 
-
-    runBootSequence();
-
+    finishBoot();
 
     /* =====================================================
        Aircraft Mouse Parallax
     ====================================================== */
 
     function enableAircraftParallax() {
-        if (
-            reducedMotion ||
-            coarsePointer ||
-            !workspace ||
-            !aircraftScene
-        ) {
+        if (reducedMotion || coarsePointer || !workspace || !aircraftScene) {
             return;
         }
 
-        const depth = aircraftScene.querySelector(
-            ".aircraft-scene-depth"
-        );
+        const depth = aircraftScene.querySelector(".aircraft-scene-depth");
 
         if (!depth) {
             return;
         }
 
+        workspace.addEventListener("mousemove", (event) => {
+            const rect = workspace.getBoundingClientRect();
 
-        workspace.addEventListener(
-            "mousemove",
-            (event) => {
-                const rect =
-                    workspace.getBoundingClientRect();
+            const mouseX = (event.clientX - rect.left) / rect.width;
 
-                const mouseX =
-                    (event.clientX - rect.left) /
-                    rect.width;
+            const mouseY = (event.clientY - rect.top) / rect.height;
 
-                const mouseY =
-                    (event.clientY - rect.top) /
-                    rect.height;
+            const normalizedX = (mouseX - 0.5) * 2;
 
-                const normalizedX =
-                    (mouseX - 0.5) * 2;
+            const normalizedY = (mouseY - 0.5) * 2;
 
-                const normalizedY =
-                    (mouseY - 0.5) * 2;
+            const rotateY = normalizedX * 5;
 
-                const rotateY =
-                    normalizedX * 5;
+            const rotateX = normalizedY * -3;
 
-                const rotateX =
-                    normalizedY * -3;
+            const moveX = normalizedX * 6;
 
-                const moveX =
-                    normalizedX * 6;
+            const moveY = normalizedY * 4;
 
-                const moveY =
-                    normalizedY * 4;
-
-                depth.style.transform = `
+            depth.style.transform = `
                     translate3d(
                         ${moveX}px,
                         ${moveY}px,
@@ -201,89 +167,57 @@ document.addEventListener("DOMContentLoaded", () => {
                     rotateX(${rotateX}deg)
                     rotateY(${rotateY}deg)
                 `;
-            }
-        );
+        });
 
-
-        workspace.addEventListener(
-            "mouseleave",
-            () => {
-                depth.style.transform =
-                    "translate3d(0, 0, 0) rotateX(0) rotateY(0)";
-            }
-        );
+        workspace.addEventListener("mouseleave", () => {
+            depth.style.transform =
+                "translate3d(0, 0, 0) rotateX(0) rotateY(0)";
+        });
     }
-
-
-    enableAircraftParallax();
-
 
     /* =====================================================
        HUD Card 3D Tilt
     ====================================================== */
 
     function enablePanelTilt() {
-        if (
-            reducedMotion ||
-            coarsePointer
-        ) {
+        if (reducedMotion || coarsePointer) {
             return;
         }
 
         tiltPanels.forEach((panel) => {
+            panel.addEventListener("mousemove", (event) => {
+                const rect = panel.getBoundingClientRect();
 
-            panel.addEventListener(
-                "mousemove",
-                (event) => {
-                    const rect =
-                        panel.getBoundingClientRect();
+                const x = event.clientX - rect.left;
 
-                    const x =
-                        event.clientX - rect.left;
+                const y = event.clientY - rect.top;
 
-                    const y =
-                        event.clientY - rect.top;
+                const centerX = rect.width / 2;
 
-                    const centerX =
-                        rect.width / 2;
+                const centerY = rect.height / 2;
 
-                    const centerY =
-                        rect.height / 2;
+                const rotateY = ((x - centerX) / centerX) * 3;
 
-                    const rotateY =
-                        ((x - centerX) / centerX) * 3;
+                const rotateX = ((centerY - y) / centerY) * 3;
 
-                    const rotateX =
-                        ((centerY - y) / centerY) * 3;
-
-                    panel.style.transform = `
+                panel.style.transform = `
                         perspective(700px)
                         rotateX(${rotateX}deg)
                         rotateY(${rotateY}deg)
                         translateY(-2px)
                     `;
-                }
-            );
+            });
 
-
-            panel.addEventListener(
-                "mouseleave",
-                () => {
-                    panel.style.transform = `
+            panel.addEventListener("mouseleave", () => {
+                panel.style.transform = `
                         perspective(700px)
                         rotateX(0deg)
                         rotateY(0deg)
                         translateY(0)
                     `;
-                }
-            );
-
+            });
         });
     }
-
-
-    enablePanelTilt();
-
 
     /* =====================================================
        Visibility Handling
@@ -292,18 +226,11 @@ document.addEventListener("DOMContentLoaded", () => {
        is not visible.
     ====================================================== */
 
-    document.addEventListener(
-        "visibilitychange",
-        () => {
-            if (document.hidden) {
-                body.classList.add(
-                    "command-paused"
-                );
-            } else {
-                body.classList.remove(
-                    "command-paused"
-                );
-            }
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            body.classList.add("command-paused");
+        } else {
+            body.classList.remove("command-paused");
         }
-    );
+    });
 });

@@ -70,6 +70,8 @@ from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
+from .merged_package import load_merged_package, merged_pdf_response
+
 
 def refresh_uploaded_at(instance):
     instance.uploaded_at = timezone.now()
@@ -257,6 +259,43 @@ class R2DirectUploadContextMixin:
         return context
 
 
+def get_manual_library_context():
+    return {
+        "boeing_aircrafts": Aircraft.objects.filter(maker="BOEING")
+        .order_by("name")
+        .prefetch_related(
+            "manuals",
+            "manual_packages",
+            "other_categories",
+            "other_categories__files",
+        ),
+        "airbus_aircrafts": Aircraft.objects.filter(maker="AIRBUS")
+        .order_by("name")
+        .prefetch_related(
+            "manuals",
+            "manual_packages",
+            "other_categories",
+            "other_categories__files",
+        ),
+        "common_categories": CommonManualCategory.objects.prefetch_related("files"),
+    }
+
+
+def get_aircraft_manual_items(aircraft):
+    """Build the same manual status list used by the aircraft detail page."""
+    manual_items = aircraft.get_manual_status_list()
+    manual_items = attach_latest_reindex_jobs(
+        manual_items,
+        lambda item: item.get("package"),
+        ReindexJob.TARGET_MANUAL_PACKAGE,
+    )
+    return attach_latest_reindex_jobs(
+        manual_items,
+        lambda item: item.get("file"),
+        ReindexJob.TARGET_MANUAL_FILE,
+    )
+
+
 class PortalHomeView(LoginRequiredMixin, TemplateView):
     """
     로그인 후 처음 표시되는 Manual Portal 메인 Dashboard.
@@ -266,37 +305,11 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
 
 
 class ManualHomeView(LoginRequiredMixin, TemplateView):
-    template_name = "home.html"
+    template_name = "manual_library.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context["boeing_aircrafts"] = (
-            Aircraft.objects.filter(maker="BOEING")
-            .order_by("name")
-            .prefetch_related(
-                "manuals",
-                "manual_packages",
-                "other_categories",
-                "other_categories__files",
-            )
-        )
-
-        context["airbus_aircrafts"] = (
-            Aircraft.objects.filter(maker="AIRBUS")
-            .order_by("name")
-            .prefetch_related(
-                "manuals",
-                "manual_packages",
-                "other_categories",
-                "other_categories__files",
-            )
-        )
-
-        context["common_categories"] = CommonManualCategory.objects.prefetch_related(
-            "files"
-        )
-
+        context.update(get_manual_library_context())
         return context
 
 
@@ -320,18 +333,8 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        manual_items = self.object.get_manual_status_list()
-        manual_items = attach_latest_reindex_jobs(
-            manual_items,
-            lambda item: item.get("package"),
-            ReindexJob.TARGET_MANUAL_PACKAGE,
-        )
-        manual_items = attach_latest_reindex_jobs(
-            manual_items,
-            lambda item: item.get("file"),
-            ReindexJob.TARGET_MANUAL_FILE,
-        )
-        context["manual_items"] = manual_items
+        context.update(get_manual_library_context())
+        context["manual_items"] = get_aircraft_manual_items(self.object)
         return context
 
 
@@ -621,15 +624,6 @@ class AircraftDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse("aircraft_manage")
-
-
-class AircraftManualPrintView(LoginRequiredMixin, DetailView):
-    model = Aircraft
-    template_name = "manuals/aircraft_manual_print.html"
-    context_object_name = "aircraft"
-
-    def get_queryset(self):
-        return Aircraft.objects.prefetch_related("manuals")
 
 
 class ManualFileDetailView(LoginRequiredMixin, DetailView):
@@ -1047,9 +1041,7 @@ class ManualChapterListView(
             def ipc_item_title(item):
                 if isinstance(item, dict):
                     return (
-                        item.get("chapter__title")
-                        or item.get("title")
-                        or ""
+                        item.get("chapter__title") or item.get("title") or ""
                     ).strip()
 
                 return (getattr(item, "title", "") or "").strip()
@@ -1146,11 +1138,9 @@ class ManualChapterListView(
                     group = {
                         "key": chapter_no,
                         "is_group": True,
-
                         # 중요:
                         # 실제 chapter object를 group parent로 사용하지 않는다.
                         "parent": None,
-
                         "chapter_no": chapter_no,
                         "label": amm_chapter_titles.get(
                             chapter_no,
@@ -1162,7 +1152,6 @@ class ManualChapterListView(
                                 ),
                             ),
                         ),
-
                         "items": [],
                         "count": 0,
                     }
@@ -1242,8 +1231,6 @@ class ManualChapterListView(
 
         context["initial_chapter"] = initial_chapter
 
-        context["initial_page_number"] = initial_page_number
-
         # =====================================================
         # Workspace Back URL
         #
@@ -1306,6 +1293,33 @@ class ManualChapterListView(
         return context
 
 
+class ManualPackageMergedPDFView(LoginRequiredMixin, DetailView):
+    model = ManualPackage
+
+    def get(self, request, *args, **kwargs):
+        from pathlib import Path
+
+        package = self.get_object()
+        root = Path(package.extracted_path)
+        version = request.GET.get("version", "")
+        if version:
+            generation = request.GET.get("generation", root.name)
+            if not re.fullmatch(r"merged-[0-9a-f]{32}\.pdf", version) or (
+                generation != root.name
+                and not re.fullmatch(rf"{package.pk}(?:-[0-9a-f]{{32}})?", generation)
+            ):
+                raise Http404("Invalid merged PDF version")
+            path = root.parent / generation / version
+        else:
+            merged = load_merged_package(package)
+            if not merged:
+                raise Http404("Merged PDF not available")
+            path = root / merged["file"]
+        if not path.is_file():
+            raise Http404("Merged PDF not available")
+        return merged_pdf_response(request, path)
+
+
 class ManualChapterPDFView(LoginRequiredMixin, DetailView):
     model = ManualChapter
 
@@ -1323,6 +1337,18 @@ class ManualChapterPDFView(LoginRequiredMixin, DetailView):
 
         if not os.path.exists(pdf_path):
             raise Http404("PDF file not found")
+
+        if request.GET.get("outline") == "1":
+            import fitz
+            from django.http import JsonResponse
+
+            with fitz.open(pdf_path) as document:
+                outline = [
+                    {"depth": level - 1, "title": title, "pageNumber": page}
+                    for level, title, page in document.get_toc()
+                    if page > 0
+                ]
+            return JsonResponse({"outline": outline})
 
         return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 

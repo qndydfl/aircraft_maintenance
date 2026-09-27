@@ -106,6 +106,18 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container {
     white-space: nowrap;
 }
 
+/* Keep the short page description next to the page title in the navbar. */
+.app-navbar-page-content .page-title,
+.app-navbar-page-content .page-subtitle {
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.app-navbar-page-content .page-subtitle {
+    max-width: min(34rem, 42vw);
+    margin-left: 0.55rem !important;
+}
+
 .app-navbar-page-content .page-actions {
     max-width: 45%;
     flex: 0 0 auto;
@@ -472,6 +484,22 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     .airbus-card:hover {
         transform: none !important;
     }
+}
+
+/* Portal cards are static surfaces; only their inner controls should react. */
+.portal-card,
+.portal-card:hover,
+.portal-card:focus-within {
+    transform: none !important;
+    border-color: var(--border-soft) !important;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 6px 18px rgba(15, 23, 42, 0.055) !important;
+    transition: none !important;
+}
+
+.home-page .portal-card:hover .aircraft-card-media img {
+    transform: none !important;
 }
 
 /* =========================================================

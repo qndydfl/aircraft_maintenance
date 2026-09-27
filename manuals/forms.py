@@ -153,12 +153,14 @@ class AircraftForm(forms.ModelForm):
             "maker",
             "name",
             "airbus_url",
+            "image",
         ]
 
         widgets = {
             "maker": forms.Select(attrs={"class": "form-select"}),
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "airbus_url": forms.URLInput(attrs={"class": "form-control"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
 
 
@@ -276,11 +278,15 @@ class CommonManualCategoryForm(forms.ModelForm):
         fields = [
             "name",
             "description",
+            "image",
         ]
 
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "image": forms.ClearableFileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
         }
 
     def save(self, commit=True):

@@ -8,6 +8,117 @@ const matchItems = Array.isArray(config.matchItems) ? config.matchItems : [];
 const embedded = Boolean(config.embedded);
 
 const chapterId = config.chapterId || null;
+const mergedChapters = config.mergedChapters || [];
+
+function mergedChapterAt(page) {
+    return mergedChapters.find(
+        (item) => page >= item.start && page < item.start + item.count,
+    );
+}
+
+const mergedOutlineCache = new Map();
+
+function getMergedOutline(item) {
+    if (!item) return Promise.resolve([]);
+    if (!mergedOutlineCache.has(item.chapterId)) {
+        const request = fetch(item.outlineUrl, { credentials: "same-origin" })
+            .then((response) => {
+                if (!response.ok)
+                    throw new Error("Cannot load chapter outline");
+                return response.json();
+            })
+            .then((data) => data.outline || [])
+            .catch((error) => {
+                mergedOutlineCache.delete(item.chapterId);
+                throw error;
+            });
+        mergedOutlineCache.set(item.chapterId, request);
+    }
+    return mergedOutlineCache.get(item.chapterId);
+}
+
+let workspaceOutlineChapter = null;
+function updateMergedWorkspaceOutline(page) {
+    const item = mergedChapterAt(page);
+    if (!embedded || !item || workspaceOutlineChapter === item.chapterId)
+        return;
+    workspaceOutlineChapter = item.chapterId;
+    getMergedOutline(item)
+        .then((outline) => {
+            postWorkspaceMessage("outline-ready", {
+                merged: true,
+                chapterId: item.chapterId,
+                pageNumber: page - item.start + 1,
+                outline,
+            });
+        })
+        .catch((error) => {
+            workspaceOutlineChapter = null;
+            console.warn(error);
+        });
+}
+
+function loadMergedOutline() {
+    outlineContainer.replaceChildren();
+    if (embedded) {
+        updateMergedWorkspaceOutline(currentPage);
+        return;
+    }
+    mergedChapters.forEach((item) => {
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        const children = document.createElement("div");
+        summary.className = "outline-row";
+        summary.textContent = item.title;
+        details.append(summary, children);
+        outlineContainer.append(details);
+        let loaded = false;
+        details.addEventListener("toggle", () => {
+            if (!details.open || loaded) return;
+            loaded = true;
+            goToPage(item.start);
+            getMergedOutline(item)
+                .then((outline) => {
+                    const roots = [];
+                    const stack = [];
+                    outline.forEach((entry) => {
+                        const node = {
+                            title: entry.title,
+                            dest: [item.start + entry.pageNumber - 2],
+                            items: [],
+                        };
+                        while (
+                            stack.length &&
+                            stack[stack.length - 1].depth >= entry.depth
+                        )
+                            stack.pop();
+                        if (stack.length)
+                            stack[stack.length - 1].node.items.push(node);
+                        else roots.push(node);
+                        stack.push({ depth: entry.depth, node });
+                    });
+                    const pending = [];
+                    children.replaceChildren(
+                        createOutlineTree(roots, 0, pending),
+                    );
+                    Promise.allSettled(pending).then(() => {
+                        outlinePageEntries.sort(
+                            (a, b) =>
+                                a.pageNumber - b.pageNumber ||
+                                a.order - b.order,
+                        );
+                        syncOutlineToPage(currentPage);
+                    });
+                })
+                .catch((error) => {
+                    loaded = false;
+                    children.textContent =
+                        "Unable to load contents. Reopen to retry.";
+                    console.warn(error);
+                });
+        });
+    });
+}
 
 const viewMode = config.viewMode || "single";
 
@@ -103,6 +214,15 @@ function postWorkspaceMessage(type, extraData) {
         Object.assign(payload, extraData);
     }
 
+    if (mergedChapters.length && type !== "outline-ready") {
+        const item = mergedChapterAt(payload.pageNumber);
+        if (item) {
+            payload.chapterId = item.chapterId;
+            payload.pageNumber -= item.start - 1;
+        }
+        payload.merged = true;
+    }
+
     window.parent.postMessage(payload, window.location.origin);
 }
 
@@ -126,7 +246,14 @@ window.addEventListener("message", function (event) {
         return;
     }
 
-    const pageNumber = parseInt(data.pageNumber, 10);
+    let pageNumber = parseInt(data.pageNumber, 10);
+    if (mergedChapters.length) {
+        const target = mergedChapters.find(
+            (item) => String(item.chapterId) === String(data.chapterId),
+        );
+        if (!target || pageNumber < 1 || pageNumber > target.count) return;
+        pageNumber += target.start - 1;
+    }
 
     if (
         !pdfDoc ||
@@ -396,6 +523,15 @@ viewerMatchLinks.forEach(function (link) {
             }
 
             const nextItem = matchItems[nextServerIndex];
+
+            if (mergedChapters.length && nextItem) {
+                serverMatchIndex = nextServerIndex + 1;
+                if (serverMatchCount)
+                    serverMatchCount.textContent =
+                        serverMatchIndex + " / " + serverMatchTotal;
+                goToPage(nextItem.pageNumber, { silent: true });
+                return;
+            }
 
             if (nextItem && nextItem.viewerUrl) {
                 const nextUrl = new URL(
@@ -986,6 +1122,18 @@ function renderPage(pageNumber) {
 
                 hideViewerLoading();
 
+                if (mergedChapters.length && matchItems.length) {
+                    const matchIndex = matchItems.findIndex(
+                        (item) => item.pageNumber === pageNumber,
+                    );
+                    if (matchIndex >= 0) {
+                        serverMatchIndex = matchIndex + 1;
+                        if (serverMatchCount)
+                            serverMatchCount.textContent =
+                                serverMatchIndex + " / " + serverMatchTotal;
+                    }
+                }
+
                 prefetchMatchPages();
 
                 pageRendering = false;
@@ -1005,6 +1153,8 @@ function renderPage(pageNumber) {
 
                     matchCount: serverMatchTotal,
                 });
+                if (mergedChapters.length)
+                    updateMergedWorkspaceOutline(pageNumber);
 
                 if (pagePending !== null) {
                     const pendingPage = pagePending;
@@ -1319,7 +1469,10 @@ function createOutlineTree(items, depth = 0, destinationPromises = []) {
         const link = document.createElement("a");
         link.className = "outline-tree-link";
         link.href = "javascript:void(0)";
-        link.innerHTML = `<span class="tree-title">${item.title || "Untitled"}</span>`;
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "tree-title";
+        titleSpan.textContent = item.title || "Untitled";
+        link.appendChild(titleSpan);
 
         link.addEventListener("click", function (event) {
             event.preventDefault();
@@ -1478,6 +1631,10 @@ function buildAtaOutline(items) {
 }
 
 function loadOutline() {
+    if (mergedChapters.length) {
+        loadMergedOutline();
+        return;
+    }
     outlineContainer.innerHTML =
         '<div class="outline-empty">Loading contents...</div>';
 
@@ -1499,7 +1656,9 @@ function loadOutline() {
                 return;
             }
 
-            const outlineItems = buildAtaOutline(outline);
+            const outlineItems = mergedChapters.length
+                ? outline
+                : buildAtaOutline(outline);
             const destinationPromises = [];
 
             outlinePageEntries = [];
@@ -1761,7 +1920,16 @@ toggleOutlineBtn.addEventListener("click", function () {
 
 function loadPdfDocument(sourceUrl, triedFallback) {
     pdfjsLib
-        .getDocument(sourceUrl)
+        .getDocument(
+            mergedChapters.length
+                ? {
+                      url: sourceUrl,
+                      disableAutoFetch: true,
+                      disableStream: true,
+                      rangeChunkSize: 1048576,
+                  }
+                : sourceUrl,
+        )
         .promise.then(function (pdfDoc_) {
             pdfDoc = pdfDoc_;
             pageCountSpan.textContent = pdfDoc.numPages;

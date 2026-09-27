@@ -8,7 +8,6 @@ from .views import (
     DispatchDeleteView,
     DispatchAutocompleteView,
     DispatchCSVDownloadView,
-    DispatchPrintView,
     DispatchDetailPrintView,
     DispatchSearchView,
     DispatchListView,
@@ -24,7 +23,6 @@ urlpatterns = [
     path("download/", DispatchCSVDownloadView.as_view(), name="dispatch_csv_download"),
     path("upload/", DispatchCSVUploadView.as_view(), name="dispatch_csv_upload"),
     path("create/", DispatchCreateView.as_view(), name="dispatch_create"),
-    path("print/", DispatchPrintView.as_view(), name="dispatch_print"),
     path(
         "<int:pk>/print/",
         DispatchDetailPrintView.as_view(),

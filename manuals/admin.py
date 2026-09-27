@@ -21,7 +21,7 @@ class ManualFileInline(admin.TabularInline):
 
 @admin.register(Aircraft)
 class AircraftAdmin(admin.ModelAdmin):
-    list_display = ("maker", "name")
+    list_display = ("maker", "name", "image")
     list_filter = ("maker",)
     search_fields = ("name",)
     ordering = ("maker", "name")
@@ -146,6 +146,7 @@ class CommonManualCategoryAdmin(admin.ModelAdmin):
         "name",
         "code",
         "order",
+        "image",
     ]
 
     search_fields = [

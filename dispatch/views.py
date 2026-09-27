@@ -649,52 +649,6 @@ class DispatchCSVDownloadView(LoginRequiredMixin, View):
         return response
 
 
-class DispatchPrintView(LoginRequiredMixin, TemplateView):
-    template_name = "dispatch/dispatch_print.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        aircraft_id = self.request.GET.get("aircraft", "").strip()
-        query = self.request.GET.get("q", "").strip()
-
-        queryset = DispatchReference.objects.select_related("aircraft").order_by(
-            "aircraft__name", "eicas_message", "fault_code"
-        )
-
-        if aircraft_id:
-            queryset = queryset.filter(aircraft_id=aircraft_id)
-
-        if query:
-            words = query.split()
-
-            for word in words:
-                queryset = queryset.filter(
-                    Q(eicas_message__icontains=word)
-                    | Q(fault_code__icontains=word)
-                    | Q(mel_number__icontains=word)
-                    | Q(mel_search_keyword__icontains=word)
-                    | Q(mel_ref__icontains=word)
-                    | Q(fim_chapter__icontains=word)
-                    | Q(fim_search_keyword__icontains=word)
-                    | Q(fim_task_ref__icontains=word)
-                    | Q(amm_chapter__icontains=word)
-                    | Q(amm_search_keyword__icontains=word)
-                    | Q(amm_task_ref__icontains=word)
-                    | Q(description__icontains=word)
-                    | Q(note__icontains=word)
-                )
-
-        if not aircraft_id and not query:
-            queryset = DispatchReference.objects.none()
-
-        context["results"] = queryset
-        context["query"] = query
-        context["selected_aircraft"] = aircraft_id
-
-        return context
-
-
 class DispatchDetailPrintView(LoginRequiredMixin, DetailView):
     model = DispatchReference
     template_name = "dispatch/dispatch_detail_print.html"

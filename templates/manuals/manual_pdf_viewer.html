@@ -1,14 +1,12 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block body_class %}pdf-viewer-page{% if embedded %} pdf-viewer-embedded{% endif %}{% endblock body_class %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block body_class %}pdf-viewer-page{% if embedded %} pdf-viewer-embedded{% endif %}{% endblock body_class %} 
 {% block css %}
 <link
     rel="stylesheet"
-    href="{% static 'css/manual_pdf_viewer.css' %}?v=20260926-3"
+    href="{% static 'css/manual_pdf_viewer.css' %}?v=20260927-2"
 />
 {% endblock css %} 
-
 {% block js %}
 <script>
     window.PDF_VIEWER_CONFIG = {
@@ -25,6 +23,7 @@
         embedded: {% if embedded %}true{% else %}false{% endif %},
 
         chapterId:{% if chapter %}{{ chapter.pk }}{% else %}null{% endif %},
+        mergedChapters: {{ merged_chapters_json|default:"[]"|safe }},
 
         matchingPages:
             {{ matching_pages_json|default:"[]"|safe }},
@@ -66,9 +65,9 @@
 
 <script
     defer
-    src="{% static 'js/manual_pdf_viewer.js' %}?v=20260926-1"
+    src="{% static 'js/manual_pdf_viewer.js' %}?v=20260927-merge2"
 ></script>
-{% endblock js %}
+{% endblock js %} 
 {% block nav %} {% endblock nav %} 
 
 {% block content %}
@@ -102,67 +101,67 @@
             </div>
         </div>
 
-        <div class="viewer-toolbar-center">
-            <button
-                id="prev-page"
-                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-            >
-                Prev
-            </button>
+        <div class="viewer-commandbar-center">
+            <div class="viewer-toolbar-center">
+                <button
+                    id="prev-page"
+                    class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+                >
+                    Prev
+                </button>
 
-            <div class="viewer-page-control d-none d-md-inline-flex">
-                <input
-                    id="page-number"
-                    type="number"
-                    value="{{ page_number }}"
-                    min="1"
-                    class="form-control viewer-page-input"
-                />
-                <span class="viewer-page-total">
-                    / <span id="page-count">-</span>
-                </span>
+                <div class="viewer-page-control d-none d-md-inline-flex">
+                    <input
+                        id="page-number"
+                        type="number"
+                        value="{{ page_number }}"
+                        min="1"
+                        class="form-control viewer-page-input"
+                    />
+                    <span class="viewer-page-total">
+                        / <span id="page-count">-</span>
+                    </span>
+                </div>
+
+                <button
+                    id="next-page"
+                    class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+                >
+                    Next
+                </button>
+
+                <button
+                    id="zoom-out"
+                    class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+                >
+                    -
+                </button>
+                <span
+                    id="zoom-level"
+                    class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
+                    >100%</span
+                >
+                <button
+                    id="zoom-in"
+                    class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+                >
+                    +
+                </button>
+
+                <button
+                    id="fit-width"
+                    class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+                >
+                    Width
+                </button>
+                <button
+                    id="fit-page"
+                    class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
+                >
+                    Page
+                </button>
             </div>
 
-            <button
-                id="next-page"
-                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-            >
-                Next
-            </button>
-
-            <button
-                id="zoom-out"
-                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-            >
-                -
-            </button>
-            <span
-                id="zoom-level"
-                class="badge bg-light text-dark viewer-zoom-badge d-none d-md-inline-flex"
-                >100%</span
-            >
-            <button
-                id="zoom-in"
-                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-            >
-                +
-            </button>
-
-            <button
-                id="fit-width"
-                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-            >
-                Width
-            </button>
-            <button
-                id="fit-page"
-                class="btn btn-outline-secondary viewer-tool-btn d-none d-md-inline-flex"
-            >
-                Page
-            </button>
-        </div>
-
-        <div class="viewer-commandbar-right">
             <div
                 id="viewer-mobile-search"
                 class="viewer-toolbar-right viewer-search-panel d-flex"
@@ -203,10 +202,10 @@
                         ▶
                     </button>
                     {% endif %} {% if query %}
-                    <span class="badge bg-warning text-dark viewer-query-badge"
-                        >{{ query }}
+                    <span class="badge bg-warning text-dark viewer-query-badge">
+                        {{ query }}
                     </span>
-                    {% endif %} {% if query and match_count %} {% if match_count > 1 %}
+                    {% if match_count %} {% if match_count > 1 %}
                     <a
                         href="{% if prev_match_url %}{{ prev_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
                         class="btn btn-outline-secondary viewer-tool-btn"
@@ -215,13 +214,11 @@
                         >Prev Match</a
                     >
                     {% endif %}
-
                     <span
                         id="server-match-count"
                         class="badge bg-primary viewer-match-badge"
                         >{{ current_match_index }} / {{ match_count }}</span
                     >
-
                     {% if match_count > 1 %}
                     <a
                         href="{% if next_match_url %}{{ next_match_url }}{% else %}{{ request.get_full_path }}{% endif %}"
@@ -230,14 +227,16 @@
                         data-viewer-match-direction="next"
                         >Next Match</a
                     >
-                    {% endif %} {% elif query %}
+                    {% endif %} {% else %}
                     <span class="badge bg-secondary viewer-match-badge"
                         >No match</span
                     >
-                    {% endif %}
+                    {% endif %} {% endif %}
                 </div>
             </div>
+        </div>
 
+        <div class="viewer-commandbar-right">
             <div class="viewer-top-actions">
                 <a
                     href="{{ pdf_url }}"

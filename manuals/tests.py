@@ -68,18 +68,6 @@ class AircraftManualAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_airbus_aircraft_print_page_is_accessible(self):
-        aircraft = Aircraft.objects.create(name="A320", maker="AIRBUS")
-
-        self.client.login(username="tester", password="testpass123")
-
-        response = self.client.get(
-            reverse("aircraft_manual_print", kwargs={"pk": aircraft.pk})
-        )
-
-        self.assertEqual(response.status_code, 200)
-
-
 class ManualFilePDFEndpointTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(

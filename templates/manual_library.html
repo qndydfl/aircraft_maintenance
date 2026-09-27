@@ -1,11 +1,11 @@
 {% extends 'base.html' %} 
 {% load static %} 
 
-{% block body_class %} home-page {% endblock body_class %} 
-{% block title %} Manual Library | Manual Portal {% endblock title %} 
+{% block body_class %}home-page manual-library-page{% endblock %} 
+{% block title %}Manual Library | Manual Portal{% endblock %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=68" />
+<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=9" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -18,44 +18,33 @@
             Boeing / Airbus / Common maintenance manuals
         </p>
     </div>
-
-    <div class="page-actions">
-        {% if user.is_superuser %}
-        <a
-            href="{% url 'aircraft_manage' %}"
-            class="btn btn-outline-primary app-action-btn admin-only-action"
-        >
-            Aircraft Manage
-        </a>
-        {% endif %}
-
-        <a
-            href="{% url 'manual_search' %}"
-            class="btn btn-outline-success app-action-btn main-mobile-action"
-        >
-            Manual Search
-        </a>
-
-        <a
-            href="{% url 'dispatch_search' %}"
-            class="btn btn-outline-danger app-action-btn main-mobile-action"
-        >
-            Dispatch
-        </a>
-
-        <a
-            href="{% url 'calculator' %}"
-            class="btn btn-outline-dark app-action-btn main-mobile-action"
-        >
-            Calculator
-        </a>
-    </div>
     {% include 'includes/navbar_ending.html' %}
 </div>
 {% endblock navbar_content %} 
 
 {% block content %}
-<section class="manual-section mb-4">
+<div class="manual-library-tabs-wrap">
+    <ul class="nav nav-pills manual-library-tabs" id="manualLibraryTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="boeing-tab" data-bs-toggle="pill" data-bs-target="#boeing-panel" type="button" role="tab" aria-controls="boeing-panel" aria-selected="true">
+                Boeing Manuals <span>{{ boeing_aircrafts|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="airbus-tab" data-bs-toggle="pill" data-bs-target="#airbus-panel" type="button" role="tab" aria-controls="airbus-panel" aria-selected="false">
+                Airbus Manuals <span>{{ airbus_aircrafts|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="common-tab" data-bs-toggle="pill" data-bs-target="#common-panel" type="button" role="tab" aria-controls="common-panel" aria-selected="false">
+                Common Manuals <span>{{ common_categories|length }}</span>
+            </button>
+        </li>
+    </ul>
+</div>
+
+<div class="tab-content manual-library-tab-content" id="manualLibraryTabContent">
+<section class="manual-section tab-pane fade show active" id="boeing-panel" role="tabpanel" aria-labelledby="boeing-tab">
     <div class="section-header justify-content-center">
         <div>
             <h4 class="section-title mb-1">Boeing Manuals</h4>
@@ -69,6 +58,13 @@
         {% for aircraft in boeing_aircrafts %}
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm boeing-card">
+                <div class="card-img-wrapper">
+                    <img
+                        src="{% if aircraft.image %}{{ aircraft.image.url }}{% else %}https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=600&q=80{% endif %}"
+                        alt="{{ aircraft.name }} Boeing aircraft"
+                        loading="lazy"
+                    />
+                </div>
                 <div class="card-body">
                     <div class="aircraft-card-header">
                         <div>
@@ -109,19 +105,11 @@
                         </span>
                         {% endwith %}
                     </div>
-
-                    <p class="manual-card-note">
-                        모든 매뉴얼은 PDF, OTHER는 폴더 방식입니다.
-                    </p>
-
                     <div class="card-button-group">
                         <a
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name"
-                                >{{ aircraft.name }}</span
-                            >
                             Open Manuals
                         </a>
 
@@ -131,9 +119,6 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name"
-                                >{{ aircraft.name }}</span
-                            >
                             Open MyBoeingFleet
                         </a>
                     </div>
@@ -150,7 +135,7 @@
     </div>
 </section>
 
-<section class="manual-section mb-4">
+<section class="manual-section tab-pane fade" id="airbus-panel" role="tabpanel" aria-labelledby="airbus-tab">
     <div class="section-header justify-content-center">
         <div>
             <h4 class="section-title mb-1">Airbus Manuals</h4>
@@ -165,6 +150,13 @@
         {% for aircraft in airbus_aircrafts %}
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm airbus-card">
+                <div class="card-img-wrapper">
+                    <img
+                        src="{% if aircraft.image %}{{ aircraft.image.url }}{% else %}https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80{% endif %}"
+                        alt="{{ aircraft.name }} Airbus aircraft"
+                        loading="lazy"
+                    />
+                </div>
                 <div class="card-body">
                     <div class="aircraft-card-header">
                         <div>
@@ -198,19 +190,11 @@
                         </span>
                         {% endwith %}
                     </div>
-
-                    <p class="manual-card-note">
-                        MEL / CDL은 PDF, OTHER는 폴더 방식입니다.
-                    </p>
-
                     <div class="card-button-group">
                         <a
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name"
-                                >{{ aircraft.name }}</span
-                            >
                             Open Manuals
                         </a>
 
@@ -220,9 +204,6 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
-                            <span class="home-mobile-manual-name"
-                                >{{ aircraft.name }}</span
-                            >
                             Open Airbus World
                         </a>
                     </div>
@@ -239,7 +220,7 @@
     </div>
 </section>
 
-<section class="manual-section common-manual-section mb-4">
+<section class="manual-section common-manual-section tab-pane fade" id="common-panel" role="tabpanel" aria-labelledby="common-tab">
     <div class="section-header justify-content-center">
         <div>
             <h4 class="section-title mb-1">Common Manuals</h4>
@@ -254,6 +235,13 @@
         {% for category in common_categories %}
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm">
+                <div class="card-img-wrapper">
+                    <img
+                        src="{% if category.image %}{{ category.image.url }}{% else %}https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&w=600&q=80{% endif %}"
+                        alt="{{ category.name }} common manual"
+                        loading="lazy"
+                    />
+                </div>
                 <div class="card-body">
                     <div class="aircraft-card-header">
                         <div>
@@ -297,4 +285,5 @@
         {% endfor %}
     </div>
 </section>
+</div>
 {% endblock content %}

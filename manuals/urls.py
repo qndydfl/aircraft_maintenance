@@ -11,10 +11,10 @@ from .views import (
     AircraftCreateView,
     AircraftUpdateView,
     AircraftDeleteView,
-    AircraftManualPrintView,
     ManualPackageCreateView,
     ManualChapterListView,
     ManualChapterPDFView,
+    ManualPackageMergedPDFView,
     ManualSearchView,
     ManualChapterPDFViewerView,
     ManualFilePDFView,
@@ -56,6 +56,7 @@ from .r2_upload_views import (
 )
 
 urlpatterns = [
+    path("manual-packages/<int:pk>/merged.pdf", ManualPackageMergedPDFView.as_view(), name="manual_package_merged_pdf"),
     path("", PortalHomeView.as_view(), name="home"),
     path("manuals/", ManualHomeView.as_view(), name="manual_home"),
     path("date-calculator/", DateCalculatorView.as_view(), name="calculator"),
@@ -85,11 +86,6 @@ urlpatterns = [
         "aircraft/<int:pk>/delete/",
         AircraftDeleteView.as_view(),
         name="aircraft_delete",
-    ),
-    path(
-        "aircraft/<int:pk>/manuals/print/",
-        AircraftManualPrintView.as_view(),
-        name="aircraft_manual_print",
     ),
     path(
         "manual-packages/create/",

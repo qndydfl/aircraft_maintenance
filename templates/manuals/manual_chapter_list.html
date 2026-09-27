@@ -6,13 +6,13 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
 />
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20260926-7" />
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20260927-5" />
 {% endblock css %} 
 
 {% block js %}
 <script
     defer
-    src="{% static 'js/manual_chapter_workspace.js' %}?v=20260926-4"
+    src="{% static 'js/manual_chapter_workspace.js' %}?v=20260927-merge2"
 ></script>
 {% endblock js %}
 
@@ -90,31 +90,18 @@
         ================================================== -->
 
         <div class="manual-workspace-sidebar-header">
-            <div>
-                <span class="manual-workspace-eyebrow">
+            <div class="manual-workspace-heading">
+                <span class="manual-workspace-eyebrow" role="heading" aria-level="3">
                     {{ package.manual_type }}
                 </span>
-
-                <h3>
-                    {% if q %} Search Results {% else %} Chapter Contents {% endif %}
-                </h3>
-
-                <p>
-                    {% if q %} PDF pages matching "{{ q }}" {% else %} Select a
-                    chapter to open the PDF immediately. {% endif %}
-                </p>
+                {% with revision_no=package.display_revision_no %}
+                {% if revision_no %}
+                <span class="manual-workspace-revision">Rev {{ revision_no }}</span>
+                {% endif %}
+                {% endwith %}
             </div>
 
             <div class="manual-workspace-sidebar-meta">
-                <span
-                    class="manual-workspace-current-page"
-                    data-viewer-page
-                    aria-live="polite"
-                >
-                    {% if initial_viewer_url %} Page {{ initial_page_number }}
-                    {% else %} Page - {% endif %}
-                </span>
-
                 <span
                     class="manual-workspace-chapter-count"
                     title="Chapter count"
@@ -144,38 +131,38 @@
                         value="{{ q }}"
                         class="form-control manual-workspace-search-input"
                         placeholder="Search PDF contents..."
+                        aria-label="Search PDF contents"
+                        enterkeyhint="search"
                         autocomplete="off"
                     />
+                    <button type="button" class="manual-workspace-input-clear"
+                        data-search-input-clear aria-label="Clear input" title="Clear input" hidden>
+                        <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <button
                     type="submit"
                     class="btn btn-primary manual-workspace-search-btn"
                     title="Search"
+                    aria-label="Search"
                 >
                     <i class="bi bi-search" aria-hidden="true"></i>
 
-                    <span> Search </span>
                 </button>
             </div>
 
-            {% if q %}
+            {% comment %} {% if q %}
 
             <div class="manual-workspace-search-active">
-                <span>
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-
-                    {{ q }}
-                </span>
-
-                <a href="?" class="manual-workspace-clear" data-loading="false">
+                <a href="?" class="manual-workspace-clear" data-loading="false" aria-label="Clear search results">
                     <i class="bi bi-x-lg" aria-hidden="true"></i>
 
                     Clear
                 </a>
             </div>
 
-            {% endif %}
+            {% endif %} {% endcomment %}
         </form>
 
         <!-- =================================================

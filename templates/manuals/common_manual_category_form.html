@@ -28,7 +28,7 @@
 <div class="portal-form-wrap">
     <div class="card portal-card shadow-sm portal-form-card">
         <div class="card-body">
-            <form method="post" class="portal-form">
+            <form method="post" enctype="multipart/form-data" class="portal-form">
                 {% csrf_token %} {% if form.non_field_errors %}
                 <div class="alert alert-danger app-alert mb-3">
                     {{ form.non_field_errors }}
@@ -56,6 +56,20 @@
                         {{ form.description }} {% if form.description.errors %}
                         <div class="text-danger small mt-1">
                             {{ form.description.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"> Category Image </label>
+
+                        {{ form.image }}
+                        <div class="form-text">
+                            Common Manuals 카드에 표시할 이미지를 선택하세요.
+                        </div>
+                        {% if form.image.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.image.errors }}
                         </div>
                         {% endif %}
                     </div>

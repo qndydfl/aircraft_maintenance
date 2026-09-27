@@ -27,7 +27,7 @@
 <div class="portal-form-wrap">
     <div class="card portal-card shadow-sm portal-form-card">
         <div class="card-body">
-            <form method="post" class="portal-form">
+            <form method="post" enctype="multipart/form-data" class="portal-form">
                 {% csrf_token %} {% if form.non_field_errors %}
                 <div class="alert alert-danger app-alert">
                     {{ form.non_field_errors }}
@@ -51,6 +51,19 @@
                         {{ form.name }} {% if form.name.errors %}
                         <div class="text-danger small mt-1">
                             {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Aircraft Image</label>
+                        {{ form.image }}
+                        <div class="form-text">
+                            Upload a JPG, PNG, or WebP image for the Manual Library card.
+                        </div>
+                        {% if form.image.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.image.errors }}
                         </div>
                         {% endif %}
                     </div>

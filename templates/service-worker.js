@@ -1,4 +1,4 @@
-const CACHE_NAME = "manual-portal-static-v117";
+const CACHE_NAME = "manual-portal-static-v118";
 
 const STATIC_ASSETS = [
     "/static/manifest.webmanifest",
@@ -11,7 +11,7 @@ const STATIC_ASSETS = [
     "/static/css/delete.css",
     "/static/css/dispatch.css",
     "/static/css/form.css",
-    "/static/css/home.css",
+    "/static/css/manual_library.css",
     "/static/css/list.css",
     "/static/css/manual_detail.css",
     "/static/css/manual_pdf_viewer.css",
