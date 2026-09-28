@@ -159,6 +159,42 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 }
 
 @media (max-width: 48rem) {
+    .app-navbar .admin-only-action {
+        display: none !important;
+    }
+
+    /* Keep the visible content gap equal above and below the home dashboard. */
+    body.portal-home-page {
+        padding-bottom: 0 !important;
+    }
+
+    body.portal-home-page .app-main {
+        padding-top: var(--page-edge-gap) !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) +
+                var(--safe-area-bottom) +
+                var(--page-edge-gap)
+        ) !important;
+    }
+
+    body.aircraft-manual-detail-page {
+        padding-bottom: 0 !important;
+    }
+
+    body.aircraft-manual-detail-page .app-main {
+        padding-top: var(--page-edge-gap) !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) +
+                var(--safe-area-bottom) +
+                var(--page-edge-gap)
+        ) !important;
+    }
+
+    body.aircraft-manual-detail-page .app-main > .app-container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
     html {
         scroll-padding-top: 5rem;
     }
@@ -471,6 +507,110 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 }
 
+/* Compact and non-overlapping chapter workspace on mobile. */
+@media (max-width: 48rem) {
+    body.chapter-page .app-main {
+        height: calc(
+            var(--app-viewport-height) -
+                var(--navbar-height) -
+                var(--bottom-nav-height) -
+                var(--safe-area-top) -
+                var(--safe-area-bottom)
+        ) !important;
+        min-height: 0 !important;
+    }
+
+    body.chapter-page .manual-workspace-tabs {
+        gap: 0.2rem;
+        padding: 0.25rem;
+    }
+
+    body.chapter-page .manual-workspace-tab {
+        min-height: 2.2rem;
+        padding: 0.3rem 0.55rem;
+        font-size: 0.72rem;
+    }
+
+    body.chapter-page .manual-workspace-sidebar-header {
+        min-height: 3rem;
+        padding: 0.5rem 0.65rem;
+    }
+
+    body.chapter-page .manual-workspace-eyebrow {
+        font-size: 0.92rem;
+    }
+
+    body.chapter-page .manual-workspace-revision {
+        font-size: 0.65rem;
+    }
+
+    body.chapter-page .manual-workspace-search {
+        padding: 0.5rem 0.65rem;
+    }
+
+    body.chapter-page .manual-workspace-search-input {
+        height: 2.25rem;
+        padding-inline: 2rem 2.1rem;
+        font-size: 0.78rem;
+    }
+
+    body.chapter-page .manual-workspace-search-btn {
+        min-width: 2.25rem;
+        min-height: 2.25rem;
+        padding: 0.3rem;
+    }
+
+    body.chapter-page .manual-workspace-chapter {
+        min-height: 2.75rem;
+        padding: 0.45rem 0.65rem;
+    }
+
+    body.chapter-page .manual-workspace-chapter-main strong,
+    body.chapter-page .manual-workspace-chapter-group-label {
+        font-size: 0.76rem;
+        line-height: 1.25;
+    }
+
+    body.chapter-page .manual-workspace-chapter-main small {
+        font-size: 0.64rem;
+    }
+
+    body.chapter-page .manual-workspace-match-count,
+    body.chapter-page .manual-workspace-chapter-group-count {
+        font-size: 0.62rem;
+    }
+
+    body.chapter-page .manual-workspace-chapters {
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+}
+
+/* Shared mobile sizing for ordinary content pages. */
+@media (max-width: 48rem) {
+    body:not(.pdf-viewer-page):not(.login-page) .app-card-btn,
+    body:not(.pdf-viewer-page):not(.login-page) .app-action-btn {
+        min-height: 2.5rem;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    body:not(.pdf-viewer-page):not(.login-page) .portal-card h5,
+    body:not(.pdf-viewer-page):not(.login-page) .aircraft-title,
+    body:not(.pdf-viewer-page):not(.login-page) .section-title {
+        font-size: 0.95rem;
+        line-height: 1.25;
+    }
+
+    body:not(.pdf-viewer-page):not(.login-page) .section-description,
+    body:not(.pdf-viewer-page):not(.login-page) .manual-card-note {
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+}
+
 @media (hover: none) and (pointer: coarse) {
     .portal-card:hover,
     .portal-detail-card:hover,
@@ -525,5 +665,47 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     .app-footer,
     footer.app-footer {
         display: none !important;
+    }
+}
+
+/* Final home spacing rule, including standalone/PWA mode. */
+@media (max-width: 48rem) {
+    .app-navbar .admin-only-action {
+        display: none !important;
+    }
+
+    body.portal-home-page {
+        padding-bottom: 0 !important;
+    }
+
+    body.portal-home-page .app-main {
+        padding-top: var(--page-edge-gap) !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) +
+                var(--safe-area-bottom) +
+                var(--page-edge-gap)
+        ) !important;
+    }
+
+    body.aircraft-manual-detail-page {
+        padding-bottom: 0 !important;
+    }
+
+    body.aircraft-manual-detail-page .app-main {
+        padding-top: var(--page-edge-gap) !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) +
+                var(--safe-area-bottom) +
+                var(--page-edge-gap)
+        ) !important;
+    }
+
+    body.aircraft-manual-detail-page .app-main > .app-container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    body.aircraft-manual-detail-page .manual-master-detail {
+        margin-top: 0 !important;
     }
 }

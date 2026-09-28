@@ -1949,6 +1949,7 @@ Calm Operations Dashboard
         display: grid;
         grid-template-columns: 1fr;
         padding: 0.4rem 0.7rem 0.9rem;
+        gap: 0.55rem;
     }
 
     .command-side {
@@ -2005,8 +2006,13 @@ Calm Operations Dashboard
 }
 
 @media (max-width: 48rem) {
+    body.portal-home-page .app-main {
+        padding-top: 0.65rem;
+        padding-bottom: 0;
+    }
+
     .command-header {
-        padding: 1rem 0.9rem 0.55rem;
+        padding: 0.65rem 0.8rem 0.35rem;
     }
 
     .command-kicker {
@@ -2026,8 +2032,8 @@ Calm Operations Dashboard
     }
 
     .hud-panel {
-        min-height: 7.4rem;
-        padding: 0.85rem;
+        min-height: 7rem;
+        padding: 0.7rem;
     }
 
     .hud-content h2 {
@@ -2041,5 +2047,14 @@ Calm Operations Dashboard
 
     .command-quick-links a {
         font-size: 0.64rem;
+    }
+
+    .command-footer {
+        margin: 0 0.55rem 0.55rem;
+        padding: 0.45rem;
+    }
+
+    .command-quick-links {
+        gap: 0.45rem;
     }
 }

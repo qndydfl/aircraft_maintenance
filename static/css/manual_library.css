@@ -28,7 +28,11 @@
     white-space: nowrap;
 }
 
-.manual-library-tabs .nav-link span {
+.manual-tab-label-short {
+    display: none;
+}
+
+.manual-library-tabs .manual-tab-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -47,7 +51,7 @@
     background: var(--aviation-blue);
 }
 
-.manual-library-tabs .nav-link.active span {
+.manual-library-tabs .nav-link.active .manual-tab-count {
     color: var(--aviation-blue);
 }
 
@@ -714,12 +718,20 @@ body.home-page.manual-library-page .app-container {
     .manual-library-tabs .nav-link {
         width: 100%;
         padding: 0.45rem 0.25rem;
-        font-size: 0.68rem;
+        font-size: 0.75rem;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .manual-library-tabs .nav-link span {
+    .manual-tab-label-full {
+        display: none;
+    }
+
+    .manual-tab-label-short {
+        display: inline;
+    }
+
+    .manual-library-tabs .manual-tab-count {
         min-width: 1.1rem;
         min-height: 1.1rem;
         font-size: 0.58rem;
@@ -785,6 +797,37 @@ body.home-page.manual-library-page .app-container {
         display: none;
     }
 
+    .home-page .manual-section .aircraft-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.35rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .home-page .manual-section .aircraft-card-header > div {
+        min-width: 0;
+    }
+
+    .home-page .manual-section .aircraft-maker {
+        margin-bottom: 0.1rem !important;
+        font-size: 0.56rem;
+        line-height: 1;
+    }
+
+    .home-page .manual-section .aircraft-title {
+        overflow: hidden;
+        font-size: 0.86rem;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .home-page .manual-section .aircraft-type-pill {
+        flex: 0 0 auto;
+        font-size: 0.5rem;
+    }
+
     .home-page .manual-section .card-button-group {
         display: grid;
         grid-template-columns: 1fr;
@@ -798,9 +841,9 @@ body.home-page.manual-library-page .app-container {
     .home-page .manual-section .app-card-btn {
         width: 100%;
         min-width: 0;
-        min-height: 2.2rem;
-        padding: 0.3rem 0.2rem;
-        font-size: 0.62rem;
+        min-height: 2.5rem;
+        padding: 0.4rem 0.25rem;
+        font-size: 0.72rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

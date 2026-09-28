@@ -5,7 +5,7 @@
 {% block title %}Manual Library | Manual Portal{% endblock %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=9" />
+<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=14" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -27,17 +27,23 @@
     <ul class="nav nav-pills manual-library-tabs" id="manualLibraryTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="boeing-tab" data-bs-toggle="pill" data-bs-target="#boeing-panel" type="button" role="tab" aria-controls="boeing-panel" aria-selected="true">
-                Boeing Manuals <span>{{ boeing_aircrafts|length }}</span>
+                <span class="manual-tab-label-full">Boeing Manuals</span>
+                <span class="manual-tab-label-short">Boeing</span>
+                <span class="manual-tab-count">{{ boeing_aircrafts|length }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="airbus-tab" data-bs-toggle="pill" data-bs-target="#airbus-panel" type="button" role="tab" aria-controls="airbus-panel" aria-selected="false">
-                Airbus Manuals <span>{{ airbus_aircrafts|length }}</span>
+                <span class="manual-tab-label-full">Airbus Manuals</span>
+                <span class="manual-tab-label-short">Airbus</span>
+                <span class="manual-tab-count">{{ airbus_aircrafts|length }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="common-tab" data-bs-toggle="pill" data-bs-target="#common-panel" type="button" role="tab" aria-controls="common-panel" aria-selected="false">
-                Common Manuals <span>{{ common_categories|length }}</span>
+                <span class="manual-tab-label-full">Common Manuals</span>
+                <span class="manual-tab-label-short">Common</span>
+                <span class="manual-tab-count">{{ common_categories|length }}</span>
             </button>
         </li>
     </ul>
@@ -56,7 +62,7 @@
 
     <div class="row g-3 g-md-4 justify-content-center">
         {% for aircraft in boeing_aircrafts %}
-        <div class="col-12 col-sm-6 col-lg-3">
+        <div class="col-6 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm boeing-card">
                 <div class="card-img-wrapper">
                     <img
@@ -148,7 +154,7 @@
 
     <div class="row g-3 g-md-4 justify-content-center">
         {% for aircraft in airbus_aircrafts %}
-        <div class="col-12 col-sm-6 col-lg-3">
+        <div class="col-6 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm airbus-card">
                 <div class="card-img-wrapper">
                     <img
@@ -233,7 +239,7 @@
 
     <div class="row g-3 g-md-4 justify-content-center">
         {% for category in common_categories %}
-        <div class="col-12 col-sm-6 col-lg-3">
+        <div class="col-6 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm">
                 <div class="card-img-wrapper">
                     <img

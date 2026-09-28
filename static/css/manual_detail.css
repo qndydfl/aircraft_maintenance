@@ -354,6 +354,10 @@
         display: none !important;
     }
 
+    .aircraft-manual-detail-page .manual-status-summary {
+        display: none !important;
+    }
+
     .aircraft-manual-detail-page .portal-detail-empty-card,
     .aircraft-manual-detail-page .portal-detail-empty-col {
         display: none !important;

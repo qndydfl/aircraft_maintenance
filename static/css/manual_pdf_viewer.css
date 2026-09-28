@@ -1188,6 +1188,21 @@ body.pdf-viewer-embedded .outline-resizer {
     }
 }
 
+/* Embedded chapter viewer has no global bottom navigation. */
+@media (max-width: 48rem) {
+    body.pdf-viewer-embedded .viewer-page {
+        padding-bottom: calc(
+            var(--viewer-mobile-nav-height) +
+                var(--safe-area-bottom) +
+                0.5rem
+        );
+    }
+
+    body.pdf-viewer-embedded .mobile-page-nav {
+        bottom: calc(var(--safe-area-bottom) + 0.25rem);
+    }
+}
+
 /* =========================================================
    Medium Mobile / Small Tablet
 ========================================================= */
@@ -1306,5 +1321,20 @@ body.pdf-viewer-embedded .outline-resizer {
     .mobile-page-indicator {
         min-width: 4rem;
         font-size: 0.74rem;
+    }
+}
+
+/* Show the viewer identity on desktop and keep the compact mobile bar focused. */
+@media (min-width: 48.0625rem) {
+    .viewer-commandbar .viewer-title-area {
+        display: block;
+        min-width: 10rem;
+        max-width: 18rem;
+    }
+}
+
+@media (max-width: 48rem) {
+    .viewer-commandbar .viewer-title-area {
+        display: none !important;
     }
 }

@@ -4,7 +4,7 @@
 {% block css %}
 <link
     rel="stylesheet"
-    href="{% static 'css/manual_pdf_viewer.css' %}?v=20260927-2"
+    href="{% static 'css/manual_pdf_viewer.css' %}?v=20260928-3"
 />
 {% endblock css %} 
 {% block js %}
@@ -78,9 +78,11 @@
         <div class="viewer-commandbar-left">
             <div class="viewer-title-area">
                 <h4 class="viewer-title mb-1">{{ viewer_title }}</h4>
+                {% if viewer_subtitle and viewer_subtitle != "PDF Viewer" %}
                 <p class="viewer-subtitle mb-0">
-                    {{ viewer_subtitle|default:"PDF Viewer" }}
+                    {{ viewer_subtitle }}
                 </p>
+                {% endif %}
             </div>
 
             <div class="viewer-primary-tools">

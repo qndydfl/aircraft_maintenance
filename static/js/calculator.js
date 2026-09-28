@@ -59,7 +59,6 @@
     let basicPendingOperator = null;
     let basicShouldResetDisplay = false;
     let consumptionTimeCounter = 1;
-    let consumptionFormatTimer = null;
 
     function formatDate(date) {
         const year = date.getFullYear();
@@ -430,8 +429,6 @@
         });
 
         consumptionTimeCounter = 1;
-        window.clearTimeout(consumptionFormatTimer);
-        consumptionFormatTimer = null;
         updateConsumptionRate();
     }
 
@@ -659,24 +656,29 @@
     if (consumptionHoursList) {
         consumptionHoursList.addEventListener("input", (event) => {
             updateConsumptionRate();
-            window.clearTimeout(consumptionFormatTimer);
 
             if (!event.target.matches(".consumption-hours-input")) {
                 return;
             }
+        });
+        consumptionHoursList.addEventListener("keydown", (event) => {
+            if (
+                event.key !== "Enter"
+                || !event.target.matches(".consumption-hours-input")
+            ) {
+                return;
+            }
 
-            consumptionFormatTimer = window.setTimeout(() => {
-                formatConsumptionTimeInput(event.target);
-                updateConsumptionRate();
-            }, 600);
+            event.preventDefault();
+            formatConsumptionTimeInput(event.target);
+            updateConsumptionRate();
+            event.target.blur();
         });
         consumptionHoursList.addEventListener("focusout", (event) => {
             if (!event.target.matches(".consumption-hours-input")) {
                 return;
             }
 
-            window.clearTimeout(consumptionFormatTimer);
-            consumptionFormatTimer = null;
             formatConsumptionTimeInput(event.target);
             updateConsumptionRate();
         });
