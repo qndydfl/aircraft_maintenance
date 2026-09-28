@@ -664,8 +664,6 @@ HUD Panels
     gap: 0.35rem;
 
     color: #6687a2;
-
-    font-size: 0.5rem;
     font-weight: 900;
 
     letter-spacing: 0.1em;
@@ -1768,8 +1766,6 @@ Mobile
     .hud-enter {
         right: 0.55rem;
         bottom: 0.45rem;
-
-        font-size: 0.42rem;
     }
 
     /* Footer */

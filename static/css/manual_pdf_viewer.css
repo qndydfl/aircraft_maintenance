@@ -1203,6 +1203,11 @@ body.pdf-viewer-embedded .outline-resizer {
     }
 }
 
+/* The chapter workspace already identifies the selected chapter. */
+body.pdf-viewer-embedded .viewer-title-area {
+    display: none !important;
+}
+
 /* =========================================================
    Medium Mobile / Small Tablet
 ========================================================= */

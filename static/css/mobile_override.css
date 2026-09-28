@@ -159,6 +159,23 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 }
 
 @media (max-width: 48rem) {
+    body.chapter-page {
+        padding-top: var(--safe-area-top) !important;
+    }
+
+    body.chapter-page .app-navbar {
+        display: none !important;
+    }
+
+    body.chapter-page .app-main {
+        height: calc(
+            var(--app-viewport-height) -
+                var(--bottom-nav-height) -
+                var(--safe-area-top) -
+                var(--safe-area-bottom)
+        ) !important;
+    }
+
     .app-navbar .admin-only-action {
         display: none !important;
     }
@@ -169,11 +186,10 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     body.portal-home-page .app-main {
-        padding-top: var(--page-edge-gap) !important;
+        padding-top: 0 !important;
         padding-bottom: calc(
             var(--bottom-nav-height) +
-                var(--safe-area-bottom) +
-                var(--page-edge-gap)
+                var(--safe-area-bottom)
         ) !important;
     }
 
@@ -679,11 +695,10 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     body.portal-home-page .app-main {
-        padding-top: var(--page-edge-gap) !important;
+        padding-top: 0 !important;
         padding-bottom: calc(
             var(--bottom-nav-height) +
-                var(--safe-area-bottom) +
-                var(--page-edge-gap)
+                var(--safe-area-bottom)
         ) !important;
     }
 
@@ -707,5 +722,25 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 
     body.aircraft-manual-detail-page .manual-master-detail {
         margin-top: 0 !important;
+    }
+}
+
+/* Chapter workspace starts at the top on mobile without the global navbar. */
+@media (max-width: 48rem) {
+    body.chapter-page {
+        padding-top: var(--safe-area-top) !important;
+    }
+
+    body.chapter-page .app-navbar {
+        display: none !important;
+    }
+
+    body.chapter-page .app-main {
+        height: calc(
+            var(--app-viewport-height) -
+                var(--bottom-nav-height) -
+                var(--safe-area-top) -
+                var(--safe-area-bottom)
+        ) !important;
     }
 }
