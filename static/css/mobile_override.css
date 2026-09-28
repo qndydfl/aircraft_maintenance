@@ -161,6 +161,8 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 @media (max-width: 48rem) {
     body.chapter-page {
         padding-top: var(--safe-area-top) !important;
+        overflow: auto !important;
+        touch-action: pan-x pan-y pinch-zoom;
     }
 
     body.chapter-page .app-navbar {
