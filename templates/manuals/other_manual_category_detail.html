@@ -2,7 +2,7 @@
 {% load static %} 
 {% block body_class %} detail-page other-manual-detail-page {% endblock body_class %} 
 {% block css %}
-<link href="{% static 'css/manual_detail.css' %}?v=55" rel="stylesheet" />
+<link href="{% static 'css/manual_detail.css' %}?v=56" rel="stylesheet" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -51,7 +51,7 @@
 <div class="row g-3 g-md-4 justify-content-center">
     {% for file in files %}
 
-    <div class="col-12 col-sm-6 col-lg-3">
+    <div class="col-6 col-sm-6 col-lg-3">
         <div class="card portal-card portal-detail-card h-100 shadow-sm">
             <div class="card-body">
                 <div class="portal-detail-card-header">

@@ -626,12 +626,6 @@ class AircraftDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
         return reverse("aircraft_manage")
 
 
-class ManualFileDetailView(LoginRequiredMixin, DetailView):
-    model = ManualFile
-    template_name = "manuals/manual_detail.html"
-    context_object_name = "manual"
-
-
 class ManualPackageCreateView(
     R2DirectUploadContextMixin,
     LoginRequiredMixin,

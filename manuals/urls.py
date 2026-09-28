@@ -3,7 +3,6 @@ from django.urls import path
 from .views import DateCalculatorView, PortalHomeView, ManualHomeView
 from .views import (
     AircraftManualDetailView,
-    ManualFileDetailView,
     ManualFileCreateView,
     ManualFileUpdateView,
     ManualFileDeleteView,
@@ -65,7 +64,6 @@ urlpatterns = [
         AircraftManualDetailView.as_view(),
         name="aircraft_manual_detail",
     ),
-    path("manual/<int:pk>/", ManualFileDetailView.as_view(), name="manual_detail"),
     path("manuals/create/", ManualFileCreateView.as_view(), name="manual_file_create"),
     path(
         "manuals/<int:pk>/edit/",

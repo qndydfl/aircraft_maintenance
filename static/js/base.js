@@ -94,12 +94,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function syncViewportHeight() {
         const viewport = window.visualViewport;
+        const isChapterPage = document.body.classList.contains("chapter-page");
 
-        const viewportHeight = viewport
+        // Pinch zoom changes visualViewport dimensions. The chapter workspace
+        // uses a fixed split layout, so keep its height tied to the layout
+        // viewport while zooming instead of resizing the workspace mid-gesture.
+        const viewportHeight = isChapterPage
+            ? window.innerHeight
+            : viewport
             ? viewport.height
             : window.innerHeight;
 
-        const viewportOffsetTop = viewport
+        const viewportOffsetTop = isChapterPage
+            ? 0
+            : viewport
             ? viewport.offsetTop
             : 0;
 
