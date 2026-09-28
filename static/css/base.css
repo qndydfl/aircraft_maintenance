@@ -402,7 +402,7 @@ code,
     align-items: center;
     justify-content: center;
     gap: 0.2rem;
-    color: #64748b;
+    color: #3b82f6;
     background: transparent;
     border: 0;
     text-align: center;
@@ -416,9 +416,9 @@ code,
     justify-content: center;
     width: 2rem;
     height: 2rem;
-    color: #475569;
-    background: #f1f5f9;
-    border: 1px solid #dbe3ec;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     border-radius: 0.75rem;
     font-size: 1rem;
     line-height: 1;
@@ -428,22 +428,22 @@ code,
 
 .mobile-nav-text {
     color: inherit;
-    font-size: 0.64rem;
-    font-weight: 700;
+    font-size: 0.66rem;
+    font-weight: 800;
     line-height: 1;
 }
 
 .mobile-nav-item:hover,
 .mobile-nav-item:focus-visible,
 .mobile-nav-item.active {
-    color: #1e40af;
+    color: #0f766e;
 }
 
 .mobile-nav-item.active .mobile-nav-icon {
     color: #ffffff;
-    background: #1e40af;
-    border-color: #1e40af;
-    box-shadow: 0 0.25rem 0.65rem rgba(30, 64, 175, 0.24);
+    background: #0f766e;
+    border-color: #0f766e;
+    box-shadow: 0 0.25rem 0.65rem rgba(15, 118, 110, 0.28);
 }
 
 .mobile-nav-item:active {
