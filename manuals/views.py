@@ -389,7 +389,7 @@ class DateCalculatorView(LoginRequiredMixin, TemplateView):
             f"{target_date.year}"
         )
         local_now = timezone.localtime(now)
-        local_now_parts = self.format_datetime_parts_en(local_now)
+        local_now_parts = self.format_datetime_parts_en(local_now, "KST")
         utc_now_parts = self.format_datetime_parts_en(now, "UTC")
 
         context.update(
@@ -583,8 +583,18 @@ class AircraftManageListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        active_tab = self.request.GET.get("tab", "aircraft").strip().lower()
+
+        if active_tab not in {"aircraft", "common"}:
+            active_tab = "aircraft"
+
         context["common_categories"] = CommonManualCategory.objects.prefetch_related(
             "files"
+        )
+        context["active_tab"] = active_tab
+        context["aircraft_manage_aircraft_url"] = reverse("aircraft_manage")
+        context["aircraft_manage_common_url"] = (
+            f"{reverse('aircraft_manage')}?tab=common"
         )
         return context
 
@@ -2926,12 +2936,14 @@ class CommonManualCategoryCreateView(
     model = CommonManualCategory
     form_class = CommonManualCategoryForm
     template_name = "manuals/common_manual_category_form.html"
-    success_url = reverse_lazy("aircraft_manage")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["back_url"] = reverse_lazy("aircraft_manage")
+        context["back_url"] = f"{reverse('aircraft_manage')}?tab=common"
         return context
+
+    def get_success_url(self):
+        return f"{reverse('aircraft_manage')}?tab=common"
 
 
 class CommonManualCategoryUpdateView(
@@ -2944,11 +2956,11 @@ class CommonManualCategoryUpdateView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["back_url"] = reverse_lazy("aircraft_manage")
+        context["back_url"] = f"{reverse('aircraft_manage')}?tab=common"
         return context
 
     def get_success_url(self):
-        return reverse_lazy("aircraft_manage")
+        return f"{reverse('aircraft_manage')}?tab=common"
 
 
 class CommonManualCategoryDeleteView(
@@ -2968,10 +2980,7 @@ class CommonManualCategoryDeleteView(
                 "delete_title": self.object.name,
                 "delete_message": "공통 매뉴얼 카테고리를 삭제하시겠습니까?",
                 "warning_message": "카테고리에 연결된 파일도 함께 삭제될 수 있습니다.",
-                "back_url": reverse(
-                    "common_manual_category_detail",
-                    kwargs={"pk": self.object.pk},
-                ),
+                "back_url": f"{reverse('aircraft_manage')}?tab=common",
             }
         )
 
@@ -2985,7 +2994,7 @@ class CommonManualCategoryDeleteView(
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse("home")
+        return f"{reverse('aircraft_manage')}?tab=common"
 
 
 class OtherManualCategoryCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):

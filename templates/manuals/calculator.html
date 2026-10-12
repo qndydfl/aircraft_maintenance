@@ -4,11 +4,11 @@
 {% block title %} Date Calculator {% endblock title %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=82" />
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=85" />
 {% endblock css %} 
 
 {% block js %}
-<script defer src="{% static 'js/calculator.js' %}?v=87"></script>
+<script defer src="{% static 'js/calculator.js' %}?v=90"></script>
 {% endblock js %} 
 
 {% block navbar_content %}
@@ -25,20 +25,44 @@
 {% block content %}
 
 <section class="date-calculator-shell">
-    <div class="date-clock-card">
-        <p class="date-result-label mb-1">UTC Time</p>
+    <div class="date-clock-grid">
+        <article class="date-clock-card date-clock-card-utc">
+            <header class="date-clock-header">
+                <span class="date-clock-zone">UTC</span>
+                <span class="date-clock-offset">UTC+00:00</span>
+            </header>
 
-        <strong id="utc-time" class="date-utc-value">
-            <span class="date-clock-date"> {{ utc_now_date }} </span>
-            <span class="date-clock-time"> {{ utc_now_time }} </span>
-        </strong>
+            <div id="utc-time" class="date-clock-value">
+                <div class="date-clock-part date-clock-date-part">
+                    <span class="date-clock-part-label">Date</span>
+                    <strong class="date-clock-date">{{ utc_now_date }}</strong>
+                </div>
 
-        <p class="date-result-label mt-3 mb-1">한국 시간</p>
+                <div class="date-clock-part date-clock-time-part">
+                    <span class="date-clock-part-label">Time</span>
+                    <strong class="date-clock-time">{{ utc_now_time }}</strong>
+                </div>
+            </div>
+        </article>
 
-        <strong id="local-time" class="date-local-value">
-            <span class="date-clock-date"> {{ local_now_date }} </span>
-            <span class="date-clock-time"> {{ local_now_time }} </span>
-        </strong>
+        <article class="date-clock-card date-clock-card-kst">
+            <header class="date-clock-header">
+                <span class="date-clock-zone">한국 시간</span>
+                <span class="date-clock-offset">UTC+09:00</span>
+            </header>
+
+            <div id="local-time" class="date-clock-value">
+                <div class="date-clock-part date-clock-date-part">
+                    <span class="date-clock-part-label">Date</span>
+                    <strong class="date-clock-date">{{ local_now_date }}</strong>
+                </div>
+
+                <div class="date-clock-part date-clock-time-part">
+                    <span class="date-clock-part-label">Time</span>
+                    <strong class="date-clock-time">{{ local_now_time }}</strong>
+                </div>
+            </div>
+        </article>
     </div>
 
     <div class="date-tool-grid">
@@ -142,9 +166,8 @@
                     </p>
 
                     <p id="date-result-note" class="date-result-note mb-0">
-                        {% if selected_days == 0 %} {{ base_date|date:"Y-m-d" }}
-                        기준 날짜 {% else %} {{ base_date|date:"Y-m-d" }} 기준,
-                        선택 날짜 제외 {{ selected_days }}일 후 {% endif %}
+                        {% if selected_days == 0 %}기준 날짜입니다.{% else %}
+                        계산된 날짜입니다.{% endif %}
                     </p>
                 </div>
 
@@ -268,7 +291,7 @@
                     </p>
 
                     <p id="fuel-density-note" class="date-result-note mb-0">
-                        0.000 g/cm3 기준
+                        Density g/cm3 값을 입력하세요
                     </p>
                 </div>
 
@@ -290,7 +313,7 @@
                                 step="0.001"
                                 inputmode="decimal"
                                 class="form-control"
-                                value="0"
+                                value=""
                                 placeholder="0"
                             />
                         </div>
@@ -356,7 +379,7 @@
                     </p>
 
                     <p id="time-calculator-note" class="date-result-note mb-0">
-                        0:00 + 0:00 기준
+                        Base time과 Add time을 입력하세요
                     </p>
                 </div>
 
@@ -453,14 +476,15 @@
                         id="consumption-rate-result"
                         class="date-result-long fuel-result-value mb-1"
                     >
-                        0.000 qty/hr
+                        0.000 <span class="consumption-rate-unit">qty/hr</span>
                     </p>
-
-                    <p id="consumption-rate-note" class="date-result-note mb-0">
-                        Add Qty와 Total Block Time을 입력하세요
-                    </p>
+                    <p
+                    id="consumption-rate-note"
+                    class="date-result-note consumption-rate-note mb-0"
+                >
+                    Add Qty와 Total Block Time을 입력하세요
+                </p>
                 </div>
-
                 <form
                     class="date-calculator-card"
                     id="consumption-rate-form"

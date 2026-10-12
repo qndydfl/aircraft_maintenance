@@ -74,42 +74,54 @@
         return `${day} ${month} ${year}`;
     }
 
-    function formatDateTimeParts(date, useUtc) {
-        const year = useUtc ? date.getUTCFullYear() : date.getFullYear();
-        const month = englishMonths[
-            useUtc ? date.getUTCMonth() : date.getMonth()
-        ];
-        const day = String(
-            useUtc ? date.getUTCDate() : date.getDate()
-        ).padStart(2, "0");
-        const hours = String(
-            useUtc ? date.getUTCHours() : date.getHours()
-        ).padStart(2, "0");
-        const minutes = String(
-            useUtc ? date.getUTCMinutes() : date.getMinutes()
-        ).padStart(2, "0");
-        const seconds = String(
-            useUtc ? date.getUTCSeconds() : date.getSeconds()
-        ).padStart(2, "0");
+    function formatDateTimeParts(date, timeZone, suffix) {
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+            timeZone,
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hourCycle: "h23",
+        });
+        const values = Object.fromEntries(
+            formatter
+                .formatToParts(date)
+                .filter((part) => part.type !== "literal")
+                .map((part) => [part.type, part.value])
+        );
 
         return {
-            date: `${day} ${month} ${year}`,
-            time: `${hours}:${minutes}:${seconds}${useUtc ? " UTC" : ""}`,
+            date: `${values.day} ${values.month} ${values.year}`,
+            time: `${values.hour}:${values.minute}:${values.second} ${suffix}`,
         };
     }
 
     function renderClockValue(element, parts) {
         element.innerHTML = "";
 
-        const dateLine = document.createElement("span");
+        const datePart = document.createElement("div");
+        datePart.className = "date-clock-part date-clock-date-part";
+        const dateLabel = document.createElement("span");
+        dateLabel.className = "date-clock-part-label";
+        dateLabel.textContent = "Date";
+        const dateLine = document.createElement("strong");
         dateLine.className = "date-clock-date";
         dateLine.textContent = parts.date;
 
-        const timeLine = document.createElement("span");
+        const timePart = document.createElement("div");
+        timePart.className = "date-clock-part date-clock-time-part";
+        const timeLabel = document.createElement("span");
+        timeLabel.className = "date-clock-part-label";
+        timeLabel.textContent = "Time";
+        const timeLine = document.createElement("strong");
         timeLine.className = "date-clock-time";
         timeLine.textContent = parts.time;
 
-        element.append(dateLine, timeLine);
+        datePart.append(dateLabel, dateLine);
+        timePart.append(timeLabel, timeLine);
+        element.append(datePart, timePart);
     }
 
     function updateClock() {
@@ -118,8 +130,14 @@
         }
 
         const now = new Date();
-        renderClockValue(localTime, formatDateTimeParts(now, false));
-        renderClockValue(utcTime, formatDateTimeParts(now, true));
+        renderClockValue(
+            localTime,
+            formatDateTimeParts(now, "Asia/Seoul", "KST")
+        );
+        renderClockValue(
+            utcTime,
+            formatDateTimeParts(now, "UTC", "UTC")
+        );
     }
 
     function updateDate(days, options) {
@@ -141,8 +159,8 @@
         result.textContent = formatDate(targetDate);
         longResult.textContent = formatLongDate(targetDate);
         note.textContent = normalizedDays === 0
-            ? `${baseDateText} 기준 날짜`
-            : `${baseDateText} 기준, 선택 날짜 제외 ${normalizedDays}일 후`;
+            ? "기준 날짜입니다."
+            : "계산된 날짜입니다.";
 
         if (!settings.keepInputEmpty) {
             input.value = normalizedDays;
@@ -180,7 +198,7 @@
 
         const poundsPerGallon = density * (3.78533 / 0.4539);
         fuelDensityResult.textContent = poundsPerGallon.toFixed(2);
-        fuelDensityNote.textContent = `${density.toFixed(3)} g/cm3 기준`;
+        fuelDensityNote.textContent = "변환 결과입니다.";
     }
 
     function resetFuelDensity() {
@@ -188,7 +206,7 @@
             return;
         }
 
-        fuelDensityInput.value = "0";
+        fuelDensityInput.value = "";
         updateFuelDensity();
     }
 
@@ -235,8 +253,17 @@
             return;
         }
 
-        const baseMinutes = parseHourMinute(timeBaseInput.value);
-        const addMinutes = parseHourMinute(timeAddInput.value);
+        const baseText = timeBaseInput.value.trim();
+        const addText = timeAddInput.value.trim();
+
+        if (!baseText && !addText) {
+            timeCalculatorResult.textContent = "0:00";
+            timeCalculatorNote.textContent = "Base time과 Add time을 입력하세요";
+            return;
+        }
+
+        const baseMinutes = parseHourMinute(baseText);
+        const addMinutes = parseHourMinute(addText);
 
         if (baseMinutes === null || addMinutes === null) {
             timeCalculatorResult.textContent = "-";
@@ -247,9 +274,7 @@
         timeCalculatorResult.textContent = formatHourMinute(
             baseMinutes + addMinutes
         );
-        const baseLabel = timeBaseInput.value.trim() || "0";
-        const addLabel = timeAddInput.value.trim() || "0";
-        timeCalculatorNote.textContent = `${baseLabel} + ${addLabel} 기준`;
+        timeCalculatorNote.textContent = "계산 결과입니다.";
     }
 
     function resetTimeCalculator() {
@@ -332,7 +357,9 @@
             .filter(Boolean);
 
         if (!quantityText && hourValues.length === 0) {
-            consumptionRateResult.textContent = "0.000 qty/hr";
+            consumptionRateResult.innerHTML = (
+                "0.000 <span class='consumption-rate-unit'>qty/hr</span>"
+            );
             consumptionRateNote.textContent = "Add Qty와 Total Block Time을 입력하세요";
             consumptionTotalTime.textContent = "Total Block Time 0:00";
             return;
@@ -342,7 +369,7 @@
         const parsedHours = hourValues.map(parseBlockHours);
 
         if (parsedHours.some((hours) => hours === null)) {
-            consumptionRateResult.textContent = "-";
+            consumptionRateResult.innerHTML = "-";
             consumptionRateNote.textContent = "시간은 2:30 또는 2.5 형식으로 입력하세요";
             consumptionTotalTime.textContent = "Total Block Time -";
             return;
@@ -353,20 +380,23 @@
         consumptionTotalTime.textContent = `Total Block Time ${totalTimeLabel}`;
 
         if (!quantityText || !Number.isFinite(quantity) || quantity < 0) {
-            consumptionRateResult.textContent = "-";
+            consumptionRateResult.innerHTML = "-";
             consumptionRateNote.textContent = "Add Qty를 올바르게 입력하세요";
             return;
         }
 
         if (totalHours <= 0) {
-            consumptionRateResult.textContent = "-";
+            consumptionRateResult.innerHTML = "-";
             consumptionRateNote.textContent = "Total Block Time은 0보다 커야 합니다";
             return;
         }
 
         const rate = quantity / totalHours;
-        consumptionRateResult.textContent = `${rate.toFixed(3)} qty/hr`;
-        consumptionRateNote.textContent = `${quantityText} ÷ 총 ${totalTimeLabel} hr`;
+        consumptionRateResult.innerHTML = (
+            `${rate.toFixed(3)} `
+            + "<span class='consumption-rate-unit'>qty/hr</span>"
+        );
+        consumptionRateNote.textContent = "계산 결과입니다.";
     }
 
     function addConsumptionTimeInput() {

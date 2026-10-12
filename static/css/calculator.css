@@ -7,6 +7,12 @@
     gap: 0.75rem;
 }
 
+.date-clock-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
 /* Glass Cards */
 
 .date-clock-card,
@@ -41,8 +47,8 @@
 }
 
 .date-clock-card {
-    padding: 1.5rem 1.125rem 1.125rem;
-    text-align: center;
+    min-width: 0;
+    padding: 1rem;
 }
 
 .date-result-card {
@@ -86,32 +92,85 @@
     color: #0f172a;
 }
 
-.date-utc-value {
-    display: block;
-    color: var(--app-primary);
-    font-size: 1.88rem;
-    font-weight: 900;
-    letter-spacing: 0;
-    line-height: 1.15;
-    overflow-wrap: anywhere;
+.date-clock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
-.date-local-value {
-    display: block;
+.date-clock-zone {
+    min-width: 0;
     color: #0f172a;
-    font-size: 1.08rem;
+    font-size: 0.86rem;
     font-weight: 900;
     line-height: 1.2;
-    overflow-wrap: anywhere;
+}
+
+.date-clock-offset {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.45rem;
+    color: #475569;
+    background: #f1f5f9;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.date-clock-value {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.date-clock-part {
+    min-width: 0;
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.6rem;
+    border: 1px solid rgba(203, 213, 225, 0.72);
+    border-radius: 0.75rem;
+    text-align: center;
+}
+
+.date-clock-date-part {
+    background: #f8fafc;
+}
+
+.date-clock-time-part {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.date-clock-part-label {
+    color: #64748b;
+    font-size: 0.62rem;
+    font-weight: 850;
+    line-height: 1;
+    text-transform: uppercase;
 }
 
 .date-clock-date,
 .date-clock-time {
     display: block;
+    overflow-wrap: anywhere;
+}
+
+.date-clock-date {
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.25;
 }
 
 .date-clock-time {
-    margin-top: 0.1875rem;
+    color: var(--app-primary);
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
 }
 
 /* Tool Buttons */
@@ -349,6 +408,17 @@
     text-align: center;
 }
 
+/* Oil consumption result unit. Adjust font-size here when needed. */
+.consumption-rate-unit {
+    margin-left: 0.15em;
+    color: #64748b;
+    font-size: 0.55em;
+    font-weight: 800;
+    line-height: 1;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
 .date-input-wrap .app-card-btn {
     min-width: 7rem;
 }
@@ -438,8 +508,31 @@
 
     .date-clock-card,
     .date-result-card {
-        padding: clamp(0.8rem, 2.6vw, 1rem);
+        padding: clamp(0.7rem, 2.4vw, 0.875rem);
         border-radius: 0.95rem;
+    }
+
+    .date-clock-grid {
+        gap: 0.5rem;
+    }
+
+    .date-clock-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.3rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .date-clock-part {
+        padding: 0.5rem 0.35rem;
+    }
+
+    .date-clock-date {
+        font-size: 0.72rem;
+    }
+
+    .date-clock-time {
+        font-size: clamp(1rem, 5vw, 1.3rem);
     }
 
     .date-calculator-card {
@@ -489,14 +582,10 @@
         font-size: 1.35rem;
     }
 
-    .date-utc-value {
-        font-size: 1.55rem;
+    .fuel-result-value span {
+        font-size: 0.85rem;
+        margin-bottom: 0;
     }
-
-    .date-local-value {
-        font-size: 1rem;
-    }
-
     .date-preset-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -544,10 +633,6 @@
     .date-result-primary,
     .fuel-result-value {
         font-size: 1.8rem;
-    }
-
-    .date-utc-value {
-        font-size: 2rem;
     }
 
     .date-tool-btn span {

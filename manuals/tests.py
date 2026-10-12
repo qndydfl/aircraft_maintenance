@@ -68,6 +68,95 @@ class AircraftManualAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+
+class AircraftManageTabTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="manager",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.aircraft = Aircraft.objects.create(name="B787", maker="BOEING")
+        self.category = CommonManualCategory.objects.create(
+            name="Flight Deck",
+            code="FLIGHT_DECK",
+        )
+        self.client.force_login(self.user)
+
+    def test_aircraft_tab_is_the_default(self):
+        response = self.client.get(reverse("aircraft_manage"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["active_tab"], "aircraft")
+        self.assertContains(response, self.aircraft.name)
+        self.assertNotContains(response, self.category.name)
+        self.assertContains(response, "Add Aircraft")
+        self.assertNotContains(response, "Add Common Manual")
+
+    def test_common_tab_shows_common_manual_categories(self):
+        response = self.client.get(reverse("aircraft_manage"), {"tab": "common"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["active_tab"], "common")
+        self.assertContains(response, self.category.name)
+        self.assertNotContains(response, self.aircraft.name)
+        self.assertContains(response, "Add Common Manual")
+        self.assertContains(
+            response,
+            f"{reverse('aircraft_manage')}?tab=common",
+        )
+
+    def test_unknown_tab_falls_back_to_aircraft(self):
+        response = self.client.get(reverse("aircraft_manage"), {"tab": "unknown"})
+
+        self.assertEqual(response.context["active_tab"], "aircraft")
+        self.assertContains(response, self.aircraft.name)
+
+    def test_common_category_create_returns_to_common_tab(self):
+        response = self.client.post(
+            reverse("common_manual_category_create"),
+            {
+                "name": "Cabin Operations",
+                "description": "Shared cabin documents",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('aircraft_manage')}?tab=common",
+            fetch_redirect_response=False,
+        )
+
+
+class CalculatorClockLayoutTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="calculator-user",
+            password="testpass123",
+        )
+        self.client.force_login(self.user)
+
+    def test_utc_and_korea_clocks_are_separate_with_date_and_time(self):
+        response = self.client.get(reverse("calculator"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="date-clock-grid"')
+        self.assertContains(response, 'id="utc-time"')
+        self.assertContains(response, 'id="local-time"')
+        self.assertContains(response, "date-clock-date-part", count=2)
+        self.assertContains(response, "date-clock-time-part", count=2)
+        self.assertContains(response, "KST")
+
+    def test_calculator_notes_do_not_render_initial_formulas(self):
+        response = self.client.get(reverse("calculator"))
+
+        self.assertNotContains(response, "0:00 + 0:00 기준")
+        self.assertNotContains(response, "0.000 g/cm3 기준")
+        self.assertContains(response, "Base time과 Add time을 입력하세요")
+        self.assertContains(response, "Density g/cm3 값을 입력하세요")
+        self.assertContains(response, 'class="consumption-rate-unit"')
+
 class ManualFilePDFEndpointTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(

@@ -1,6 +1,125 @@
 /* static/css/list.css */
 
 /* =========================================================
+   Aircraft / Common Manual Management Tabs
+========================================================= */
+
+body.aircraft-manage-page .manage-tabs-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--page-edge-gap);
+}
+
+body.aircraft-manage-page .manage-tabs {
+    display: inline-flex;
+    gap: 0.4rem;
+    padding: 0.3rem;
+    background: #e9eef5;
+    border: 1px solid var(--border-soft);
+    border-radius: 0.75rem;
+}
+
+body.aircraft-manage-page .manage-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.5rem;
+    padding: 0.55rem 1rem;
+    color: #475569;
+    border-radius: 0.55rem;
+    font-size: 0.86rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+body.aircraft-manage-page .manage-tabs .nav-link:hover {
+    color: var(--aviation-blue);
+    background: rgba(255, 255, 255, 0.72);
+}
+
+body.aircraft-manage-page .manage-tabs .nav-link.active {
+    color: #ffffff;
+    background: var(--aviation-blue);
+    box-shadow: 0 0.25rem 0.75rem rgba(30, 64, 175, 0.22);
+}
+
+body.aircraft-manage-page .manage-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    min-height: 1.4rem;
+    padding-inline: 0.3rem;
+    color: #64748b;
+    background: #ffffff;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    line-height: 1;
+}
+
+body.aircraft-manage-page .manage-tabs .nav-link.active .manage-tab-count {
+    color: var(--aviation-blue);
+}
+
+body.aircraft-manage-page .manage-common-actions-column {
+    width: 19rem;
+}
+
+body.aircraft-manage-page .manage-card-heading {
+    min-width: 0;
+}
+
+body.aircraft-manage-page .manage-file-count-badge {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.65rem;
+    padding: 0.3rem 0.55rem;
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 850;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+@media (max-width: 48rem) {
+    body.aircraft-manage-page .app-main > .app-container {
+        width: 100% !important;
+        max-width: none;
+        margin-inline: auto;
+        padding-right: max(0.875rem, env(safe-area-inset-right)) !important;
+        padding-left: max(0.875rem, env(safe-area-inset-left)) !important;
+    }
+
+    body.aircraft-manage-page .manage-tabs-wrap,
+    body.aircraft-manage-page .manage-tabs {
+        width: 100%;
+    }
+
+    body.aircraft-manage-page .manage-tabs-wrap,
+    body.aircraft-manage-page .app-main > .app-container > .portal-card {
+        max-width: 40rem;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    body.aircraft-manage-page .manage-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.aircraft-manage-page .manage-tabs .nav-link {
+        min-width: 0;
+        padding-inline: 0.55rem;
+    }
+}
+
+/* =========================================================
    Chapter Page
 ========================================================= */
 
@@ -567,7 +686,7 @@ body.chapter-page .portal-chapter-result-card {
     margin-top: auto;
     padding-top: 0.75rem;
 
-    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    /* border-top: 1px solid rgba(226, 232, 240, 0.9); */
 }
 
 .portal-list-card-actions .btn,
@@ -975,6 +1094,26 @@ body.chapter-page .portal-chapter-result-card {
 @media (min-width: 75rem) {
     body.chapter-page .portal-chapter-bookmark-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Keep management cards padded and their paired actions side by side on phones. */
+@media (max-width: 48rem) {
+    body.aircraft-manage-page .portal-list-card {
+        padding: 0.875rem;
+    }
+
+    body.aircraft-manage-page .portal-list-card-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    body.aircraft-manage-page .portal-list-card-actions .btn,
+    body.aircraft-manage-page .portal-list-card-actions .app-card-btn {
+        width: 100%;
+        min-width: 0;
+        white-space: nowrap;
     }
 }
 

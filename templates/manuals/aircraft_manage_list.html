@@ -2,7 +2,7 @@
 {% load static %} 
 {% block body_class %} list-page aircraft-manage-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=55" />
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=59" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -10,15 +10,23 @@
     <div class="app-navbar-title">
         <p class="page-eyebrow mb-1">MANAGE</p>
 
-        <h2 class="page-title mb-2">Aircraft Manage</h2>
+        <h2 class="page-title mb-2">Manual Management</h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            Boeing / Airbus 기종을 관리합니다.
+            항공기와 공통 매뉴얼을 관리합니다.
         </p>
     </div>
 
     <div class="page-actions">
         {% if user.is_superuser %}
+        {% if active_tab == "common" %}
+        <a
+            href="{% url 'common_manual_category_create' %}"
+            class="btn btn-success app-action-btn d-none d-md-inline-flex"
+        >
+            Add Common Manual
+        </a>
+        {% else %}
         <a
             href="{% url 'aircraft_create' %}"
             class="btn btn-primary app-action-btn d-none d-md-inline-flex"
@@ -26,12 +34,7 @@
             Add Aircraft
         </a>
 
-        <a
-            href="{% url 'common_manual_category_create' %}"
-            class="btn btn-outline-success app-action-btn d-none d-md-inline-flex"
-        >
-            Add Common Manual
-        </a>
+        {% endif %}
         {% endif %}
     </div>
     {% include 'includes/navbar_ending.html' %}
@@ -39,6 +42,32 @@
 {% endblock navbar_content %} 
 
 {% block content %}
+
+<nav class="manage-tabs-wrap" aria-label="Management sections">
+    <div class="nav nav-pills manage-tabs" role="tablist">
+        <a
+            href="{{ aircraft_manage_aircraft_url }}"
+            class="nav-link{% if active_tab == 'aircraft' %} active{% endif %}"
+            role="tab"
+            aria-selected="{% if active_tab == 'aircraft' %}true{% else %}false{% endif %}"
+        >
+            Aircraft
+            <span class="manage-tab-count">{{ aircrafts|length }}</span>
+        </a>
+
+        <a
+            href="{{ aircraft_manage_common_url }}"
+            class="nav-link{% if active_tab == 'common' %} active{% endif %}"
+            role="tab"
+            aria-selected="{% if active_tab == 'common' %}true{% else %}false{% endif %}"
+        >
+            Common Manuals
+            <span class="manage-tab-count">{{ common_categories|length }}</span>
+        </a>
+    </div>
+</nav>
+
+{% if active_tab == "aircraft" %}
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
@@ -115,7 +144,7 @@
             {% for aircraft in aircrafts %}
             <div class="portal-list-card">
                 <div class="portal-list-card-header">
-                    <div>
+                    <div class="manage-card-heading">
                         {% if aircraft.maker == "BOEING" %}
                         <span class="badge bg-primary portal-list-badge">
                             Boeing
@@ -164,18 +193,7 @@
         </div>
     </div>
 </div>
-
-<div class="page-hero mb-4 mt-4">
-    <div>
-        <p class="page-eyebrow mb-1">COMMON</p>
-
-        <h2 class="page-title mb-2">Common Manuals</h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            Boeing / Airbus 공통 문서 카테고리와 업로드 항목을 관리합니다.
-        </p>
-    </div>
-</div>
+{% else %}
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
@@ -189,7 +207,7 @@
                         <th>Code</th>
                         <th>Description</th>
                         <th>Files</th>
-                        <th style="width: 180px">Action</th>
+                        <th class="manage-common-actions-column">Action</th>
                     </tr>
                 </thead>
 
@@ -212,6 +230,20 @@
 
                         <td>
                             <div class="d-flex gap-2 flex-wrap">
+                                <a
+                                    href="{% url 'common_manual_category_detail' category.pk %}?back={{ aircraft_manage_common_url|urlencode }}"
+                                    class="btn btn-sm btn-primary"
+                                >
+                                    Open
+                                </a>
+
+                                <a
+                                    href="{% url 'common_manual_file_create' %}?category={{ category.pk }}&from_manage=1"
+                                    class="btn btn-sm btn-outline-primary"
+                                >
+                                    Upload
+                                </a>
+
                                 <a
                                     href="{% url 'common_manual_category_update' category.pk %}"
                                     class="btn btn-sm btn-warning"
@@ -243,7 +275,7 @@
             {% for category in common_categories %}
             <div class="portal-list-card">
                 <div class="portal-list-card-header">
-                    <div>
+                    <div class="manage-card-heading">
                         <span class="badge bg-success portal-list-badge">
                             {{ category.code }}
                         </span>
@@ -253,19 +285,18 @@
                         </h5>
 
                         <p class="portal-list-card-desc mb-1">
-                            {{ category.description|default:"공통 매뉴얼
-                            카테고리입니다." }}
-                        </p>
-
-                        <p class="portal-list-card-desc mb-0">
-                            {{ category.files.count }} file(s)
+                            {{ category.description|default:"공통 매뉴얼 카테고리입니다." }}
                         </p>
                     </div>
+
+                    <span class="manage-file-count-badge">
+                        {{ category.files.count }} file(s)
+                    </span>
                 </div>
 
                 <div class="portal-list-card-actions">
                     <a
-                        href="{% url 'common_manual_category_detail' category.pk %}?back={% url 'aircraft_manage' %}"
+                        href="{% url 'common_manual_category_detail' category.pk %}?back={{ aircraft_manage_common_url|urlencode }}"
                         class="btn btn-primary app-card-btn"
                     >
                         Open
@@ -301,5 +332,6 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock content %}
