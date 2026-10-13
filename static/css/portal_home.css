@@ -1870,6 +1870,10 @@ Calm Operations Dashboard
     max-width: 72rem;
     min-height: auto;
 
+    opacity: 1;
+    transform: none;
+    transition: none;
+
     border-radius: 0.5rem;
     background: #071525;
     box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.2);

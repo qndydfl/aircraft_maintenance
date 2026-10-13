@@ -232,16 +232,17 @@ body.manual-search-page .result-section {
     .manual-type-options {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.1875rem;
+        gap: 0.25rem;
     }
 
-    .manual-type-option {
+    body.manual-search-page .manual-type-option {
         width: 100%;
         min-width: 0;
-        min-height: 1.5rem !important;
-        padding: 0.8rem 0.2rem;
-        border-radius: 0.5rem;
-        font-size: 0.68rem;
+        min-height: 2.125rem !important;
+        padding: 0.35rem 0.25rem !important;
+        border-radius: 0.45rem;
+        font-size: var(--mobile-small) !important;
+        line-height: 1.1;
     }
 
     .manual-search-filter-row {
