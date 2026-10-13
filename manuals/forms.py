@@ -190,6 +190,7 @@ class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "accept": ".zip",
+                    "data-package-zip-input": "",
                 }
             ),
             "revision_no": forms.TextInput(attrs={"class": "form-control"}),
@@ -437,3 +438,40 @@ class OtherManualFileForm(forms.ModelForm):
             )
 
         return file
+
+
+class OtherManualFolderUploadForm(forms.Form):
+    category = forms.ModelChoiceField(
+        queryset=OtherManualCategory.objects.select_related("aircraft").all(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    folder_package = forms.FileField(
+        widget=forms.ClearableFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": ".zip",
+                "data-package-zip-input": "",
+            }
+        ),
+        help_text="ZIP 파일 또는 아래 폴더 선택 기능을 이용하세요.",
+    )
+    revision_no = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    revision_date_text = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+    )
+
+    def clean_folder_package(self):
+        package = self.cleaned_data.get("folder_package")
+
+        if package and os.path.splitext(package.name)[1].lower() != ".zip":
+            raise ValidationError("OTHER 폴더 패키지는 ZIP 형식이어야 합니다.")
+
+        return package

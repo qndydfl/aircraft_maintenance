@@ -3,6 +3,72 @@
    Load this file after every page-specific stylesheet.
 */
 
+/* Central desktop/browser typography controls (769px and wider). */
+:root {
+    --desktop-font: 0.9375rem;
+    --desktop-small: 0.8125rem;
+    --desktop-label: 0.75rem;
+    --desktop-card-title: 1rem;
+    --desktop-page-title: 1.5rem;
+    --desktop-navbar-title: 1.125rem;
+    --desktop-button-font: 0.875rem;
+    --desktop-input-font: 0.9375rem;
+}
+
+@media (min-width: 48.0625rem) {
+    body:not(.pdf-viewer-page) {
+        font-size: var(--desktop-font);
+    }
+
+    body:not(.pdf-viewer-page) .app-navbar-page-content .page-title {
+        font-size: var(--desktop-navbar-title);
+    }
+
+    body:not(.pdf-viewer-page) .page-hero .page-title {
+        font-size: var(--desktop-page-title);
+    }
+
+    body:not(.pdf-viewer-page) .section-title,
+    body:not(.pdf-viewer-page) .card-title,
+    body:not(.pdf-viewer-page) .portal-card h5,
+    body:not(.pdf-viewer-page) .aircraft-title {
+        font-size: var(--desktop-card-title);
+        line-height: 1.25;
+    }
+
+    body:not(.pdf-viewer-page) .page-subtitle,
+    body:not(.pdf-viewer-page) .section-description,
+    body:not(.pdf-viewer-page) .card-description,
+    body:not(.pdf-viewer-page) .manual-card-note,
+    body:not(.pdf-viewer-page) .text-muted,
+    body:not(.pdf-viewer-page) small,
+    body:not(.pdf-viewer-page) .small {
+        font-size: var(--desktop-small);
+    }
+
+    body:not(.pdf-viewer-page) .page-eyebrow,
+    body:not(.pdf-viewer-page) .form-label,
+    body:not(.pdf-viewer-page) .badge,
+    body:not(.pdf-viewer-page) .manual-badge,
+    body:not(.pdf-viewer-page) .portal-list-badge,
+    body:not(.pdf-viewer-page) .portal-detail-pill,
+    body:not(.pdf-viewer-page) .dispatch-status-badge {
+        font-size: var(--desktop-label) !important;
+    }
+
+    body:not(.pdf-viewer-page) .btn,
+    body:not(.pdf-viewer-page) button,
+    body:not(.pdf-viewer-page) [role="button"] {
+        font-size: var(--desktop-button-font);
+    }
+
+    body:not(.pdf-viewer-page) input,
+    body:not(.pdf-viewer-page) select,
+    body:not(.pdf-viewer-page) textarea {
+        font-size: var(--desktop-input-font);
+    }
+}
+
 /* Keep the first and last content edges equal on every standard page. */
 body:not(.pdf-viewer-page):not(.login-page) .app-main {
     padding-top: var(--page-edge-gap) !important;
@@ -159,6 +225,19 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 }
 
 @media (max-width: 48rem) {
+    :root {
+        /* Central mobile typography controls (phones up to 768px). */
+        --mobile-font: 0.875rem;
+        --mobile-small: 0.75rem;
+        --mobile-label: 0.6875rem;
+        --mobile-card-title: 0.9375rem;
+        --mobile-page-title: 1.125rem;
+        --mobile-navbar-title: 1rem;
+        --mobile-button-font: 0.8125rem;
+        --mobile-input-font: 1rem;
+        --mobile-control-font: 0.875rem;
+    }
+
     body.chapter-page {
         padding-top: var(--safe-area-top) !important;
         overflow: auto !important;
@@ -218,7 +297,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     body {
-        font-size: 0.8125rem;
+        font-size: var(--mobile-font);
         line-height: 1.45;
         overflow-x: hidden;
     }
@@ -271,7 +350,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     .app-navbar-page-content .page-title {
-        font-size: 1rem;
+        font-size: var(--mobile-navbar-title);
     }
 
     .app-navbar-page-content .page-actions {
@@ -282,32 +361,32 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     .app-navbar-page-content .page-actions .btn {
         min-width: auto;
         padding-inline: 0.625rem;
-        font-size: 0.6875rem;
+        font-size: var(--mobile-label);
     }
 
     .page-eyebrow {
-        font-size: 0.6875rem;
+        font-size: var(--mobile-label);
     }
 
     .page-title {
-        font-size: 1.125rem;
+        font-size: var(--mobile-page-title);
         line-height: 1.2;
     }
 
     .page-subtitle {
-        font-size: 0.75rem;
+        font-size: var(--mobile-small);
         line-height: 1.45;
     }
 
     .section-title,
     .card-title,
     .aircraft-title {
-        font-size: 0.9375rem;
+        font-size: var(--mobile-card-title);
     }
 
     .portal-card h5,
     .mel-dispatch-results h5 {
-        font-size: 1rem;
+        font-size: var(--mobile-card-title);
         line-height: 1.25;
     }
 
@@ -317,11 +396,11 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     .text-muted,
     small,
     .small {
-        font-size: 0.75rem;
+        font-size: var(--mobile-small);
     }
 
     .form-label {
-        font-size: 0.6875rem;
+        font-size: var(--mobile-label);
     }
 
     img,
@@ -335,14 +414,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     input,
     select,
     textarea {
-        font-size: 1rem;
+        font-size: var(--mobile-input-font);
     }
 
     body:not(.pdf-viewer-page) .btn,
     body:not(.pdf-viewer-page) button,
     body:not(.pdf-viewer-page) [role="button"] {
         min-height: 2.75rem;
-        font-size: 0.75rem;
+        font-size: var(--mobile-button-font);
     }
 
     body:not(.pdf-viewer-page) .nav-link,
@@ -351,7 +430,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     body:not(.pdf-viewer-page) .portal-list-badge,
     body:not(.pdf-viewer-page) .portal-detail-pill,
     body:not(.pdf-viewer-page) .dispatch-status-badge {
-        font-size: 0.6875rem !important;
+        font-size: var(--mobile-label) !important;
     }
 
     .portal-card .card-body,
@@ -398,7 +477,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     .mobile-nav-text {
-        font-size: 0.6875rem;
+        font-size: var(--mobile-label);
     }
 
     .app-user-name {
@@ -413,7 +492,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         min-height: 2rem !important;
         height: 2rem !important;
         padding: 0.3rem 0.625rem;
-        font-size: 0.6875rem;
+        font-size: var(--mobile-label);
         line-height: 1;
         white-space: nowrap;
     }
@@ -432,7 +511,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         min-height: 2.5rem;
         margin-bottom: 0.75rem !important;
         padding: 0.45rem 0.75rem;
-        font-size: 0.75rem;
+        font-size: var(--mobile-button-font);
         font-weight: 750;
         line-height: 1.2;
     }
@@ -462,7 +541,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     body.manual-search-page .mobile-filter-collapse .form-label,
     body.dispatch-search-page .mobile-filter-collapse .form-label {
         margin-bottom: 0.25rem;
-        font-size: 0.6875rem;
+        font-size: var(--mobile-label);
         font-weight: 700;
         line-height: 1.2;
     }
@@ -472,25 +551,25 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         min-height: 2.5rem;
         padding-top: 0.375rem;
         padding-bottom: 0.375rem;
-        font-size: 1rem;
+        font-size: var(--mobile-input-font);
         line-height: 1.2;
     }
 
     body.manual-search-page .mobile-filter-collapse .form-select,
     body.dispatch-search-page .mobile-filter-collapse .form-select {
-        font-size: 0.875rem;
+        font-size: var(--mobile-control-font);
     }
 
     body.manual-search-page .mobile-filter-collapse .form-control::placeholder,
     body.dispatch-search-page .mobile-filter-collapse .form-control::placeholder {
-        font-size: 0.8125rem;
+        font-size: var(--mobile-font);
     }
 
     body.manual-search-page .mobile-filter-collapse .app-card-btn,
     body.dispatch-search-page .mobile-filter-collapse .app-card-btn {
         min-height: 2.5rem;
         padding: 0.45rem 0.75rem;
-        font-size: 0.75rem;
+        font-size: var(--mobile-button-font);
         line-height: 1.2;
     }
 
@@ -503,12 +582,12 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     body.dispatch-search-page .result-tabs .nav-link {
         min-height: 2.25rem;
         padding: 0.4rem 0.625rem;
-        font-size: 0.6875rem !important;
+        font-size: var(--mobile-label) !important;
         line-height: 1.2;
     }
 
     body.manual-search-page .result-tabs .nav-link {
-        font-size: 0.75rem !important;
+        font-size: var(--mobile-button-font) !important;
     }
 
     body.manual-search-page .manual-group-info {
@@ -522,6 +601,71 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     .navbar-collapse {
         max-height: calc(100vh - 5rem);
         overflow-y: auto;
+    }
+}
+
+/* Compact OTHER folder/file cards on narrow screens. */
+.other-file-ready-mobile {
+    display: none;
+}
+
+@media (max-width: 48rem) {
+    body.other-manual-detail-page .other-file-ready-desktop {
+        display: none !important;
+    }
+
+    body.other-manual-detail-page .other-manual-file-type-row {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-width: 0;
+        margin-bottom: 0.3rem;
+    }
+
+    body.other-manual-detail-page .other-manual-file-type-row .portal-detail-eyebrow {
+        margin: 0 !important;
+    }
+
+    body.other-manual-detail-page .other-file-ready-mobile {
+        display: inline-flex !important;
+        min-height: 1.15rem;
+        padding: 0.12rem 0.35rem;
+        font-size: 0.56rem !important;
+        line-height: 1;
+    }
+
+    body.other-manual-detail-page .portal-detail-eyebrow {
+        font-size: 0.6rem;
+        line-height: 1.15;
+        letter-spacing: 0.055em;
+    }
+
+    body.other-manual-detail-page .portal-card h5.portal-detail-title {
+        overflow-wrap: anywhere;
+        font-size: 0.8rem;
+        line-height: 1.25;
+    }
+
+    body.other-manual-detail-page .revision-info,
+    body.other-manual-detail-page .manual-uploaded,
+    body.other-manual-detail-page .portal-detail-card > .card-body > p.small {
+        font-size: 0.65rem;
+        line-height: 1.35;
+    }
+
+    body.other-manual-detail-page .manual-badge {
+        padding: 0.18rem 0.35rem;
+        font-size: 0.58rem !important;
+    }
+
+    body.other-manual-detail-page .other-manual-folder-card-icon {
+        font-size: 1.2rem;
+    }
+
+    body.other-manual-detail-page .portal-detail-card .app-card-btn.mobile-show-btn {
+        min-height: 2.25rem;
+        padding: 0.35rem 0.55rem;
+        font-size: 0.72rem;
     }
 }
 
@@ -611,20 +755,20 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     body:not(.pdf-viewer-page):not(.login-page) .app-action-btn {
         min-height: 2.5rem;
         padding: 0.4rem 0.7rem;
-        font-size: 0.75rem;
+        font-size: var(--mobile-button-font);
         line-height: 1.2;
     }
 
     body:not(.pdf-viewer-page):not(.login-page) .portal-card h5,
     body:not(.pdf-viewer-page):not(.login-page) .aircraft-title,
     body:not(.pdf-viewer-page):not(.login-page) .section-title {
-        font-size: 0.95rem;
+        font-size: var(--mobile-card-title);
         line-height: 1.25;
     }
 
     body:not(.pdf-viewer-page):not(.login-page) .section-description,
     body:not(.pdf-viewer-page):not(.login-page) .manual-card-note {
-        font-size: 0.75rem;
+        font-size: var(--mobile-small);
         line-height: 1.4;
     }
 }

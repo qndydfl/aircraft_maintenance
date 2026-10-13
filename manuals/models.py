@@ -397,6 +397,56 @@ class ManualPackage(models.Model):
         return f"{self.aircraft.name} - {self.manual_type}"
 
 
+class ManualPackageFile(models.Model):
+    package = models.ForeignKey(
+        ManualPackage,
+        on_delete=models.CASCADE,
+        related_name="package_files",
+    )
+    relative_path = models.CharField(max_length=500)
+    folder_path = models.CharField(max_length=500, blank=True, default="")
+    file_name = models.CharField(max_length=255)
+    extension = models.CharField(max_length=20, blank=True, default="")
+    file_size = models.PositiveBigIntegerField(default=0)
+    preview_pdf_relative_path = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+    )
+
+    class Meta:
+        ordering = ["folder_path", "file_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["package", "relative_path"],
+                name="unique_manual_package_file_path",
+            )
+        ]
+
+    @property
+    def is_pdf(self):
+        return self.extension.lower() == ".pdf"
+
+    @property
+    def is_image(self):
+        return self.extension.lower() in {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".bmp",
+            ".tif",
+            ".tiff",
+        }
+
+    @property
+    def can_preview(self):
+        return self.is_pdf or self.is_image or bool(self.preview_pdf_relative_path)
+
+    def __str__(self):
+        return f"{self.package} - {self.relative_path}"
+
+
 class ManualChapter(models.Model):
     package = models.ForeignKey(
         ManualPackage, on_delete=models.CASCADE, related_name="chapters"
@@ -598,6 +648,8 @@ class OtherManualFile(models.Model):
         related_name="files",
     )
     title = models.CharField(max_length=200)
+    relative_path = models.CharField(max_length=500, blank=True, default="")
+    folder_path = models.CharField(max_length=500, blank=True, default="")
     file = models.FileField(upload_to="manuals/other/")
     converted_pdf = models.FileField(
         upload_to="manuals/other/converted/",
@@ -610,7 +662,7 @@ class OtherManualFile(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["title"]
+        ordering = ["folder_path", "title"]
 
     def __str__(self):
         return f"{self.category} / {self.title}"

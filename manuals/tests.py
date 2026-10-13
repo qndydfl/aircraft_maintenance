@@ -1,6 +1,9 @@
 from datetime import timedelta
+import io
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
+import zipfile
 
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
@@ -9,17 +12,302 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
 from .forms import CommonManualCategoryForm
-from .services import extract_ipc_chapter_titles, save_package_revision_info
+from .services import (
+    extract_ipc_chapter_titles,
+    index_manual_package_files,
+    save_package_revision_info,
+)
 from .models import (
     Aircraft,
     ManualChapter,
     ManualFile,
     ManualFilePDFPage,
     ManualPackage,
+    ManualPackageFile,
     ManualPDFPage,
     CommonManualCategory,
     CommonManualFile,
+    OtherManualCategory,
+    OtherManualFile,
+    ReindexJob,
 )
+
+
+class ManualPackageFileTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="package-file-user",
+            password="test-password",
+            is_staff=True,
+        )
+        self.client.force_login(self.user)
+        self.aircraft = Aircraft.objects.create(maker="BOEING", name="B737")
+        self.package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="AMM",
+        )
+
+    def test_indexes_original_zip_files_and_keeps_folder_paths(self):
+        with TemporaryDirectory(dir=Path.cwd() / "tmp") as temp_dir:
+            root = Path(temp_dir)
+            nested = root / "ATA 21" / "Forms"
+            nested.mkdir(parents=True)
+            (root / "index.html").write_text("index", encoding="utf-8")
+            (nested / "procedure.pdf").write_bytes(b"pdf")
+            (nested / "inspection.xlsx").write_bytes(b"xlsx")
+            (nested / "notes.docx").write_bytes(b"docx")
+
+            def fake_convert(input_path, output_dir):
+                output_path = Path(output_dir) / (Path(input_path).stem + ".pdf")
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_bytes(b"preview")
+                return str(output_path)
+
+            with patch(
+                "manuals.services.convert_office_to_pdf",
+                side_effect=fake_convert,
+            ):
+                count = index_manual_package_files(self.package, str(root))
+
+            self.assertEqual(count, 4)
+            self.assertEqual(
+                set(
+                    self.package.package_files.values_list(
+                        "relative_path",
+                        flat=True,
+                    )
+                ),
+                {
+                    "index.html",
+                    "ATA 21/Forms/procedure.pdf",
+                    "ATA 21/Forms/inspection.xlsx",
+                    "ATA 21/Forms/notes.docx",
+                },
+            )
+            office_file = self.package.package_files.get(
+                file_name="inspection.xlsx"
+            )
+            self.assertEqual(office_file.folder_path, "ATA 21/Forms")
+            self.assertTrue(office_file.preview_pdf_relative_path)
+
+    def test_office_conversion_failure_keeps_original_file(self):
+        with TemporaryDirectory(dir=Path.cwd() / "tmp") as temp_dir:
+            root = Path(temp_dir)
+            (root / "inspection.xlsx").write_bytes(b"xlsx")
+
+            with patch(
+                "manuals.services.convert_office_to_pdf",
+                side_effect=RuntimeError("LibreOffice unavailable"),
+            ):
+                index_manual_package_files(self.package, str(root))
+
+            package_file = self.package.package_files.get()
+            self.assertEqual(package_file.relative_path, "inspection.xlsx")
+            self.assertEqual(package_file.preview_pdf_relative_path, "")
+            self.assertFalse(package_file.can_preview)
+
+    def test_download_and_preview_serve_registered_original(self):
+        with TemporaryDirectory(dir=Path.cwd() / "tmp") as temp_dir:
+            root = Path(temp_dir)
+            pdf_path = root / "ATA 21" / "procedure.pdf"
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"test-pdf")
+            self.package.extracted_path = str(root)
+            self.package.save(update_fields=["extracted_path"])
+            package_file = ManualPackageFile.objects.create(
+                package=self.package,
+                relative_path="ATA 21/procedure.pdf",
+                folder_path="ATA 21",
+                file_name="procedure.pdf",
+                extension=".pdf",
+                file_size=8,
+            )
+
+            download_response = self.client.get(
+                reverse("manual_package_file_download", args=[package_file.pk])
+            )
+            preview_response = self.client.get(
+                reverse("manual_package_file_preview", args=[package_file.pk])
+            )
+
+            self.assertEqual(download_response.status_code, 200)
+            self.assertIn(
+                "attachment",
+                download_response.headers["Content-Disposition"],
+            )
+            self.assertEqual(b"".join(download_response.streaming_content), b"test-pdf")
+            download_response.close()
+            self.assertEqual(preview_response.status_code, 200)
+            self.assertEqual(preview_response.headers["Content-Type"], "application/pdf")
+            b"".join(preview_response.streaming_content)
+            preview_response.close()
+
+    def test_file_endpoint_rejects_path_outside_extracted_directory(self):
+        with TemporaryDirectory(dir=Path.cwd() / "tmp") as temp_dir:
+            root = Path(temp_dir)
+            self.package.extracted_path = str(root)
+            self.package.save(update_fields=["extracted_path"])
+            package_file = ManualPackageFile.objects.create(
+                package=self.package,
+                relative_path="../outside.pdf",
+                file_name="outside.pdf",
+                extension=".pdf",
+            )
+
+            response = self.client.get(
+                reverse("manual_package_file_download", args=[package_file.pk])
+            )
+
+            self.assertEqual(response.status_code, 404)
+
+    def test_chapter_workspace_lists_files_by_folder(self):
+        ManualPackageFile.objects.create(
+            package=self.package,
+            relative_path="ATA 21/Forms/inspection.xlsx",
+            folder_path="ATA 21/Forms",
+            file_name="inspection.xlsx",
+            extension=".xlsx",
+        )
+
+        response = self.client.get(
+            reverse("manual_chapter_list", args=[self.package.pk])
+        )
+
+        self.assertContains(response, "Package files")
+        self.assertContains(response, "ATA 21")
+        self.assertContains(response, "Forms")
+        self.assertContains(response, "inspection.xlsx")
+
+    def test_package_upload_form_supports_folder_selection(self):
+        response = self.client.get(reverse("manual_package_create"))
+
+        self.assertContains(response, "폴더 선택")
+        self.assertContains(response, "개별 파일 선택")
+        self.assertContains(response, "webkitdirectory")
+        self.assertContains(response, "data-manual-folder-input")
+        self.assertContains(response, "data-manual-files-input")
+        self.assertContains(response, "manual_folder_upload.js")
+
+
+class OtherManualFolderUploadTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="other-folder-user",
+            password="test-password",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(self.user)
+        self.aircraft = Aircraft.objects.create(maker="BOEING", name="B777")
+        self.category = OtherManualCategory.objects.create(
+            aircraft=self.aircraft,
+            name="OTHER",
+            code="OTHER",
+        )
+
+    def test_other_folder_form_offers_folder_selection(self):
+        response = self.client.get(
+            reverse("other_manual_folder_upload")
+            + f"?category={self.category.pk}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Upload OTHER Manuals")
+        self.assertContains(response, "개별 파일 선택")
+        self.assertContains(response, "webkitdirectory")
+        self.assertContains(response, "data-manual-folder-input")
+        self.assertContains(response, "data-manual-files-input")
+
+    def test_upload_preserves_nested_other_folder_paths(self):
+        archive = io.BytesIO()
+
+        with zipfile.ZipFile(archive, "w") as zip_file:
+            zip_file.writestr("Maintenance/Forms/checklist.docx", b"word")
+            zip_file.writestr("Maintenance/Data/limits.xlsx", b"excel")
+            zip_file.writestr("Maintenance/readme.txt", b"skip")
+
+        archive.seek(0)
+
+        with TemporaryDirectory(dir=Path.cwd() / "tmp") as media_root:
+            with override_settings(MEDIA_ROOT=media_root, REINDEX_INLINE=False):
+                response = self.client.post(
+                    reverse("other_manual_folder_upload")
+                    + f"?category={self.category.pk}",
+                    {
+                        "category": self.category.pk,
+                        "folder_package": SimpleUploadedFile(
+                            "Maintenance.zip",
+                            archive.getvalue(),
+                            content_type="application/zip",
+                        ),
+                        "revision_no": "R1",
+                    },
+                )
+
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(self.category.files.count(), 2)
+                checklist = self.category.files.get(title="checklist")
+                limits = self.category.files.get(title="limits")
+                self.assertEqual(
+                    checklist.relative_path,
+                    "Maintenance/Forms/checklist.docx",
+                )
+                self.assertEqual(checklist.folder_path, "Maintenance/Forms")
+                self.assertEqual(limits.folder_path, "Maintenance/Data")
+                self.assertEqual(checklist.revision_no, "R1")
+                self.assertEqual(
+                    ReindexJob.objects.filter(
+                        target_type=ReindexJob.TARGET_OTHER_FILE
+                    ).count(),
+                    2,
+                )
+
+                detail_response = self.client.get(
+                    reverse(
+                        "other_manual_category_detail",
+                        args=[self.category.pk],
+                    )
+                )
+                self.assertContains(detail_response, "Maintenance")
+                self.assertContains(detail_response, "OTHER FOLDER")
+                self.assertContains(detail_response, "Open")
+
+                maintenance_response = self.client.get(
+                    reverse(
+                        "other_manual_folder_browse",
+                        args=[self.category.pk],
+                    ),
+                    {"path": "Maintenance"},
+                )
+                self.assertContains(maintenance_response, "Forms")
+                self.assertContains(maintenance_response, "Data")
+
+                forms_response = self.client.get(
+                    reverse(
+                        "other_manual_folder_browse",
+                        args=[self.category.pk],
+                    ),
+                    {"path": "Maintenance/Forms"},
+                )
+                self.assertContains(forms_response, "checklist")
+                self.assertContains(forms_response, "Download")
+
+                data_response = self.client.get(
+                    reverse(
+                        "other_manual_folder_browse",
+                        args=[self.category.pk],
+                    ),
+                    {"path": "Maintenance/Data"},
+                )
+                self.assertContains(data_response, "limits")
+
+    def test_folder_browser_rejects_parent_path(self):
+        response = self.client.get(
+            reverse("other_manual_folder_browse", args=[self.category.pk]),
+            {"path": "../outside"},
+        )
+
+        self.assertEqual(response.status_code, 404)
 
 
 class IPCIndexNavigationTests(TestCase):

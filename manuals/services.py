@@ -2,7 +2,13 @@ import os, re, zipfile, fitz, shutil, uuid, tempfile, subprocess
 
 from django.conf import settings
 from bs4 import BeautifulSoup
-from .models import ManualChapter, ManualPDFPage, ManualFilePDFPage, OtherManualPDFPage
+from .models import (
+    ManualChapter,
+    ManualPackageFile,
+    ManualPDFPage,
+    ManualFilePDFPage,
+    OtherManualPDFPage,
+)
 from django.db import transaction
 from PIL import Image
 import pytesseract
@@ -12,6 +18,7 @@ from .revision_utils import extract_revision_info_from_filename
 
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]
 OFFICE_EXTENSIONS = [".doc", ".docx", ".xls", ".xlsx"]
+PACKAGE_PREVIEW_DIRECTORY = "_previews"
 
 
 def get_libreoffice_command():
@@ -103,6 +110,73 @@ def convert_image_to_pdf(input_path, output_dir):
         )
 
     return pdf_path
+
+
+def index_manual_package_files(package, extract_to):
+    """Register ZIP contents while keeping original files and paths intact."""
+    extracted_root = os.path.abspath(extract_to)
+    source_files = []
+
+    for root, dirs, files in os.walk(extracted_root):
+        dirs[:] = [name for name in dirs if name != PACKAGE_PREVIEW_DIRECTORY]
+
+        for file_name in files:
+            absolute_path = os.path.abspath(os.path.join(root, file_name))
+
+            if os.path.commonpath([extracted_root, absolute_path]) != extracted_root:
+                continue
+
+            source_files.append(absolute_path)
+
+    records = []
+
+    for absolute_path in sorted(source_files):
+        relative_path = os.path.relpath(absolute_path, extracted_root).replace(
+            os.sep,
+            "/",
+        )
+        folder_path = os.path.dirname(relative_path).replace(os.sep, "/")
+        file_name = os.path.basename(absolute_path)
+        extension = os.path.splitext(file_name)[1].lower()
+        preview_relative_path = ""
+
+        if extension in OFFICE_EXTENSIONS:
+            preview_directory = os.path.join(
+                extracted_root,
+                PACKAGE_PREVIEW_DIRECTORY,
+                relative_path,
+            )
+            os.makedirs(preview_directory, exist_ok=True)
+
+            try:
+                converted_path = convert_office_to_pdf(
+                    input_path=absolute_path,
+                    output_dir=preview_directory,
+                )
+                preview_relative_path = os.path.relpath(
+                    converted_path,
+                    extracted_root,
+                ).replace(os.sep, "/")
+            except Exception:
+                # The original file remains available even when LibreOffice is
+                # unavailable or cannot convert a particular document.
+                shutil.rmtree(preview_directory, ignore_errors=True)
+
+        records.append(
+            ManualPackageFile(
+                package=package,
+                relative_path=relative_path,
+                folder_path=folder_path,
+                file_name=file_name,
+                extension=extension,
+                file_size=os.path.getsize(absolute_path),
+                preview_pdf_relative_path=preview_relative_path,
+            )
+        )
+
+    ManualPackageFile.objects.filter(package=package).delete()
+    ManualPackageFile.objects.bulk_create(records, batch_size=500)
+    return len(records)
 
 
 def delete_stored_file(file_field):
@@ -787,21 +861,6 @@ def process_manual_package_safely(package):
             extract_to=temp_extract_to,
         )
 
-        for root, dirs, files in os.walk(temp_extract_to):
-            for file_name in files:
-                ext = os.path.splitext(file_name)[1].lower()
-
-                if ext in [".xlsx", ".xls"]:
-                    excel_path = os.path.join(root, file_name)
-
-                    try:
-                        convert_office_to_pdf(
-                            input_path=excel_path,
-                            output_dir=root,
-                        )
-                    except Exception as error:
-                        raise Exception(f"{file_name} 변환 실패: {error}")
-
         if temp_zip_path and os.path.exists(temp_zip_path):
             os.remove(temp_zip_path)
             temp_zip_path = None
@@ -817,6 +876,11 @@ def process_manual_package_safely(package):
             package.extracted_path = temp_extract_to
             package.processed = False
             package.save(update_fields=["extracted_path", "processed"])
+
+            file_count = index_manual_package_files(
+                package=package,
+                extract_to=temp_extract_to,
+            )
 
             if index_html_path:
                 chapter_count = parse_index_html(
@@ -852,6 +916,7 @@ def process_manual_package_safely(package):
         return {
             "chapter_count": chapter_count,
             "page_count": page_count,
+            "file_count": file_count,
         }
 
     except Exception:
@@ -1173,6 +1238,8 @@ def parse_pdf_files_without_index(package, extract_to):
     pdf_files = []
 
     for root, dirs, files in os.walk(extract_to):
+        dirs[:] = [name for name in dirs if name != PACKAGE_PREVIEW_DIRECTORY]
+
         for file_name in files:
             if not file_name.lower().endswith(".pdf"):
                 continue

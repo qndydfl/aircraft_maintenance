@@ -3,7 +3,7 @@
 {% block body_class %} detail-page aircraft-manual-detail-page {% endblock body_class %} 
 {% block title %} {{ aircraft.name }} Manuals {% endblock title %}
 {% block css %}
-<link href="{% static 'css/manual_detail.css' %}?v=59" rel="stylesheet" />
+<link href="{% static 'css/manual_detail.css' %}?v=61" rel="stylesheet" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -42,7 +42,7 @@
 
 {% block content %}
 
-<div class="row g-3 g-md-4">
+<div class="row g-3 g-md-4 aircraft-manual-content-grid">
     {% for item in manual_items %}
 
     <div

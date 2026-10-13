@@ -1,4 +1,4 @@
-import os, shutil, json, re, logging, time
+import os, shutil, json, re, logging, time, mimetypes, tempfile
 from datetime import timedelta
 
 from django.urls import reverse_lazy, reverse
@@ -11,6 +11,7 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
     View,
+    FormView,
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -18,6 +19,7 @@ from .models import (
     Aircraft,
     ManualFile,
     ManualPackage,
+    ManualPackageFile,
     ManualChapter,
     ManualPDFPage,
     ManualFilePDFPage,
@@ -37,6 +39,9 @@ from .forms import (
     CommonManualFileForm,
     OtherManualCategoryForm,
     OtherManualFileForm,
+    OtherManualFolderUploadForm,
+    DOCUMENT_EXTENSIONS,
+    IMAGE_EXTENSIONS,
 )
 
 from django.contrib import messages
@@ -57,8 +62,10 @@ from .services import (
     process_manual_package_safely,
     find_index_html,
     extract_ipc_chapter_titles,
+    safe_extract_zip,
 )
 from django.http import FileResponse, Http404
+from django.core.files import File
 from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
@@ -761,6 +768,51 @@ class ManualChapterListView(
         context["package"] = self.package
         context["q"] = q
 
+        package_files = list(self.package.package_files.all())
+        package_file_root = {"folders": {}, "files": []}
+
+        for package_file in package_files:
+            node = package_file_root
+
+            for folder_name in filter(None, package_file.folder_path.split("/")):
+                node = node["folders"].setdefault(
+                    folder_name,
+                    {"folders": {}, "files": []},
+                )
+
+            node["files"].append(package_file)
+
+        def serialize_file_tree(node, parent_path=""):
+            folders = []
+
+            for folder_name, child in sorted(
+                node["folders"].items(),
+                key=lambda item: item[0].lower(),
+            ):
+                folder_path = "/".join(
+                    part for part in [parent_path, folder_name] if part
+                )
+                folders.append(
+                    {
+                        "name": folder_name,
+                        "path": folder_path,
+                        "folders": serialize_file_tree(child, folder_path),
+                        "files": sorted(
+                            child["files"],
+                            key=lambda item: item.file_name.lower(),
+                        ),
+                    }
+                )
+
+            return folders
+
+        context["package_file_tree"] = serialize_file_tree(package_file_root)
+        context["package_root_files"] = sorted(
+            package_file_root["files"],
+            key=lambda item: item.file_name.lower(),
+        )
+        context["package_file_count"] = len(package_files)
+
         # =====================================================
         # All Chapters
         # =====================================================
@@ -1355,6 +1407,70 @@ class ManualChapterPDFView(LoginRequiredMixin, DetailView):
             return JsonResponse({"outline": outline})
 
         return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+
+def resolve_manual_package_file(package_file, relative_path):
+    extracted_root = os.path.abspath(package_file.package.extracted_path)
+    file_path = os.path.abspath(os.path.join(extracted_root, relative_path))
+
+    try:
+        if os.path.commonpath([extracted_root, file_path]) != extracted_root:
+            raise Http404("Invalid file path")
+    except ValueError:
+        raise Http404("Invalid file path")
+
+    if not os.path.isfile(file_path):
+        raise Http404("File not found")
+
+    return file_path
+
+
+class ManualPackageFileDownloadView(LoginRequiredMixin, DetailView):
+    model = ManualPackageFile
+
+    def get(self, request, *args, **kwargs):
+        package_file = self.get_object()
+        file_path = resolve_manual_package_file(
+            package_file,
+            package_file.relative_path,
+        )
+        content_type = mimetypes.guess_type(package_file.file_name)[0]
+
+        return FileResponse(
+            open(file_path, "rb"),
+            as_attachment=True,
+            filename=package_file.file_name,
+            content_type=content_type or "application/octet-stream",
+        )
+
+
+class ManualPackageFilePreviewView(LoginRequiredMixin, DetailView):
+    model = ManualPackageFile
+
+    def get(self, request, *args, **kwargs):
+        package_file = self.get_object()
+
+        if package_file.preview_pdf_relative_path:
+            relative_path = package_file.preview_pdf_relative_path
+            content_type = "application/pdf"
+            preview_name = os.path.splitext(package_file.file_name)[0] + ".pdf"
+        elif package_file.is_pdf or package_file.is_image:
+            relative_path = package_file.relative_path
+            content_type = (
+                "application/pdf"
+                if package_file.is_pdf
+                else mimetypes.guess_type(package_file.file_name)[0]
+            )
+            preview_name = package_file.file_name
+        else:
+            raise Http404("Preview is not available")
+
+        file_path = resolve_manual_package_file(package_file, relative_path)
+        return FileResponse(
+            open(file_path, "rb"),
+            filename=preview_name,
+            content_type=content_type or "application/octet-stream",
+        )
 
 
 class ManualSearchView(LoginRequiredMixin, TemplateView):
@@ -3063,21 +3179,274 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
     template_name = "manuals/other_manual_category_detail.html"
     context_object_name = "category"
 
+    def get_folder_path(self):
+        return ""
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["files"] = attach_latest_reindex_jobs(
+        files = attach_latest_reindex_jobs(
             OtherManualFile.objects.filter(category=self.object).order_by("title"),
             lambda file: file,
             ReindexJob.TARGET_OTHER_FILE,
         )
+        current_path = self.get_folder_path()
+        prefix = f"{current_path}/" if current_path else ""
+        direct_files = []
+        child_folders = {}
 
-        context["back_url"] = reverse_lazy(
-            "aircraft_manual_detail",
-            kwargs={"pk": self.object.aircraft.pk},
+        for other_file in files:
+            folder_path = (other_file.folder_path or "").strip("/")
+
+            if folder_path == current_path:
+                direct_files.append(other_file)
+                continue
+
+            if not folder_path.startswith(prefix):
+                continue
+
+            remainder = folder_path[len(prefix) :]
+
+            if not remainder:
+                continue
+
+            child_name = remainder.split("/", 1)[0]
+            child_path = "/".join(
+                part for part in [current_path, child_name] if part
+            )
+            entry = child_folders.setdefault(
+                child_name,
+                {
+                    "name": child_name,
+                    "path": child_path,
+                    "file_count": 0,
+                },
+            )
+            entry["file_count"] += 1
+
+        folder_entries = sorted(
+            child_folders.values(),
+            key=lambda item: item["name"].lower(),
         )
 
+        for entry in folder_entries:
+            entry["open_url"] = (
+                reverse(
+                    "other_manual_folder_browse",
+                    kwargs={"pk": self.object.pk},
+                )
+                + "?"
+                + urlencode({"path": entry["path"]})
+            )
+
+        context["files"] = files
+        context["display_files"] = sorted(
+            direct_files,
+            key=lambda item: item.title.lower(),
+        )
+        context["folder_entries"] = folder_entries
+        context["has_items"] = bool(folder_entries or direct_files)
+        context["current_folder_path"] = current_path
+        context["current_folder_name"] = (
+            current_path.rsplit("/", 1)[-1] if current_path else ""
+        )
+
+        if current_path:
+            parent_path = current_path.rsplit("/", 1)[0] if "/" in current_path else ""
+            context["back_url"] = (
+                reverse(
+                    "other_manual_folder_browse",
+                    kwargs={"pk": self.object.pk},
+                )
+                + "?"
+                + urlencode({"path": parent_path})
+                if parent_path
+                else reverse(
+                    "other_manual_category_detail",
+                    kwargs={"pk": self.object.pk},
+                )
+            )
+        else:
+            context["back_url"] = reverse_lazy(
+                "aircraft_manual_detail",
+                kwargs={"pk": self.object.aircraft.pk},
+            )
+
         return context
+
+
+class OtherManualFolderBrowseView(OtherManualCategoryDetailView):
+    def get_folder_path(self):
+        raw_path = self.request.GET.get("path", "").replace("\\", "/").strip("/")
+        parts = raw_path.split("/") if raw_path else []
+
+        if not parts or any(part in {"", ".", ".."} for part in parts):
+            raise Http404("Invalid folder path")
+
+        normalized_path = "/".join(parts)
+        exists = OtherManualFile.objects.filter(category=self.object).filter(
+            Q(folder_path=normalized_path)
+            | Q(folder_path__startswith=f"{normalized_path}/")
+        ).exists()
+
+        if not exists:
+            raise Http404("Folder not found")
+
+        return normalized_path
+
+
+class OtherManualFolderUploadView(
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    FormView,
+):
+    form_class = OtherManualFolderUploadForm
+    template_name = "manuals/other_manual_folder_form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        category_id = self.request.GET.get("category")
+
+        if category_id:
+            initial["category"] = category_id
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        if self.request.GET.get("category"):
+            form.fields["category"].disabled = True
+
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.request.GET.get("category") or self.request.POST.get(
+            "category"
+        )
+
+        context["back_url"] = (
+            reverse("other_manual_category_detail", kwargs={"pk": category_id})
+            if category_id
+            else reverse("home")
+        )
+        return context
+
+    def form_valid(self, form):
+        category = form.cleaned_data["category"]
+        folder_package = form.cleaned_data["folder_package"]
+        revision_no = form.cleaned_data.get("revision_no", "").strip()
+        revision_date_text = form.cleaned_data.get(
+            "revision_date_text",
+            "",
+        ).strip()
+        description = form.cleaned_data.get("description", "").strip()
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+        extract_to = tempfile.mkdtemp(
+            prefix="other-manual-",
+            dir=settings.MEDIA_ROOT,
+        )
+        zip_path = None
+
+        try:
+            with tempfile.NamedTemporaryFile(
+                suffix=".zip",
+                delete=False,
+                dir=settings.MEDIA_ROOT,
+            ) as temp_zip:
+                zip_path = temp_zip.name
+
+                for chunk in folder_package.chunks():
+                    temp_zip.write(chunk)
+
+            safe_extract_zip(zip_path, extract_to)
+            extracted_root = os.path.abspath(extract_to)
+            source_files = []
+
+            for root, dirs, file_names in os.walk(extracted_root):
+                for file_name in file_names:
+                    absolute_path = os.path.abspath(os.path.join(root, file_name))
+
+                    if os.path.commonpath([extracted_root, absolute_path]) != extracted_root:
+                        continue
+
+                    extension = os.path.splitext(file_name)[1].lower()
+
+                    if extension not in set(DOCUMENT_EXTENSIONS + IMAGE_EXTENSIONS):
+                        continue
+
+                    source_files.append(absolute_path)
+
+            if not source_files:
+                form.add_error(
+                    "folder_package",
+                    "폴더에서 PDF, Word, Excel 또는 이미지 파일을 찾지 못했습니다.",
+                )
+                return self.form_invalid(form)
+
+            created_count = 0
+            replaced_count = 0
+
+            for absolute_path in sorted(source_files):
+                relative_path = os.path.relpath(
+                    absolute_path,
+                    extracted_root,
+                ).replace(os.sep, "/")
+                folder_path = os.path.dirname(relative_path).replace(os.sep, "/")
+                file_name = os.path.basename(absolute_path)
+                title = os.path.splitext(file_name)[0]
+                other_file = OtherManualFile.objects.filter(
+                    category=category,
+                    relative_path=relative_path,
+                ).first()
+
+                if other_file:
+                    delete_file_field(other_file.file)
+                    delete_file_field(other_file.converted_pdf)
+                    replaced_count += 1
+                else:
+                    other_file = OtherManualFile(category=category)
+                    created_count += 1
+
+                other_file.title = title
+                other_file.relative_path = relative_path
+                other_file.folder_path = folder_path
+                other_file.description = description
+                other_file.revision_no = revision_no
+                other_file.revision_date_text = revision_date_text
+
+                with open(absolute_path, "rb") as source:
+                    other_file.file.save(file_name, File(source), save=False)
+
+                other_file.save()
+                queue_reindex_job(
+                    ReindexJob.TARGET_OTHER_FILE,
+                    other_file.pk,
+                    message="OTHER manual indexing queued.",
+                )
+
+            messages.success(
+                self.request,
+                f"OTHER 폴더 업로드 완료: 신규 {created_count}개, 교체 {replaced_count}개",
+            )
+            self.category = category
+            return super().form_valid(form)
+        except Exception as error:
+            logger.exception("OTHER folder upload failed")
+            form.add_error("folder_package", f"폴더 업로드 실패: {error}")
+            return self.form_invalid(form)
+        finally:
+            shutil.rmtree(extract_to, ignore_errors=True)
+
+            if zip_path and os.path.exists(zip_path):
+                os.remove(zip_path)
+
+    def get_success_url(self):
+        return reverse(
+            "other_manual_category_detail",
+            kwargs={"pk": self.category.pk},
+        )
 
 
 class OtherManualCategoryUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):

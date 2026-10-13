@@ -13,6 +13,8 @@ from .views import (
     ManualPackageCreateView,
     ManualChapterListView,
     ManualChapterPDFView,
+    ManualPackageFileDownloadView,
+    ManualPackageFilePreviewView,
     ManualPackageMergedPDFView,
     ManualSearchView,
     ManualChapterPDFViewerView,
@@ -40,6 +42,8 @@ from .views import (
     OtherManualCategoryUpdateView,
     OtherManualCategoryDeleteView,
     OtherManualFileCreateView,
+    OtherManualFolderUploadView,
+    OtherManualFolderBrowseView,
     OtherManualFileUpdateView,
     OtherManualFileDeleteView,
     OtherManualFilePDFView,
@@ -99,6 +103,16 @@ urlpatterns = [
         "manual-chapters/<int:pk>/pdf/",
         ManualChapterPDFView.as_view(),
         name="manual_chapter_pdf",
+    ),
+    path(
+        "manual-package-files/<int:pk>/download/",
+        ManualPackageFileDownloadView.as_view(),
+        name="manual_package_file_download",
+    ),
+    path(
+        "manual-package-files/<int:pk>/preview/",
+        ManualPackageFilePreviewView.as_view(),
+        name="manual_package_file_preview",
     ),
     path("manual-search/", ManualSearchView.as_view(), name="manual_search"),
     path(
@@ -212,6 +226,11 @@ urlpatterns = [
         name="other_manual_category_detail",
     ),
     path(
+        "other/category/<int:pk>/browse/",
+        OtherManualFolderBrowseView.as_view(),
+        name="other_manual_folder_browse",
+    ),
+    path(
         "other/category/<int:pk>/edit/",
         OtherManualCategoryUpdateView.as_view(),
         name="other_manual_category_update",
@@ -225,6 +244,11 @@ urlpatterns = [
         "other/file/add/",
         OtherManualFileCreateView.as_view(),
         name="other_manual_file_create",
+    ),
+    path(
+        "other/folder/upload/",
+        OtherManualFolderUploadView.as_view(),
+        name="other_manual_folder_upload",
     ),
     path(
         "other/file/<int:pk>/edit/",

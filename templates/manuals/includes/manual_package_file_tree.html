@@ -1,0 +1,46 @@
+{% for folder in folders %}
+<details class="manual-package-file-group">
+    <summary>
+        <span class="manual-package-file-folder" title="{{ folder.path }}">
+            <i class="bi bi-folder" aria-hidden="true"></i>
+            {{ folder.name }}
+        </span>
+        <i class="bi bi-chevron-right manual-package-file-chevron" aria-hidden="true"></i>
+    </summary>
+
+    <div class="manual-package-file-group-contents">
+        {% include 'manuals/includes/manual_package_file_tree.html' with folders=folder.folders files=folder.files only %}
+    </div>
+</details>
+{% endfor %}
+
+{% if files %}
+<div class="manual-package-file-list">
+    {% for package_file in files %}
+    <div class="manual-package-file-row">
+        <span class="manual-package-file-type">
+            {{ package_file.extension|default:"FILE"|cut:"."|upper }}
+        </span>
+        <span class="manual-package-file-name" title="{{ package_file.relative_path }}">
+            {{ package_file.file_name }}
+        </span>
+        <span class="manual-package-file-actions">
+            {% if package_file.can_preview %}
+            <a href="{% url 'manual_package_file_preview' package_file.pk %}"
+               target="_blank"
+               rel="noopener"
+               title="Preview {{ package_file.file_name }}"
+               aria-label="Preview {{ package_file.file_name }}">
+                <i class="bi bi-eye" aria-hidden="true"></i>
+            </a>
+            {% endif %}
+            <a href="{% url 'manual_package_file_download' package_file.pk %}"
+               title="Download {{ package_file.file_name }}"
+               aria-label="Download {{ package_file.file_name }}">
+                <i class="bi bi-download" aria-hidden="true"></i>
+            </a>
+        </span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

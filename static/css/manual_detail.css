@@ -138,9 +138,10 @@
     padding: 0.75rem;
 }
 
-.aircraft-manual-detail-page .row.g-3.g-md-4 {
+.aircraft-manual-detail-page .row.g-3.g-md-4.aircraft-manual-content-grid {
     --bs-gutter-x: 0.75rem;
-    --bs-gutter-y: 0.75rem;
+    --bs-gutter-y: 0;
+    row-gap: 0.75rem;
 }
 
 .aircraft-manual-detail-page .portal-detail-card-header {
@@ -279,6 +280,16 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
+}
+
+/*
+ * Bootstrap's vertical row gutter is applied as a top margin on every column.
+ * When this grid is the first/last page element, that makes the outer top gap
+ * larger than the bottom gap. Use a real row gap so only the cards are spaced.
+ */
+.other-manual-content-grid {
+    --bs-gutter-y: 0;
+    row-gap: var(--card-gap);
 }
 
 /* Mobile */
@@ -435,4 +446,15 @@
     .manual-primary-actions {
         gap: 0.625rem;
     }
+}
+/* OTHER manual folder tree */
+.other-manual-folder-card-icon {
+    flex: 0 0 auto;
+    color: #f59e0b;
+    font-size: 1.55rem;
+}
+
+.other-manual-folder-card .portal-detail-note {
+    color: #64748b;
+    font-weight: 700;
 }

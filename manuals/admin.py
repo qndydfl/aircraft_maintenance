@@ -4,6 +4,7 @@ from .models import (
     ManualFile,
     AirbusManualLink,
     ManualPackage,
+    ManualPackageFile,
     ManualPDFPage,
     ManualChapter,
     ManualFilePDFPage,
@@ -91,6 +92,22 @@ class ManualPackageAdmin(admin.ModelAdmin):
     search_fields = [
         "aircraft__name",
         "manual_type",
+    ]
+
+
+@admin.register(ManualPackageFile)
+class ManualPackageFileAdmin(admin.ModelAdmin):
+    list_display = [
+        "package",
+        "relative_path",
+        "extension",
+        "file_size",
+    ]
+    list_filter = ["extension", "package__manual_type"]
+    search_fields = [
+        "relative_path",
+        "file_name",
+        "package__aircraft__name",
     ]
 
 

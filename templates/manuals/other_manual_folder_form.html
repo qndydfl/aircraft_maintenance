@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %} form-page other-manual-folder-form-page {% endblock body_class %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}?v=61" />
+{% endblock css %}
+{% block js %}
+<script defer src="{% static 'js/manual_folder_upload.js' %}?v=2"></script>
+{% endblock js %}
+
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    <div class="app-navbar-title">
+        <p class="page-eyebrow mb-1">OTHER MANUAL</p>
+        <h2 class="page-title mb-2">Upload OTHER Manuals</h2>
+        <p class="text-muted mb-0 page-subtitle">
+            개별 파일, ZIP 또는 폴더 전체를 한 화면에서 업로드합니다.
+        </p>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %}
+
+{% block content %}
+<div class="portal-form-wrap">
+    <div class="card portal-card shadow-sm portal-form-card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="portal-form"
+                data-loading-title="Uploading OTHER Folder"
+                data-loading-message="Saving folder files and preparing the index...">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger app-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">Upload Information</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">OTHER Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="manual-package-upload-options">
+                        <div class="manual-package-upload-option">
+                            <label class="form-label" for="other-manual-files-input">개별 파일 선택</label>
+                            <input type="file" id="other-manual-files-input" class="form-control"
+                                multiple data-manual-files-input />
+                            <span class="form-text">PDF, Word, Excel, 이미지 파일을 하나 이상 선택합니다.</span>
+                        </div>
+
+                        <div class="manual-package-upload-option">
+                            <label class="form-label" for="{{ form.folder_package.id_for_label }}">ZIP 파일 선택</label>
+                            {{ form.folder_package }}
+                            <span class="form-text">이미 준비된 폴더 ZIP을 업로드합니다.</span>
+                        </div>
+
+                        <div class="manual-package-upload-option">
+                            <label class="form-label" for="other-manual-folder-input">폴더 선택</label>
+                            <input type="file" id="other-manual-folder-input" class="form-control"
+                                webkitdirectory directory multiple data-manual-folder-input />
+                            <span class="form-text">하위 폴더와 문서 파일을 모두 선택합니다.</span>
+                        </div>
+                    </div>
+
+                    <div class="manual-folder-upload-status mt-3" data-manual-folder-status hidden></div>
+                    {% if form.folder_package.errors %}<div class="text-danger small mt-2">{{ form.folder_package.errors }}</div>{% endif %}
+                </div>
+
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">Common Information</h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Revision No</label>
+                            {{ form.revision_no }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Revision Date</label>
+                            {{ form.revision_date_text }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portal-form-actions">
+                    <button type="submit" class="btn btn-primary app-card-btn">Upload Files</button>
+                    <a href="{{ back_url }}" class="btn btn-outline-secondary app-card-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

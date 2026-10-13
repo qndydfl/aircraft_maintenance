@@ -2,7 +2,7 @@
 {% load static %} 
 {% block body_class %} detail-page other-manual-detail-page {% endblock body_class %} 
 {% block css %}
-<link href="{% static 'css/manual_detail.css' %}?v=56" rel="stylesheet" />
+<link href="{% static 'css/manual_detail.css' %}?v=60" rel="stylesheet" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -11,23 +11,25 @@
     <div class="app-navbar-title">
         <p class="page-eyebrow mb-1">{{ category.aircraft.name }} / OTHER</p>
 
-        <h2 class="page-title mb-2">{{ category.name }}</h2>
+        <h2 class="page-title mb-2">
+            {{ current_folder_name|default:category.name }}
+        </h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            {{ category.description|default:"OTHER 매뉴얼 파일을 관리합니다." }}
+            {% if current_folder_path %}{{ current_folder_path }}{% else %}{{ category.description|default:"OTHER 매뉴얼 파일을 관리합니다." }}{% endif %}
         </p>
     </div>
 
     <div class="page-actions">
         {% if user.is_superuser %}
         <a
-            href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
+            href="{% url 'other_manual_folder_upload' %}?category={{ category.pk }}"
             class="btn btn-primary app-action-btn desktop-only-btn"
         >
-            Add File
+            Upload Files
         </a>
 
-        <a
+        {% if not current_folder_path %}<a
             href="{% url 'other_manual_category_update' category.pk %}"
             class="btn btn-outline-warning app-action-btn desktop-only-btn"
         >
@@ -41,6 +43,7 @@
             Delete Folder
         </a>
         {% endif %}
+        {% endif %}
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>
@@ -48,22 +51,55 @@
 
 {% block content %}
 
-<div class="row g-3 g-md-4 justify-content-center">
-    {% for file in files %}
+<div class="row g-3 g-md-4 justify-content-center other-manual-content-grid">
+    {% for folder in folder_entries %}
+    <div class="col-6 col-sm-6 col-lg-3">
+        <div class="card portal-card portal-detail-card other-manual-folder-card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="portal-detail-card-header">
+                    <div>
+                        <p class="portal-detail-eyebrow mb-1">OTHER FOLDER</p>
+                        <h5 class="portal-detail-title mb-0">{{ folder.name }}</h5>
+                    </div>
+                    <span class="other-manual-folder-card-icon"><i class="bi bi-folder-fill"></i></span>
+                </div>
+
+                <p class="portal-detail-note mb-3">
+                    {{ folder.file_count }} file(s)
+                </p>
+
+                <div class="portal-detail-button-group">
+                    <a href="{{ folder.open_url }}" class="btn btn-primary app-card-btn w-100">
+                        Open
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% for file in display_files %}
 
     <div class="col-6 col-sm-6 col-lg-3">
         <div class="card portal-card portal-detail-card h-100 shadow-sm">
             <div class="card-body">
                 <div class="portal-detail-card-header">
                     <div>
-                        <p class="portal-detail-eyebrow mb-1">OTHER FILE</p>
+                        <div class="other-manual-file-type-row">
+                            <p class="portal-detail-eyebrow mb-1">OTHER FILE</p>
+                            <span class="portal-detail-pill ready-pill other-file-ready-mobile">
+                                READY
+                            </span>
+                        </div>
 
                         <h5 class="portal-detail-title mb-0">
                             {{ file.title }}
                         </h5>
                     </div>
 
-                    <span class="portal-detail-pill ready-pill"> READY </span>
+                    <span class="portal-detail-pill ready-pill other-file-ready-desktop">
+                        READY
+                    </span>
                 </div>
 
                 {% if file.display_revision_no or file.display_revision_date_text %}
@@ -164,30 +200,30 @@
         </div>
     </div>
 
-    {% empty %}
+    {% endfor %}
 
+    {% if not has_items %}
     <div class="col-12">
         <div
             class="card portal-card portal-detail-card portal-detail-empty-card shadow-sm"
         >
             <div class="card-body text-center">
                 <p class="portal-detail-note mb-3">
-                    이 OTHER 폴더에 등록된 파일이 없습니다.
+                    이 폴더에 등록된 파일이 없습니다.
                 </p>
 
                 {% if user.is_superuser %}
                 <a
-                    href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
+                    href="{% url 'other_manual_folder_upload' %}?category={{ category.pk }}"
                     class="btn btn-outline-primary app-card-btn"
                 >
-                    Add First File
+                    Upload Files
                 </a>
                 {% endif %}
             </div>
         </div>
     </div>
-
-    {% endfor %}
+    {% endif %}
 </div>
 
 {% endblock content %}

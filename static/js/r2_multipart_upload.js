@@ -84,10 +84,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     forms.forEach(function (form) {
-        const fileInput = form.querySelector("input[type='file']");
+        const fileInput = form.querySelector("[data-package-zip-input], input[type='file']");
         const objectKeyInput = form.querySelector("[name='r2_object_key']");
         const originalNameInput = form.querySelector("[name='r2_original_name']");
         const fileSizeInput = form.querySelector("[name='r2_file_size']");
+        const packageSourceInputs = form.querySelectorAll(
+            "[data-manual-folder-input], [data-manual-files-input]"
+        );
         const progressWrap = form.querySelector("[data-r2-progress]");
         const progressBar = form.querySelector("[data-r2-progress-bar]");
         const progressText = form.querySelector("[data-r2-progress-text]");
@@ -111,6 +114,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         function setBusy(isBusy) {
             fileInput.disabled = isBusy;
+
+            packageSourceInputs.forEach(function (input) {
+                input.disabled = isBusy;
+            });
 
             if (submitButton) {
                 submitButton.disabled = isBusy;

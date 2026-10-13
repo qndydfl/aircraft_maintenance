@@ -99,9 +99,10 @@
 }
 
 .manual-library-tab-content .app-card-btn {
-    min-height: 2.1rem;
-    padding: 0.3rem 0.25rem;
-    font-size: 0.72rem;
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.82rem;
 }
 
 .home-page .portal-card > .card-img-wrapper {
@@ -842,8 +843,8 @@ body.home-page.manual-library-page .app-container {
         width: 100%;
         min-width: 0;
         min-height: 2.5rem;
-        padding: 0.4rem 0.25rem;
-        font-size: 0.72rem;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.75rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
