@@ -2279,6 +2279,50 @@ pdfContainer.addEventListener(
 
 let touchStartDistance = null;
 
+let panState = null;
+
+pdfContainer.addEventListener("mousedown", function (event) {
+    if (event.button !== 0 || event.target.closest("span, a, button")) {
+        return;
+    }
+
+    const canScroll =
+        pdfContainer.scrollWidth > pdfContainer.clientWidth ||
+        pdfContainer.scrollHeight > pdfContainer.clientHeight;
+
+    if (!canScroll) {
+        return;
+    }
+
+    panState = {
+        x: event.clientX,
+        y: event.clientY,
+        left: pdfContainer.scrollLeft,
+        top: pdfContainer.scrollTop,
+    };
+
+    pdfContainer.classList.add("is-panning");
+    event.preventDefault();
+});
+
+window.addEventListener("mousemove", function (event) {
+    if (!panState) {
+        return;
+    }
+
+    pdfContainer.scrollLeft = panState.left - (event.clientX - panState.x);
+    pdfContainer.scrollTop = panState.top - (event.clientY - panState.y);
+});
+
+window.addEventListener("mouseup", function () {
+    if (!panState) {
+        return;
+    }
+
+    panState = null;
+    pdfContainer.classList.remove("is-panning");
+});
+
 function getDistance(touches) {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;

@@ -112,9 +112,6 @@ class ManualType(models.Model):
         self.code = (self.code or "").strip().upper()
         self.name = (self.name or self.code).strip()
 
-        if self.upload_mode == self.UPLOAD_FOLDER and self.code != "OTHER":
-            raise ValidationError("FOLDER 방식은 현재 OTHER 유형에서만 사용할 수 있습니다.")
-
     def save(self, *args, **kwargs):
         self.code = (self.code or "").strip().upper()
         self.name = (self.name or self.code).strip()
@@ -255,19 +252,22 @@ class Aircraft(models.Model):
             package.manual_type: package for package in self.manual_packages.all()
         }
         files = {manual.manual_type: manual for manual in self.manuals.all()}
-        other_category = next(iter(self.other_categories.all()), None)
-        other_available = bool(
-            other_category and any(True for _ in other_category.files.all())
-        )
+        folders = {
+            category.manual_type: category for category in self.other_categories.all()
+        }
         result = []
 
         for definition in definitions:
             package = packages.get(definition.code)
             file = files.get(definition.code)
+            folder = None
+            folder_file_count = 0
             available = bool(package or file)
 
-            if definition.code == "OTHER":
-                available = other_available
+            if definition.upload_mode == ManualType.UPLOAD_FOLDER:
+                folder = folders.get(definition.code)
+                folder_file_count = len(folder.files.all()) if folder else 0
+                available = folder_file_count > 0
 
             result.append(
                 {
@@ -276,6 +276,8 @@ class Aircraft(models.Model):
                     "upload_mode": definition.upload_mode,
                     "package": package,
                     "file": file,
+                    "folder": folder,
+                    "folder_file_count": folder_file_count,
                     "available": available,
                 }
             )
@@ -705,6 +707,7 @@ class OtherManualCategory(models.Model):
         related_name="other_categories",
     )
     name = models.CharField(max_length=100, default="OTHER")
+    manual_type = models.CharField(max_length=20, default="OTHER")
     code = models.CharField(max_length=60, blank=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -713,13 +716,13 @@ class OtherManualCategory(models.Model):
         ordering = ["aircraft__name", "name"]
         constraints = [
             models.UniqueConstraint(
-                fields=["aircraft"],
-                name="unique_other_folder_per_aircraft",
+                fields=["aircraft", "manual_type"],
+                name="unique_other_folder_per_aircraft_type",
             )
         ]
 
     def __str__(self):
-        return f"{self.aircraft.name} / OTHER"
+        return f"{self.aircraft.name} / {self.manual_type}"
 
 
 class OtherManualFile(models.Model):

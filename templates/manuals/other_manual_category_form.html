@@ -15,7 +15,7 @@
         </h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            항공기별 OTHER 폴더를 생성합니다.
+            항공기별 폴더 형식 매뉴얼을 생성합니다.
         </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
@@ -45,6 +45,16 @@
                         {{ form.aircraft }} {% if form.aircraft.errors %}
                         <div class="text-danger small mt-1">
                             {{ form.aircraft.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"> Manual Type </label>
+
+                        {{ form.manual_type }} {% if form.manual_type.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.manual_type.errors }}
                         </div>
                         {% endif %}
                     </div>

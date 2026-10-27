@@ -389,6 +389,7 @@ class OtherManualCategoryForm(forms.ModelForm):
 
         fields = [
             "aircraft",
+            "manual_type",
             "description",
         ]
 
@@ -397,14 +398,36 @@ class OtherManualCategoryForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = list(
+            ManualType.objects.filter(
+                is_active=True,
+                upload_mode=ManualType.UPLOAD_FOLDER,
+            ).values_list("code", "name")
+        )
+        current_type = (getattr(self.instance, "manual_type", "") or "").strip()
+
+        if current_type and current_type not in {code for code, _ in choices}:
+            choices.append((current_type, current_type))
+
+        self.fields["manual_type"] = forms.ChoiceField(
+            choices=choices,
+            initial=current_type or None,
+            label="Manual Type",
+            widget=forms.Select(attrs={"class": "form-select"}),
+        )
+
     def clean(self):
         cleaned_data = super().clean()
 
         aircraft = cleaned_data.get("aircraft")
+        manual_type = cleaned_data.get("manual_type")
 
-        if aircraft:
+        if aircraft and manual_type:
             queryset = OtherManualCategory.objects.filter(
                 aircraft=aircraft,
+                manual_type=manual_type,
             )
 
             if self.instance.pk:
@@ -412,7 +435,7 @@ class OtherManualCategoryForm(forms.ModelForm):
 
             if queryset.exists():
                 raise ValidationError(
-                    f"{aircraft.name}에는 이미 OTHER 폴더가 생성되어 있습니다."
+                    f"{aircraft.name}에는 이미 {manual_type} 폴더가 생성되어 있습니다."
                 )
 
         return cleaned_data
@@ -420,8 +443,8 @@ class OtherManualCategoryForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
 
-        instance.name = "OTHER"
-        instance.code = "OTHER"
+        instance.name = instance.manual_type
+        instance.code = instance.manual_type
 
         if commit:
             instance.save()

@@ -1612,7 +1612,19 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 else:
                     file_pages_qs = ManualFilePDFPage.objects.none()
 
-                if "OTHER" not in selected_manual_types:
+                selected_other_types = [
+                    value
+                    for value in selected_manual_types
+                    if value not in zip_manual_types
+                    and value not in pdf_manual_types
+                    and value != "COMMON"
+                ]
+
+                if selected_other_types:
+                    other_pages_qs = other_pages_qs.filter(
+                        other_file__category__manual_type__in=selected_other_types
+                    )
+                else:
                     other_pages_qs = OtherManualPDFPage.objects.none()
 
                 if "COMMON" not in selected_manual_types:
@@ -1753,7 +1765,10 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 grouped_results[page_manual_type].append(page)
 
         for page in other_pages:
-            grouped_results["OTHER"].append(page)
+            other_type = page.other_file.category.manual_type
+
+            if other_type in grouped_results:
+                grouped_results[other_type].append(page)
 
         def build_viewer_url(url_name, pk, page_number):
             params = {
@@ -1835,8 +1850,8 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 ("other", other_file.pk),
                 page,
                 {
-                    "manual_type": "OTHER",
-                    "eyebrow": "OTHER MANUAL",
+                    "manual_type": other_file.category.manual_type,
+                    "eyebrow": f"{other_file.category.manual_type} MANUAL",
                     "title": f"{other_file.category.aircraft.name} / {other_file.title}",
                     "aircraft": other_file.category.aircraft.name,
                     "manual": other_file.category.name,
@@ -3140,10 +3155,12 @@ class OtherManualCategoryCreateView(LoginRequiredMixin, StaffRequiredMixin, Crea
 
     def dispatch(self, request, *args, **kwargs):
         aircraft_id = request.GET.get("aircraft")
+        manual_type = request.GET.get("manual_type", "OTHER").strip().upper()
 
         if aircraft_id:
             existing_category = OtherManualCategory.objects.filter(
-                aircraft_id=aircraft_id
+                aircraft_id=aircraft_id,
+                manual_type=manual_type,
             ).first()
 
             if existing_category:
@@ -3158,9 +3175,13 @@ class OtherManualCategoryCreateView(LoginRequiredMixin, StaffRequiredMixin, Crea
         initial = super().get_initial()
 
         aircraft_id = self.request.GET.get("aircraft")
+        manual_type = self.request.GET.get("manual_type")
 
         if aircraft_id:
             initial["aircraft"] = aircraft_id
+
+        if manual_type:
+            initial["manual_type"] = manual_type.strip().upper()
 
         return initial
 
@@ -3169,6 +3190,9 @@ class OtherManualCategoryCreateView(LoginRequiredMixin, StaffRequiredMixin, Crea
 
         if self.request.GET.get("aircraft"):
             form.fields["aircraft"].disabled = True
+
+        if self.request.GET.get("manual_type"):
+            form.fields["manual_type"].disabled = True
 
         return form
 

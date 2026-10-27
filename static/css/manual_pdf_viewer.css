@@ -590,6 +590,16 @@ body.pdf-viewer-embedded .outline-resizer {
     height: 0.625rem;
 }
 
+.pdf-viewer-scroll.is-panning,
+.pdf-viewer-scroll.is-panning * {
+    cursor: grabbing !important;
+    user-select: none;
+}
+
+.pdf-viewer-scroll .pdf-viewer-wrap {
+    cursor: grab;
+}
+
 .pdf-viewer-scroll.viewer-scale-page {
     overflow: auto;
 }
