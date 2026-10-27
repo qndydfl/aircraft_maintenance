@@ -275,16 +275,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     body.aircraft-manual-detail-page {
-        padding-bottom: 0 !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        ) !important;
     }
 
     body.aircraft-manual-detail-page .app-main {
         padding-top: var(--page-edge-gap) !important;
-        padding-bottom: calc(
-            var(--bottom-nav-height) +
-                var(--safe-area-bottom) +
-                var(--page-edge-gap)
-        ) !important;
+        padding-bottom: var(--page-edge-gap) !important;
     }
 
     body.aircraft-manual-detail-page .app-main > .app-container {
@@ -849,16 +847,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     body.aircraft-manual-detail-page {
-        padding-bottom: 0 !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        ) !important;
     }
 
     body.aircraft-manual-detail-page .app-main {
         padding-top: var(--page-edge-gap) !important;
-        padding-bottom: calc(
-            var(--bottom-nav-height) +
-                var(--safe-area-bottom) +
-                var(--page-edge-gap)
-        ) !important;
+        padding-bottom: var(--page-edge-gap) !important;
     }
 
     body.aircraft-manual-detail-page .app-main > .app-container {
