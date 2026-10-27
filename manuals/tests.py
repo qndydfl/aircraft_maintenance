@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
-from .forms import CommonManualCategoryForm
+from .forms import CommonManualCategoryForm, ManualPackageForm
 from .services import (
     extract_ipc_chapter_titles,
     index_manual_package_files,
@@ -30,6 +30,7 @@ from .models import (
     OtherManualCategory,
     OtherManualFile,
     ReindexJob,
+    ManualType,
 )
 
 
@@ -356,6 +357,114 @@ class AircraftManualAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_aircraft_detail_includes_wdm_and_ssm_zip_slots(self):
+        aircraft = Aircraft.objects.create(name="B787", maker="BOEING")
+        self.client.login(username="tester", password="testpass123")
+
+        response = self.client.get(
+            reverse("aircraft_manual_detail", kwargs={"pk": aircraft.pk})
+        )
+
+        manual_types = [item["type"] for item in response.context["manual_items"]]
+        self.assertIn("WDM", manual_types)
+        self.assertIn("SSM", manual_types)
+
+    def test_wdm_and_ssm_are_valid_zip_package_types(self):
+        aircraft = Aircraft.objects.create(name="B777", maker="BOEING")
+
+        for manual_type in ("WDM", "SSM"):
+            form = ManualPackageForm(
+                data={
+                    "aircraft": aircraft.pk,
+                    "manual_type": manual_type,
+                    "revision_no": "",
+                    "revision_date_text": "",
+                },
+                files={
+                    "zip_file": SimpleUploadedFile(
+                        f"{manual_type.lower()}.zip",
+                        b"zip-content",
+                        content_type="application/zip",
+                    )
+                },
+            )
+
+            self.assertTrue(form.is_valid(), form.errors)
+
+    def test_new_zip_manual_type_is_available_without_code_changes(self):
+        aircraft = Aircraft.objects.create(name="B767", maker="BOEING")
+        ManualType.objects.create(
+            code="SRM",
+            name="SRM",
+            upload_mode=ManualType.UPLOAD_ZIP,
+            sort_order=55,
+        )
+        self.client.login(username="tester", password="testpass123")
+
+        response = self.client.get(
+            reverse("aircraft_manual_detail", kwargs={"pk": aircraft.pk})
+        )
+
+        manual_types = [item["type"] for item in response.context["manual_items"]]
+        self.assertIn("SRM", manual_types)
+
+        form = ManualPackageForm(instance=ManualPackage(aircraft=aircraft))
+        self.assertIn("SRM", dict(form.fields["manual_type"].choices))
+
+
+class ManualEditingTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_superuser(
+            username="manual-editor",
+            password="testpass123",
+            email="editor@example.com",
+        )
+        self.aircraft = Aircraft.objects.create(name="B777", maker="BOEING")
+        self.package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="WDM",
+            zip_file="manual_packages/b777-wdm.zip",
+            processed=True,
+            revision_no="R1",
+        )
+        self.client.force_login(self.user)
+
+    def test_package_metadata_can_be_edited_without_reupload(self):
+        response = self.client.post(
+            reverse("manual_package_update", kwargs={"pk": self.package.pk}),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": "WDM",
+                "revision_no": "R2",
+                "revision_date_text": "27 OCT 2026",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("aircraft_manual_detail", kwargs={"pk": self.aircraft.pk}),
+        )
+        self.package.refresh_from_db()
+        self.assertEqual(self.package.revision_no, "R2")
+        self.assertEqual(self.package.zip_file.name, "manual_packages/b777-wdm.zip")
+        self.assertTrue(self.package.processed)
+        self.assertFalse(
+            ReindexJob.objects.filter(
+                target_type=ReindexJob.TARGET_MANUAL_PACKAGE,
+                target_id=self.package.pk,
+            ).exists()
+        )
+
+    def test_package_card_links_to_edit_view(self):
+        response = self.client.get(
+            reverse("aircraft_manual_detail", kwargs={"pk": self.aircraft.pk})
+        )
+
+        self.assertContains(
+            response,
+            reverse("manual_package_update", kwargs={"pk": self.package.pk}),
+        )
+
 
 class AircraftManageTabTests(TestCase):
     def setUp(self):
@@ -568,6 +677,39 @@ class ManualSearchContentPageTests(TestCase):
             {"MEL", "CDL"},
         )
         self.assertEqual(response.context["selected_manual_types"], ["MEL", "CDL"])
+
+    def test_manual_search_filters_wdm_package_content(self):
+        package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="WDM",
+            zip_file="manual_packages/a350-wdm.zip",
+            processed=True,
+        )
+        chapter = ManualChapter.objects.create(
+            package=package,
+            task="WDM 20-10-00",
+            title="Wiring Diagram",
+            pdf_relative_path="wdm-20-10-00.pdf",
+        )
+        ManualPDFPage.objects.create(
+            chapter=chapter,
+            page_number=7,
+            text="WIRE ROUTING CONNECTOR IDENTIFICATION",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": "WDM",
+                "q": "connector identification",
+            },
+        )
+
+        groups = response.context["result_groups"]
+        self.assertEqual(response.context["selected_manual_types"], ["WDM"])
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["manual"], "WDM")
 
     def test_manual_search_single_manual_type_excludes_unselected_types(self):
         cdl = ManualFile.objects.create(

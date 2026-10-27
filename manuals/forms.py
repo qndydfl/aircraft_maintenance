@@ -14,6 +14,7 @@ from .models import (
     CommonManualFile,
     OtherManualCategory,
     OtherManualFile,
+    ManualType,
 )
 
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]
@@ -72,6 +73,25 @@ class ManualFileForm(R2DirectUploadFormMixin, forms.ModelForm):
 
     r2_upload_prefix = "manuals/files/"
     r2_file_field_name = "file"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = list(
+            ManualType.objects.filter(
+                is_active=True,
+                upload_mode=ManualType.UPLOAD_PDF,
+            ).values_list("code", "name")
+        )
+        current_type = (getattr(self.instance, "manual_type", "") or "").strip()
+
+        if current_type and current_type not in {code for code, _ in choices}:
+            choices.append((current_type, current_type))
+
+        self.fields["manual_type"] = forms.ChoiceField(
+            choices=choices,
+            label=self.fields["manual_type"].label,
+            widget=forms.Select(attrs={"class": "form-select"}),
+        )
 
     class Meta:
         model = ManualFile
@@ -136,10 +156,8 @@ class ManualFileForm(R2DirectUploadFormMixin, forms.ModelForm):
 
         ext = os.path.splitext(source_name)[1].lower()
 
-        pdf_manuals = ["MEL", "CDL"]
-
-        if manual_type in pdf_manuals and ext != ".pdf":
-            raise ValidationError("MEL / CDL은 PDF 파일만 업로드할 수 있습니다.")
+        if ext != ".pdf":
+            raise ValidationError("PDF 방식 매뉴얼은 PDF 파일만 업로드할 수 있습니다.")
 
         return cleaned_data
 
@@ -171,6 +189,25 @@ class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
 
     r2_upload_prefix = "manuals/packages/"
     r2_file_field_name = "zip_file"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = list(
+            ManualType.objects.filter(
+                is_active=True,
+                upload_mode=ManualType.UPLOAD_ZIP,
+            ).values_list("code", "name")
+        )
+        current_type = (getattr(self.instance, "manual_type", "") or "").strip()
+
+        if current_type and current_type not in {code for code, _ in choices}:
+            choices.append((current_type, current_type))
+
+        self.fields["manual_type"] = forms.ChoiceField(
+            choices=choices,
+            label=self.fields["manual_type"].label,
+            widget=forms.Select(attrs={"class": "form-select"}),
+        )
 
     class Meta:
         model = ManualPackage
@@ -231,9 +268,7 @@ class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
         ext = os.path.splitext(zip_file.name)[1].lower()
 
         if ext != ".zip":
-            raise ValidationError(
-                "AMM / FIM / IPC / OTHER는 ZIP 파일만 업로드할 수 있습니다."
-            )
+            raise ValidationError("ZIP 방식 매뉴얼은 ZIP 파일만 업로드할 수 있습니다.")
 
         return zip_file
 
@@ -241,7 +276,7 @@ class ManualPackageForm(R2DirectUploadFormMixin, forms.ModelForm):
         original_name = (self.cleaned_data.get("r2_original_name") or "").strip()
 
         if original_name and os.path.splitext(original_name)[1].lower() != ".zip":
-            raise ValidationError("AMM / FIM / IPC / OTHER는 ZIP 파일만 업로드할 수 있습니다.")
+            raise ValidationError("ZIP 방식 매뉴얼은 ZIP 파일만 업로드할 수 있습니다.")
 
         return original_name
 

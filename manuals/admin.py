@@ -12,7 +12,31 @@ from .models import (
     CommonManualFile,
     CommonManualPDFPage,
     ReindexJob,
+    ManualType,
 )
+
+
+@admin.register(ManualType)
+class ManualTypeAdmin(admin.ModelAdmin):
+    list_display = [
+        "code",
+        "name",
+        "upload_mode",
+        "sort_order",
+        "is_active",
+        "is_searchable",
+    ]
+    list_editable = ["sort_order", "is_active", "is_searchable"]
+    list_filter = ["upload_mode", "is_active", "is_searchable"]
+    search_fields = ["code", "name"]
+    ordering = ["sort_order", "code"]
+    filter_horizontal = ["aircraft"]
+
+    def get_readonly_fields(self, request, obj=None):
+        return ["code"] if obj else []
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class ManualFileInline(admin.TabularInline):

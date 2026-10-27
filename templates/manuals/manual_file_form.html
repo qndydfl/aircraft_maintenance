@@ -15,7 +15,7 @@
         <p class="page-eyebrow mb-1">MANUAL FILE</p>
 
         <h2 class="page-title mb-2">
-            {% if manual %} Re-upload PDF {% else %} Upload PDF {% endif %}
+            {% if manual %} Edit PDF Manual {% else %} Upload PDF {% endif %}
         </h2>
 
         <p class="text-muted mb-0 page-subtitle">
@@ -83,7 +83,9 @@
                 <div class="portal-form-section">
                     <h5 class="portal-form-section-title">Upload File</h5>
 
-                    <label class="form-label"> PDF File </label>
+                    <label class="form-label">
+                        {% if manual %}Replacement PDF (optional){% else %}PDF File{% endif %}
+                    </label>
 
                     {{ form.file }}
 
@@ -91,7 +93,7 @@
                         <strong>PDF 업로드 안내</strong>
 
                         <div>
-                            MEL / CDL 또는 기타 PDF 파일을 업로드할 수 있습니다.
+                            {% if manual %}파일을 선택하지 않으면 기존 PDF를 유지합니다.{% else %}PDF 방식으로 등록된 매뉴얼 파일을 업로드합니다.{% endif %}
                         </div>
 
                         <div class="text-muted small mt-1">
@@ -174,7 +176,7 @@
 
                 <div class="portal-form-actions">
                     <button type="submit" class="btn btn-primary app-card-btn">
-                        Save
+                        {% if manual %}Save Changes{% else %}Upload PDF{% endif %}
                     </button>
 
                     <a

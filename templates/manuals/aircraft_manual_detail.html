@@ -14,7 +14,7 @@
         <h2 class="page-title mb-2">{{ aircraft.name }} Manuals</h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            AMM / FIM / IPC / MEL / CDL / OTHER
+            {{ manual_type_summary }}
         </p>
     </div>
 
@@ -156,10 +156,10 @@
                         class="portal-detail-button-grid desktop-only-btn-group"
                     >
                         <a
-                            href="{% url 'manual_package_reupload' package_pk=item.package.pk %}"
+                            href="{% url 'manual_package_update' item.package.pk %}"
                             class="btn btn-warning app-card-btn"
                         >
-                            Re-upload
+                            Edit
                         </a>
 
                         <a
@@ -201,7 +201,7 @@
 
                 {% if item.file.description %}
                 <p class="portal-detail-note">{{ item.file.description }}</p>
-                {% endif %} {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
+                {% endif %} {% if item.upload_mode == "PDF" %}
                 <p class="small mb-3 manual-status-summary">
                     {% if item.file.is_indexed_pdf %}
                     <span class="badge bg-success manual-badge"> INDEXED </span>
@@ -217,7 +217,7 @@
                     <div
                         class="portal-detail-button-grid manual-primary-actions"
                     >
-                        {% if item.file.manual_type == "MEL" or item.file.manual_type == "CDL" %}
+                        {% if item.upload_mode == "PDF" %}
                         <a
                             href="{% url 'manual_file_pdf_viewer' item.file.pk %}?back={{ request.get_full_path|urlencode }}"
                             target="_blank"
@@ -253,7 +253,7 @@
                             href="{% url 'manual_file_update' item.file.pk %}"
                             class="btn btn-warning app-card-btn"
                         >
-                            Re-upload
+                            Edit
                         </a>
 
                         <a
@@ -289,32 +289,21 @@
 
                 {% if user.is_superuser %}
                 <div class="desktop-only-btn-group mt-2">
-                    {% if aircraft.maker == "AIRBUS" %} {% if item.type == "MEL" or item.type == "CDL" %}
+                    {% if item.upload_mode == "PDF" %}
                     <a
                         href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"
                         class="btn btn-outline-primary w-100 app-card-btn"
                     >
                         Add {{ item.type }} PDF
                     </a>
-                    {% else %}
-                    <p class="small text-muted mb-0">
-                        {{ item.type }}는 외부 Airbus World에서 확인하세요.
-                    </p>
-                    {% endif %} {% else %} {% if item.type == "AMM" or item.type == "FIM" or item.type == "IPC" %}
+                    {% elif item.upload_mode == "ZIP" %}
                     <a
                         href="{% url 'manual_package_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"
                         class="btn btn-outline-primary w-100 app-card-btn"
                     >
                         Upload {{ item.type }} ZIP
                     </a>
-                    {% elif item.type == "MEL" or item.type == "CDL" %}
-                    <a
-                        href="{% url 'manual_file_create' %}?aircraft={{ aircraft.pk }}&manual_type={{ item.type }}"
-                        class="btn btn-outline-primary w-100 app-card-btn"
-                    >
-                        Add {{ item.type }} PDF
-                    </a>
-                    {% endif %} {% endif %}
+                    {% endif %}
                 </div>
                 {% endif %} {% endif %}
             </div>

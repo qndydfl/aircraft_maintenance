@@ -3,7 +3,7 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=86">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=87">
 {% endblock css %}
 
 {% block js %}
@@ -57,7 +57,7 @@ manual-search-page
 
                     <select name="aircraft"
                         class="form-select app-form-control">
-                        <option value="">ALL</option>
+                        <option value="">ALL Aircraft</option>
 
                         {% for aircraft in aircrafts %}
                             <option value="{{ aircraft.id }}"

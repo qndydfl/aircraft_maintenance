@@ -55,7 +55,7 @@
         <div>
             <h4 class="section-title mb-1">Boeing Manuals</h4>
             <p class="section-description mb-0">
-                AMM / FIM / IPC는 ZIP, MEL / CDL은 PDF, OTHER는 폴더 방식입니다.
+                관리자에서 설정한 매뉴얼 유형과 업로드 방식을 표시합니다.
             </p>
         </div>
     </div>
@@ -83,33 +83,11 @@
                     </div>
 
                     <div class="manual-badge-wrap">
-                        <span
-                            class="badge {% if aircraft.has_amm %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
-                            >AMM</span
-                        >
-                        <span
-                            class="badge {% if aircraft.has_fim %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
-                            >FIM</span
-                        >
-                        <span
-                            class="badge {% if aircraft.has_ipc %}bg-primary{% else %}bg-secondary{% endif %} manual-badge"
-                            >IPC</span
-                        >
-                        <span
-                            class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge"
-                            >MEL</span
-                        >
-                        <span
-                            class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
-                            >CDL</span
-                        >
-                        {% with other_folder=aircraft.other_categories.first %}
-                        <span
-                            class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            OTHER
+                        {% for item in aircraft.get_manual_status_list %}
+                        <span class="badge {% if not item.available %}bg-secondary{% elif item.upload_mode == 'FOLDER' %}bg-success{% elif item.upload_mode == 'PDF' %}bg-danger{% else %}bg-primary{% endif %} manual-badge">
+                            {{ item.type }}
                         </span>
-                        {% endwith %}
+                        {% endfor %}
                     </div>
                     <div class="card-button-group">
                         <a
@@ -146,8 +124,7 @@
         <div>
             <h4 class="section-title mb-1">Airbus Manuals</h4>
             <p class="section-description mb-0">
-                AMM / IPC는 Airbus World, MEL / CDL은 PDF, OTHER는 폴더
-                방식입니다.
+                관리자에서 설정한 매뉴얼 유형과 Airbus 외부 링크를 함께 제공합니다.
             </p>
         </div>
     </div>
@@ -177,24 +154,11 @@
                     </div>
 
                     <div class="manual-badge-wrap">
-                        <span class="badge bg-info text-dark manual-badge"
-                            >LINK</span
-                        >
-                        <span
-                            class="badge {% if aircraft.has_mel %}bg-danger{% else %}bg-secondary{% endif %} manual-badge"
-                            >MEL</span
-                        >
-                        <span
-                            class="badge {% if aircraft.has_cdl %}bg-dark{% else %}bg-secondary{% endif %} manual-badge"
-                            >CDL</span
-                        >
-                        {% with other_folder=aircraft.other_categories.first %}
-                        <span
-                            class="badge {% if other_folder and other_folder.files.count %}bg-success{% else %}bg-secondary{% endif %} manual-badge"
-                        >
-                            OTHER
+                        {% for item in aircraft.get_manual_status_list %}
+                        <span class="badge {% if not item.available %}bg-secondary{% elif item.upload_mode == 'FOLDER' %}bg-success{% elif item.upload_mode == 'PDF' %}bg-danger{% else %}bg-primary{% endif %} manual-badge">
+                            {{ item.type }}
                         </span>
-                        {% endwith %}
+                        {% endfor %}
                     </div>
                     <div class="card-button-group">
                         <a

@@ -27,16 +27,16 @@
         <span class="manual-package-file-actions">
             {% if package_file.can_preview %}
             <a href="{% url 'manual_package_file_preview' package_file.pk %}"
-               target="_blank"
-               rel="noopener"
-               title="Preview {{ package_file.file_name }}"
-               aria-label="Preview {{ package_file.file_name }}">
+                target="_blank"
+                rel="noopener"
+                title="Preview {{ package_file.file_name }}"
+                aria-label="Preview {{ package_file.file_name }}">
                 <i class="bi bi-eye" aria-hidden="true"></i>
             </a>
             {% endif %}
             <a href="{% url 'manual_package_file_download' package_file.pk %}"
-               title="Download {{ package_file.file_name }}"
-               aria-label="Download {{ package_file.file_name }}">
+                title="Download {{ package_file.file_name }}"
+                aria-label="Download {{ package_file.file_name }}">
                 <i class="bi bi-download" aria-hidden="true"></i>
             </a>
         </span>

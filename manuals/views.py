@@ -30,6 +30,7 @@ from .models import (
     OtherManualCategory,
     OtherManualPDFPage,
     ReindexJob,
+    ManualType,
 )
 from .forms import (
     ManualFileForm,
@@ -42,6 +43,11 @@ from .forms import (
     OtherManualFolderUploadForm,
     DOCUMENT_EXTENSIONS,
     IMAGE_EXTENSIONS,
+)
+from .constants import (
+    AIRCRAFT_MANUAL_TYPES,
+    PDF_MANUAL_TYPES,
+    ZIP_MANUAL_TYPES,
 )
 
 from django.contrib import messages
@@ -341,7 +347,11 @@ class AircraftManualDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(get_manual_library_context())
-        context["manual_items"] = get_aircraft_manual_items(self.object)
+        manual_items = get_aircraft_manual_items(self.object)
+        context["manual_items"] = manual_items
+        context["manual_type_summary"] = " / ".join(
+            item["type"] for item in manual_items
+        )
         return context
 
 
@@ -524,13 +534,14 @@ class ManualFileUpdateView(
 
         if file_replaced:
             refresh_uploaded_at(self.object)
-
-        queue_reindex_message(
-            self.request,
-            ReindexJob.TARGET_MANUAL_FILE,
-            self.object.pk,
-            f"{self.object.manual_type} PDF",
-        )
+            queue_reindex_message(
+                self.request,
+                ReindexJob.TARGET_MANUAL_FILE,
+                self.object.pk,
+                f"{self.object.manual_type} PDF",
+            )
+        else:
+            messages.success(self.request, "매뉴얼 정보를 수정했습니다.")
 
         return response
 
@@ -586,7 +597,11 @@ class AircraftManageListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
     context_object_name = "aircrafts"
 
     def get_queryset(self):
-        return Aircraft.objects.all().order_by("maker", "name")
+        return Aircraft.objects.prefetch_related(
+            "manuals",
+            "manual_packages",
+            "other_categories__files",
+        ).order_by("maker", "name")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1503,15 +1518,25 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
         query = self.request.GET.get("q", "").strip()
         aircraft_id = self.request.GET.get("aircraft", "").strip()
-        manual_types = [
-            "AMM",
-            "FIM",
-            "IPC",
-            "MEL",
-            "CDL",
-            "OTHER",
-            "COMMON",
-        ]
+        manual_type_definitions = list(
+            ManualType.objects.filter(is_active=True, is_searchable=True)
+        )
+        manual_types = [definition.code for definition in manual_type_definitions]
+
+        if not manual_types:
+            manual_types = list(AIRCRAFT_MANUAL_TYPES)
+
+        manual_types.append("COMMON")
+        zip_manual_types = {
+            definition.code
+            for definition in manual_type_definitions
+            if definition.upload_mode == ManualType.UPLOAD_ZIP
+        } or set(ZIP_MANUAL_TYPES)
+        pdf_manual_types = {
+            definition.code
+            for definition in manual_type_definitions
+            if definition.upload_mode == ManualType.UPLOAD_PDF
+        } or set(PDF_MANUAL_TYPES)
         selected_manual_types = []
 
         for value in self.request.GET.getlist("manual_type"):
@@ -1567,10 +1592,10 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 selected_package_types = [
                     value
                     for value in selected_manual_types
-                    if value in {"AMM", "FIM", "IPC"}
+                    if value in zip_manual_types
                 ]
                 selected_file_types = [
-                    value for value in selected_manual_types if value in {"MEL", "CDL"}
+                    value for value in selected_manual_types if value in pdf_manual_types
                 ]
 
                 if selected_package_types:
@@ -1710,12 +1735,9 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 )
 
         grouped_results = {
-            "AMM": [],
-            "FIM": [],
-            "IPC": [],
-            "MEL": [],
-            "CDL": [],
-            "OTHER": [],
+            manual_type: []
+            for manual_type in manual_types
+            if manual_type != "COMMON"
         }
 
         for page in package_pages:
@@ -2593,21 +2615,18 @@ class ManualPackageUpdateView(
         ):
             delete_file_field(old_file)
 
-        self.object.processed = False
-        update_fields = ["processed"]
-
         if file_replaced:
+            self.object.processed = False
             self.object.uploaded_at = timezone.now()
-            update_fields.append("uploaded_at")
-
-        self.object.save(update_fields=update_fields)
-
-        queue_reindex_message(
-            self.request,
-            ReindexJob.TARGET_MANUAL_PACKAGE,
-            self.object.pk,
-            f"{self.object.manual_type} ZIP",
-        )
+            self.object.save(update_fields=["processed", "uploaded_at"])
+            queue_reindex_message(
+                self.request,
+                ReindexJob.TARGET_MANUAL_PACKAGE,
+                self.object.pk,
+                f"{self.object.manual_type} ZIP",
+            )
+        else:
+            messages.success(self.request, "매뉴얼 정보를 수정했습니다.")
 
         return response
 
@@ -2674,6 +2693,7 @@ class ManualPackageReuploadView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["is_reupload"] = True
         context["back_url"] = reverse_lazy(
             "aircraft_manual_detail", kwargs={"pk": self.object.aircraft.pk}
         )

@@ -13,12 +13,19 @@
         <h2 class="page-title mb-2">Manual Management</h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            항공기와 공통 매뉴얼을 관리합니다.
+            항공기, 매뉴얼 유형과 공통 매뉴얼을 관리합니다.
         </p>
     </div>
 
     <div class="page-actions">
         {% if user.is_superuser %}
+        <a
+            href="{% url 'admin:manuals_manualtype_changelist' %}"
+            class="btn btn-outline-info app-action-btn d-none d-md-inline-flex"
+        >
+            Manual Types
+        </a>
+
         {% if active_tab == "common" %}
         <a
             href="{% url 'common_manual_category_create' %}"
@@ -104,9 +111,9 @@
                         <td class="fw-bold">{{ aircraft.name }}</td>
 
                         <td>
-                            {% if aircraft.maker == "BOEING" %} AMM / FIM / IPC
-                            / MEL / CDL {% else %} AMM / FIM / IPC Link, MEL /
-                            CDL PDF {% endif %}
+                            {% for item in aircraft.get_manual_status_list %}
+                            <span class="badge {% if item.available %}bg-primary{% else %}bg-secondary{% endif %}">{{ item.type }}</span>
+                            {% endfor %}
                         </td>
 
                         <td>
@@ -160,9 +167,9 @@
                         </h5>
 
                         <p class="portal-list-card-desc mb-0">
-                            {% if aircraft.maker == "BOEING" %} AMM / FIM / IPC
-                            / MEL / CDL {% else %} AMM / FIM / IPC Link, MEL /
-                            CDL PDF {% endif %}
+                            {% for item in aircraft.get_manual_status_list %}
+                            <span class="badge {% if item.available %}bg-primary{% else %}bg-secondary{% endif %}">{{ item.type }}</span>
+                            {% endfor %}
                         </p>
                     </div>
                 </div>

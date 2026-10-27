@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 import os
 
 from .revision_utils import extract_revision_info_from_filename
+from .constants import AIRCRAFT_MANUAL_TYPES
 
 
 def get_filename_revision_info(file_field):
@@ -76,6 +77,53 @@ def validate_manual_file(value):
         raise ValidationError("PDF, ZIP, DOC, DOCX, XLS, 또는 XLSX 파일만 업로드할 수 있습니다.")
 
 
+class ManualType(models.Model):
+    UPLOAD_ZIP = "ZIP"
+    UPLOAD_PDF = "PDF"
+    UPLOAD_FOLDER = "FOLDER"
+
+    UPLOAD_MODE_CHOICES = [
+        (UPLOAD_ZIP, "ZIP package"),
+        (UPLOAD_PDF, "PDF file"),
+        (UPLOAD_FOLDER, "Folder"),
+    ]
+
+    code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+    upload_mode = models.CharField(max_length=20, choices=UPLOAD_MODE_CHOICES)
+    sort_order = models.PositiveIntegerField(default=100)
+    is_active = models.BooleanField(default=True)
+    is_searchable = models.BooleanField(default=True)
+    aircraft = models.ManyToManyField(
+        "Aircraft",
+        blank=True,
+        related_name="manual_types",
+        help_text="적용할 항공기. 비워두면 모든 항공기에 적용됩니다.",
+    )
+
+    class Meta:
+        ordering = ["sort_order", "code"]
+
+    def applies_to(self, aircraft):
+        ids = {a.pk for a in self.aircraft.all()}
+        return not ids or aircraft.pk in ids
+
+    def clean(self):
+        self.code = (self.code or "").strip().upper()
+        self.name = (self.name or self.code).strip()
+
+        if self.upload_mode == self.UPLOAD_FOLDER and self.code != "OTHER":
+            raise ValidationError("FOLDER 방식은 현재 OTHER 유형에서만 사용할 수 있습니다.")
+
+    def save(self, *args, **kwargs):
+        self.code = (self.code or "").strip().upper()
+        self.name = (self.name or self.code).strip()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.code
+
+
 class Aircraft(models.Model):
     MAKER_CHOICES = [
         ("BOEING", "Boeing"),
@@ -127,6 +175,12 @@ class Aircraft(models.Model):
     def get_cdl(self):
         return self.get_manual_by_type("CDL")
 
+    def get_wdm(self):
+        return self.get_package_by_type("WDM")
+
+    def get_ssm(self):
+        return self.get_package_by_type("SSM")
+
     def has_manual(self, manual_type):
         has_file = any(
             manual.manual_type == manual_type for manual in self.manuals.all()
@@ -152,6 +206,12 @@ class Aircraft(models.Model):
     def has_cdl(self):
         return self.has_manual("CDL")
 
+    def has_wdm(self):
+        return self.has_manual("WDM")
+
+    def has_ssm(self):
+        return self.has_manual("SSM")
+
     def has_any_manual(self):
         return self.manuals.exists() or self.manual_packages.exists()
 
@@ -166,20 +226,57 @@ class Aircraft(models.Model):
         )
 
     def get_manual_status_list(self):
+        all_definitions = list(
+            ManualType.objects.filter(is_active=True).prefetch_related("aircraft")
+        )
+        definitions = [d for d in all_definitions if d.applies_to(self)]
 
-        manual_types = ["AMM", "FIM", "IPC", "MEL", "CDL", "OTHER"]
+        if not all_definitions:
+            definitions = [
+                type(
+                    "FallbackManualType",
+                    (),
+                    {
+                        "code": code,
+                        "name": code,
+                        "upload_mode": (
+                            ManualType.UPLOAD_ZIP
+                            if code in {"AMM", "FIM", "IPC", "WDM", "SSM"}
+                            else ManualType.UPLOAD_PDF
+                            if code in {"MEL", "CDL"}
+                            else ManualType.UPLOAD_FOLDER
+                        ),
+                    },
+                )()
+                for code in AIRCRAFT_MANUAL_TYPES
+            ]
 
+        packages = {
+            package.manual_type: package for package in self.manual_packages.all()
+        }
+        files = {manual.manual_type: manual for manual in self.manuals.all()}
+        other_category = next(iter(self.other_categories.all()), None)
+        other_available = bool(
+            other_category and any(True for _ in other_category.files.all())
+        )
         result = []
 
-        for manual_type in manual_types:
-            package = self.manual_packages.filter(manual_type=manual_type).first()
-            file = self.manuals.filter(manual_type=manual_type).first()
+        for definition in definitions:
+            package = packages.get(definition.code)
+            file = files.get(definition.code)
+            available = bool(package or file)
+
+            if definition.code == "OTHER":
+                available = other_available
 
             result.append(
                 {
-                    "type": manual_type,
+                    "type": definition.code,
+                    "name": definition.name,
+                    "upload_mode": definition.upload_mode,
                     "package": package,
                     "file": file,
+                    "available": available,
                 }
             )
 
@@ -201,20 +298,11 @@ class Aircraft(models.Model):
 
 
 class ManualFile(models.Model):
-    MANUAL_TYPE_CHOICES = [
-        ("AMM", "AMM"),
-        ("FIM", "FIM"),
-        ("IPC", "IPC"),
-        ("MEL", "MEL"),
-        ("CDL", "CDL"),
-        ("OTHER", "Other"),
-    ]
-
     aircraft = models.ForeignKey(
         Aircraft, on_delete=models.CASCADE, related_name="manuals"
     )
 
-    manual_type = models.CharField(max_length=20, choices=MANUAL_TYPE_CHOICES)
+    manual_type = models.CharField(max_length=20)
 
     file = models.FileField(upload_to="manuals/", validators=[validate_manual_file])
 
@@ -290,18 +378,11 @@ class AirbusManualLink(models.Model):
 
 
 class ManualPackage(models.Model):
-    MANUAL_TYPE_CHOICES = [
-        ("AMM", "AMM"),
-        ("FIM", "FIM"),
-        ("IPC", "IPC"),
-        ("OTHER", "Other"),
-    ]
-
     aircraft = models.ForeignKey(
         Aircraft, on_delete=models.CASCADE, related_name="manual_packages"
     )
 
-    manual_type = models.CharField(max_length=20, choices=MANUAL_TYPE_CHOICES)
+    manual_type = models.CharField(max_length=20)
 
     zip_file = models.FileField(upload_to="manual_packages/")
 
