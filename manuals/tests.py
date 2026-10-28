@@ -29,6 +29,8 @@ from .models import (
     CommonManualFile,
     OtherManualCategory,
     OtherManualFile,
+    OtherManualPDFPage,
+    OtherManualFolder,
     ReindexJob,
     ManualType,
 )
@@ -190,6 +192,38 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "manual_folder_upload.js")
 
 
+class ManualTypeAdminTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_superuser(
+            username="manual-type-admin",
+            password="test-password",
+            email="manual-type-admin@example.com",
+        )
+        self.client.force_login(self.user)
+        self.manual_type = ManualType.objects.create(
+            code="ADMIN_TEST",
+            name="Admin Test",
+            upload_mode=ManualType.UPLOAD_PDF,
+        )
+
+    def test_manual_type_can_be_deleted_from_admin(self):
+        delete_url = reverse(
+            "admin:manuals_manualtype_delete",
+            args=[self.manual_type.pk],
+        )
+        confirmation = self.client.get(delete_url)
+
+        self.assertEqual(confirmation.status_code, 200)
+        self.assertContains(confirmation, "Are you sure")
+
+        response = self.client.post(delete_url, {"post": "yes"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
+            ManualType.objects.filter(pk=self.manual_type.pk).exists()
+        )
+
+
 class OtherManualFolderUploadTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -200,11 +234,136 @@ class OtherManualFolderUploadTests(TestCase):
         )
         self.client.force_login(self.user)
         self.aircraft = Aircraft.objects.create(maker="BOEING", name="B777")
-        self.category = OtherManualCategory.objects.create(
+        self.category, _ = OtherManualCategory.objects.get_or_create(
             aircraft=self.aircraft,
-            name="OTHER",
-            code="OTHER",
+            manual_type="OTHER",
+            defaults={
+                "name": "OTHER",
+                "code": "OTHER",
+            },
         )
+
+    def test_existing_and_new_aircraft_have_other_manual_categories(self):
+        other_aircraft = Aircraft.objects.create(maker="AIRBUS", name="A320")
+
+        self.assertTrue(
+            OtherManualCategory.objects.filter(
+                aircraft=other_aircraft,
+                manual_type="OTHER",
+            ).exists()
+        )
+
+        response = self.client.get(reverse("manual_home"))
+        self.assertContains(response, "Other Manuals")
+        self.assertContains(response, "A320")
+        self.assertContains(response, "Open OTHER Folder")
+
+        detail_response = self.client.get(
+            reverse("aircraft_manual_detail", args=[other_aircraft.pk])
+        )
+        other_item = next(
+            item
+            for item in detail_response.context["manual_items"]
+            if item["type"] == "OTHER"
+        )
+        self.assertIsNotNone(other_item["folder"])
+
+    def test_deleting_other_category_redirects_to_manual_library(self):
+        response = self.client.post(
+            reverse("other_manual_category_delete", args=[self.category.pk])
+        )
+
+        self.assertRedirects(response, reverse("manual_home"))
+        self.assertFalse(
+            OtherManualCategory.objects.filter(pk=self.category.pk).exists()
+        )
+
+    def test_create_empty_nested_folders(self):
+        create_url = reverse("other_manual_folder_create")
+        root_response = self.client.post(
+            f"{create_url}?category={self.category.pk}",
+            {
+                "category": self.category.pk,
+                "folder_name": "Documents",
+                "parent_path": "",
+            },
+        )
+        self.assertEqual(root_response.status_code, 302)
+        self.assertTrue(
+            OtherManualFolder.objects.filter(
+                category=self.category,
+                path="Documents",
+            ).exists()
+        )
+
+        child_response = self.client.post(
+            f"{create_url}?category={self.category.pk}&path=Documents",
+            {
+                "category": self.category.pk,
+                "folder_name": "Forms",
+                "parent_path": "Documents",
+            },
+        )
+        self.assertEqual(child_response.status_code, 302)
+        self.assertTrue(
+            OtherManualFolder.objects.filter(
+                category=self.category,
+                path="Documents/Forms",
+            ).exists()
+        )
+
+        browse_response = self.client.get(
+            reverse(
+                "other_manual_folder_browse",
+                args=[self.category.pk],
+            ),
+            {"path": "Documents/Forms"},
+        )
+        self.assertEqual(browse_response.status_code, 200)
+        self.assertContains(browse_response, "등록된 파일이 없습니다.")
+
+    def test_upload_file_directly_into_nested_folder(self):
+        folder = OtherManualFolder.objects.create(
+            category=self.category,
+            path="Documents/Forms",
+        )
+
+        with TemporaryDirectory(dir=Path.cwd() / "tmp") as media_root:
+            with override_settings(MEDIA_ROOT=media_root, REINDEX_INLINE=False):
+                response = self.client.post(
+                    reverse("other_manual_file_create")
+                    + f"?category={self.category.pk}&path={folder.path}",
+                    {
+                        "category": self.category.pk,
+                        "folder_path": folder.path,
+                        "title": "Checklist",
+                        "file": SimpleUploadedFile(
+                            "checklist.pdf",
+                            b"%PDF-1.4 test",
+                            content_type="application/pdf",
+                        ),
+                        "description": "",
+                        "revision_no": "",
+                        "revision_date_text": "",
+                    },
+                )
+
+        self.assertEqual(response.status_code, 302)
+        uploaded_file = self.category.files.get(title="Checklist")
+        self.assertEqual(uploaded_file.folder_path, "Documents/Forms")
+        self.assertEqual(
+            uploaded_file.relative_path,
+            "Documents/Forms/checklist.pdf",
+        )
+
+        browse_response = self.client.get(
+            reverse(
+                "other_manual_folder_browse",
+                args=[self.category.pk],
+            ),
+            {"path": "Documents/Forms"},
+        )
+        self.assertContains(browse_response, "Checklist")
 
     def test_other_folder_form_offers_folder_selection(self):
         response = self.client.get(
@@ -677,6 +836,161 @@ class ManualSearchContentPageTests(TestCase):
             {"MEL", "CDL"},
         )
         self.assertEqual(response.context["selected_manual_types"], ["MEL", "CDL"])
+
+    def test_all_aircraft_options_show_manual_counts_and_filter_by_aircraft(self):
+        other_aircraft = Aircraft.objects.create(name="B737", maker="BOEING")
+        manual_type, _ = ManualType.objects.get_or_create(
+            code="MEL",
+            defaults={
+                "name": "MEL",
+                "upload_mode": ManualType.UPLOAD_PDF,
+            },
+        )
+        manual_type.aircraft.set([self.aircraft, other_aircraft])
+        other_manual = ManualFile.objects.create(
+            aircraft=other_aircraft,
+            manual_type="MEL",
+            file="manuals/b737-mel.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=other_manual,
+            page_number=12,
+            text="NAV GNSS 1 REJECTED BY IR CDU MESSAGE",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "manual_type": f"AIRCRAFT:{self.aircraft.pk}",
+                "q": "nav gnss * rejected by*",
+            },
+        )
+
+        options = {
+            option["value"]: option
+            for option in response.context["manual_type_options"]
+        }
+        self.assertEqual(
+            options[f"AIRCRAFT:{self.aircraft.pk}"]["type"],
+            "AIRCRAFT",
+        )
+        self.assertIn("manuals", options[f"AIRCRAFT:{self.aircraft.pk}"]["label"])
+        self.assertEqual(
+            options[f"AIRCRAFT:{other_aircraft.pk}"]["type"],
+            "AIRCRAFT",
+        )
+        group_options = {
+            group["label"]: group["options"]
+            for group in response.context["manual_type_groups"]
+        }
+        self.assertIn("AIRBUS - A350", group_options)
+        self.assertIn("BOEING - B737", group_options)
+        self.assertEqual(len(group_options["AIRBUS - A350"]), 1)
+        self.assertIn("manuals", group_options["AIRBUS - A350"][0]["label"])
+        self.assertEqual(
+            {group["aircraft"] for group in response.context["result_groups"]},
+            {"A350"},
+        )
+
+    def test_selecting_aircraft_shows_its_types_without_default_selection(self):
+        other_aircraft = Aircraft.objects.create(name="B737", maker="BOEING")
+        definitions = list(
+            ManualType.objects.filter(is_active=True, is_searchable=True)
+        )
+        for definition in definitions:
+            definition.aircraft.set([other_aircraft])
+
+        for code in ("MEL", "CDL", "OTHER"):
+            definition = ManualType.objects.get(code=code)
+            definition.aircraft.set([self.aircraft])
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {"aircraft": self.aircraft.pk},
+        )
+
+        self.assertEqual(
+            {
+                option["type"]
+                for option in response.context["manual_type_options"]
+            },
+            {"MEL", "CDL", "COMMON"},
+        )
+        self.assertNotIn(
+            "Other",
+            {group["label"] for group in response.context["manual_type_groups"]},
+        )
+        self.assertEqual(response.context["selected_manual_type_values"], [])
+        self.assertEqual(response.context["selected_manual_types"], [])
+
+    def test_empty_other_folder_is_not_available_in_search(self):
+        category, _ = OtherManualCategory.objects.get_or_create(
+            aircraft=self.aircraft,
+            name="OTHER",
+            manual_type="OTHER",
+        )
+        OtherManualFolder.objects.create(
+            category=category,
+            path="B747 documents",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {"aircraft": self.aircraft.pk},
+        )
+
+        self.assertNotIn(
+            "OTHER",
+            {option["value"] for option in response.context["manual_type_options"]},
+        )
+        self.assertNotIn(
+            "Other",
+            {group["label"] for group in response.context["manual_type_groups"]},
+        )
+
+    def test_other_manual_is_available_and_searchable_for_aircraft(self):
+        other_aircraft = Aircraft.objects.create(name="B737", maker="BOEING")
+        other_definition = ManualType.objects.get(code="OTHER")
+        other_definition.aircraft.set([other_aircraft])
+
+        category, _ = OtherManualCategory.objects.get_or_create(
+            aircraft=self.aircraft,
+            name="OTHER",
+            manual_type="OTHER",
+        )
+        other_file = OtherManualFile.objects.create(
+            category=category,
+            title="Hydraulic Procedure",
+            file="manuals/other/hydraulic-procedure.pdf",
+        )
+        OtherManualPDFPage.objects.create(
+            other_file=other_file,
+            page_number=3,
+            text="HYDRAULIC PUMP PRESSURE CHECK",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "manual_type": "OTHER",
+                "q": "hydraulic pump pressure",
+            },
+        )
+
+        options = response.context["manual_type_options"]
+        self.assertIn("OTHER", {option["value"] for option in options})
+        other_group = next(
+            group
+            for group in response.context["manual_type_groups"]
+            if group["label"] == "Other"
+        )
+        self.assertEqual(other_group["options"][0]["value"], "OTHER")
+        self.assertEqual(len(response.context["result_groups"]), 1)
+        self.assertEqual(
+            response.context["result_groups"][0]["manual"],
+            "OTHER",
+        )
 
     def test_manual_search_filters_wdm_package_content(self):
         package = ManualPackage.objects.create(

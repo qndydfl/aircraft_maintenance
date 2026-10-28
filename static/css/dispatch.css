@@ -25,6 +25,12 @@ body.dispatch-search-page .result-section {
 
 /* Search Card */
 
+.dispatch-search-form {
+    --label-size: 0.95rem;
+    --label-color: #062550;
+    font-weight: 700;
+}
+
 .dispatch-search-card {
     overflow: hidden;
     background: rgba(255, 255, 255, 0.96);

@@ -15,7 +15,8 @@
         </h2>
 
         <p class="text-muted mb-0 page-subtitle">
-            OTHER 폴더 안에 PDF, Word, Excel, 이미지 파일을 업로드합니다.
+            {% if parent_path %}{{ parent_path }}{% else %}OTHER root folder{% endif %}
+            에 PDF, Word, Excel, 이미지 파일을 업로드합니다.
         </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
@@ -34,7 +35,9 @@
                 data-loading-title="Uploading OTHER File"
                 data-loading-message="Uploading file and building search index..."
             >
-                {% csrf_token %} {% if form.non_field_errors %}
+                {% csrf_token %}
+                {{ form.folder_path }}
+                {% if form.non_field_errors %}
                 <div class="alert alert-danger app-alert mb-3">
                     {{ form.non_field_errors }}
                 </div>
@@ -69,6 +72,11 @@
                         {{ form.file }} {% if form.file.errors %}
                         <div class="text-danger small mt-1">
                             {{ form.file.errors }}
+                        </div>
+                        {% endif %}
+                        {% if form.folder_path.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.folder_path.errors }}
                         </div>
                         {% endif %}
                     </div>

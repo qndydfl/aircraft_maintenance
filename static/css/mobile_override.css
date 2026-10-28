@@ -828,6 +828,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 }
 
+body.manual-search-page .manual-search-form .manual-search-filter-row .form-label,
+body.manual-search-page .manual-search-form .manual-search-query-row .form-label,
+body.dispatch-search-page .dispatch-search-form .form-label {
+    color: var(--label-color) !important;
+    font-size: var(--label-size) !important;
+}
+
+
 /* Final home spacing rule, including standalone/PWA mode. */
 @media (max-width: 48rem) {
     .app-navbar .admin-only-action {

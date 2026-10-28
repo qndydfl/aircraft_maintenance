@@ -7,7 +7,7 @@ dispatch-search-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=83">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=84">
 {% endblock css %}
 
 {% block js %}
@@ -66,6 +66,7 @@ dispatch-search-page
     class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse {% if not query %}show{% endif %} d-md-block">
     <div class="card-body">
         <form method="get"
+            class="dispatch-search-form"
             data-loading-title="Searching Dispatch"
             data-loading-message="Finding MEL / FIM / AMM references...">
 

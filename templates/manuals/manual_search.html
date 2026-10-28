@@ -3,11 +3,11 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=87">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=94">
 {% endblock css %}
 
 {% block js %}
-<script src="{% static 'js/manual_search.js' %}"></script>
+<script src="{% static 'js/manual_search.js' %}?v=2"></script>
 {% endblock js %}
 
 {% block body_class %}
@@ -56,6 +56,7 @@ manual-search-page
                     <label class="form-label">Aircraft</label>
 
                     <select name="aircraft"
+                        id="manual-search-aircraft"
                         class="form-select app-form-control">
                         <option value="">ALL Aircraft</option>
 
@@ -71,26 +72,56 @@ manual-search-page
                 </div>
 
                 <fieldset class="col-12 col-md-9 manual-type-fieldset">
-                    <legend class="form-label">Manual Type</legend>
+                    <legend class="form-label d-none d-md-block">Manual Type</legend>
 
-                    <div class="manual-type-options">
-                        {% for type in manual_types %}
-                            <input type="checkbox"
-                                class="btn-check"
-                                name="manual_type"
-                                value="{{ type }}"
-                                id="manual-type-{{ forloop.counter }}"
-                                autocomplete="off"
-                                {% if type in selected_manual_types %}checked{% endif %}>
-                            <label class="btn btn-outline-secondary manual-type-option"
-                                for="manual-type-{{ forloop.counter }}">
-                                {{ type }}
-                            </label>
-                        {% endfor %}
-                    </div>
+                    <button
+                        type="button"
+                        class="form-label manual-type-toggle d-md-none"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#manual-type-options-collapse"
+                        aria-expanded="false"
+                        aria-controls="manual-type-options-collapse"
+                    >
+                        <span class="manual-type-toggle-copy">
+                            <span>Manual Type</span>
+                            <span class="manual-type-toggle-hint">
+                                클릭해서 매뉴얼 유형을 선택하면 해당 메뉴얼만 검색할 수 있습니다.
+                            </span>
+                        </span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </button>
 
-                    <div class="form-text manual-type-help">
-                        선택하지 않으면 전체 매뉴얼을 검색합니다.
+                    <p class="manual-type-desktop-hint d-none d-md-block">
+                        각각 선택한 매뉴얼 유형을 기준으로 선택해서 검색할 수 있습니다.
+                    </p>
+
+                    <div id="manual-type-options-collapse" class="manual-type-collapse collapse d-md-block">
+                        <div class="manual-type-options">
+                            {% for group in manual_type_groups %}
+                                <div class="manual-type-group">
+                                    <span class="manual-type-group-title">{{ group.label }}</span>
+                                    <div class="manual-type-group-options">
+                                        {% for option in group.options %}
+                                            <input type="checkbox"
+                                                class="btn-check"
+                                                name="manual_type"
+                                                value="{{ option.value }}"
+                                                id="manual-type-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
+                                                autocomplete="off"
+                                                {% if option.value in selected_manual_type_values %}checked{% endif %}>
+                                            <label class="btn btn-outline-secondary manual-type-option"
+                                                for="manual-type-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                                {{ option.label }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+
+                            <div class="form-text manual-type-help">
+                                선택하지 않으면 전체 매뉴얼을 검색합니다.
+                            </div>
+                        </div>
                     </div>
                 </fieldset>
 

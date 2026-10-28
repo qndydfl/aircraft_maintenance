@@ -14,7 +14,10 @@ from .models import (
     CommonManualFile,
     OtherManualCategory,
     OtherManualFile,
+    OtherManualFolder,
     ManualType,
+    normalize_other_manual_folder_path,
+    other_manual_folder_path_exists,
 )
 
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]
@@ -453,6 +456,10 @@ class OtherManualCategoryForm(forms.ModelForm):
 
 
 class OtherManualFileForm(forms.ModelForm):
+    folder_path = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
 
     class Meta:
         model = OtherManualFile
@@ -480,6 +487,58 @@ class OtherManualFileForm(forms.ModelForm):
             "revision_date_text": forms.TextInput(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.initial.setdefault("folder_path", self.instance.folder_path)
+
+    def clean_folder_path(self):
+        try:
+            return normalize_other_manual_folder_path(
+                self.cleaned_data.get("folder_path", "")
+            )
+        except ValidationError as error:
+            raise ValidationError(error.messages)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get("category")
+        folder_path = cleaned_data.get("folder_path", "")
+
+        if category and not other_manual_folder_path_exists(category, folder_path):
+            self.add_error("folder_path", "선택한 OTHER 폴더를 찾을 수 없습니다.")
+            return cleaned_data
+
+        uploaded_file = cleaned_data.get("file")
+        file_changed = "file" in self.changed_data
+        folder_changed = "folder_path" in self.changed_data
+        if (
+            category
+            and uploaded_file
+            and (not self.instance.pk or file_changed or folder_changed)
+        ):
+            source_name = (
+                uploaded_file.name
+                if not self.instance.pk or file_changed
+                else self.instance.relative_path or uploaded_file.name
+            )
+            file_name = os.path.basename(source_name)
+            relative_path = "/".join(
+                part for part in (folder_path, file_name) if part
+            )
+            duplicate = OtherManualFile.objects.filter(
+                category=category,
+                relative_path=relative_path,
+            )
+
+            if self.instance.pk:
+                duplicate = duplicate.exclude(pk=self.instance.pk)
+
+            if duplicate.exists():
+                self.add_error("file", "같은 폴더에 동일한 파일명이 이미 있습니다.")
+
+        return cleaned_data
+
     def clean_file(self):
         file = self.cleaned_data.get("file")
 
@@ -496,6 +555,92 @@ class OtherManualFileForm(forms.ModelForm):
             )
 
         return file
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        folder_path = self.cleaned_data.get("folder_path", "")
+        instance.folder_path = folder_path
+
+        if (
+            not instance.pk
+            or "file" in self.changed_data
+            or "folder_path" in self.changed_data
+        ):
+            uploaded_file = self.cleaned_data.get("file")
+            source_name = (
+                uploaded_file.name
+                if not instance.pk or "file" in self.changed_data
+                else instance.relative_path or uploaded_file.name
+            )
+            file_name = os.path.basename(source_name)
+            instance.relative_path = "/".join(
+                part for part in (folder_path, file_name) if part
+            )
+
+        if commit:
+            instance.save()
+
+        return instance
+
+
+class OtherManualFolderForm(forms.Form):
+    category = forms.ModelChoiceField(
+        queryset=OtherManualCategory.objects.select_related("aircraft"),
+        widget=forms.HiddenInput(),
+    )
+    folder_name = forms.CharField(
+        max_length=100,
+        label="Folder name",
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    parent_path = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
+    def clean_folder_name(self):
+        folder_name = (self.cleaned_data.get("folder_name") or "").strip()
+        if (
+            not folder_name
+            or folder_name in {".", ".."}
+            or "/" in folder_name
+            or "\\" in folder_name
+        ):
+            raise ValidationError("폴더 이름에는 경로 구분자를 사용할 수 없습니다.")
+        return folder_name
+
+    def clean_parent_path(self):
+        try:
+            return normalize_other_manual_folder_path(
+                self.cleaned_data.get("parent_path", "")
+            )
+        except ValidationError as error:
+            raise ValidationError(error.messages)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get("category")
+        parent_path = cleaned_data.get("parent_path", "")
+        folder_name = cleaned_data.get("folder_name", "")
+
+        if category and parent_path and not other_manual_folder_path_exists(
+            category,
+            parent_path,
+        ):
+            self.add_error("parent_path", "상위 폴더를 찾을 수 없습니다.")
+            return cleaned_data
+
+        if category and folder_name:
+            path = "/".join(part for part in (parent_path, folder_name) if part)
+            if len(path) > 500:
+                self.add_error("folder_name", "폴더 경로가 너무 깁니다.")
+            elif OtherManualFolder.objects.filter(
+                category=category,
+                path__iexact=path,
+            ).exists():
+                self.add_error("folder_name", "같은 위치에 폴더가 이미 있습니다.")
+
+        return cleaned_data
 
 
 class OtherManualFolderUploadForm(forms.Form):
@@ -521,6 +666,10 @@ class OtherManualFolderUploadForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+    folder_path = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
     description = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
@@ -533,3 +682,21 @@ class OtherManualFolderUploadForm(forms.Form):
             raise ValidationError("OTHER 폴더 패키지는 ZIP 형식이어야 합니다.")
 
         return package
+
+    def clean_folder_path(self):
+        try:
+            return normalize_other_manual_folder_path(
+                self.cleaned_data.get("folder_path", "")
+            )
+        except ValidationError as error:
+            raise ValidationError(error.messages)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get("category")
+        folder_path = cleaned_data.get("folder_path", "")
+
+        if category and not other_manual_folder_path_exists(category, folder_path):
+            self.add_error("folder_path", "선택한 OTHER 폴더를 찾을 수 없습니다.")
+
+        return cleaned_data

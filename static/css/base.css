@@ -61,7 +61,6 @@
     --app-success: var(--aviation-green);
     --app-warning: var(--aviation-amber);
     --app-text: var(--text-primary);
-    --app-muted: var(--text-muted);
     --app-border: var(--border-soft);
 
     --safe-area-top: env(safe-area-inset-top, 0px);

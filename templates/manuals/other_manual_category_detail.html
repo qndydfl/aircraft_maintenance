@@ -23,10 +23,24 @@
     <div class="page-actions">
         {% if user.is_superuser %}
         <a
-            href="{% url 'other_manual_folder_upload' %}?category={{ category.pk }}"
+            href="{% url 'other_manual_folder_create' %}?category={{ category.pk }}&path={{ current_folder_path|urlencode }}"
+            class="btn btn-outline-primary app-action-btn desktop-only-btn"
+        >
+            New Folder
+        </a>
+
+        <a
+            href="{% url 'other_manual_file_create' %}?category={{ category.pk }}&path={{ current_folder_path|urlencode }}"
+            class="btn btn-outline-success app-action-btn desktop-only-btn"
+        >
+            Add File
+        </a>
+
+        <a
+            href="{% url 'other_manual_folder_upload' %}?category={{ category.pk }}&path={{ current_folder_path|urlencode }}"
             class="btn btn-primary app-action-btn desktop-only-btn"
         >
-            Upload Files
+            Upload ZIP / Folder
         </a>
 
         {% if not current_folder_path %}<a
@@ -214,10 +228,16 @@
 
                 {% if user.is_superuser %}
                 <a
-                    href="{% url 'other_manual_folder_upload' %}?category={{ category.pk }}"
-                    class="btn btn-outline-primary app-card-btn"
+                    href="{% url 'other_manual_folder_create' %}?category={{ category.pk }}&path={{ current_folder_path|urlencode }}"
+                    class="btn btn-outline-primary app-card-btn me-2"
                 >
-                    Upload Files
+                    New Folder
+                </a>
+                <a
+                    href="{% url 'other_manual_file_create' %}?category={{ category.pk }}&path={{ current_folder_path|urlencode }}"
+                    class="btn btn-success app-card-btn"
+                >
+                    Add File
                 </a>
                 {% endif %}
             </div>

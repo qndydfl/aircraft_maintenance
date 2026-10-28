@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}form-page other-manual-folder-create-page{% endblock body_class %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}?v=61" />
+{% endblock css %}
+
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    <div class="app-navbar-title">
+        <p class="page-eyebrow mb-1">OTHER MANUAL FOLDER</p>
+        <h2 class="page-title mb-2">Create Folder</h2>
+        <p class="text-muted mb-0 page-subtitle">
+            {% if parent_path %}{{ parent_path }} 안에 새 폴더를 만듭니다.{% else %}OTHER 폴더에 새 폴더를 만듭니다.{% endif %}
+        </p>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %}
+
+{% block content %}
+<div class="portal-form-wrap">
+    <div class="card portal-card shadow-sm portal-form-card">
+        <div class="card-body">
+            <form method="post" class="portal-form">
+                {% csrf_token %}
+                {{ form.category }}
+                {{ form.parent_path }}
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger app-alert mb-3">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="portal-form-section">
+                    <h5 class="portal-form-section-title">Folder Information</h5>
+                    <label class="form-label" for="{{ form.folder_name.id_for_label }}">
+                        Folder name
+                    </label>
+                    {{ form.folder_name }}
+                    {% if form.folder_name.errors %}
+                    <div class="text-danger small mt-1">{{ form.folder_name.errors }}</div>
+                    {% endif %}
+                    {% if form.parent_path.errors %}
+                    <div class="text-danger small mt-1">{{ form.parent_path.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="portal-form-actions">
+                    <button type="submit" class="btn btn-primary app-card-btn">
+                        Create Folder
+                    </button>
+                    <a href="{{ back_url }}" class="btn btn-outline-secondary app-card-btn">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

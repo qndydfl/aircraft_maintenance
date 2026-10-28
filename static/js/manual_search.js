@@ -1,9 +1,17 @@
 document.addEventListener("DOMContentLoaded", function () {
     const filter = document.getElementById("manual-search-filter");
+    const form = filter ? filter.querySelector(".manual-search-form") : null;
+    const aircraftSelect = document.getElementById("manual-search-aircraft");
     const toggle = document.querySelector(
         '[data-bs-target="#manual-search-filter"]'
     );
     const label = toggle ? toggle.querySelector(".filter-toggle-label") : null;
+
+    if (form && aircraftSelect) {
+        aircraftSelect.addEventListener("change", function () {
+            form.requestSubmit();
+        });
+    }
 
     if (!filter || !toggle || !label) {
         return;

@@ -27,10 +27,13 @@ from .models import (
     CommonManualFile,
     CommonManualPDFPage,
     OtherManualFile,
+    OtherManualFolder,
     OtherManualCategory,
     OtherManualPDFPage,
     ReindexJob,
     ManualType,
+    normalize_other_manual_folder_path,
+    other_manual_folder_path_exists,
 )
 from .forms import (
     ManualFileForm,
@@ -40,6 +43,7 @@ from .forms import (
     CommonManualFileForm,
     OtherManualCategoryForm,
     OtherManualFileForm,
+    OtherManualFolderForm,
     OtherManualFolderUploadForm,
     DOCUMENT_EXTENSIONS,
     IMAGE_EXTENSIONS,
@@ -72,6 +76,7 @@ from .services import (
 )
 from django.http import FileResponse, Http404
 from django.core.files import File
+from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Min, Prefetch
 from django.shortcuts import redirect, get_object_or_404
 from dispatch.services import extract_mel_dispatch_items_from_pdf
@@ -273,6 +278,45 @@ class R2DirectUploadContextMixin:
 
 
 def get_manual_library_context():
+    other_manual_aircrafts = list(
+        Aircraft.objects.order_by(
+            "maker",
+            "name",
+        ).prefetch_related(
+            Prefetch(
+                "other_categories",
+                queryset=OtherManualCategory.objects.filter(
+                    manual_type="OTHER"
+                ).prefetch_related("files", "folders"),
+                to_attr="other_manual_categories",
+            )
+        )
+    )
+
+    for aircraft in other_manual_aircrafts:
+        category = next(iter(aircraft.other_manual_categories), None)
+        if category is None:
+            continue
+
+        folder_paths = set()
+        for folder in category.folders.all():
+            path_parts = folder.path.split("/")
+            folder_paths.update(
+                "/".join(path_parts[:index])
+                for index in range(1, len(path_parts) + 1)
+            )
+
+        for other_file in category.files.all():
+            path_parts = [
+                part for part in other_file.folder_path.split("/") if part
+            ]
+            folder_paths.update(
+                "/".join(path_parts[:index])
+                for index in range(1, len(path_parts) + 1)
+            )
+
+        category.other_folder_count = len(folder_paths)
+
     return {
         "boeing_aircrafts": Aircraft.objects.filter(maker="BOEING")
         .order_by("name")
@@ -291,6 +335,7 @@ def get_manual_library_context():
             "other_categories__files",
         ),
         "common_categories": CommonManualCategory.objects.prefetch_related("files"),
+        "other_manual_aircrafts": other_manual_aircrafts,
     }
 
 
@@ -1518,15 +1563,39 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
         query = self.request.GET.get("q", "").strip()
         aircraft_id = self.request.GET.get("aircraft", "").strip()
+        aircrafts = list(Aircraft.objects.all().order_by("maker", "name"))
         manual_type_definitions = list(
-            ManualType.objects.filter(is_active=True, is_searchable=True)
+            ManualType.objects.filter(
+                is_active=True,
+                is_searchable=True,
+            ).prefetch_related("aircraft")
         )
-        manual_types = [definition.code for definition in manual_type_definitions]
-
+        manual_types = list(
+            dict.fromkeys(
+                definition.code
+                for definition in manual_type_definitions
+                if definition.code != "OTHER"
+            )
+        )
+        other_manual_aircraft_ids = set(
+            OtherManualFile.objects.filter(
+                category__manual_type="OTHER"
+            ).values_list(
+                "category__aircraft_id",
+                flat=True,
+            ).distinct()
+        )
         if not manual_types:
-            manual_types = list(AIRCRAFT_MANUAL_TYPES)
+            manual_types = [
+                code for code in AIRCRAFT_MANUAL_TYPES if code != "OTHER"
+            ]
 
-        manual_types.append("COMMON")
+        if other_manual_aircraft_ids and "OTHER" not in manual_types:
+            manual_types.append("OTHER")
+
+        if "COMMON" not in manual_types:
+            manual_types.append("COMMON")
+
         zip_manual_types = {
             definition.code
             for definition in manual_type_definitions
@@ -1537,11 +1606,146 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
             for definition in manual_type_definitions
             if definition.upload_mode == ManualType.UPLOAD_PDF
         } or set(PDF_MANUAL_TYPES)
+
+        manual_type_options = []
+        manual_type_groups = []
+        manual_type_aircraft_ids = {
+            definition.pk: {aircraft.pk for aircraft in definition.aircraft.all()}
+            for definition in manual_type_definitions
+        }
+
+        for aircraft in aircrafts:
+            if aircraft_id and str(aircraft.pk) != aircraft_id:
+                continue
+
+            if manual_type_definitions:
+                aircraft_type_definitions = [
+                    definition
+                    for definition in manual_type_definitions
+                    if definition.code not in {"COMMON", "OTHER"}
+                    and (
+                        not manual_type_aircraft_ids[definition.pk]
+                        or aircraft.pk in manual_type_aircraft_ids[definition.pk]
+                    )
+                ]
+            else:
+                aircraft_type_definitions = [
+                    type(
+                        "FallbackManualType",
+                        (),
+                        {
+                            "code": code,
+                            "upload_mode": (
+                                ManualType.UPLOAD_ZIP
+                                if code in ZIP_MANUAL_TYPES
+                                else ManualType.UPLOAD_PDF
+                                if code in PDF_MANUAL_TYPES
+                                else ManualType.UPLOAD_FOLDER
+                            ),
+                        },
+                    )()
+                    for code in AIRCRAFT_MANUAL_TYPES
+                    if code != "OTHER"
+                ]
+
+            group_options = []
+            if aircraft_id:
+                for definition in aircraft_type_definitions:
+                    option = {
+                        "value": f"{aircraft.pk}:{definition.code}",
+                        "type": definition.code,
+                        "label": definition.code,
+                    }
+                    manual_type_options.append(option)
+                    group_options.append(option)
+            elif aircraft_type_definitions:
+                option = {
+                    "value": f"AIRCRAFT:{aircraft.pk}",
+                    "type": "AIRCRAFT",
+                    "label": f"{len(aircraft_type_definitions)} manuals",
+                }
+                manual_type_options.append(option)
+                group_options.append(option)
+
+            if group_options:
+                manual_type_groups.append(
+                    {
+                        "label": f"{aircraft.maker} - {aircraft.name}",
+                        "options": group_options,
+                    }
+                )
+
+        common_option = {"value": "COMMON", "type": "COMMON", "label": "COMMON"}
+        other_option = {"value": "OTHER", "type": "OTHER", "label": "OTHER"}
+        selected_aircraft_has_other = (
+            not aircraft_id
+            or any(
+                str(other_aircraft_id) == aircraft_id
+                for other_aircraft_id in other_manual_aircraft_ids
+            )
+        )
+        if "OTHER" in manual_types and selected_aircraft_has_other:
+            manual_type_options.append(other_option)
+            manual_type_groups.append(
+                {"label": "Other", "options": [other_option]}
+            )
+
+        manual_type_options.append(common_option)
+        manual_type_groups.append(
+            {"label": "Common", "options": [common_option]}
+        )
+
         selected_manual_types = []
+        selected_manual_type_values = []
+        selected_manual_type_pairs = []
+        selected_legacy_manual_types = []
+        selected_all_aircraft_ids = []
+        available_manual_type_options = {
+            option["value"]: option for option in manual_type_options
+        }
+        available_manual_type_values = {
+            option["value"]
+            for option in manual_type_options
+            if option["type"] not in {"COMMON", "OTHER"}
+        }
 
         for value in self.request.GET.getlist("manual_type"):
-            for manual_type in value.split(","):
-                manual_type = manual_type.strip().upper()
+            for requested_type in value.split(","):
+                requested_type = requested_type.strip()
+                manual_type = requested_type.upper()
+
+                option = available_manual_type_options.get(requested_type)
+                if option and option["type"] == "AIRCRAFT":
+                    selected_id = int(option["value"].partition(":")[2])
+                    if selected_id not in selected_all_aircraft_ids:
+                        selected_all_aircraft_ids.append(selected_id)
+                    selected_manual_type_values.append(requested_type)
+                elif requested_type in available_manual_type_values:
+                    aircraft_pk, _, manual_type = requested_type.partition(":")
+                    selection = (int(aircraft_pk), manual_type)
+                    if selection not in selected_manual_type_pairs:
+                        selected_manual_type_pairs.append(selection)
+                    selected_manual_type_values.append(requested_type)
+                elif manual_type == "COMMON":
+                    selected_manual_type_values.append("COMMON")
+                elif (
+                    manual_type == "OTHER"
+                    and requested_type == "OTHER"
+                    and "OTHER" in available_manual_type_options
+                ):
+                    selected_legacy_manual_types.append("OTHER")
+                    selected_manual_type_values.append("OTHER")
+                elif manual_type in manual_types:
+                    if aircraft_id:
+                        scoped_value = f"{aircraft_id}:{manual_type}"
+                        if scoped_value in available_manual_type_values:
+                            selection = (int(aircraft_id), manual_type)
+                            if selection not in selected_manual_type_pairs:
+                                selected_manual_type_pairs.append(selection)
+                            selected_manual_type_values.append(scoped_value)
+                    else:
+                        selected_legacy_manual_types.append(manual_type)
+                        selected_manual_type_values.append(manual_type)
 
                 if (
                     manual_type in manual_types
@@ -1588,42 +1792,72 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     other_file__category__aircraft_id=aircraft_id
                 )
 
-            if selected_manual_types:
-                selected_package_types = [
-                    value
-                    for value in selected_manual_types
-                    if value in zip_manual_types
-                ]
-                selected_file_types = [
-                    value for value in selected_manual_types if value in pdf_manual_types
+            if (
+                selected_manual_types
+                or selected_manual_type_pairs
+                or selected_legacy_manual_types
+                or selected_all_aircraft_ids
+            ):
+                package_filter = Q()
+                file_filter = Q()
+                other_filter = Q()
+
+                for selected_aircraft_id in selected_all_aircraft_ids:
+                    package_filter |= Q(
+                        chapter__package__aircraft_id=selected_aircraft_id
+                    )
+                    file_filter |= Q(manual_file__aircraft_id=selected_aircraft_id)
+                    other_filter |= Q(
+                        other_file__category__aircraft_id=selected_aircraft_id
+                    )
+
+                selected_type_scopes = selected_manual_type_pairs + [
+                    (None, manual_type)
+                    for manual_type in selected_legacy_manual_types
                 ]
 
-                if selected_package_types:
-                    package_pages_qs = package_pages_qs.filter(
-                        chapter__package__manual_type__in=selected_package_types
+                for selected_aircraft_id, manual_type in selected_type_scopes:
+                    scope_filter = (
+                        Q(chapter__package__aircraft_id=selected_aircraft_id)
+                        if selected_aircraft_id
+                        else Q()
                     )
+
+                    if manual_type in zip_manual_types:
+                        package_filter |= scope_filter & Q(
+                            chapter__package__manual_type=manual_type
+                        )
+                    elif manual_type in pdf_manual_types:
+                        file_scope_filter = (
+                            Q(manual_file__aircraft_id=selected_aircraft_id)
+                            if selected_aircraft_id
+                            else Q()
+                        )
+                        file_filter |= file_scope_filter & Q(
+                            manual_file__manual_type=manual_type
+                        )
+                    elif manual_type != "COMMON":
+                        other_scope_filter = (
+                            Q(other_file__category__aircraft_id=selected_aircraft_id)
+                            if selected_aircraft_id
+                            else Q()
+                        )
+                        other_filter |= other_scope_filter & Q(
+                            other_file__category__manual_type=manual_type
+                        )
+
+                if package_filter.children:
+                    package_pages_qs = package_pages_qs.filter(package_filter)
                 else:
                     package_pages_qs = ManualPDFPage.objects.none()
 
-                if selected_file_types:
-                    file_pages_qs = file_pages_qs.filter(
-                        manual_file__manual_type__in=selected_file_types
-                    )
+                if file_filter.children:
+                    file_pages_qs = file_pages_qs.filter(file_filter)
                 else:
                     file_pages_qs = ManualFilePDFPage.objects.none()
 
-                selected_other_types = [
-                    value
-                    for value in selected_manual_types
-                    if value not in zip_manual_types
-                    and value not in pdf_manual_types
-                    and value != "COMMON"
-                ]
-
-                if selected_other_types:
-                    other_pages_qs = other_pages_qs.filter(
-                        other_file__category__manual_type__in=selected_other_types
-                    )
+                if other_filter.children:
+                    other_pages_qs = other_pages_qs.filter(other_filter)
                 else:
                     other_pages_qs = OtherManualPDFPage.objects.none()
 
@@ -1897,13 +2131,16 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         context["grouped_results"] = grouped_results
         context["result_groups"] = result_groups
 
-        context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
+        context["aircrafts"] = aircrafts
 
         context["manual_types"] = manual_types
+        context["manual_type_options"] = manual_type_options
+        context["manual_type_groups"] = manual_type_groups
 
         context["query"] = query
         context["selected_aircraft"] = aircraft_id
         context["selected_manual_types"] = selected_manual_types
+        context["selected_manual_type_values"] = selected_manual_type_values
 
         return context
 
@@ -3239,6 +3476,23 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
         direct_files = []
         child_folders = {}
 
+        for folder in OtherManualFolder.objects.filter(
+            category=self.object
+        ).order_by("path"):
+            folder_parent, _, folder_name = folder.path.rpartition("/")
+            if folder_parent != current_path:
+                continue
+
+            folder_path = folder.path
+            child_folders.setdefault(
+                folder_name,
+                {
+                    "name": folder_name,
+                    "path": folder_path,
+                    "file_count": 0,
+                },
+            )
+
         for other_file in files:
             folder_path = (other_file.folder_path or "").strip("/")
 
@@ -3319,24 +3573,99 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+def other_manual_location_url(category_id, folder_path=""):
+    if not category_id:
+        return reverse("home")
+
+    url = reverse("other_manual_category_detail", kwargs={"pk": category_id})
+    if folder_path:
+        url = (
+            reverse("other_manual_folder_browse", kwargs={"pk": category_id})
+            + "?"
+            + urlencode({"path": folder_path})
+        )
+    return url
+
+
 class OtherManualFolderBrowseView(OtherManualCategoryDetailView):
     def get_folder_path(self):
         raw_path = self.request.GET.get("path", "").replace("\\", "/").strip("/")
-        parts = raw_path.split("/") if raw_path else []
-
-        if not parts or any(part in {"", ".", ".."} for part in parts):
+        try:
+            normalized_path = normalize_other_manual_folder_path(raw_path)
+        except ValidationError:
             raise Http404("Invalid folder path")
 
-        normalized_path = "/".join(parts)
-        exists = OtherManualFile.objects.filter(category=self.object).filter(
-            Q(folder_path=normalized_path)
-            | Q(folder_path__startswith=f"{normalized_path}/")
-        ).exists()
-
-        if not exists:
+        if not normalized_path or not other_manual_folder_path_exists(
+            self.object,
+            normalized_path,
+        ):
             raise Http404("Folder not found")
 
         return normalized_path
+
+
+class OtherManualFolderCreateView(
+    LoginRequiredMixin,
+    StaffRequiredMixin,
+    FormView,
+):
+    form_class = OtherManualFolderForm
+    template_name = "manuals/other_manual_folder_create_form.html"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        category_id = self.request.GET.get("category")
+        parent_path = self.request.GET.get("path", "")
+
+        if category_id:
+            initial["category"] = category_id
+        if parent_path:
+            initial["parent_path"] = parent_path
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        category_id = self.request.GET.get("category")
+        if category_id:
+            form.fields["category"].disabled = True
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.request.GET.get("category") or self.request.POST.get(
+            "category"
+        )
+        parent_path = self.request.GET.get("path") or self.request.POST.get(
+            "parent_path",
+            "",
+        )
+        context["back_url"] = other_manual_location_url(
+            category_id,
+            parent_path,
+        )
+        context["parent_path"] = parent_path
+        return context
+
+    def form_valid(self, form):
+        category = form.cleaned_data["category"]
+        parent_path = form.cleaned_data["parent_path"]
+        folder_name = form.cleaned_data["folder_name"]
+        folder_path = "/".join(
+            part for part in (parent_path, folder_name) if part
+        )
+        self.object = OtherManualFolder.objects.create(
+            category=category,
+            path=folder_path,
+        )
+        messages.success(self.request, f"OTHER 폴더를 만들었습니다: {folder_name}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return other_manual_location_url(
+            self.object.category_id,
+            self.object.path,
+        )
 
 
 class OtherManualFolderUploadView(
@@ -3350,9 +3679,12 @@ class OtherManualFolderUploadView(
     def get_initial(self):
         initial = super().get_initial()
         category_id = self.request.GET.get("category")
+        folder_path = self.request.GET.get("path", "")
 
         if category_id:
             initial["category"] = category_id
+        if folder_path:
+            initial["folder_path"] = folder_path
 
         return initial
 
@@ -3369,17 +3701,19 @@ class OtherManualFolderUploadView(
         category_id = self.request.GET.get("category") or self.request.POST.get(
             "category"
         )
-
-        context["back_url"] = (
-            reverse("other_manual_category_detail", kwargs={"pk": category_id})
-            if category_id
-            else reverse("home")
+        folder_path = self.request.GET.get("path") or self.request.POST.get(
+            "folder_path",
+            "",
         )
+
+        context["back_url"] = other_manual_location_url(category_id, folder_path)
+        context["folder_path"] = folder_path
         return context
 
     def form_valid(self, form):
         category = form.cleaned_data["category"]
         folder_package = form.cleaned_data["folder_package"]
+        base_folder_path = form.cleaned_data.get("folder_path", "")
         revision_no = form.cleaned_data.get("revision_no", "").strip()
         revision_date_text = form.cleaned_data.get(
             "revision_date_text",
@@ -3407,8 +3741,20 @@ class OtherManualFolderUploadView(
             safe_extract_zip(zip_path, extract_to)
             extracted_root = os.path.abspath(extract_to)
             source_files = []
+            extracted_folder_paths = set()
 
             for root, dirs, file_names in os.walk(extracted_root):
+                for dir_name in dirs:
+                    absolute_dir = os.path.join(root, dir_name)
+                    relative_dir = os.path.relpath(
+                        absolute_dir,
+                        extracted_root,
+                    ).replace(os.sep, "/")
+                    folder_path = "/".join(
+                        part for part in (base_folder_path, relative_dir) if part
+                    )
+                    extracted_folder_paths.add(folder_path)
+
                 for file_name in file_names:
                     absolute_path = os.path.abspath(os.path.join(root, file_name))
 
@@ -3429,6 +3775,12 @@ class OtherManualFolderUploadView(
                 )
                 return self.form_invalid(form)
 
+            for folder_path in extracted_folder_paths:
+                OtherManualFolder.objects.get_or_create(
+                    category=category,
+                    path=folder_path,
+                )
+
             created_count = 0
             replaced_count = 0
 
@@ -3437,7 +3789,18 @@ class OtherManualFolderUploadView(
                     absolute_path,
                     extracted_root,
                 ).replace(os.sep, "/")
-                folder_path = os.path.dirname(relative_path).replace(os.sep, "/")
+                relative_folder_path = os.path.dirname(relative_path).replace(
+                    os.sep,
+                    "/",
+                )
+                folder_path = "/".join(
+                    part
+                    for part in (base_folder_path, relative_folder_path)
+                    if part
+                )
+                relative_path = "/".join(
+                    part for part in (base_folder_path, relative_path) if part
+                )
                 file_name = os.path.basename(absolute_path)
                 title = os.path.splitext(file_name)[0]
                 other_file = OtherManualFile.objects.filter(
@@ -3475,6 +3838,7 @@ class OtherManualFolderUploadView(
                 f"OTHER 폴더 업로드 완료: 신규 {created_count}개, 교체 {replaced_count}개",
             )
             self.category = category
+            self.folder_path = base_folder_path
             return super().form_valid(form)
         except Exception as error:
             logger.exception("OTHER folder upload failed")
@@ -3487,9 +3851,9 @@ class OtherManualFolderUploadView(
                 os.remove(zip_path)
 
     def get_success_url(self):
-        return reverse(
-            "other_manual_category_detail",
-            kwargs={"pk": self.category.pk},
+        return other_manual_location_url(
+            self.category.pk,
+            self.folder_path,
         )
 
 
@@ -3547,10 +3911,7 @@ class OtherManualCategoryDeleteView(LoginRequiredMixin, StaffRequiredMixin, Dele
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy(
-            "aircraft_manual_detail",
-            kwargs={"pk": self.object.aircraft.pk},
-        )
+        return reverse_lazy("manual_home")
 
 
 class OtherManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
@@ -3562,9 +3923,12 @@ class OtherManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateVi
         initial = super().get_initial()
 
         category_id = self.request.GET.get("category")
+        folder_path = self.request.GET.get("path", "")
 
         if category_id:
             initial["category"] = category_id
+        if folder_path:
+            initial["folder_path"] = folder_path
 
         return initial
 
@@ -3578,16 +3942,16 @@ class OtherManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateVi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        category_id = self.request.GET.get("category") or self.request.POST.get(
+            "category"
+        )
+        parent_path = self.request.GET.get("path") or self.request.POST.get(
+            "folder_path",
+            "",
+        )
 
-        category_id = self.request.GET.get("category")
-
-        if category_id:
-            context["back_url"] = reverse_lazy(
-                "other_manual_category_detail",
-                kwargs={"pk": category_id},
-            )
-        else:
-            context["back_url"] = reverse_lazy("home")
+        context["back_url"] = other_manual_location_url(category_id, parent_path)
+        context["parent_path"] = parent_path
 
         return context
 
@@ -3604,9 +3968,9 @@ class OtherManualFileCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateVi
         return response
 
     def get_success_url(self):
-        return reverse_lazy(
-            "other_manual_category_detail",
-            kwargs={"pk": self.object.category.pk},
+        return other_manual_location_url(
+            self.object.category_id,
+            self.object.folder_path,
         )
 
 
@@ -3619,9 +3983,9 @@ class OtherManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateVi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["back_url"] = reverse_lazy(
-            "other_manual_category_detail",
-            kwargs={"pk": self.object.category.pk},
+        context["back_url"] = other_manual_location_url(
+            self.object.category_id,
+            self.object.folder_path,
         )
 
         return context
@@ -3651,9 +4015,9 @@ class OtherManualFileUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateVi
         return response
 
     def get_success_url(self):
-        return reverse_lazy(
-            "other_manual_category_detail",
-            kwargs={"pk": self.object.category.pk},
+        return other_manual_location_url(
+            self.object.category_id,
+            self.object.folder_path,
         )
 
 
@@ -3671,9 +4035,9 @@ class OtherManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteVi
                 "delete_title": self.object.title,
                 "delete_message": "OTHER 파일을 삭제하시겠습니까?",
                 "warning_message": "업로드 파일과 PDF 인덱스 데이터도 함께 삭제됩니다.",
-                "back_url": reverse(
-                    "other_manual_category_detail",
-                    kwargs={"pk": self.object.category.pk},
+                "back_url": other_manual_location_url(
+                    self.object.category_id,
+                    self.object.folder_path,
                 ),
             }
         )
@@ -3687,9 +4051,9 @@ class OtherManualFileDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteVi
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy(
-            "other_manual_category_detail",
-            kwargs={"pk": self.object.category.pk},
+        return other_manual_location_url(
+            self.object.category_id,
+            self.object.folder_path,
         )
 
 

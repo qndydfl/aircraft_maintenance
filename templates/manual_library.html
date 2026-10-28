@@ -5,7 +5,7 @@
 {% block title %}Manual Library | Manual Portal{% endblock %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=15" />
+<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=19" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -15,7 +15,7 @@
         <p class="page-eyebrow mb-1">AIRCRAFT MAINTENANCE MANUALS</p>
         <h2 class="page-title mb-2">Manual Library</h2>
         <p class="text-muted mb-0 page-subtitle">
-            Boeing / Airbus / Common maintenance manuals
+            Boeing / Airbus / Common / Other maintenance manuals
         </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
@@ -44,6 +44,13 @@
                 <span class="manual-tab-label-full">Common Manuals</span>
                 <span class="manual-tab-label-short">Common</span>
                 <span class="manual-tab-count">{{ common_categories|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="other-tab" data-bs-toggle="pill" data-bs-target="#other-panel" type="button" role="tab" aria-controls="other-panel" aria-selected="false">
+                <span class="manual-tab-label-full">Other Manuals</span>
+                <span class="manual-tab-label-short">Other</span>
+                <span class="manual-tab-count">{{ other_manual_aircrafts|length }}</span>
             </button>
         </li>
     </ul>
@@ -94,7 +101,7 @@
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
-                            Open Manuals
+                            Manuals
                         </a>
 
                         <a
@@ -103,7 +110,7 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
-                            Open MyBoeingFleet
+                            MyBoeingFleet
                         </a>
                     </div>
                 </div>
@@ -165,7 +172,7 @@
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
                         >
-                            Open Manuals
+                            Manuals
                         </a>
 
                         <a
@@ -174,7 +181,7 @@
                             rel="noopener noreferrer"
                             class="btn btn-info w-100 app-card-btn"
                         >
-                            Open Airbus World
+                            Airbus World
                         </a>
                     </div>
                 </div>
@@ -240,7 +247,7 @@
                             href="{% url 'common_manual_category_detail' category.pk %}"
                             class="btn btn-success w-100 app-card-btn"
                         >
-                            Open {{ category.name }}
+                            {{ category.name }}
                         </a>
                     </div>
                 </div>
@@ -250,6 +257,76 @@
         <div class="col-12">
             <div class="alert alert-warning app-alert">
                 등록된 공통 매뉴얼이 없습니다.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="manual-section other-library-section tab-pane fade" id="other-panel" role="tabpanel" aria-labelledby="other-tab">
+    <div class="section-header justify-content-center">
+        <div>
+            <h4 class="section-title mb-1">Other Manuals</h4>
+            <p class="section-description mb-0">
+                기종별 OTHER 폴더와 그 안의 하위 폴더 및 파일입니다.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3 g-md-4 justify-content-center">
+        {% for aircraft in other_manual_aircrafts %}
+        {% with category=aircraft.other_manual_categories.0 %}
+        <div class="col-6 col-sm-6 col-lg-3">
+            <div class="card portal-card h-100 shadow-sm other-library-card">
+                <div class="card-body">
+                    <div class="aircraft-card-header">
+                        <div>
+                            <p class="aircraft-maker mb-1">{{ aircraft.maker }}</p>
+                            <h5 class="aircraft-title mb-0">{{ aircraft.name }}</h5>
+                        </div>
+                        <span class="aircraft-type-pill">OTHER</span>
+                    </div>
+
+                    <div class="manual-badge-wrap">
+                        {% if category %}
+                        <span class="badge bg-success manual-badge">
+                            {{ category.files.count }} FILES
+                        </span>
+                        <span class="badge bg-primary manual-badge">
+                            {{ category.other_folder_count }} FOLDERS
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary manual-badge">
+                            EMPTY
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-button-group">
+                        {% if category %}
+                        <a
+                            href="{% url 'other_manual_category_detail' category.pk %}"
+                            class="btn btn-primary w-100 app-card-btn"
+                        >
+                            OTHER Folder
+                        </a>
+                        {% else %}
+                        <a
+                            href="{% url 'other_manual_category_create' %}?aircraft={{ aircraft.pk }}&manual_type=OTHER"
+                            class="btn btn-primary w-100 app-card-btn"
+                        >
+                            Create OTHER Folder
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning app-alert">
+                등록된 기종이 없습니다.
             </div>
         </div>
         {% endfor %}

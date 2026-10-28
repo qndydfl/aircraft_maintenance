@@ -114,20 +114,95 @@ body.manual-search-page .app-container {
 
 /* Search / Result Section */
 
+.manual-search-form,
+.manual-search-query-field {
+    --label-size: 0.95rem;
+    --label-color: #062550;
+    --help-size: 0.95rem;
+    --help-color: #0b6bf1;
+    --manual-type-hint-size: 0.75rem;
+}
+
 .manual-type-fieldset {
     min-width: 0;
 }
 
-.manual-type-fieldset .form-label {
+.manual-search-form .form-label {
     float: none;
     width: auto;
     margin-bottom: 0.5rem;
-    font-size: inherit;
+}
+
+.manual-search-form,
+.manual-search-query-field .form-label {
+    font-size: var(--label-size);
+    color: var(--label-color);
+    font-weight: 700;
+}
+
+.manual-type-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.manual-type-toggle-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.manual-type-toggle-hint {
+    color: var(--help-color);
+    font-size: var(--help-size);
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+.manual-type-desktop-hint {
+    margin: -0.25rem 0 0.8rem;
+    color: var(--help-color);
+    font-size: var(--help-size);
+    line-height: 1.35;
+}
+
+.manual-type-toggle[aria-expanded="true"] .manual-type-toggle-hint {
+    display: none;
+}
+
+.manual-type-toggle .bi {
+    transition: transform 0.2s ease;
+}
+
+.manual-type-toggle[aria-expanded="true"] .bi {
+    transform: rotate(180deg);
 }
 
 .manual-type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.manual-type-group {
+    min-width: 0;
+}
+
+.manual-type-group-title {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.manual-type-group-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(3.4rem, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.25rem;
 }
 
@@ -153,7 +228,10 @@ body.manual-search-page .app-container {
 
 .manual-type-help {
     margin-top: 0.375rem;
-    font-size: 0.7rem;
+    color: var(--help-color);
+    font-size: var(--help-size);
+    font-weight: 700;
+    line-height: 1.45;
 }
 
 .manual-search-query-row {
@@ -229,7 +307,7 @@ body.manual-search-page .result-section {
         padding-bottom: 0.5rem;
     }
 
-    .manual-type-options {
+    .manual-type-group-options {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0.25rem;
@@ -247,6 +325,15 @@ body.manual-search-page .result-section {
 
     .manual-search-filter-row {
         --bs-gutter-y: 0.625rem;
+    }
+
+    .manual-type-toggle-hint,
+    .manual-type-desktop-hint {
+        font-size: var(--manual-type-hint-size);
+    }
+
+    .manual-type-options .manual-type-help {
+        font-size: var(--manual-type-hint-size) !important;
     }
 
     .manual-search-query-row {

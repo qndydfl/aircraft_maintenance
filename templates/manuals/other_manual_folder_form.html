@@ -14,7 +14,8 @@
         <p class="page-eyebrow mb-1">OTHER MANUAL</p>
         <h2 class="page-title mb-2">Upload OTHER Manuals</h2>
         <p class="text-muted mb-0 page-subtitle">
-            개별 파일, ZIP 또는 폴더 전체를 한 화면에서 업로드합니다.
+            {% if folder_path %}{{ folder_path }} 안에 {% endif %}
+            개별 파일, ZIP 또는 폴더 전체를 업로드합니다.
         </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
@@ -29,6 +30,7 @@
                 data-loading-title="Uploading OTHER Folder"
                 data-loading-message="Saving folder files and preparing the index...">
                 {% csrf_token %}
+                {{ form.folder_path }}
 
                 {% if form.non_field_errors %}
                 <div class="alert alert-danger app-alert">{{ form.non_field_errors }}</div>
@@ -36,6 +38,9 @@
 
                 <div class="portal-form-section">
                     <h5 class="portal-form-section-title">Upload Information</h5>
+                    {% if form.folder_path.errors %}
+                    <div class="text-danger small mb-3">{{ form.folder_path.errors }}</div>
+                    {% endif %}
 
                     <div class="mb-3">
                         <label class="form-label">OTHER Category</label>

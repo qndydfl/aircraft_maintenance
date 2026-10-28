@@ -226,7 +226,11 @@ class Aircraft(models.Model):
         all_definitions = list(
             ManualType.objects.filter(is_active=True).prefetch_related("aircraft")
         )
-        definitions = [d for d in all_definitions if d.applies_to(self)]
+        definitions = [
+            definition
+            for definition in all_definitions
+            if definition.code == "OTHER" or definition.applies_to(self)
+        ]
 
         if not all_definitions:
             definitions = [
@@ -725,6 +729,32 @@ class OtherManualCategory(models.Model):
         return f"{self.aircraft.name} / {self.manual_type}"
 
 
+class OtherManualFolder(models.Model):
+    category = models.ForeignKey(
+        OtherManualCategory,
+        on_delete=models.CASCADE,
+        related_name="folders",
+    )
+    path = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["path"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "path"],
+                name="unique_other_manual_folder_path",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.category} / {self.path}"
+
+    @property
+    def name(self):
+        return self.path.rsplit("/", 1)[-1]
+
+
 class OtherManualFile(models.Model):
     category = models.ForeignKey(
         OtherManualCategory,
@@ -788,6 +818,41 @@ class OtherManualFile(models.Model):
     @property
     def is_indexed_pdf(self):
         return self.is_pdf and self.indexed_page_count > 0
+
+
+def normalize_other_manual_folder_path(path):
+    path = str(path or "").replace("\\", "/").strip("/")
+    if not path:
+        return ""
+
+    parts = path.split("/")
+    if any(not part or part in {".", ".."} for part in parts):
+        raise ValidationError("올바르지 않은 OTHER 폴더 경로입니다.")
+
+    normalized_path = "/".join(parts)
+    if len(normalized_path) > 500:
+        raise ValidationError("OTHER 폴더 경로가 너무 깁니다.")
+
+    return normalized_path
+
+
+def other_manual_folder_path_exists(category, path):
+    normalized_path = normalize_other_manual_folder_path(path)
+    if not normalized_path:
+        return True
+
+    return (
+        OtherManualFolder.objects.filter(
+            category=category,
+            path=normalized_path,
+        ).exists()
+        or OtherManualFile.objects.filter(category=category)
+        .filter(
+            models.Q(folder_path=normalized_path)
+            | models.Q(folder_path__startswith=f"{normalized_path}/")
+        )
+        .exists()
+    )
 
 
 class OtherManualPDFPage(models.Model):

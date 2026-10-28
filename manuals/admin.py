@@ -35,9 +35,6 @@ class ManualTypeAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         return ["code"] if obj else []
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 class ManualFileInline(admin.TabularInline):
     model = ManualFile
