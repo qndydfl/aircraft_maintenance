@@ -78,7 +78,7 @@ from django.http import FileResponse, Http404
 from django.core.files import File
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Min, Prefetch
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from dispatch.services import extract_mel_dispatch_items_from_pdf
 from django.utils.dateparse import parse_date
 from django.utils import timezone
@@ -298,24 +298,22 @@ def get_manual_library_context():
         if category is None:
             continue
 
-        folder_paths = set()
+        top_folders = set()
         for folder in category.folders.all():
-            path_parts = folder.path.split("/")
-            folder_paths.update(
-                "/".join(path_parts[:index])
-                for index in range(1, len(path_parts) + 1)
-            )
+            parts = [part for part in folder.path.split("/") if part]
+            if parts:
+                top_folders.add(parts[0])
 
+        direct_file_count = 0
         for other_file in category.files.all():
-            path_parts = [
-                part for part in other_file.folder_path.split("/") if part
-            ]
-            folder_paths.update(
-                "/".join(path_parts[:index])
-                for index in range(1, len(path_parts) + 1)
-            )
+            parts = [part for part in other_file.folder_path.split("/") if part]
+            if parts:
+                top_folders.add(parts[0])
+            else:
+                direct_file_count += 1
 
-        category.other_folder_count = len(folder_paths)
+        category.other_folder_count = len(top_folders)
+        category.other_file_count = direct_file_count
 
     return {
         "boeing_aircrafts": Aircraft.objects.filter(maker="BOEING")
@@ -3476,51 +3474,49 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
         direct_files = []
         child_folders = {}
 
-        for folder in OtherManualFolder.objects.filter(
-            category=self.object
-        ).order_by("path"):
-            folder_parent, _, folder_name = folder.path.rpartition("/")
-            if folder_parent != current_path:
-                continue
+        all_folder_paths = set()
+        direct_file_counts = {}
+        latest_uploads = {}
 
-            folder_path = folder.path
-            child_folders.setdefault(
-                folder_name,
-                {
-                    "name": folder_name,
-                    "path": folder_path,
-                    "file_count": 0,
-                },
-            )
+        def add_with_ancestors(path, uploaded_at=None):
+            parts = [part for part in path.split("/") if part]
+            for index in range(1, len(parts) + 1):
+                ancestor = "/".join(parts[:index])
+                all_folder_paths.add(ancestor)
+                if uploaded_at and (
+                    ancestor not in latest_uploads
+                    or uploaded_at > latest_uploads[ancestor]
+                ):
+                    latest_uploads[ancestor] = uploaded_at
+
+        for folder in OtherManualFolder.objects.filter(category=self.object):
+            add_with_ancestors(folder.path, folder.created_at)
 
         for other_file in files:
             folder_path = (other_file.folder_path or "").strip("/")
-
+            add_with_ancestors(folder_path, other_file.uploaded_at)
+            direct_file_counts[folder_path] = (
+                direct_file_counts.get(folder_path, 0) + 1
+            )
             if folder_path == current_path:
                 direct_files.append(other_file)
+
+        for folder_path in all_folder_paths:
+            folder_parent, _, folder_name = folder_path.rpartition("/")
+            if folder_parent != current_path:
                 continue
 
-            if not folder_path.startswith(prefix):
-                continue
-
-            remainder = folder_path[len(prefix) :]
-
-            if not remainder:
-                continue
-
-            child_name = remainder.split("/", 1)[0]
-            child_path = "/".join(
-                part for part in [current_path, child_name] if part
-            )
-            entry = child_folders.setdefault(
-                child_name,
-                {
-                    "name": child_name,
-                    "path": child_path,
-                    "file_count": 0,
-                },
-            )
-            entry["file_count"] += 1
+            child_folders[folder_name] = {
+                "name": folder_name,
+                "path": folder_path,
+                "file_count": direct_file_counts.get(folder_path, 0),
+                "uploaded_at": latest_uploads.get(folder_path),
+                "folder_count": sum(
+                    1
+                    for other_path in all_folder_paths
+                    if other_path.rpartition("/")[0] == folder_path
+                ),
+            }
 
         folder_entries = sorted(
             child_folders.values(),
@@ -3665,6 +3661,67 @@ class OtherManualFolderCreateView(
         return other_manual_location_url(
             self.object.category_id,
             self.object.path,
+        )
+
+
+class OtherManualFolderDeleteView(LoginRequiredMixin, StaffRequiredMixin, View):
+    template_name = "common/delete_confirm.html"
+
+    def get_target(self, request, pk):
+        category = get_object_or_404(OtherManualCategory, pk=pk)
+        raw_path = (
+            request.POST.get("path") or request.GET.get("path", "")
+        ).replace("\\", "/").strip("/")
+        try:
+            path = normalize_other_manual_folder_path(raw_path)
+        except ValidationError:
+            raise Http404("Invalid folder path")
+
+        if not path or not other_manual_folder_path_exists(category, path):
+            raise Http404("Folder not found")
+
+        return category, path
+
+    def get_files(self, category, path):
+        return OtherManualFile.objects.filter(category=category).filter(
+            Q(folder_path=path) | Q(folder_path__startswith=f"{path}/")
+        )
+
+    def parent_path(self, path):
+        return path.rpartition("/")[0]
+
+    def get(self, request, pk):
+        category, path = self.get_target(request, pk)
+        file_count = self.get_files(category, path).count()
+        return render(
+            request,
+            self.template_name,
+            {
+                "delete_type": "OTHER FOLDER",
+                "delete_title": path.rsplit("/", 1)[-1],
+                "delete_message": "OTHER 폴더를 삭제하시겠습니까?",
+                "warning_message": (
+                    f"하위 폴더와 파일 {file_count}개, PDF 인덱스 데이터도 함께 삭제됩니다."
+                ),
+                "back_url": other_manual_location_url(
+                    category.pk, self.parent_path(path)
+                ),
+            },
+        )
+
+    def post(self, request, pk):
+        category, path = self.get_target(request, pk)
+        for other_file in self.get_files(category, path):
+            delete_file_field(other_file.file)
+            delete_file_field(other_file.converted_pdf)
+            other_file.delete()
+
+        OtherManualFolder.objects.filter(category=category).filter(
+            Q(path=path) | Q(path__startswith=f"{path}/")
+        ).delete()
+        messages.success(request, f"OTHER 폴더를 삭제했습니다: {path}")
+        return redirect(
+            other_manual_location_url(category.pk, self.parent_path(path))
         )
 
 

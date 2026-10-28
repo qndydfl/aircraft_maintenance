@@ -40,6 +40,7 @@ from .views import (
     OtherManualCategoryCreateView,
     OtherManualCategoryDetailView,
     OtherManualFolderCreateView,
+    OtherManualFolderDeleteView,
     OtherManualCategoryUpdateView,
     OtherManualCategoryDeleteView,
     OtherManualFileCreateView,
@@ -235,6 +236,11 @@ urlpatterns = [
         "other/folder/add/",
         OtherManualFolderCreateView.as_view(),
         name="other_manual_folder_create",
+    ),
+    path(
+        "other/category/<int:pk>/folder/delete/",
+        OtherManualFolderDeleteView.as_view(),
+        name="other_manual_folder_delete",
     ),
     path(
         "other/category/<int:pk>/edit/",

@@ -278,6 +278,13 @@
         {% with category=aircraft.other_manual_categories.0 %}
         <div class="col-6 col-sm-6 col-lg-3">
             <div class="card portal-card h-100 shadow-sm other-library-card">
+                <div class="card-img-wrapper">
+                    <img
+                        src="{% if aircraft.image %}{{ aircraft.image.url }}{% else %}https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80{% endif %}"
+                        alt="{{ aircraft.name }} other manuals"
+                        loading="lazy"
+                    />
+                </div>
                 <div class="card-body">
                     <div class="aircraft-card-header">
                         <div>
@@ -290,7 +297,7 @@
                     <div class="manual-badge-wrap">
                         {% if category %}
                         <span class="badge bg-success manual-badge">
-                            {{ category.files.count }} FILES
+                            {{ category.other_file_count }} FILES
                         </span>
                         <span class="badge bg-primary manual-badge">
                             {{ category.other_folder_count }} FOLDERS

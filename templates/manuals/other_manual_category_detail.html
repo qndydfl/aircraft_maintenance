@@ -78,14 +78,30 @@
                     <span class="other-manual-folder-card-icon"><i class="bi bi-folder-fill"></i></span>
                 </div>
 
-                <p class="portal-detail-note mb-3">
-                    {{ folder.file_count }} file(s)
+                {% if folder.uploaded_at %}
+                <p class="text-muted small manual-uploaded">
+                    Uploaded: {{ folder.uploaded_at|date:"Y-m-d H:i" }}
                 </p>
+                {% endif %}
+                
+                <div class="manual-badge-wrap mb-3">
+                    <span class="badge bg-success manual-badge">
+                        {{ folder.file_count }} FILES
+                    </span>
+                    <span class="badge bg-primary manual-badge">
+                        {{ folder.folder_count }} FOLDERS
+                    </span>
+                </div>                
 
                 <div class="portal-detail-button-group">
                     <a href="{{ folder.open_url }}" class="btn btn-primary app-card-btn w-100">
                         Open
                     </a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'other_manual_folder_delete' category.pk %}?path={{ folder.path|urlencode }}" class="btn btn-outline-danger app-card-btn w-100">
+                        Delete
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
