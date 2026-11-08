@@ -100,6 +100,8 @@
                         <a
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             Manuals
                         </a>
@@ -171,6 +173,8 @@
                         <a
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             Manuals
                         </a>
@@ -246,6 +250,8 @@
                         <a
                             href="{% url 'common_manual_category_detail' category.pk %}"
                             class="btn btn-success w-100 app-card-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             {{ category.name }}
                         </a>
@@ -314,6 +320,8 @@
                         <a
                             href="{% url 'other_manual_category_detail' category.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             OTHER Folder
                         </a>
@@ -321,6 +329,8 @@
                         <a
                             href="{% url 'other_manual_category_create' %}?aircraft={{ aircraft.pk }}&manual_type=OTHER"
                             class="btn btn-primary w-100 app-card-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             Create OTHER Folder
                         </a>

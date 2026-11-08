@@ -4,11 +4,11 @@
 {% block title %} Date Calculator {% endblock title %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=85" />
+<link rel="stylesheet" href="{% static 'css/calculator.css' %}?v=90" />
 {% endblock css %} 
 
 {% block js %}
-<script defer src="{% static 'js/calculator.js' %}?v=90"></script>
+<script defer src="{% static 'js/calculator.js' %}?v=91"></script>
 {% endblock js %} 
 
 {% block navbar_content %}
@@ -25,8 +25,54 @@
 {% block content %}
 
 <section class="date-calculator-shell">
-    <div class="date-clock-grid">
-        <article class="date-clock-card date-clock-card-utc">
+    <div class="date-clock-switcher">
+        <div class="date-clock-tabs" role="tablist" aria-label="Current time zone">
+            <button
+                id="utc-clock-tab"
+                type="button"
+                class="date-clock-tab-btn active"
+                data-bs-toggle="tab"
+                data-bs-target="#utc-clock-panel"
+                role="tab"
+                aria-controls="utc-clock-panel"
+                aria-selected="true"
+            >
+                <span class="date-clock-tab-icon" aria-hidden="true">
+                    <i class="bi bi-globe2"></i>
+                </span>
+                <span class="date-clock-tab-copy">
+                    <strong>UTC</strong>
+                    <small>Universal</small>
+                </span>
+            </button>
+            <button
+                id="kst-clock-tab"
+                type="button"
+                class="date-clock-tab-btn"
+                data-bs-toggle="tab"
+                data-bs-target="#kst-clock-panel"
+                role="tab"
+                aria-controls="kst-clock-panel"
+                aria-selected="false"
+            >
+                <span class="date-clock-tab-icon" aria-hidden="true">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </span>
+                <span class="date-clock-tab-copy">
+                    <strong>한국 시간</strong>
+                    <small>Seoul · KST</small>
+                </span>
+            </button>
+        </div>
+
+        <div class="tab-content date-clock-tab-content">
+        <article
+            id="utc-clock-panel"
+            class="date-clock-card date-clock-card-utc tab-pane fade show active"
+            role="tabpanel"
+            aria-labelledby="utc-clock-tab"
+            tabindex="0"
+        >
             <header class="date-clock-header">
                 <span class="date-clock-zone">UTC</span>
                 <span class="date-clock-offset">UTC+00:00</span>
@@ -45,7 +91,13 @@
             </div>
         </article>
 
-        <article class="date-clock-card date-clock-card-kst">
+        <article
+            id="kst-clock-panel"
+            class="date-clock-card date-clock-card-kst tab-pane fade"
+            role="tabpanel"
+            aria-labelledby="kst-clock-tab"
+            tabindex="0"
+        >
             <header class="date-clock-header">
                 <span class="date-clock-zone">한국 시간</span>
                 <span class="date-clock-offset">UTC+09:00</span>
@@ -63,6 +115,7 @@
                 </div>
             </div>
         </article>
+        </div>
     </div>
 
     <div class="date-tool-grid">

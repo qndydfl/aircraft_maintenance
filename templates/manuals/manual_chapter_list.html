@@ -6,7 +6,7 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
 />
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20261012-1" />
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20261108-1" />
 {% endblock css %} 
 
 {% block js %}
@@ -18,25 +18,7 @@
 
 {% block title %} {{ package.aircraft.name }} {{ package.manual_type }} Chapters {% endblock title %} 
 
-{% block navbar_content %}
-<div class="app-navbar-page-content">
-    <div class="app-navbar-title portal-chapter-hero-content">
-        <p class="page-eyebrow text-uppercase text-primary fw-bold mb-1 small">
-            {{ package.manual_type }}
-        </p>
-
-        <h2 class="page-title fw-extrabold mb-2">
-            {{ package.aircraft.name }} Chapters
-        </h2>
-
-        <p class="text-muted mb-0 page-subtitle small">
-            Chapter Navigator & PDF Workspace
-        </p>
-    </div>
-
-    {% include 'includes/navbar_ending.html' %}
-</div>
-{% endblock navbar_content %} 
+{% block nav %}{% endblock nav %}
 
 {% block content %}
 
@@ -92,7 +74,7 @@
         <div class="manual-workspace-sidebar-header">
             <div class="manual-workspace-heading">
                 <span class="manual-workspace-eyebrow" role="heading" aria-level="3">
-                    {{ package.manual_type }}
+                    {{ package.aircraft.name }} | {{ package.manual_type }}
                 </span>
                 {% with revision_no=package.display_revision_no %}
                 {% if revision_no %}

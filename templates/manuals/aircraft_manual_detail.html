@@ -98,6 +98,8 @@
                     <a
                         href="{% url 'other_manual_category_detail' folder.pk %}"
                         class="btn btn-primary w-100 app-card-btn"
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
                         Open {{ item.type }} Folder
                     </a>
@@ -146,6 +148,8 @@
                         <a
                             href="{% url 'manual_package_open' item.package.pk %}"
                             class="btn btn-primary app-card-btn mobile-show-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             Open
                         </a>

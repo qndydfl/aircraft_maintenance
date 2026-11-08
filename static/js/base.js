@@ -6,6 +6,56 @@ document.addEventListener("DOMContentLoaded", function () {
     const appMain = document.querySelector(".app-main");
     const navbarBackButtons = document.querySelectorAll("[data-navbar-back]");
 
+    const newTabParam = "new_tab";
+    const openedFromTargetBlank =
+        new URLSearchParams(window.location.search).get(newTabParam) === "1";
+
+    function preserveNewTabMode(link) {
+        const href = link.getAttribute("href");
+
+        if (
+            !href ||
+            href.startsWith("#") ||
+            href.startsWith("javascript:") ||
+            link.hasAttribute("download")
+        ) {
+            return;
+        }
+
+        try {
+            const url = new URL(href, window.location.href);
+
+            if (
+                url.origin !== window.location.origin ||
+                !["http:", "https:"].includes(url.protocol)
+            ) {
+                return;
+            }
+
+            url.searchParams.set(newTabParam, "1");
+            link.href = `${url.pathname}${url.search}${url.hash}`;
+        } catch (error) {
+            // Leave malformed or unsupported links unchanged.
+        }
+    }
+
+    document
+        .querySelectorAll('a[target="_blank"][href]')
+        .forEach(preserveNewTabMode);
+
+    if (openedFromTargetBlank) {
+        document.body.classList.add("opened-from-target-blank");
+        document
+            .querySelectorAll(".app-navbar-ending")
+            .forEach(function (navigation) {
+                navigation.classList.add("d-none");
+            });
+
+        document
+            .querySelectorAll("a[href]")
+            .forEach(preserveNewTabMode);
+    }
+
     navbarBackButtons.forEach(function (button) {
         button.addEventListener("click", function () {
             const fallbackUrl = button.dataset.fallbackUrl || "/";

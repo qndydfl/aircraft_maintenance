@@ -2905,7 +2905,15 @@ class ManualPackageReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
 class ManualPackageOpenView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         package = ManualPackage.objects.select_related("aircraft").get(pk=kwargs["pk"])
-        return redirect("manual_chapter_list", package_pk=package.pk)
+        chapter_list_url = reverse(
+            "manual_chapter_list",
+            kwargs={"package_pk": package.pk},
+        )
+
+        if request.GET.get("new_tab") == "1":
+            chapter_list_url += "?" + urlencode({"new_tab": "1"})
+
+        return redirect(chapter_list_url)
 
 
 class ManualFileReindexView(LoginRequiredMixin, StaffRequiredMixin, View):
@@ -3541,8 +3549,12 @@ class OtherManualCategoryDetailView(LoginRequiredMixin, DetailView):
         context["folder_entries"] = folder_entries
         context["has_items"] = bool(folder_entries or direct_files)
         context["current_folder_path"] = current_path
-        context["current_folder_name"] = (
+        current_folder_name = (
             current_path.rsplit("/", 1)[-1] if current_path else ""
+        )
+        context["current_folder_name"] = current_folder_name
+        context["page_title"] = current_folder_name or (
+            f"{self.object.manual_type.title()} Manuals"
         )
 
         if current_path:
@@ -4149,9 +4161,12 @@ class OtherManualFilePDFViewerView(LoginRequiredMixin, DetailView):
         view_mode = self.request.GET.get("mode", "single")
         back_url = self.request.GET.get("back", "")
 
-        context["viewer_title"] = (
-            f"OTHER / {other_file.category.aircraft.name} / {other_file.category.name}"
+        folder_title = (
+            other_file.folder_path.rsplit("/", 1)[-1]
+            if other_file.folder_path
+            else f"{other_file.category.manual_type.title()} Manuals"
         )
+        context["viewer_title"] = folder_title
         context["viewer_subtitle"] = other_file.title
         context["pdf_url"] = reverse(
             "other_manual_file_pdf",

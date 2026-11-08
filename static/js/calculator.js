@@ -34,6 +34,9 @@
     const localTime = document.getElementById("local-time");
     const utcTime = document.getElementById("utc-time");
     const presetButtons = document.querySelectorAll(".date-preset-btn");
+    const calculatorModals = document.querySelectorAll(
+        "body.calculator-page .modal"
+    );
 
     if (!result || !longResult || !note || !input || !baseDateInput) {
         return;
@@ -59,6 +62,48 @@
     let basicPendingOperator = null;
     let basicShouldResetDisplay = false;
     let consumptionTimeCounter = 1;
+
+    function setModalGenieOrigin(modal, trigger) {
+        if (!trigger) {
+            modal.style.setProperty("--genie-origin-x", "0px");
+            modal.style.setProperty("--genie-origin-y", "10vh");
+            return;
+        }
+
+        const triggerRect = trigger.getBoundingClientRect();
+        const triggerCenterX = triggerRect.left + triggerRect.width / 2;
+        const triggerCenterY = triggerRect.top + triggerRect.height / 2;
+
+        modal.style.setProperty(
+            "--genie-origin-x",
+            `${triggerCenterX - window.innerWidth / 2}px`
+        );
+        modal.style.setProperty(
+            "--genie-origin-y",
+            `${triggerCenterY - window.innerHeight / 2}px`
+        );
+    }
+
+    calculatorModals.forEach((modal) => {
+        modal.addEventListener("show.bs.modal", (event) => {
+            setModalGenieOrigin(modal, event.relatedTarget);
+            modal.classList.remove("genie-closing");
+            modal.classList.add("genie-opening");
+        });
+
+        modal.addEventListener("shown.bs.modal", () => {
+            modal.classList.remove("genie-opening");
+        });
+
+        modal.addEventListener("hide.bs.modal", () => {
+            modal.classList.remove("genie-opening");
+            modal.classList.add("genie-closing");
+        });
+
+        modal.addEventListener("hidden.bs.modal", () => {
+            modal.classList.remove("genie-closing");
+        });
+    });
 
     function formatDate(date) {
         const year = date.getFullYear();

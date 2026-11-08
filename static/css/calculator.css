@@ -7,10 +7,123 @@
     gap: 0.75rem;
 }
 
-.date-clock-grid {
+.date-clock-switcher {
+    display: grid;
+    gap: 0;
+    padding: 0.35rem;
+    background:
+        radial-gradient(circle at 15% 0%, rgba(59, 130, 246, 0.18), transparent 38%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.96));
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    border-radius: 1.2rem;
+    box-shadow:
+        0 1rem 2.25rem rgba(15, 23, 42, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.date-clock-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: 0.35rem;
+    padding: 0.25rem 0.25rem 0.45rem;
+}
+
+.date-clock-tab-btn {
+    min-width: 0;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.7rem;
+    color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.8rem;
+    transition:
+        transform 140ms ease,
+        color 140ms ease,
+        background-color 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.date-clock-tab-btn.active {
+    color: #0f172a;
+    background: linear-gradient(145deg, #ffffff, #eaf2ff);
+    border-color: rgba(191, 219, 254, 0.9);
+    box-shadow:
+        0 0.4rem 1rem rgba(2, 132, 199, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.date-clock-tab-btn:hover {
+    transform: translateY(-0.0625rem);
+}
+
+.date-clock-tab-icon {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #bfdbfe;
+    background: rgba(59, 130, 246, 0.16);
+    border: 1px solid rgba(147, 197, 253, 0.18);
+    border-radius: 50%;
+    font-size: 0.9rem;
+}
+
+.date-clock-tab-btn.active .date-clock-tab-icon {
+    color: #ffffff;
+    background: linear-gradient(145deg, #38bdf8, #2563eb);
+    border-color: transparent;
+    box-shadow: 0 0.3rem 0.8rem rgba(37, 99, 235, 0.3);
+}
+
+.date-clock-tab-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.08rem;
+    text-align: left;
+}
+
+.date-clock-tab-copy strong {
+    overflow: hidden;
+    font-size: 0.78rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.date-clock-tab-copy small {
+    color: #94a3b8;
+    font-size: 0.58rem;
+    font-weight: 750;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.date-clock-tab-btn.active .date-clock-tab-copy small {
+    color: #64748b;
+}
+
+.date-clock-tab-btn:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.42);
+    outline-offset: 2px;
+}
+
+.date-clock-tab-content,
+.date-clock-tab-content > .date-clock-card {
+    width: 100%;
+}
+
+.date-clock-tab-content > .date-clock-card {
+    border-radius: 0.95rem;
+    box-shadow:
+        0 0.75rem 1.75rem rgba(15, 23, 42, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.96);
 }
 
 /* Glass Cards */
@@ -114,7 +227,7 @@
     color: #475569;
     background: #f1f5f9;
     border-radius: 999px;
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     font-weight: 800;
     line-height: 1;
     white-space: nowrap;
@@ -146,7 +259,7 @@
 
 .date-clock-part-label {
     color: #64748b;
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     font-weight: 850;
     line-height: 1;
     text-transform: uppercase;
@@ -160,7 +273,7 @@
 
 .date-clock-date {
     color: #334155;
-    font-size: 0.82rem;
+    font-size: 1rem;
     font-weight: 800;
     line-height: 1.25;
 }
@@ -216,6 +329,86 @@
 }
 
 /* Modal */
+
+body.calculator-page .modal {
+    --genie-origin-x: 0px;
+    --genie-origin-y: 10vh;
+}
+
+body.calculator-page .modal.genie-opening .modal-dialog {
+    animation: calculator-genie-in 420ms cubic-bezier(0.2, 0.82, 0.25, 1) both;
+    will-change: transform, opacity, filter;
+}
+
+body.calculator-page .modal.genie-closing .modal-dialog {
+    animation: calculator-genie-out 260ms cubic-bezier(0.55, 0, 0.85, 0.35) both;
+    will-change: transform, opacity, filter;
+}
+
+body.calculator-page .modal.show {
+    backdrop-filter: blur(0.35rem);
+    -webkit-backdrop-filter: blur(0.35rem);
+}
+
+@keyframes calculator-genie-in {
+    0% {
+        opacity: 0.15;
+        filter: blur(0.25rem);
+        transform: translate3d(
+                var(--genie-origin-x),
+                var(--genie-origin-y),
+                0
+            )
+            scale(0.08, 0.035);
+    }
+
+    58% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0.6rem, 0) scale(0.96, 1.035);
+    }
+
+    78% {
+        transform: translate3d(0, -0.2rem, 0) scale(1.012, 0.99);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes calculator-genie-out {
+    0% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    35% {
+        opacity: 0.92;
+        transform: translate3d(0, -0.2rem, 0) scale(0.96, 1.02);
+    }
+
+    100% {
+        opacity: 0;
+        filter: blur(0.2rem);
+        transform: translate3d(
+                var(--genie-origin-x),
+                var(--genie-origin-y),
+                0
+            )
+            scale(0.07, 0.025);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.calculator-page .modal.genie-opening .modal-dialog,
+    body.calculator-page .modal.genie-closing .modal-dialog {
+        animation: none;
+    }
+}
 
 .date-modal-content {
     border: 1px solid rgba(148, 163, 184, 0.42);
@@ -512,8 +705,29 @@
         border-radius: 0.95rem;
     }
 
-    .date-clock-grid {
-        gap: 0.5rem;
+    .date-clock-switcher {
+        padding: 0.3rem;
+        border-radius: 1rem;
+    }
+
+    .date-clock-tab-btn {
+        min-height: 2.65rem;
+        gap: 0.4rem;
+        padding: 0.35rem 0.45rem;
+    }
+
+    .date-clock-tab-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.78rem;
+    }
+
+    .date-clock-tab-copy strong {
+        font-size: 0.7rem;
+    }
+
+    .date-clock-tab-copy small {
+        font-size: 0.52rem;
     }
 
     .date-clock-header {
@@ -525,10 +739,6 @@
 
     .date-clock-part {
         padding: 0.5rem 0.35rem;
-    }
-
-    .date-clock-date {
-        font-size: 0.72rem;
     }
 
     .date-clock-time {
@@ -559,6 +769,13 @@
 
     .date-modal-header {
         padding: 0.875rem 0.875rem 0.625rem;
+    }
+
+    body.calculator-page .date-modal-footer .btn[data-bs-dismiss="modal"] {
+        min-height: 2.125rem !important;
+        padding: 0.25rem 0.9rem !important;
+        font-size: 0.72rem !important;
+        line-height: 1.1;
     }
 
     .date-modal-body {

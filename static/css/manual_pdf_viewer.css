@@ -1069,6 +1069,14 @@ body.pdf-viewer-embedded .outline-resizer {
         font-size: 0.62rem;
     }
 
+    .viewer-query-badge {
+        max-width: min(12rem, 42vw);
+        font-size: 0.72rem;
+        line-height: 1.15;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     /* Main Layout */
 
     .manual-pdf-layout {
@@ -1269,6 +1277,10 @@ body.pdf-viewer-embedded .viewer-title-area {
         font-size: 0.64rem;
     }
 
+    .viewer-query-badge {
+        font-size: 0.72rem;
+    }
+
     .mobile-page-btn {
         min-width: 4.5rem;
         height: 2rem;
@@ -1323,6 +1335,11 @@ body.pdf-viewer-embedded .viewer-title-area {
         font-size: 0.56rem;
     }
 
+    .viewer-query-badge {
+        max-width: min(10rem, 42vw);
+        font-size: 0.7rem;
+    }
+
     .mobile-page-btn {
         min-width: 4.25rem;
         height: 2rem;
@@ -1339,7 +1356,7 @@ body.pdf-viewer-embedded .viewer-title-area {
     }
 }
 
-/* Show the viewer identity on desktop and keep the compact mobile bar focused. */
+/* Keep the current manual or folder identity visible in the viewer command bar. */
 @media (min-width: 48.0625rem) {
     .viewer-commandbar .viewer-title-area {
         display: block;
@@ -1349,7 +1366,7 @@ body.pdf-viewer-embedded .viewer-title-area {
 }
 
 @media (max-width: 48rem) {
-    .viewer-commandbar .viewer-title-area {
-        display: none !important;
+    body:not(.pdf-viewer-embedded) .viewer-commandbar .viewer-title-area {
+        display: block;
     }
 }

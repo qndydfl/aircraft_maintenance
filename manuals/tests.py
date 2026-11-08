@@ -322,6 +322,67 @@ class OtherManualFolderUploadTests(TestCase):
         self.assertEqual(browse_response.status_code, 200)
         self.assertContains(browse_response, "등록된 파일이 없습니다.")
 
+    def test_root_uses_common_title_and_opened_folder_uses_folder_title(self):
+        self.category.name = "Uploaded Package Title"
+        self.category.save(update_fields=["name"])
+        OtherManualFolder.objects.create(
+            category=self.category,
+            path="Engineering",
+        )
+        OtherManualFolder.objects.create(
+            category=self.category,
+            path="Engineering/Forms",
+        )
+
+        root_response = self.client.get(
+            reverse("other_manual_category_detail", args=[self.category.pk])
+        )
+
+        self.assertEqual(root_response.status_code, 200)
+        self.assertEqual(root_response.context["page_title"], "Other Manuals")
+        self.assertContains(root_response, "Engineering")
+
+        folder_response = self.client.get(
+            reverse("other_manual_folder_browse", args=[self.category.pk]),
+            {"path": "Engineering"},
+        )
+
+        self.assertEqual(folder_response.status_code, 200)
+        self.assertEqual(folder_response.context["page_title"], "Engineering")
+        self.assertContains(
+            folder_response,
+            '<h2 class="page-title mb-2">Engineering</h2>',
+            html=True,
+        )
+
+        nested_response = self.client.get(
+            reverse("other_manual_folder_browse", args=[self.category.pk]),
+            {"path": "Engineering/Forms"},
+        )
+
+        self.assertEqual(nested_response.status_code, 200)
+        self.assertEqual(nested_response.context["page_title"], "Forms")
+        self.assertContains(
+            nested_response,
+            '<h2 class="page-title mb-2">Forms</h2>',
+            html=True,
+        )
+        self.assertContains(
+            nested_response,
+            "<title>Forms | Manual Portal</title>",
+            html=True,
+        )
+
+        new_tab_response = self.client.get(
+            reverse("other_manual_folder_browse", args=[self.category.pk]),
+            {"path": "Engineering/Forms", "new_tab": "1"},
+        )
+
+        self.assertContains(
+            new_tab_response,
+            '<div class="app-navbar-ending d-none" aria-label="Page navigation">',
+        )
+
     def test_upload_file_directly_into_nested_folder(self):
         folder = OtherManualFolder.objects.create(
             category=self.category,
@@ -364,6 +425,26 @@ class OtherManualFolderUploadTests(TestCase):
             {"path": "Documents/Forms"},
         )
         self.assertContains(browse_response, "Checklist")
+
+    def test_other_pdf_viewer_title_uses_containing_folder_name(self):
+        other_file = self.category.files.create(
+            title="Checklist",
+            folder_path="Engineering/Forms",
+            relative_path="Engineering/Forms/checklist.pdf",
+            file="manuals/other/checklist.pdf",
+        )
+
+        response = self.client.get(
+            reverse("other_manual_file_pdf_viewer", args=[other_file.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["viewer_title"], "Forms")
+        self.assertContains(
+            response,
+            '<h4 class="viewer-title mb-1">Forms</h4>',
+            html=True,
+        )
 
     def test_other_folder_form_offers_folder_selection(self):
         response = self.client.get(
@@ -624,6 +705,29 @@ class ManualEditingTests(TestCase):
             reverse("manual_package_update", kwargs={"pk": self.package.pk}),
         )
 
+    def test_package_open_preserves_new_tab_mode_for_chapter_page(self):
+        response = self.client.get(
+            reverse("manual_package_open", kwargs={"pk": self.package.pk}),
+            {"new_tab": "1"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "manual_chapter_list",
+                kwargs={"package_pk": self.package.pk},
+            )
+            + "?new_tab=1",
+        )
+
+        chapter_response = self.client.get(response.url)
+        self.assertContains(
+            chapter_response,
+            'class="manual-workspace"',
+        )
+        self.assertNotContains(chapter_response, 'class="app-navbar"')
+        self.assertNotContains(chapter_response, "app-navbar-ending")
+
 
 class AircraftManageTabTests(TestCase):
     def setUp(self):
@@ -693,11 +797,21 @@ class CalculatorClockLayoutTests(TestCase):
         )
         self.client.force_login(self.user)
 
-    def test_utc_and_korea_clocks_are_separate_with_date_and_time(self):
+    def test_utc_clock_is_default_tab_and_korea_clock_is_alternate_tab(self):
         response = self.client.get(reverse("calculator"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="date-clock-grid"')
+        self.assertContains(response, 'class="date-clock-tabs"')
+        self.assertContains(response, 'id="utc-clock-tab"')
+        self.assertContains(response, 'id="kst-clock-tab"')
+        self.assertContains(
+            response,
+            'class="date-clock-card date-clock-card-utc tab-pane fade show active"',
+        )
+        self.assertContains(
+            response,
+            'class="date-clock-card date-clock-card-kst tab-pane fade"',
+        )
         self.assertContains(response, 'id="utc-time"')
         self.assertContains(response, 'id="local-time"')
         self.assertContains(response, "date-clock-date-part", count=2)

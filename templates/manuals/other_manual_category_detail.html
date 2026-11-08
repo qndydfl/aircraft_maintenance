@@ -1,5 +1,6 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% block title %}{{ page_title }} | Manual Portal{% endblock title %}
 {% block body_class %} detail-page other-manual-detail-page {% endblock body_class %} 
 {% block css %}
 <link href="{% static 'css/manual_detail.css' %}?v=60" rel="stylesheet" />
@@ -11,9 +12,7 @@
     <div class="app-navbar-title">
         <p class="page-eyebrow mb-1">{{ category.aircraft.name }} / OTHER</p>
 
-        <h2 class="page-title mb-2">
-            {{ current_folder_name|default:category.name }}
-        </h2>
+        <h2 class="page-title mb-2">{{ page_title }}</h2>
 
         <p class="text-muted mb-0 page-subtitle">
             {% if current_folder_path %}{{ current_folder_path }}{% else %}{{ category.description|default:"OTHER 매뉴얼 파일을 관리합니다." }}{% endif %}
@@ -94,7 +93,11 @@
                 </div>                
 
                 <div class="portal-detail-button-group">
-                    <a href="{{ folder.open_url }}" class="btn btn-primary app-card-btn w-100">
+                    <a href="{{ folder.open_url }}"
+                        class="btn btn-primary app-card-btn w-100"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         Open
                     </a>
                     {% if user.is_superuser %}

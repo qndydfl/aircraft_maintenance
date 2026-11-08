@@ -1126,6 +1126,7 @@ body.chapter-page .portal-chapter-result-card {
 }
 
 body.chapter-page {
+    padding-top: var(--safe-area-top);
     overflow: hidden;
 }
 
@@ -1133,7 +1134,6 @@ body.chapter-page .app-main {
     width: 100%;
     height: calc(
         var(--app-viewport-height) -
-            var(--navbar-height) -
             var(--safe-area-top)
     );
     min-height: 0;
