@@ -45,6 +45,7 @@
             href="{% static 'css/portal_components.css' %}?v=61"
             rel="stylesheet"
         />
+        <link href="{% static 'css/sidebar_layout.css' %}?v=6" rel="stylesheet" />
 
         <script
             defer
@@ -52,21 +53,34 @@
         ></script>
 
         <script defer src="{% static 'js/base.js' %}?v=58"></script>
+        <script defer src="{% static 'js/sidebar.js' %}?v=4"></script>
 
         {% block css %}{% endblock css %}
 
         <link
-            href="{% static 'css/mobile_override.css' %}?v=99"
+            href="{% static 'css/mobile_override.css' %}?v=100"
             rel="stylesheet"
         />
 
         {% block js %}{% endblock js %}
     </head>
 
-    <body class="{% block body_class %}{% endblock body_class %}">
+    <body class="{% block body_class %}{% endblock body_class %}{% if show_app_sidebar %} has-app-sidebar{% endif %}">
         {% block nav %}
         <nav class="navbar navbar-dark fixed-top app-navbar">
             <div class="container-fluid app-navbar-container">
+                {% if show_app_sidebar %}
+                <button
+                    type="button"
+                    class="sidebar-mobile-toggle"
+                    data-sidebar-open
+                    aria-controls="app-sidebar"
+                    aria-expanded="false"
+                    aria-label="Open navigation"
+                >
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                {% endif %}
                 {% block navbar_content %}
                 <a class="navbar-brand app-brand" href="{% url 'home' %}">
                     Manual Portal
@@ -124,19 +138,40 @@
         {% endblock nav %}
 
         <main class="app-main">
-            <div class="container app-container">
-                {% if messages %}
-                <div class="app-message-area">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} app-alert">
-                        {{ message }}
+            {% block main_content %}
+            <div class="{% if show_app_sidebar %}app-layout-with-sidebar{% else %}container app-container{% endif %}">
+                {% if show_app_sidebar %}
+                <aside class="app-sidebar" id="app-sidebar" aria-label="Main navigation">
+                    {% include 'includes/sidebar.html' %}
+                </aside>
+                <button
+                    type="button"
+                    class="app-sidebar-backdrop"
+                    data-sidebar-close
+                    aria-label="Close navigation"
+                    tabindex="-1"
+                ></button>
+                <div class="app-sidebar-content">
+                    <div class="container app-container">
+                {% endif %}
+
+                        {% if messages %}
+                        <div class="app-message-area">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} app-alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% block inner_content %}{% endblock inner_content %}
+
+                {% if show_app_sidebar %}
                     </div>
-                    {% endfor %}
                 </div>
-                {% endif %} 
-                
-                {% block content %} {% endblock content %}
+                {% endif %}
             </div>
+            {% endblock main_content %}
         </main>
 
         <nav class="mobile-bottom-nav">

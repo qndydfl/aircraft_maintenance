@@ -1,0 +1,147 @@
+<div class="sidebar-shell">
+    <header class="sidebar-header">
+        <a href="{% url 'home' %}" class="sidebar-brand" title="Manual Portal Home">
+            <span class="sidebar-brand-mark" aria-hidden="true">
+                <i class="bi bi-airplane-engines-fill"></i>
+            </span>
+            <span class="sidebar-brand-copy">
+                <strong>Manual Portal</strong>
+                <small>Operations workspace</small>
+            </span>
+        </a>
+
+        <button type="button" class="sidebar-close-btn sidebar-mobile-close" data-sidebar-close aria-label="Close navigation" title="Close navigation">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="sidebar-close-btn sidebar-desktop-collapse" data-sidebar-collapse aria-label="Collapse navigation" title="Collapse navigation">
+            <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i>
+        </button>
+    </header>
+
+    <nav class="app-sidebar-nav" aria-label="Workspace">
+        <p class="sidebar-section-title">Workspace</p>
+
+        <a href="{% url 'home' %}" class="sidebar-nav-item{% if sidebar_active_section == 'home' %} active{% endif %}" title="Home">
+            <span class="sidebar-nav-item-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+            <span class="sidebar-nav-item-label">Home</span>
+        </a>
+
+        <details class="sidebar-tree-root"{% if sidebar_active_section == 'manuals' %} open{% endif %}>
+            <summary class="sidebar-nav-item{% if sidebar_active_section == 'manuals' %} active{% endif %}" title="Manual Library">
+                <span class="sidebar-nav-item-icon"><i class="bi bi-journal-bookmark-fill"></i></span>
+                <span class="sidebar-nav-item-label">Manual Library</span>
+                <i class="bi bi-chevron-down sidebar-tree-chevron" aria-hidden="true"></i>
+            </summary>
+
+            <div class="sidebar-tree-panel">
+                <a href="{% url 'manual_home' %}" class="sidebar-tree-link sidebar-tree-all{% if sidebar_all_manuals_active %} active{% endif %}"{% if sidebar_all_manuals_active %} aria-current="page"{% endif %}>
+                    <i class="bi bi-grid-fill" aria-hidden="true"></i>
+                    <span>All Manuals</span>
+                </a>
+
+                {% for maker in sidebar_manual_groups %}
+                <details class="sidebar-tree-group"{% if maker.is_active %} open{% endif %}>
+                    <summary{% if maker.is_active %} class="active"{% endif %}>
+                        <span>{{ maker.label }}</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="sidebar-tree-children">
+                        {% for aircraft in maker.aircrafts %}
+                        <details class="sidebar-tree-aircraft"{% if aircraft.is_active %} open{% endif %}>
+                            <summary{% if aircraft.is_active %} class="active"{% endif %}>
+                                <span>{{ aircraft.label }}</span>
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </summary>
+                            <div class="sidebar-tree-manuals">
+                                <a href="{{ aircraft.url }}" class="sidebar-tree-link sidebar-tree-overview{% if aircraft.overview_active %} active{% endif %}"{% if aircraft.overview_active %} aria-current="page"{% endif %}>
+                                    <span>Overview</span>
+                                </a>
+                                {% for manual in aircraft.manuals %}
+                                <a href="{{ manual.url }}" class="sidebar-tree-link{% if manual.is_active %} active{% endif %}" data-sidebar-manual="{{ manual.label }}"{% if manual.is_active %} aria-current="page"{% endif %}>
+                                    <span>{{ manual.label }}</span>
+                                    <small>{{ manual.mode }}</small>
+                                </a>
+                                {% empty %}
+                                <span class="sidebar-tree-empty">No manuals</span>
+                                {% endfor %}
+                            </div>
+                        </details>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endfor %}
+
+                {% if sidebar_common_groups %}
+                <details class="sidebar-tree-group"{% if sidebar_common_active %} open{% endif %}>
+                    <summary{% if sidebar_common_active %} class="active"{% endif %}>
+                        <span>Common Manuals</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="sidebar-tree-children">
+                        {% for category in sidebar_common_groups %}
+                        <details class="sidebar-tree-aircraft"{% if category.is_active %} open{% endif %}>
+                            <summary{% if category.is_active %} class="active"{% endif %}>
+                                <span>{{ category.label }}</span>
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </summary>
+                            <div class="sidebar-tree-manuals">
+                                <a href="{{ category.url }}" class="sidebar-tree-link sidebar-tree-overview{% if category.overview_active %} active{% endif %}"{% if category.overview_active %} aria-current="page"{% endif %}>
+                                    <span>Overview</span>
+                                </a>
+                                {% for file in category.files %}
+                                <a href="{{ file.url }}" class="sidebar-tree-link{% if file.is_active %} active{% endif %}"{% if file.is_active %} aria-current="page"{% endif %}>
+                                    <span>{{ file.label }}</span>
+                                    <small>PDF</small>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </details>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
+            </div>
+        </details>
+
+        <a href="{% url 'manual_search' %}" class="sidebar-nav-item{% if sidebar_active_section == 'search' %} active{% endif %}" title="Manual Search">
+            <span class="sidebar-nav-item-icon"><i class="bi bi-search"></i></span>
+            <span class="sidebar-nav-item-label">Manual Search</span>
+        </a>
+
+        <a href="{% url 'dispatch_search' %}" class="sidebar-nav-item{% if sidebar_active_section == 'dispatch' %} active{% endif %}" title="Dispatch">
+            <span class="sidebar-nav-item-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+            <span class="sidebar-nav-item-label">Dispatch</span>
+        </a>
+
+        <a href="{% url 'calculator' %}" class="sidebar-nav-item{% if sidebar_active_section == 'calculator' %} active{% endif %}" title="Calculator">
+            <span class="sidebar-nav-item-icon"><i class="bi bi-calculator-fill"></i></span>
+            <span class="sidebar-nav-item-label">Calculator</span>
+        </a>
+
+        {% if user.is_superuser %}
+        <p class="sidebar-section-title sidebar-admin-section">Administration</p>
+        <a href="{% url 'aircraft_manage' %}" class="sidebar-nav-item{% if sidebar_active_section == 'management' %} active{% endif %}" title="Aircraft & Manuals">
+            <span class="sidebar-nav-item-icon"><i class="bi bi-tools"></i></span>
+            <span class="sidebar-nav-item-label">Aircraft & Manuals</span>
+        </a>
+        <a href="{% url 'admin:index' %}" class="sidebar-nav-item" title="Django Admin">
+            <span class="sidebar-nav-item-icon"><i class="bi bi-shield-lock-fill"></i></span>
+            <span class="sidebar-nav-item-label">Django Admin</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <footer class="sidebar-footer">
+        <span class="sidebar-user-avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
+        <span class="sidebar-user-copy">
+            <strong>{{ user.username }}</strong>
+            <small>{% if user.is_superuser %}Administrator{% else %}Portal user{% endif %}</small>
+        </span>
+        <form method="post" action="{% url 'logout' %}" class="sidebar-logout-form">
+            {% csrf_token %}
+            <button type="submit" class="sidebar-logout-btn" title="Logout" aria-label="Logout">
+                <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+            </button>
+        </form>
+    </footer>
+</div>

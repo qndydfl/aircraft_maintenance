@@ -180,6 +180,8 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "ATA 21")
         self.assertContains(response, "Forms")
         self.assertContains(response, "inspection.xlsx")
+        self.assertContains(response, 'id="app-sidebar"')
+        self.assertContains(response, "manual-workspace-navigation-toggle")
 
     def test_package_upload_form_supports_folder_selection(self):
         response = self.client.get(reverse("manual_package_create"))
@@ -190,6 +192,70 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "data-manual-folder-input")
         self.assertContains(response, "data-manual-files-input")
         self.assertContains(response, "manual_folder_upload.js")
+
+    def test_sidebar_manual_tree_lists_aircraft_and_available_manual(self):
+        response = self.client.get(reverse("manual_home"))
+
+        self.assertContains(response, 'class="sidebar-tree-root"')
+        self.assertContains(response, "B737")
+        self.assertContains(response, "AMM")
+        self.assertContains(
+            response,
+            reverse("manual_package_open", args=[self.package.pk]),
+        )
+
+    def test_portal_home_dashboard_uses_real_manual_data(self):
+        chapter = ManualChapter.objects.create(
+            package=self.package,
+            task="21",
+            title="Air Conditioning",
+            pdf_relative_path="21.pdf",
+        )
+        ManualPDFPage.objects.create(
+            chapter=chapter,
+            page_number=1,
+            text="Air conditioning procedure",
+        )
+
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Maintenance Overview")
+        self.assertContains(response, "Aircraft Manuals")
+        self.assertContains(response, "Recent Updates")
+        self.assertContains(response, "B737")
+        self.assertContains(response, "AMM")
+        self.assertContains(response, 'name="q"')
+        self.assertContains(
+            response,
+            reverse("manual_package_open", args=[self.package.pk]),
+        )
+        self.assertEqual(response.context["aircraft_count"], 1)
+        self.assertEqual(response.context["manual_count"], 1)
+        self.assertEqual(response.context["indexed_page_count"], 1)
+
+    def test_sidebar_expands_and_marks_current_package_from_home_flow(self):
+        response = self.client.get(
+            reverse("manual_package_open", args=[self.package.pk]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'class="sidebar-tree-link active" data-sidebar-manual="AMM" aria-current="page"',
+        )
+        self.assertContains(response, 'class="sidebar-tree-group" open')
+        self.assertContains(response, 'class="sidebar-tree-aircraft" open')
+
+        overview_aircraft = Aircraft.objects.create(maker="AIRBUS", name="A320")
+        aircraft_response = self.client.get(
+            reverse("aircraft_manual_detail", args=[overview_aircraft.pk])
+        )
+        self.assertContains(
+            aircraft_response,
+            'class="sidebar-tree-link sidebar-tree-overview active" aria-current="page"',
+        )
 
 
 class ManualTypeAdminTests(TestCase):
@@ -750,7 +816,11 @@ class AircraftManageTabTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["active_tab"], "aircraft")
         self.assertContains(response, self.aircraft.name)
-        self.assertNotContains(response, self.category.name)
+        page_content = response.content.decode().split(
+            '<div class="app-sidebar-content">',
+            1,
+        )[-1]
+        self.assertNotIn(self.category.name, page_content)
         self.assertContains(response, "Add Aircraft")
         self.assertNotContains(response, "Add Common Manual")
 
@@ -760,7 +830,11 @@ class AircraftManageTabTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["active_tab"], "common")
         self.assertContains(response, self.category.name)
-        self.assertNotContains(response, self.aircraft.name)
+        page_content = response.content.decode().split(
+            '<div class="app-sidebar-content">',
+            1,
+        )[-1]
+        self.assertNotIn(self.aircraft.name, page_content)
         self.assertContains(response, "Add Common Manual")
         self.assertContains(
             response,
@@ -817,6 +891,19 @@ class CalculatorClockLayoutTests(TestCase):
         self.assertContains(response, "date-clock-date-part", count=2)
         self.assertContains(response, "date-clock-time-part", count=2)
         self.assertContains(response, "KST")
+
+    def test_sidebar_appears_on_tools_and_portal_home(self):
+        calculator_response = self.client.get(reverse("calculator"))
+        home_response = self.client.get(reverse("home"))
+
+        self.assertContains(calculator_response, 'id="app-sidebar"')
+        self.assertContains(calculator_response, "Manual Library")
+        self.assertContains(calculator_response, "Dispatch")
+        self.assertContains(home_response, 'id="app-sidebar"')
+        self.assertContains(
+            home_response,
+            'class="sidebar-nav-item active" title="Home"',
+        )
 
     def test_calculator_notes_do_not_render_initial_formulas(self):
         response = self.client.get(reverse("calculator"))
@@ -875,6 +962,16 @@ class ManualFilePDFEndpointTests(TestCase):
             response,
             reverse("manual_file_pdf", kwargs={"pk": manual.pk}),
         )
+        self.assertContains(response, 'id="app-sidebar"')
+        self.assertContains(response, "A320")
+        self.assertContains(response, "MEL")
+
+        embedded_response = self.client.get(
+            reverse("manual_file_pdf_viewer", kwargs={"pk": manual.pk}),
+            {"embedded": "1"},
+        )
+
+        self.assertNotContains(embedded_response, 'id="app-sidebar"')
 
 
 class ManualSearchContentPageTests(TestCase):

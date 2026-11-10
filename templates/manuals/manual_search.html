@@ -31,7 +31,7 @@ manual-search-page
 </div>
 {% endblock navbar_content %}
 
-{% block content %}
+{% block inner_content %}
 
 <button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
     type="button"
@@ -230,8 +230,6 @@ manual-search-page
 
                     <div class="manual-group-actions mt-3">
                         <a href="{{ group.viewer_url }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
                             class="btn {{ group.button_class }} app-card-btn">
                             Open Viewer
                         </a>
@@ -251,4 +249,4 @@ manual-search-page
 
 {% endif %}
 
-{% endblock content %}
+{% endblock inner_content %}

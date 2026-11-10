@@ -70,12 +70,24 @@
 {% endblock js %} 
 {% block nav %} {% endblock nav %} 
 
-{% block content %}
+{% block inner_content %}
 <div
     class="viewer-page{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}"
 >
     <div class="viewer-commandbar">
         <div class="viewer-commandbar-left">
+            {% if show_app_sidebar %}
+            <button
+                type="button"
+                class="sidebar-mobile-toggle viewer-sidebar-toggle"
+                data-sidebar-open
+                aria-controls="app-sidebar"
+                aria-expanded="false"
+                aria-label="Open navigation"
+            >
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+            {% endif %}
             <div class="viewer-title-area">
                 <h4 class="viewer-title mb-1">{{ viewer_title }}</h4>
                 {% if viewer_subtitle and viewer_subtitle != "PDF Viewer" %}
@@ -320,4 +332,4 @@
         </button>
     </div>
 </div>
-{% endblock content %}
+{% endblock inner_content %}

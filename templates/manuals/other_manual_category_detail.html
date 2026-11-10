@@ -62,7 +62,7 @@
 </div>
 {% endblock navbar_content %} 
 
-{% block content %}
+{% block inner_content %}
 
 <div class="row g-3 g-md-4 justify-content-center other-manual-content-grid">
     {% for folder in folder_entries %}
@@ -95,8 +95,6 @@
                 <div class="portal-detail-button-group">
                     <a href="{{ folder.open_url }}"
                         class="btn btn-primary app-card-btn w-100"
-                        target="_blank"
-                        rel="noopener noreferrer"
                     >
                         Open
                     </a>
@@ -166,8 +164,6 @@
                         {% if file.is_pdf %}
                         <a
                             href="{% url 'other_manual_file_pdf_viewer' file.pk %}?back={{ request.get_full_path|urlencode }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
                             class="btn btn-primary app-card-btn mobile-show-btn"
                         >
                             Open
@@ -265,4 +261,4 @@
     {% endif %}
 </div>
 
-{% endblock content %}
+{% endblock inner_content %}

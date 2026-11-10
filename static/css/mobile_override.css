@@ -263,15 +263,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 
     /* Keep the visible content gap equal above and below the home dashboard. */
     body.portal-home-page {
-        padding-bottom: 0 !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        ) !important;
     }
 
     body.portal-home-page .app-main {
-        padding-top: 0 !important;
-        padding-bottom: calc(
-            var(--bottom-nav-height) +
-                var(--safe-area-bottom)
-        ) !important;
+        padding-top: var(--page-edge-gap) !important;
+        padding-bottom: var(--page-edge-gap) !important;
     }
 
     body.aircraft-manual-detail-page {
@@ -843,15 +842,14 @@ body.dispatch-search-page .dispatch-search-form .form-label {
     }
 
     body.portal-home-page {
-        padding-bottom: 0 !important;
+        padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        ) !important;
     }
 
     body.portal-home-page .app-main {
-        padding-top: 0 !important;
-        padding-bottom: calc(
-            var(--bottom-nav-height) +
-                var(--safe-area-bottom)
-        ) !important;
+        padding-top: var(--page-edge-gap) !important;
+        padding-bottom: var(--page-edge-gap) !important;
     }
 
     body.aircraft-manual-detail-page {

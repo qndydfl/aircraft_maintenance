@@ -1076,7 +1076,8 @@ class DispatchSearchView(LoginRequiredMixin, TemplateView):
         elif search_type in ["fault", "fault_code", "faultcode"]:
             search_type = "fault"
 
-        context["aircrafts"] = Aircraft.objects.all().order_by("maker", "name")
+        aircrafts = Aircraft.objects.all().order_by("maker", "name")
+        context["aircrafts"] = aircrafts
         context["selected_aircraft"] = aircraft_id
         context["query"] = query
         context["manual_pdf_query"] = self.build_manual_pdf_query(query)

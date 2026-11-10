@@ -20,7 +20,7 @@
 
 {% block nav %}{% endblock nav %}
 
-{% block content %}
+{% block inner_content %}
 
 <section
     class="manual-workspace"
@@ -36,6 +36,19 @@
         role="tablist"
         aria-label="Manual workspace"
     >
+        {% if show_app_sidebar %}
+        <button
+            type="button"
+            class="sidebar-mobile-toggle manual-workspace-navigation-toggle"
+            data-sidebar-open
+            aria-controls="app-sidebar"
+            aria-expanded="false"
+            aria-label="Open navigation"
+            title="Open navigation"
+        >
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        {% endif %}
         <button
             type="button"
             class="manual-workspace-tab is-active"
@@ -447,4 +460,4 @@
     </section>
 </section>
 
-{% endblock content %}
+{% endblock inner_content %}

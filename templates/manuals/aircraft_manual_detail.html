@@ -48,7 +48,7 @@
 </div>
 {% endblock navbar_content %} 
 
-{% block content %}
+{% block inner_content %}
 
 <div class="row g-3 g-md-4 aircraft-manual-content-grid">
     {% for item in manual_items %}
@@ -98,8 +98,6 @@
                     <a
                         href="{% url 'other_manual_category_detail' folder.pk %}"
                         class="btn btn-primary w-100 app-card-btn"
-                        target="_blank"
-                        rel="noopener noreferrer"
                     >
                         Open {{ item.type }} Folder
                     </a>
@@ -148,8 +146,6 @@
                         <a
                             href="{% url 'manual_package_open' item.package.pk %}"
                             class="btn btn-primary app-card-btn mobile-show-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
                             Open
                         </a>
@@ -232,8 +228,6 @@
                         {% if item.upload_mode == "PDF" %}
                         <a
                             href="{% url 'manual_file_pdf_viewer' item.file.pk %}?back={{ request.get_full_path|urlencode }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
                             class="btn btn-primary app-card-btn mobile-show-btn"
                         >
                             Open
@@ -325,4 +319,4 @@
     {% endfor %}
 </div>
 
-{% endblock content %}
+{% endblock inner_content %}

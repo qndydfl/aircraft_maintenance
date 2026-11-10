@@ -6,7 +6,7 @@
 
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=19" />
-{% endblock css %} 
+{% endblock css %}
 
 {% block navbar_content %}
 <div class="app-navbar-page-content">
@@ -22,7 +22,7 @@
 </div>
 {% endblock navbar_content %} 
 
-{% block content %}
+{% block inner_content %}
 <div class="manual-library-tabs-wrap">
     <ul class="nav nav-pills manual-library-tabs" id="manualLibraryTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -100,8 +100,6 @@
                         <a
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
                             Manuals
                         </a>
@@ -173,8 +171,6 @@
                         <a
                             href="{% url 'aircraft_manual_detail' aircraft.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
                             Manuals
                         </a>
@@ -250,8 +246,6 @@
                         <a
                             href="{% url 'common_manual_category_detail' category.pk %}"
                             class="btn btn-success w-100 app-card-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
                             {{ category.name }}
                         </a>
@@ -320,17 +314,13 @@
                         <a
                             href="{% url 'other_manual_category_detail' category.pk %}"
                             class="btn btn-primary w-100 app-card-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
-                            OTHER Folder
+                            Open OTHER Folder
                         </a>
                         {% else %}
                         <a
                             href="{% url 'other_manual_category_create' %}?aircraft={{ aircraft.pk }}&manual_type=OTHER"
                             class="btn btn-primary w-100 app-card-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
                             Create OTHER Folder
                         </a>
@@ -350,4 +340,4 @@
     </div>
 </section>
 </div>
-{% endblock content %}
+{% endblock inner_content %}

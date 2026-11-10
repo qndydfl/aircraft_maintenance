@@ -315,24 +315,32 @@ def get_manual_library_context():
         category.other_folder_count = len(top_folders)
         category.other_file_count = direct_file_count
 
+    boeing_aircrafts = list(
+        Aircraft.objects.filter(maker="BOEING")
+        .order_by("name")
+        .prefetch_related(
+            "manuals",
+            "manual_packages",
+            "other_categories",
+            "other_categories__files",
+        )
+    )
+    airbus_aircrafts = list(
+        Aircraft.objects.filter(maker="AIRBUS")
+        .order_by("name")
+        .prefetch_related(
+            "manuals",
+            "manual_packages",
+            "other_categories",
+            "other_categories__files",
+        )
+    )
+    common_categories = list(CommonManualCategory.objects.prefetch_related("files"))
+
     return {
-        "boeing_aircrafts": Aircraft.objects.filter(maker="BOEING")
-        .order_by("name")
-        .prefetch_related(
-            "manuals",
-            "manual_packages",
-            "other_categories",
-            "other_categories__files",
-        ),
-        "airbus_aircrafts": Aircraft.objects.filter(maker="AIRBUS")
-        .order_by("name")
-        .prefetch_related(
-            "manuals",
-            "manual_packages",
-            "other_categories",
-            "other_categories__files",
-        ),
-        "common_categories": CommonManualCategory.objects.prefetch_related("files"),
+        "boeing_aircrafts": boeing_aircrafts,
+        "airbus_aircrafts": airbus_aircrafts,
+        "common_categories": common_categories,
         "other_manual_aircrafts": other_manual_aircrafts,
     }
 
@@ -358,6 +366,177 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
     """
 
     template_name = "portal_home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        aircrafts = list(
+            Aircraft.objects.order_by("maker", "name").prefetch_related(
+                "manual_packages",
+                "manuals",
+                "other_categories",
+            )
+        )
+        dashboard_aircrafts = []
+
+        for aircraft in aircrafts:
+            manual_links = {}
+
+            for package in aircraft.manual_packages.all():
+                manual_links[package.manual_type] = {
+                    "label": package.manual_type,
+                    "mode": "ZIP",
+                    "url": reverse("manual_package_open", args=[package.pk]),
+                }
+
+            for manual_file in aircraft.manuals.all():
+                manual_links.setdefault(
+                    manual_file.manual_type,
+                    {
+                        "label": manual_file.manual_type,
+                        "mode": "PDF",
+                        "url": reverse("manual_file_pdf_viewer", args=[manual_file.pk]),
+                    },
+                )
+
+            for category in aircraft.other_categories.all():
+                manual_links.setdefault(
+                    category.manual_type,
+                    {
+                        "label": category.manual_type,
+                        "mode": "FOLDER",
+                        "url": reverse(
+                            "other_manual_category_detail",
+                            args=[category.pk],
+                        ),
+                    },
+                )
+
+            dashboard_aircrafts.append(
+                {
+                    "name": aircraft.name,
+                    "maker": aircraft.get_maker_display(),
+                    "url": reverse("aircraft_manual_detail", args=[aircraft.pk]),
+                    "manuals": sorted(
+                        manual_links.values(),
+                        key=lambda item: item["label"],
+                    ),
+                }
+            )
+
+        recent_updates = []
+        recent_packages = ManualPackage.objects.select_related("aircraft").order_by(
+            "-uploaded_at"
+        )[:6]
+        recent_manual_files = ManualFile.objects.select_related("aircraft").order_by(
+            "-uploaded_at"
+        )[:6]
+        recent_common_files = CommonManualFile.objects.select_related(
+            "category"
+        ).order_by("-uploaded_at")[:6]
+        recent_other_files = OtherManualFile.objects.select_related(
+            "category",
+            "category__aircraft",
+        ).order_by("-uploaded_at")[:6]
+
+        for package in recent_packages:
+            recent_updates.append(
+                {
+                    "title": f"{package.aircraft.name} · {package.manual_type}",
+                    "kind": "ZIP",
+                    "revision": package.display_revision_no,
+                    "revision_date": package.display_revision_date_text,
+                    "uploaded_at": package.uploaded_at,
+                    "url": reverse("manual_package_open", args=[package.pk]),
+                }
+            )
+
+        for manual_file in recent_manual_files:
+            recent_updates.append(
+                {
+                    "title": f"{manual_file.aircraft.name} · {manual_file.manual_type}",
+                    "kind": "PDF",
+                    "revision": manual_file.display_revision_no,
+                    "revision_date": manual_file.display_revision_date_text,
+                    "uploaded_at": manual_file.uploaded_at,
+                    "url": reverse(
+                        "manual_file_pdf_viewer",
+                        args=[manual_file.pk],
+                    ),
+                }
+            )
+
+        for common_file in recent_common_files:
+            recent_updates.append(
+                {
+                    "title": f"{common_file.category.name} · {common_file.title}",
+                    "kind": "COMMON",
+                    "revision": common_file.display_revision_no,
+                    "revision_date": common_file.display_revision_date_text,
+                    "uploaded_at": common_file.uploaded_at,
+                    "url": reverse(
+                        "common_manual_file_pdf_viewer",
+                        args=[common_file.pk],
+                    ),
+                }
+            )
+
+        for other_file in recent_other_files:
+            recent_updates.append(
+                {
+                    "title": (
+                        f"{other_file.category.aircraft.name} · "
+                        f"{other_file.category.manual_type}"
+                    ),
+                    "subtitle": other_file.title,
+                    "kind": "OTHER",
+                    "revision": other_file.display_revision_no,
+                    "revision_date": other_file.display_revision_date_text,
+                    "uploaded_at": other_file.uploaded_at,
+                    "url": (
+                        reverse("other_manual_file_pdf_viewer", args=[other_file.pk])
+                        if other_file.is_pdf
+                        else reverse(
+                            "other_manual_category_detail",
+                            args=[other_file.category_id],
+                        )
+                    ),
+                }
+            )
+
+        active_jobs = ReindexJob.objects.filter(
+            status__in=[ReindexJob.STATUS_QUEUED, ReindexJob.STATUS_PROCESSING]
+        ).count()
+        failed_jobs = ReindexJob.objects.filter(
+            status=ReindexJob.STATUS_FAILED
+        ).count()
+        indexed_page_count = (
+            ManualPDFPage.objects.count()
+            + ManualFilePDFPage.objects.count()
+            + CommonManualPDFPage.objects.count()
+            + OtherManualPDFPage.objects.count()
+        )
+
+        context.update(
+            {
+                "dashboard_aircrafts": dashboard_aircrafts,
+                "recent_updates": sorted(
+                    recent_updates,
+                    key=lambda item: item["uploaded_at"],
+                    reverse=True,
+                )[:6],
+                "aircraft_count": len(aircrafts),
+                "manual_count": (
+                    ManualPackage.objects.count()
+                    + ManualFile.objects.count()
+                    + CommonManualFile.objects.count()
+                    + OtherManualFile.objects.count()
+                ),
+                "indexed_page_count": indexed_page_count,
+                "active_index_jobs": active_jobs,
+                "failed_index_jobs": failed_jobs,
+            }
+        )
+        return context
 
 
 class ManualHomeView(LoginRequiredMixin, TemplateView):

@@ -1,154 +1,206 @@
-{% extends "base.html" %} 
-{% load static %} 
-{% block title %}Maintenance Command Center{% endblock %}
-{% block body_class %}portal-home-page{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Maintenance Overview{% endblock title %}
+{% block body_class %}portal-home-page{% endblock body_class %}
+
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261013-1" />
-{% endblock css %} 
+<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261110-3" />
+{% endblock css %}
 
-{% block content %}
-<section class="command-center">
-    <header class="command-header">
-        <div class="command-heading">
-            <div class="command-kicker">
-                <span class="command-live-dot"></span>
-                AIRCRAFT MAINTENANCE SYSTEM
-            </div>
+{% block js %}
+<script defer src="{% static 'js/portal_home.js' %}?v=20261110-1"></script>
+{% endblock js %}
 
-            <h1>DASHBOARD</h1>
+{% block navbar_content %}
+<div class="app-navbar-page-content">
+    <div class="app-navbar-title">
+        <p class="page-eyebrow text-uppercase text-primary fw-bold mb-1 small">Operations Dashboard</p>
+        <h2 class="page-title fw-extrabold mb-0">Maintenance Overview</h2>
+    </div>
+    {% include 'includes/navbar_ending.html' %}
+</div>
+{% endblock navbar_content %}
 
-            <p>Manuals · Technical Search · Dispatch · Engineering Tools</p>
+{% block inner_content %}
+<section class="home-dashboard" aria-labelledby="home-dashboard-title">
+    <header class="home-welcome-card">
+        <div class="home-welcome-copy">
+            <span class="home-welcome-eyebrow">
+                <span class="home-status-dot" aria-hidden="true"></span>
+                Aircraft Maintenance Portal
+            </span>
+            <h1 id="home-dashboard-title">Welcome back, {{ user.username }}</h1>
+            <p>Find technical publications, open aircraft manuals and review the latest revisions.</p>
         </div>
 
-        <div class="command-system-status">
-            <div class="system-status-label">SYSTEM STATUS</div>
-
-            <div class="system-status-value">
-                <span></span>
-                OPERATIONAL
-            </div>
+        <div class="home-clock-grid" aria-label="Current time">
+            <article class="home-clock-card">
+                <span>UTC</span>
+                <strong data-home-clock="utc">--:--</strong>
+                <small data-home-date="utc">---</small>
+            </article>
+            <article class="home-clock-card home-clock-card-kst">
+                <span>KOREA</span>
+                <strong data-home-clock="kst">--:--</strong>
+                <small data-home-date="kst">---</small>
+            </article>
         </div>
     </header>
 
-    <div class="command-workspace">
-        <div class="command-side command-side-left">
-            <a
-                href="{% url 'manual_home' %}"
-                class="hud-panel hud-panel-manuals"
-            >
-                <div class="hud-icon">
-                    <span>▤</span>
-                </div>
-
-                <div class="hud-content">
-                    <div class="hud-label">TECHNICAL LIBRARY</div>
-
-                    <h2>Manuals</h2>
-
-                    <p>Aircraft maintenance technical publications</p>
-                </div>
-
-                <div class="hud-enter">
-                    OPEN
-                    <strong>→</strong>
-                </div>
-            </a>
-
-            <a
-                href="{% url 'manual_search' %}"
-                class="hud-panel hud-panel-search"
-            >
-                <div class="hud-icon">
-                    <span>⌕</span>
-                </div>
-
-                <div class="hud-content">
-                    <div class="hud-label">DOCUMENT INDEX</div>
-
-                    <h2>Manual Search</h2>
-
-                    <p>Search indexed PDF manual content</p>
-                </div>
-
-                <div class="hud-enter">
-                    OPEN
-                    <strong>→</strong>
-                </div>
-            </a>            
+    <form method="get" action="{% url 'manual_search' %}" class="home-search-card" role="search">
+        <div class="home-search-icon" aria-hidden="true"><i class="bi bi-search"></i></div>
+        <div class="home-search-field">
+            <label for="home-manual-search">Search all indexed manuals</label>
+            <input
+                type="search"
+                id="home-manual-search"
+                name="q"
+                placeholder="Enter AMM task, fault message, part number or keyword"
+                autocomplete="off"
+            />
         </div>
-        <div class="command-side command-side-right">
-            <a
-                href="{% url 'dispatch_search' %}"
-                class="hud-panel hud-panel-dispatch"
-            >
-                <div class="hud-icon">
-                    <span>!</span>
-                </div>
+        <button type="submit" class="home-search-submit">
+            Search
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </button>
+    </form>
 
-                <div class="hud-content">
-                    <div class="hud-label">TROUBLESHOOTING</div>
-
-                    <h2>Dispatch</h2>
-
-                    <p>EICAS messages, faults and references</p>
-                </div>
-
-                <div class="hud-enter">
-                    OPEN
-                    <strong>→</strong>
-                </div>
-            </a>
-
-            <a
-                href="{% url 'calculator' %}"
-                class="hud-panel hud-panel-calculator"
-            >
-                <div class="hud-icon">
-                    <span>±</span>
-                </div>
-
-                <div class="hud-content">
-                    <div class="hud-label">CALCULATION TOOL</div>
-
-                    <h2>Calculator</h2>
-
-                    <p>Maintenance date and time calculations</p>
-                </div>
-
-                <div class="hud-enter">
-                    OPEN
-                    <strong>→</strong>
-                </div>
-            </a>
-        </div>
+    <div class="home-stat-grid" aria-label="Portal status">
+        <article class="home-stat-card">
+            <span class="home-stat-icon home-stat-icon-blue"><i class="bi bi-airplane"></i></span>
+            <div><strong>{{ aircraft_count }}</strong><span>Aircraft</span></div>
+        </article>
+        <article class="home-stat-card">
+            <span class="home-stat-icon home-stat-icon-indigo"><i class="bi bi-journal-bookmark-fill"></i></span>
+            <div><strong>{{ manual_count }}</strong><span>Manuals & files</span></div>
+        </article>
+        <article class="home-stat-card">
+            <span class="home-stat-icon home-stat-icon-cyan"><i class="bi bi-file-earmark-text-fill"></i></span>
+            <div><strong>{{ indexed_page_count }}</strong><span>Indexed pages</span></div>
+        </article>
+        <article class="home-stat-card">
+            <span class="home-stat-icon {% if failed_index_jobs %}home-stat-icon-red{% elif active_index_jobs %}home-stat-icon-amber{% else %}home-stat-icon-green{% endif %}">
+                <i class="bi {% if failed_index_jobs %}bi-exclamation-triangle-fill{% elif active_index_jobs %}bi-arrow-repeat{% else %}bi-check-circle-fill{% endif %}"></i>
+            </span>
+            <div>
+                <strong>{% if failed_index_jobs %}{{ failed_index_jobs }}{% elif active_index_jobs %}{{ active_index_jobs }}{% else %}Ready{% endif %}</strong>
+                <span>{% if failed_index_jobs %}Indexing failures{% elif active_index_jobs %}Indexing jobs{% else %}System status{% endif %}</span>
+            </div>
+        </article>
     </div>
-    <footer class="command-footer">
-        <div class="command-quick-links">
-            <a
-                href="https://www.myboeingfleet.com"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                MYBOEINGFLEET
-                <span>↗</span>
-            </a>
 
-            <a
-                href="https://w3.airbus.com/H380/world/airbusworld/forms/airbus.fcc?TYPE=33554433&REALMOID=06-2c93f4bb-1103-4238-98fa-62ca07aab930&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-t%2fTX88CtTFIPqQ15ugBfOME66PQGCWGuAAOSByMZUiVIJPozo431pS4LE4YuSGzU&TARGET=-SM-HTTPS%3a%2f%2fw3%2eairbus%2ecom%2fU980%2fU980_redirect_world%2ehtml%3fresumePath%3d-%2Fidp-%2FwXhjKS4NXW-%2FresumeSAML20-%2Fidp-%2FSSO%2eping-%3FpfLoginRedirect-%3Dtrue"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                AIRBUS WORLD
-                <span>↗</span>
-            </a>
+    <div class="home-dashboard-grid">
+        <section class="home-panel home-aircraft-panel" aria-labelledby="home-aircraft-title">
+            <div class="home-panel-heading">
+                <div>
+                    <span class="home-section-eyebrow">Manual access</span>
+                    <h2 id="home-aircraft-title">Aircraft Manuals</h2>
+                </div>
+                <a href="{% url 'manual_home' %}" class="home-panel-link">View library <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="home-aircraft-list">
+                {% for aircraft in dashboard_aircrafts %}
+                <article class="home-aircraft-row">
+                    <a href="{{ aircraft.url }}" class="home-aircraft-identity">
+                        <span class="home-aircraft-mark"><i class="bi bi-airplane-engines-fill"></i></span>
+                        <span><small>{{ aircraft.maker }}</small><strong>{{ aircraft.name }}</strong></span>
+                    </a>
+                    <div class="home-manual-links">
+                        {% for manual in aircraft.manuals %}
+                        <a href="{{ manual.url }}" class="home-manual-chip" title="Open {{ aircraft.name }} {{ manual.label }}">
+                            {{ manual.label }}
+                            <small>{{ manual.mode }}</small>
+                        </a>
+                        {% empty %}
+                        <span class="home-no-manual">No manuals available</span>
+                        {% endfor %}
+                    </div>
+                    <a href="{{ aircraft.url }}" class="home-aircraft-open" aria-label="Open {{ aircraft.name }} manuals">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </article>
+                {% empty %}
+                <div class="home-empty-state">
+                    <i class="bi bi-airplane"></i>
+                    <strong>No aircraft registered</strong>
+                    <span>Add an aircraft to start building the manual library.</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <aside class="home-side-column">
+            <section class="home-panel" aria-labelledby="home-tools-title">
+                <div class="home-panel-heading home-panel-heading-compact">
+                    <div>
+                        <span class="home-section-eyebrow">Workspace</span>
+                        <h2 id="home-tools-title">Quick Tools</h2>
+                    </div>
+                </div>
+                <div class="home-tool-list">
+                    <a href="{% url 'manual_search' %}" class="home-tool-link">
+                        <span class="home-tool-icon home-tool-search"><i class="bi bi-search"></i></span>
+                        <span><strong>Manual Search</strong><small>Search indexed PDF content</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a href="{% url 'dispatch_search' %}" class="home-tool-link">
+                        <span class="home-tool-icon home-tool-dispatch"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                        <span><strong>Dispatch</strong><small>Find faults and references</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a href="{% url 'calculator' %}" class="home-tool-link">
+                        <span class="home-tool-icon home-tool-calculator"><i class="bi bi-calculator-fill"></i></span>
+                        <span><strong>Calculator</strong><small>Date, time and oil tools</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </section>
 
             {% if user.is_superuser %}
-            <a href="{% url 'admin:index' %}">
-                ADMIN
-                <span>→</span>
-            </a>
+            <section class="home-admin-card">
+                <span class="home-admin-icon"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+                <div><strong>Manage manuals</strong><span>Upload, revise and reindex publications.</span></div>
+                <a href="{% url 'aircraft_manage' %}">Open management</a>
+            </section>
             {% endif %}
+        </aside>
+    </div>
+
+    <section class="home-panel home-updates-panel" aria-labelledby="home-updates-title">
+        <div class="home-panel-heading">
+            <div>
+                <span class="home-section-eyebrow">Library activity</span>
+                <h2 id="home-updates-title">Recent Updates</h2>
+            </div>
         </div>
-    </footer>
+
+        <div class="home-update-list">
+            {% for update in recent_updates %}
+            <a href="{{ update.url }}" class="home-update-row">
+                <span class="home-update-type">{{ update.kind }}</span>
+                <span class="home-update-title">
+                    <strong>{{ update.title }}</strong>
+                    {% if update.subtitle %}<small>{{ update.subtitle }}</small>{% endif %}
+                </span>
+                <span class="home-update-revision">
+                    <small>Revision</small>
+                    <strong>{{ update.revision|default:"Current" }}</strong>
+                </span>
+                <span class="home-update-date">
+                    {% if update.revision_date %}{{ update.revision_date }}{% else %}{{ update.uploaded_at|date:"Y-m-d" }}{% endif %}
+                </span>
+                <i class="bi bi-arrow-up-right home-update-open" aria-hidden="true"></i>
+            </a>
+            {% empty %}
+            <div class="home-empty-state home-empty-state-updates">
+                <i class="bi bi-clock-history"></i>
+                <strong>No manual updates yet</strong>
+                <span>Uploaded manuals will appear here.</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
 </section>
-{% endblock content %}
+{% endblock inner_content %}

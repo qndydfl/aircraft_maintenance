@@ -1,4 +1,4 @@
-const CACHE_NAME = "manual-portal-static-v135";
+const CACHE_NAME = "manual-portal-static-v143";
 
 const STATIC_ASSETS = [
     "/static/manifest.webmanifest",
@@ -16,9 +16,13 @@ const STATIC_ASSETS = [
     "/static/css/manual_detail.css",
     "/static/css/manual_pdf_viewer.css",
     "/static/css/manual_search.css",
+    "/static/css/portal_home.css",
     "/static/css/portal_components.css",
     "/static/css/mobile_override.css",
+    "/static/css/sidebar_layout.css",
     "/static/js/base.js",
+    "/static/js/portal_home.js",
+    "/static/js/sidebar.js",
 ];
 
 self.addEventListener("install", function (event) {
