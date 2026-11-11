@@ -1,8 +1,5 @@
 body.portal-home-page {
     color: #172033;
-    background:
-        radial-gradient(circle at 92% 5%, rgba(59, 130, 246, 0.08), transparent 25rem),
-        #f4f7fb;
 }
 
 body.portal-home-page .app-main {
