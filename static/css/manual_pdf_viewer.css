@@ -1,5 +1,3 @@
-/* static/css/manual_pdf_viewer.css */
-
 /* =========================================================
    PDF Viewer Base
 ========================================================= */
@@ -1231,11 +1229,6 @@ body.pdf-viewer-embedded .viewer-title-area {
 ========================================================= */
 
 @media (min-width: 35.5625rem) and (max-width: 48rem) {
-    .viewer-topbar {
-        min-height: auto;
-        padding: 0.4rem 0.55rem;
-        gap: 0.5rem;
-    }
 
     .viewer-title {
         font-size: 0.9rem;
@@ -1251,7 +1244,6 @@ body.pdf-viewer-embedded .viewer-title-area {
         gap: 0.4rem;
     }
 
-    .viewer-toolbar-left,
     .viewer-toolbar-right {
         gap: 0.3rem;
     }

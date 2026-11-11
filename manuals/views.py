@@ -829,16 +829,27 @@ class AircraftManageListView(LoginRequiredMixin, StaffRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         active_tab = self.request.GET.get("tab", "aircraft").strip().lower()
 
-        if active_tab not in {"aircraft", "common"}:
+        if active_tab not in {"aircraft", "common", "other"}:
             active_tab = "aircraft"
 
         context["common_categories"] = CommonManualCategory.objects.prefetch_related(
             "files"
         )
+        context["other_categories"] = list(
+            OtherManualCategory.objects.select_related("aircraft")
+            .annotate(
+                file_total=Count("files", distinct=True),
+                folder_total=Count("folders", distinct=True),
+            )
+            .order_by("aircraft__maker", "aircraft__name", "manual_type")
+        )
         context["active_tab"] = active_tab
         context["aircraft_manage_aircraft_url"] = reverse("aircraft_manage")
         context["aircraft_manage_common_url"] = (
             f"{reverse('aircraft_manage')}?tab=common"
+        )
+        context["aircraft_manage_other_url"] = (
+            f"{reverse('aircraft_manage')}?tab=other"
         )
         return context
 

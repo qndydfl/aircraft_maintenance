@@ -4,6 +4,9 @@
     --app-sidebar-bg: #0f172a;
     --app-sidebar-muted: #94a3b8;
     --app-sidebar-text: #e2e8f0;
+    --app-sidebar-nav-font-size: 0.85rem;
+    --app-sidebar-tree-font-size: 0.85rem;
+    --app-sidebar-detail-font-size: 0.75rem;
 }
 
 .app-layout-with-sidebar {
@@ -79,8 +82,8 @@
 }
 
 .sidebar-brand-copy strong {
-    font-size: 0.86rem;
-    font-weight: 900;
+    font-size: 0.85rem;
+    font-weight: 800;
     white-space: nowrap;
 }
 
@@ -88,10 +91,14 @@
 .sidebar-user-copy small {
     overflow: hidden;
     color: var(--app-sidebar-muted);
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.sidebar-brand-copy small {
+    font-size: var(--app-sidebar-detail-font-size) !important;
 }
 
 .sidebar-close-btn,
@@ -136,8 +143,8 @@
 .sidebar-section-title {
     margin: 0.65rem 0 0.35rem;
     padding: 0 0.65rem;
-    color: #64748b;
-    font-size: 0.58rem;
+    color: #1f67ec;
+    font-size: var(--app-sidebar-detail-font-size);
     font-weight: 900;
     letter-spacing: 0.12em;
     line-height: 1.2;
@@ -209,7 +216,7 @@
 .sidebar-nav-item-label {
     min-width: 0;
     overflow: hidden;
-    font-size: 0.76rem;
+    font-size: var(--app-sidebar-nav-font-size);
     font-weight: 800;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -217,13 +224,15 @@
 
 .sidebar-tree-root,
 .sidebar-tree-group,
-.sidebar-tree-aircraft {
+.sidebar-tree-aircraft,
+.sidebar-tree-manual-type {
     min-width: 0;
 }
 
 .sidebar-tree-root > summary,
 .sidebar-tree-group > summary,
-.sidebar-tree-aircraft > summary {
+.sidebar-tree-aircraft > summary,
+.sidebar-tree-manual-type > summary {
     list-style: none;
     cursor: pointer;
     color: #f4f5f7;
@@ -231,20 +240,23 @@
 
 .sidebar-tree-root > summary::-webkit-details-marker,
 .sidebar-tree-group > summary::-webkit-details-marker,
-.sidebar-tree-aircraft > summary::-webkit-details-marker {
+.sidebar-tree-aircraft > summary::-webkit-details-marker,
+.sidebar-tree-manual-type > summary::-webkit-details-marker {
     display: none;
 }
 
 .sidebar-tree-chevron {
     margin-left: auto;
     color: #94a3b8;
-    font-size: 0.66rem;
+    font-size: var(--app-sidebar-tree-font-size);
+    font-weight: 800;
     transition: color 160ms ease, transform 160ms ease;
 }
 
 .sidebar-tree-root[open] > summary .sidebar-tree-chevron,
 .sidebar-tree-group[open] > summary > i,
-.sidebar-tree-aircraft[open] > summary > i {
+.sidebar-tree-aircraft[open] > summary > i,
+.sidebar-tree-manual-type[open] > summary > i {
     transform: rotate(180deg);
     color: #60a5fa;
 }
@@ -266,8 +278,8 @@
     padding: 0.3rem 0.45rem;
     color: #f4f5f7;
     border-radius: 0.55rem;
-    font-size: 0.68rem;
-    font-weight: 850;
+    font-size: var(--app-sidebar-tree-font-size);
+    font-weight: 800;
 }
 
 .sidebar-tree-group > summary:hover,
@@ -286,7 +298,7 @@
 .sidebar-tree-aircraft > summary > i {
     margin-left: auto;
     color: #94a3b8;
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     transition: color 160ms ease, transform 160ms ease;
 }
 
@@ -305,13 +317,158 @@
 
 .sidebar-tree-aircraft > summary {
     color: #f4f5f7;
-    font-size: 0.66rem;
+    font-size: var(--app-sidebar-tree-font-size);
 }
 
 .sidebar-tree-manuals {
     margin: 0.08rem 0 0.28rem 0.4rem;
     padding: 0.12rem 0 0.12rem 0.5rem;
     border-left: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.sidebar-tree-manual-type > summary {
+    min-height: 1.8rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.24rem 0.45rem;
+    color: #94a3b8;
+    border-radius: 0.48rem;
+    font-size: var(--app-sidebar-detail-font-size);
+    font-weight: 800;
+}
+
+.sidebar-tree-manual-type > summary:hover,
+.sidebar-tree-manual-type > summary.active {
+    color: #fff;
+    background: rgba(59, 130, 246, 0.13);
+}
+
+.sidebar-tree-manual-type > summary > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-tree-manual-type > summary > small {
+    color: #60a5fa;
+    font-size: var(--app-sidebar-detail-font-size);
+    font-weight: 900;
+}
+
+.sidebar-tree-manual-type > summary > i {
+    color: #94a3b8;
+    font-size: 0.65rem;
+    transition: color 160ms ease, transform 160ms ease;
+}
+
+.sidebar-tree-folder-list {
+    display: grid;
+    gap: 0.12rem;
+    margin: 0.08rem 0 0.25rem 0.45rem;
+    padding: 0.1rem 0 0.1rem 0.5rem;
+    border-left: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.sidebar-tree-folder {
+    min-width: 0;
+}
+
+.sidebar-tree-folder > summary {
+    min-height: 1.8rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.24rem 0.45rem;
+    color: #94a3b8;
+    border-radius: 0.48rem;
+    cursor: pointer;
+    font-size: var(--app-sidebar-detail-font-size);
+    font-weight: 800;
+    list-style: none;
+}
+
+.sidebar-tree-folder > summary::-webkit-details-marker {
+    display: none;
+}
+
+.sidebar-tree-folder > summary:hover,
+.sidebar-tree-folder > summary.active {
+    color: #fff;
+    background: rgba(59, 130, 246, 0.13);
+}
+
+.sidebar-tree-folder > summary > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-tree-folder > summary > small {
+    color: #60a5fa;
+    font-size: var(--app-sidebar-detail-font-size);
+    font-weight: 900;
+}
+
+.sidebar-tree-folder > summary > i:first-child {
+    color: #93c5fd;
+    font-size: 0.75rem;
+}
+
+.sidebar-tree-folder > summary > i:last-child {
+    color: #64748b;
+    font-size: 0.6rem;
+    transition: color 160ms ease, transform 160ms ease;
+}
+
+.sidebar-tree-folder[open] > summary > i:first-child {
+    color: #fbbf24;
+}
+
+.sidebar-tree-folder[open] > summary > i:last-child {
+    color: #60a5fa;
+    transform: rotate(180deg);
+}
+
+.sidebar-tree-folder-children {
+    display: grid;
+    gap: 0.12rem;
+    margin: 0.08rem 0 0.14rem 0.45rem;
+    padding-left: 0.45rem;
+    border-left: 1px solid rgba(96, 165, 250, 0.18);
+}
+
+.sidebar-tree-open-folder > i,
+.sidebar-tree-file-link > i {
+    flex: 0 0 auto;
+    color: #93c5fd;
+    font-size: 0.72rem;
+}
+
+.sidebar-tree-file-link > i {
+    color: #c4b5fd;
+}
+
+.sidebar-tree-link.sidebar-tree-file-link {
+    align-items: flex-start;
+    line-height: 1.35;
+}
+
+.sidebar-tree-file-link > i,
+.sidebar-tree-file-link > small {
+    margin-top: 0.12rem;
+}
+
+.sidebar-tree-link.sidebar-tree-file-link > span {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .sidebar-tree-link {
@@ -323,8 +480,8 @@
     padding: 0.24rem 0.45rem;
     color: #94a3b8;
     border-radius: 0.48rem;
-    font-size: 0.63rem;
-    font-weight: 750;
+    font-size: var(--app-sidebar-detail-font-size);
+    font-weight: 800;
     text-decoration: none;
 }
 
@@ -365,7 +522,7 @@
 .sidebar-tree-link small {
     flex: 0 0 auto;
     color: #60a5fa;
-    font-size: 0.48rem;
+    font-size: var(--app-sidebar-detail-font-size);
     font-weight: 900;
     letter-spacing: 0.04em;
 }
@@ -381,7 +538,7 @@
 .sidebar-tree-empty {
     padding: 0.25rem 0.45rem;
     color: #64748b;
-    font-size: 0.58rem;
+    font-size: var(--app-sidebar-detail-font-size);
     font-style: italic;
 }
 
@@ -417,8 +574,8 @@
 .sidebar-user-copy strong {
     overflow: hidden;
     color: #f8fafc;
-    font-size: 0.72rem;
-    font-weight: 850;
+    font-size: var(--app-sidebar-detail-font-size);
+    font-weight: 800;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -632,17 +789,14 @@ body.chapter-page.has-app-sidebar .app-sidebar-content > .app-container {
     body.chapter-page.has-app-sidebar .app-sidebar-backdrop {
         inset: 0 0 calc(var(--bottom-nav-height) + var(--safe-area-bottom));
     }
+}
 
-    body.chapter-page.has-app-sidebar .manual-workspace-tabs {
-        grid-template-columns: 2.25rem repeat(2, minmax(0, 1fr));
-    }
-
-    body.chapter-page.has-app-sidebar .manual-workspace-navigation-toggle {
-        width: 2.25rem;
-        height: 2.25rem;
-        min-height: 2.25rem !important;
-        color: #e2e8f0;
-        background: #0f172a;
-        border-color: rgba(15, 23, 42, 0.18);
+/* Phones use the bottom navigation instead of the sidebar. */
+@media (max-width: 48rem) {
+    .app-sidebar,
+    .app-sidebar-backdrop,
+    .sidebar-mobile-toggle,
+    .sidebar-mobile-close {
+        display: none !important;
     }
 }

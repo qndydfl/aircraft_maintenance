@@ -1,8 +1,3 @@
-/* static/css/mobile_override.css
-   Final mobile safety overrides.
-   Load this file after every page-specific stylesheet.
-*/
-
 /* Central desktop/browser typography controls (769px and wider). */
 :root {
     --desktop-font: 0.9375rem;
@@ -24,10 +19,6 @@
         font-size: var(--desktop-navbar-title);
     }
 
-    body:not(.pdf-viewer-page) .page-hero .page-title {
-        font-size: var(--desktop-page-title);
-    }
-
     body:not(.pdf-viewer-page) .section-title,
     body:not(.pdf-viewer-page) .card-title,
     body:not(.pdf-viewer-page) .portal-card h5,
@@ -38,7 +29,6 @@
 
     body:not(.pdf-viewer-page) .page-subtitle,
     body:not(.pdf-viewer-page) .section-description,
-    body:not(.pdf-viewer-page) .card-description,
     body:not(.pdf-viewer-page) .manual-card-note,
     body:not(.pdf-viewer-page) .text-muted,
     body:not(.pdf-viewer-page) small,
@@ -51,8 +41,7 @@
     body:not(.pdf-viewer-page) .badge,
     body:not(.pdf-viewer-page) .manual-badge,
     body:not(.pdf-viewer-page) .portal-list-badge,
-    body:not(.pdf-viewer-page) .portal-detail-pill,
-    body:not(.pdf-viewer-page) .dispatch-status-badge {
+    body:not(.pdf-viewer-page) .portal-detail-pill {
         font-size: var(--desktop-label) !important;
     }
 
@@ -75,7 +64,8 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main {
     padding-bottom: var(--page-edge-gap) !important;
 }
 
-body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container {
+body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container,
+body:not(.pdf-viewer-page):not(.login-page) .app-sidebar-content > .app-container {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
@@ -134,6 +124,35 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container {
     font-weight: 700;
 }
 
+.app-navbar-created {
+    order: 1;
+    flex: 0 0 auto;
+    min-height: var(--navbar-control-height);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: -0.5rem;
+    padding: 0.3rem 0.55rem;
+    color: #fde68a;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(252, 211, 77, 0.28);
+    border-radius: var(--navbar-control-radius);
+    font-size: var(--navbar-text-size);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.app-navbar-created small {
+    color: #fbbf24;
+    font-size: inherit;
+    font-weight: 700;
+}
+
+.app-navbar-created strong {
+    color: #fffbeb;
+    font-weight: 850;
+}
+
 .app-navbar-session-user,
 .app-navbar-session-logout {
     min-height: var(--navbar-control-height);
@@ -183,42 +202,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container {
     color: #fff;
     background: rgba(220, 38, 38, 0.3);
     border-color: rgba(252, 165, 165, 0.5);
-}
-
-.app-navbar-ending-btn {
-    min-width: var(--navbar-control-height);
-    min-height: var(--navbar-control-height);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    padding: 0.375rem var(--navbar-control-padding-x);
-    color: #e2e8f0;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: var(--navbar-control-radius);
-    font-size: var(--navbar-text-size);
-    font-weight: 700;
-    line-height: 1;
-    text-decoration: none;
-}
-
-.app-navbar-ending-btn:hover,
-.app-navbar-ending-btn:focus-visible {
-    color: #0f172a;
-    background: #f8fafc;
-    border-color: #f8fafc;
-}
-
-.app-navbar-home-icon,
-.app-navbar-back-icon {
-    font-size: 1.125rem;
-    line-height: 0.8;
-}
-
-.app-navbar-back-icon {
-    font-size: 1.5rem;
-    transform: translateY(-0.0625rem);
 }
 
 .app-navbar-title {
@@ -331,51 +314,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         touch-action: pan-x pan-y pinch-zoom;
     }
 
-    body.chapter-page .app-navbar {
-        display: none !important;
-    }
-
-    body.chapter-page .app-main {
-        height: calc(
-            var(--app-viewport-height) -
-                var(--bottom-nav-height) -
-                var(--safe-area-top) -
-                var(--safe-area-bottom)
-        ) !important;
-    }
-
-    .app-navbar .admin-only-action {
-        display: none !important;
-    }
-
-    /* Keep the visible content gap equal above and below the home dashboard. */
-    body.portal-home-page {
-        padding-bottom: calc(
-            var(--bottom-nav-height) + var(--safe-area-bottom)
-        ) !important;
-    }
-
-    body.portal-home-page .app-main {
-        padding-top: var(--page-edge-gap) !important;
-        padding-bottom: var(--page-edge-gap) !important;
-    }
-
-    body.aircraft-manual-detail-page {
-        padding-bottom: calc(
-            var(--bottom-nav-height) + var(--safe-area-bottom)
-        ) !important;
-    }
-
-    body.aircraft-manual-detail-page .app-main {
-        padding-top: var(--page-edge-gap) !important;
-        padding-bottom: var(--page-edge-gap) !important;
-    }
-
-    body.aircraft-manual-detail-page .app-main > .app-container {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
     html {
         scroll-padding-top: 5rem;
     }
@@ -406,6 +344,11 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         padding: 0 !important;
     }
 
+    /* Match the 0.5rem side gap of the page content below the navbar. */
+    .app-navbar-container {
+        padding-inline: 0.5rem;
+    }
+
     .app-navbar-page-content {
         --navbar-control-height: 2rem;
         --navbar-control-padding-x: 0.4375rem;
@@ -420,23 +363,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         padding-left: 0.5rem;
     }
 
-    .app-navbar-ending-btn {
-        min-width: var(--navbar-control-height);
-        min-height: var(--navbar-control-height) !important;
-        padding: 0.25rem var(--navbar-control-padding-x);
-    }
-
-    .app-navbar-ending-label {
-        display: none;
-    }
-
     .app-navbar-shared-revision {
         min-height: var(--navbar-control-height);
         padding-inline: 0.4rem;
         font-size: var(--navbar-text-size);
     }
 
-    .app-navbar-shared-revision span {
+    .app-navbar-shared-revision span,
+    .app-navbar-created {
         display: none;
     }
 
@@ -472,6 +406,11 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         gap: 0.375rem;
     }
 
+    /* Desktop-only actions leave an empty box that squeezes the title. */
+    .app-navbar-page-content .page-actions:not(:has(> :not(.d-none):not(.desktop-only-btn))) {
+        display: none;
+    }
+
     .app-navbar-page-content .page-actions .btn {
         min-width: auto;
         padding-inline: 0.625rem;
@@ -505,7 +444,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     .section-description,
-    .card-description,
     .manual-card-note,
     .text-muted,
     small,
@@ -542,8 +480,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     body:not(.pdf-viewer-page) .badge,
     body:not(.pdf-viewer-page) .manual-badge,
     body:not(.pdf-viewer-page) .portal-list-badge,
-    body:not(.pdf-viewer-page) .portal-detail-pill,
-    body:not(.pdf-viewer-page) .dispatch-status-badge {
+    body:not(.pdf-viewer-page) .portal-detail-pill {
         font-size: var(--mobile-label) !important;
     }
 
@@ -558,65 +495,12 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         padding: 0.875rem;
     }
 
-    .page-hero {
-        align-items: center;
-        flex-direction: row;
-    }
-
-    .page-hero > div:first-child {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .page-hero .page-actions {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        flex: 0 0 auto;
-        flex-wrap: wrap;
-        width: auto;
-        margin-left: auto;
-        gap: 0.5rem;
-    }
-
-    .page-hero .page-actions .btn,
-    .page-hero .page-actions .app-action-btn {
-        width: auto !important;
-        min-width: 4.5rem;
-        padding-inline: 0.75rem;
-    }
-
-    .page-hero .page-actions .btn-outline-secondary:last-child {
-        margin-left: auto;
-    }
-
     .mobile-nav-text {
         font-size: var(--mobile-label);
     }
 
-    .app-user-name {
-        min-height: 2rem !important;
-        height: 2rem !important;
-    }
-
-    .app-admin-btn {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        min-height: 2rem !important;
-        height: 2rem !important;
-        padding: 0.3rem 0.625rem;
-        font-size: var(--mobile-label);
-        line-height: 1;
-        white-space: nowrap;
-    }
-
     .modal-dialog {
         margin: 0.75rem;
-    }
-
-    .dropdown-menu {
-        max-width: calc(100vw - 1rem);
     }
 
     /* Shared mobile search layout for Manual and Dispatch Search. */
@@ -628,11 +512,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         font-size: var(--mobile-button-font);
         font-weight: 750;
         line-height: 1.2;
-    }
-
-    body.manual-search-page .page-hero .page-subtitle,
-    body.dispatch-search-page .page-hero .page-subtitle {
-        display: none;
     }
 
     body.manual-search-page .mobile-filter-collapse,
@@ -712,10 +591,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         margin-inline: -0.25rem;
     }
 
-    .navbar-collapse {
-        max-height: calc(100vh - 5rem);
-        overflow-y: auto;
-    }
 }
 
 /* Compact OTHER folder/file cards on narrow screens. */
@@ -914,19 +789,11 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     transition: none !important;
 }
 
-.home-page .portal-card:hover .aircraft-card-media img {
-    transform: none !important;
-}
-
 /* =========================================================
    PWA standalone footer handling
 ========================================================= */
 
 @media (max-width: 48rem) {
-    body.pwa-standalone .app-footer,
-    body.pwa-standalone footer.app-footer {
-        display: none !important;
-    }
 
     body.pwa-standalone .app-main {
         padding-bottom: var(--page-edge-gap) !important;
@@ -937,13 +804,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 }
 
-@media (display-mode: standalone) and (max-width: 48rem) {
-    .app-footer,
-    footer.app-footer {
-        display: none !important;
-    }
-}
-
 body.manual-search-page .manual-search-form .manual-search-filter-row .form-label,
 body.manual-search-page .manual-search-form .manual-search-query-row .form-label,
 body.dispatch-search-page .dispatch-search-form .form-label {
@@ -951,12 +811,8 @@ body.dispatch-search-page .dispatch-search-form .form-label {
     font-size: var(--label-size) !important;
 }
 
-
 /* Final home spacing rule, including standalone/PWA mode. */
 @media (max-width: 48rem) {
-    .app-navbar .admin-only-action {
-        display: none !important;
-    }
 
     body.portal-home-page {
         padding-bottom: calc(
@@ -985,9 +841,6 @@ body.dispatch-search-page .dispatch-search-form .form-label {
         padding-bottom: 0 !important;
     }
 
-    body.aircraft-manual-detail-page .manual-master-detail {
-        margin-top: 0 !important;
-    }
 }
 
 /* Chapter workspace starts at the top on mobile without the global navbar. */

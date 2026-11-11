@@ -8,6 +8,12 @@
     {% endif %}
 </span>
 {% endif %}
+{% if site_created_date %}
+<span class="app-navbar-created{% if request.GET.new_tab == '1' %} d-none{% endif %}" title="Portal created {{ site_created_date }}">
+    <small>Created</small>
+    <strong>{{ site_created_date }}</strong>
+</span>
+{% endif %}
 
 <div class="app-navbar-ending{% if request.GET.new_tab == '1' %} d-none{% endif %}" aria-label="Page navigation">
     {% if user.is_authenticated %}

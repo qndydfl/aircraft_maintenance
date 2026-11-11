@@ -5,7 +5,7 @@
 {% block title %}Manual Library | Manual Portal{% endblock %} 
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=19" />
+<link rel="stylesheet" href="{% static 'css/manual_library.css' %}?v=20261111-c1" />
 {% endblock css %}
 
 {% block navbar_content %}
@@ -15,7 +15,32 @@
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>
-{% endblock navbar_content %} 
+{% endblock navbar_content %}
+
+<script>
+    (function () {
+        var otherTab = document.getElementById("other-tab");
+        if (!otherTab) return;
+
+        // Expand the sidebar's OTHER manual lists when the Other Manuals tab is shown (desktop only).
+        var mobileQuery = window.matchMedia("(max-width: 48rem)");
+
+        function openSidebarOtherManuals() {
+            if (mobileQuery.matches) return;
+            document
+                .querySelectorAll(".app-sidebar-nav details[data-sidebar-other]")
+                .forEach(function (node) {
+                    while (node) {
+                        if (node.tagName === "DETAILS") node.open = true;
+                        node = node.parentElement;
+                    }
+                });
+        }
+
+        otherTab.addEventListener("shown.bs.tab", openSidebarOtherManuals);
+        if (otherTab.classList.contains("active")) openSidebarOtherManuals();
+    })();
+</script>
 
 {% block inner_content %}
 <div class="manual-library-tabs-wrap">

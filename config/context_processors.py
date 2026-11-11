@@ -52,10 +52,15 @@ def app_sidebar(request):
     )
     manual_groups = []
     common_groups = []
+    other_groups = []
     sidebar_all_manuals_active = url_name == "manual_home"
     sidebar_common_active = False
+    sidebar_other_active = False
 
     if show_sidebar:
+        from urllib.parse import urlencode
+
+        from django.db.models import Count, Prefetch
         from django.urls import reverse
 
         from manuals.models import (
@@ -64,6 +69,7 @@ def app_sidebar(request):
             ManualChapter,
             ManualFile,
             ManualPackage,
+            OtherManualCategory,
             OtherManualFile,
         )
 
@@ -72,6 +78,7 @@ def app_sidebar(request):
         active_manual_file_id = None
         active_other_category_id = None
         active_other_file_id = None
+        active_other_folder_path = ""
         active_common_category_id = None
         active_common_file_id = None
 
@@ -91,6 +98,11 @@ def app_sidebar(request):
             active_manual_file_id = route_kwargs.get("pk")
         elif url_name == "other_manual_category_detail":
             active_other_category_id = route_kwargs.get("pk")
+        elif url_name == "other_manual_folder_browse":
+            active_other_category_id = route_kwargs.get("pk")
+            active_other_folder_path = (
+                request.GET.get("path", "").replace("\\", "/").strip("/")
+            )
         elif url_name == "other_manual_file_pdf_viewer":
             active_other_file_id = route_kwargs.get("pk")
         elif url_name == "common_manual_category_detail":
@@ -111,16 +123,29 @@ def app_sidebar(request):
                 .first()
             )
         if active_other_file_id:
-            active_other_category_id = (
+            active_other_file = (
                 OtherManualFile.objects.filter(pk=active_other_file_id)
-                .values_list("category_id", flat=True)
+                .values("category_id", "folder_path")
                 .first()
             )
+            if active_other_file:
+                active_other_category_id = active_other_file["category_id"]
+                active_other_folder_path = (
+                    active_other_file["folder_path"] or ""
+                ).strip("/")
 
+        package_queryset = ManualPackage.objects.annotate(
+            sidebar_file_count=Count("package_files", distinct=True),
+            sidebar_chapter_count=Count("chapters", distinct=True),
+        )
+        other_category_queryset = OtherManualCategory.objects.prefetch_related(
+            "folders",
+            "files",
+        )
         aircrafts = Aircraft.objects.order_by("maker", "name").prefetch_related(
-            "manual_packages",
+            Prefetch("manual_packages", queryset=package_queryset),
             "manuals",
-            "other_categories",
+            Prefetch("other_categories", queryset=other_category_queryset),
         )
         grouped_aircrafts = {}
 
@@ -133,6 +158,10 @@ def app_sidebar(request):
                 manual_links[package.manual_type] = {
                     "label": package.manual_type,
                     "mode": "ZIP",
+                    "count": (
+                        package.sidebar_file_count
+                        or package.sidebar_chapter_count
+                    ),
                     "url": reverse("manual_package_open", args=[package.pk]),
                     "is_active": package_is_active,
                 }
@@ -145,6 +174,7 @@ def app_sidebar(request):
                     {
                         "label": manual_file.manual_type,
                         "mode": "PDF",
+                        "count": 1,
                         "url": reverse(
                             "manual_file_pdf_viewer",
                             args=[manual_file.pk],
@@ -154,21 +184,152 @@ def app_sidebar(request):
                 )
                 aircraft_is_active = aircraft_is_active or manual_file_is_active
 
+            other_links = []
+            other_is_active = False
+
             for category in aircraft.other_categories.all():
                 category_is_active = category.pk == active_other_category_id
-                manual_links.setdefault(
-                    category.manual_type,
+                category_files = list(category.files.all())
+                folder_paths = set()
+
+                def add_folder_with_ancestors(raw_path):
+                    parts = [
+                        part
+                        for part in str(raw_path or "")
+                        .replace("\\", "/")
+                        .strip("/")
+                        .split("/")
+                        if part
+                    ]
+                    for depth in range(1, len(parts) + 1):
+                        folder_paths.add("/".join(parts[:depth]))
+
+                for registered_folder in category.folders.all():
+                    add_folder_with_ancestors(registered_folder.path)
+                for other_file in category_files:
+                    add_folder_with_ancestors(other_file.folder_path)
+
+                folder_nodes = {}
+                folders = []
+
+                for folder_path in sorted(
+                    folder_paths,
+                    key=lambda path: (path.count("/"), path.lower()),
+                ):
+                    parent_path, _, folder_name = folder_path.rpartition("/")
+                    folder_node = {
+                        "label": folder_name,
+                        "path": folder_path,
+                        "count": 0,
+                        "is_active": bool(
+                            category_is_active
+                            and active_other_folder_path == folder_path
+                        ),
+                        "is_open": bool(
+                            category_is_active
+                            and (
+                                active_other_folder_path == folder_path
+                                or active_other_folder_path.startswith(
+                                    f"{folder_path}/"
+                                )
+                            )
+                        ),
+                        "url": (
+                            reverse(
+                                "other_manual_folder_browse",
+                                args=[category.pk],
+                            )
+                            + "?"
+                            + urlencode({"path": folder_path})
+                        ),
+                        "folders": [],
+                        "files": [],
+                    }
+                    folder_nodes[folder_path] = folder_node
+                    if parent_path:
+                        folder_nodes[parent_path]["folders"].append(folder_node)
+                    else:
+                        folders.append(folder_node)
+
+                direct_files = []
+                for other_file in sorted(
+                    category_files,
+                    key=lambda item: (item.folder_path.lower(), item.title.lower()),
+                ):
+                    normalized_folder_path = (
+                        other_file.folder_path or ""
+                    ).replace("\\", "/").strip("/")
+                    file_is_active = other_file.pk == active_other_file_id
+                    file_item = {
+                        "label": other_file.title,
+                        "count": 1,
+                        "is_active": file_is_active,
+                        "url": (
+                            reverse(
+                                "other_manual_file_pdf_viewer",
+                                args=[other_file.pk],
+                            )
+                            if other_file.is_pdf
+                            else (
+                                other_file.file.url
+                                if other_file.file
+                                else reverse(
+                                    "other_manual_category_detail",
+                                    args=[category.pk],
+                                )
+                            )
+                        ),
+                    }
+                    if normalized_folder_path:
+                        folder_nodes[normalized_folder_path]["files"].append(
+                            file_item
+                        )
+                    else:
+                        direct_files.append(file_item)
+
+                def update_folder_counts(folder_node):
+                    child_count = sum(
+                        update_folder_counts(child)
+                        for child in folder_node["folders"]
+                    )
+                    folder_node["count"] = (
+                        len(folder_node["files"]) + child_count
+                    )
+                    return folder_node["count"]
+
+                for folder in folders:
+                    update_folder_counts(folder)
+
+                other_links.append(
                     {
                         "label": category.manual_type,
-                        "mode": "FOLDER",
+                        "count": len(category_files),
                         "url": reverse(
                             "other_manual_category_detail",
                             args=[category.pk],
                         ),
                         "is_active": category_is_active,
-                    },
+                        "overview_active": (
+                            category_is_active
+                            and not active_other_folder_path
+                            and not active_other_file_id
+                        ),
+                        "folders": folders,
+                        "direct_files": direct_files,
+                    }
                 )
-                aircraft_is_active = aircraft_is_active or category_is_active
+                other_is_active = other_is_active or category_is_active
+
+            if other_links:
+                other_groups.append(
+                    {
+                        "label": aircraft.name,
+                        "is_active": other_is_active,
+                        "categories": sorted(
+                            other_links, key=lambda item: item["label"]
+                        ),
+                    }
+                )
 
             grouped_aircrafts.setdefault(aircraft.maker.title(), []).append(
                 {
@@ -208,6 +369,7 @@ def app_sidebar(request):
                         "common_manual_file_pdf_viewer",
                         args=[common_file.pk],
                     ),
+                    "count": 1,
                     "is_active": common_file.pk == active_common_file_id,
                 }
                 for common_file in category.files.all()
@@ -231,6 +393,9 @@ def app_sidebar(request):
         sidebar_common_active = any(
             category["is_active"] for category in common_groups
         )
+        sidebar_other_active = any(
+            group["is_active"] for group in other_groups
+        )
 
     return {
         "show_app_sidebar": show_sidebar,
@@ -239,4 +404,6 @@ def app_sidebar(request):
         "sidebar_common_groups": common_groups,
         "sidebar_all_manuals_active": sidebar_all_manuals_active,
         "sidebar_common_active": sidebar_common_active,
+        "sidebar_other_groups": other_groups,
+        "sidebar_other_active": sidebar_other_active,
     }

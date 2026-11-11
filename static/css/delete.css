@@ -1,23 +1,8 @@
-/* static/css/delete.css */
-
-/* =========================================================
-   Delete Wrapper
-========================================================= */
-
-.delete-wrap,
-.common-delete-wrap {
-    width: 100%;
-    max-width: 42rem;
-
-    margin: 0 auto;
-}
-
 /* =========================================================
    Delete Card
 ========================================================= */
 
-.delete-card,
-.common-delete-card {
+.delete-card {
     position: relative;
     overflow: hidden;
 
@@ -31,8 +16,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.96);
 }
 
-.delete-card::before,
-.common-delete-card::before {
+.delete-card::before {
     content: "";
 
     position: absolute;
@@ -48,8 +32,7 @@
         );
 }
 
-.delete-card .card-body,
-.common-delete-card .card-body {
+.delete-card .card-body {
     padding: 1.25rem;
 }
 
@@ -57,20 +40,7 @@
    Delete Header
 ========================================================= */
 
-.delete-header,
-.common-delete-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.875rem;
-
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-
-    border-bottom: 1px solid rgba(254, 202, 202, 0.82);
-}
-
-.delete-icon,
-.common-delete-icon {
+.delete-icon {
     width: 3rem;
     min-width: 3rem;
     height: 3rem;
@@ -93,13 +63,7 @@
         0 0.5rem 1rem rgba(127, 29, 29, 0.08);
 }
 
-.delete-header-content,
-.common-delete-header-content {
-    min-width: 0;
-}
-
-.delete-title,
-.common-delete-title {
+.delete-title {
     margin: 0;
 
     color: #7f1d1d;
@@ -109,8 +73,7 @@
     line-height: 1.25;
 }
 
-.delete-description,
-.common-delete-description {
+.delete-description {
     margin: 0.375rem 0 0;
 
     color: #64748b;
@@ -123,8 +86,7 @@
    Warning Box
 ========================================================= */
 
-.delete-warning,
-.common-delete-warning {
+.delete-warning {
     padding: 0.875rem;
     margin-bottom: 1rem;
 
@@ -141,74 +103,16 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.delete-warning strong,
-.common-delete-warning strong {
+.delete-warning strong {
     color: #991b1b;
     font-weight: 900;
-}
-
-/* =========================================================
-   Delete Target
-========================================================= */
-
-.delete-target,
-.common-delete-target {
-    padding: 1rem;
-    margin-bottom: 1rem;
-
-    background: rgba(248, 250, 252, 0.96);
-
-    border: 1px solid rgba(203, 213, 225, 0.86);
-    border-radius: var(--radius-md);
-}
-
-.delete-target-label,
-.common-delete-target-label {
-    display: block;
-
-    margin-bottom: 0.375rem;
-
-    color: #64748b;
-
-    font-size: var(--font-small);
-    font-weight: 850;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.delete-target-title,
-.common-delete-target-title {
-    margin: 0;
-
-    color: #0f172a;
-
-    font-size: 1.05rem;
-    font-weight: 900;
-    line-height: 1.35;
-
-    overflow-wrap: anywhere;
-}
-
-.delete-target-subtitle,
-.common-delete-target-subtitle {
-    display: block;
-
-    margin-top: 0.25rem;
-
-    color: var(--app-muted);
-
-    font-size: 0.8rem;
-    line-height: 1.4;
-
-    overflow-wrap: anywhere;
 }
 
 /* =========================================================
    Delete Information
 ========================================================= */
 
-.delete-info,
-.common-delete-info {
+.delete-info {
     display: grid;
     grid-template-columns: repeat(
         2,
@@ -219,8 +123,7 @@
     margin-bottom: 1rem;
 }
 
-.delete-info > div,
-.common-delete-info > div {
+.delete-info > div {
     padding: 0.75rem;
 
     background: rgba(241, 245, 249, 0.94);
@@ -229,8 +132,7 @@
     border-radius: var(--radius-sm);
 }
 
-.delete-info span,
-.common-delete-info span {
+.delete-info span {
     display: block;
 
     margin-bottom: 0.25rem;
@@ -241,8 +143,7 @@
     font-weight: 850;
 }
 
-.delete-info strong,
-.common-delete-info strong {
+.delete-info strong {
     display: block;
 
     color: #0f172a;
@@ -254,58 +155,10 @@
 }
 
 /* =========================================================
-   Confirmation Input
-========================================================= */
-
-.delete-confirm-control,
-.common-delete-confirm-control {
-    padding: 0.875rem;
-    margin-bottom: 1rem;
-
-    background: rgba(255, 247, 237, 0.92);
-
-    border: 1px solid rgba(251, 146, 60, 0.32);
-    border-radius: var(--radius-md);
-}
-
-.delete-confirm-control .form-label,
-.common-delete-confirm-control .form-label {
-    color: #9a3412;
-}
-
-.delete-confirm-control .form-control,
-.common-delete-confirm-control .form-control {
-    background: rgba(255, 255, 255, 0.96);
-    border-color: rgba(251, 146, 60, 0.48);
-}
-
-.delete-confirm-control .form-control:focus,
-.common-delete-confirm-control .form-control:focus {
-    border-color: rgba(234, 88, 12, 0.72);
-
-    box-shadow:
-        0 0 0 0.25rem rgba(234, 88, 12, 0.13),
-        0 0.45rem 1rem rgba(124, 45, 18, 0.06);
-}
-
-.delete-confirm-help,
-.common-delete-confirm-help {
-    display: block;
-
-    margin-top: 0.375rem;
-
-    color: #9a3412;
-
-    font-size: var(--font-small);
-    line-height: 1.4;
-}
-
-/* =========================================================
    Actions
 ========================================================= */
 
-.delete-actions,
-.common-delete-actions {
+.delete-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -317,77 +170,8 @@
 }
 
 .delete-actions .btn,
-.delete-actions .app-card-btn,
-.common-delete-actions .btn,
-.common-delete-actions .app-card-btn {
+.delete-actions .app-card-btn {
     min-width: 7.5rem;
-}
-
-.delete-submit-btn,
-.common-delete-submit-btn {
-    color: #fff;
-
-    background:
-        linear-gradient(
-            180deg,
-            #ff6961,
-            var(--app-danger)
-        );
-
-    border-color: var(--app-danger);
-
-    box-shadow:
-        0 0.75rem 1.5rem rgba(255, 59, 48, 0.24),
-        inset 0 1px 0 rgba(255, 255, 255, 0.28);
-}
-
-.delete-submit-btn:hover,
-.common-delete-submit-btn:hover {
-    color: #fff;
-
-    background:
-        linear-gradient(
-            180deg,
-            #ff5a52,
-            #e53229
-        );
-
-    border-color: #e53229;
-
-    box-shadow:
-        0 1rem 1.875rem rgba(255, 59, 48, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.28);
-}
-
-/* =========================================================
-   Related Data Warning
-========================================================= */
-
-.delete-related-list,
-.common-delete-related-list {
-    display: grid;
-    gap: 0.375rem;
-
-    padding: 0;
-    margin: 0.75rem 0 0;
-
-    list-style: none;
-}
-
-.delete-related-list li,
-.common-delete-related-list li {
-    padding: 0.5rem 0.625rem;
-
-    color: #7f1d1d;
-    background: rgba(255, 255, 255, 0.68);
-
-    border: 1px solid rgba(254, 202, 202, 0.88);
-    border-radius: 0.625rem;
-
-    font-size: 0.8rem;
-    font-weight: 750;
-
-    overflow-wrap: anywhere;
 }
 
 /* =========================================================
@@ -405,21 +189,11 @@
         padding-bottom: var(--page-edge-gap);
     }
 
-    .delete-card .card-body,
-    .common-delete-card .card-body {
+    .delete-card .card-body {
         padding: var(--card-padding);
     }
 
-    .delete-header,
-    .common-delete-header {
-        gap: 0.625rem;
-
-        padding-bottom: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .delete-icon,
-    .common-delete-icon {
+    .delete-icon {
         width: 2.625rem;
         min-width: 2.625rem;
         height: 2.625rem;
@@ -429,18 +203,15 @@
         font-size: 1.2rem;
     }
 
-    .delete-title,
-    .common-delete-title {
+    .delete-title {
         font-size: var(--mobile-title);
     }
 
-    .delete-description,
-    .common-delete-description {
+    .delete-description {
         font-size: var(--mobile-small);
     }
 
-    .delete-warning,
-    .common-delete-warning {
+    .delete-warning {
         padding: 0.75rem;
         margin-bottom: 0.75rem;
 
@@ -449,59 +220,28 @@
         font-size: var(--mobile-small);
     }
 
-    .delete-target,
-    .common-delete-target {
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-
-        border-radius: 0.875rem;
-    }
-
-    .delete-target-title,
-    .common-delete-target-title {
-        font-size: var(--mobile-font);
-    }
-
-    .delete-target-subtitle,
-    .common-delete-target-subtitle {
-        font-size: var(--mobile-small);
-    }
-
-    .delete-info,
-    .common-delete-info {
+    .delete-info {
         grid-template-columns: 1fr;
         gap: 0.375rem;
 
         margin-bottom: 0.75rem;
     }
 
-    .delete-info > div,
-    .common-delete-info > div {
+    .delete-info > div {
         padding: 0.55rem 0.625rem;
 
         border-radius: 0.625rem;
     }
 
-    .delete-info span,
-    .common-delete-info span {
+    .delete-info span {
         font-size: var(--mobile-small);
     }
 
-    .delete-info strong,
-    .common-delete-info strong {
+    .delete-info strong {
         font-size: var(--mobile-font);
     }
 
-    .delete-confirm-control,
-    .common-delete-confirm-control {
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-
-        border-radius: 0.875rem;
-    }
-
-    .delete-actions,
-    .common-delete-actions {
+    .delete-actions {
         display: grid;
         grid-template-columns: repeat(
             2,
@@ -513,9 +253,7 @@
     }
 
     .delete-actions .btn,
-    .delete-actions .app-card-btn,
-    .common-delete-actions .btn,
-    .common-delete-actions .app-card-btn {
+    .delete-actions .app-card-btn {
         width: 100%;
         min-width: 0;
     }
@@ -526,8 +264,7 @@
 ========================================================= */
 
 @media (max-width: 35.5rem) {
-    .delete-actions,
-    .common-delete-actions {
+    .delete-actions {
         grid-template-columns: 1fr;
     }
 }
@@ -541,23 +278,15 @@
         padding-bottom: 0 !important;
     }
 
-    .delete-wrap,
-    .common-delete-wrap {
-        max-width: 46rem;
-    }
-
-    .delete-title,
-    .common-delete-title {
+    .delete-title {
         font-size: 1.35rem;
     }
 
-    .delete-description,
-    .common-delete-description {
+    .delete-description {
         font-size: 0.95rem;
     }
 
-    .delete-info strong,
-    .common-delete-info strong {
+    .delete-info strong {
         font-size: 0.95rem;
     }
 }

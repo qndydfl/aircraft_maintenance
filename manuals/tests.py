@@ -194,11 +194,26 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "manual_folder_upload.js")
 
     def test_sidebar_manual_tree_lists_aircraft_and_available_manual(self):
+        ManualPackageFile.objects.create(
+            package=self.package,
+            relative_path="ATA 21/one.pdf",
+            folder_path="ATA 21",
+            file_name="one.pdf",
+            extension=".pdf",
+        )
+        ManualPackageFile.objects.create(
+            package=self.package,
+            relative_path="ATA 21/two.pdf",
+            folder_path="ATA 21",
+            file_name="two.pdf",
+            extension=".pdf",
+        )
         response = self.client.get(reverse("manual_home"))
 
         self.assertContains(response, 'class="sidebar-tree-root"')
         self.assertContains(response, "B737")
         self.assertContains(response, "AMM")
+        self.assertContains(response, 'title="2 registered item(s)">2</small>')
         self.assertContains(
             response,
             reverse("manual_package_open", args=[self.package.pk]),
@@ -333,6 +348,66 @@ class OtherManualFolderUploadTests(TestCase):
             if item["type"] == "OTHER"
         )
         self.assertIsNotNone(other_item["folder"])
+
+    def test_sidebar_other_manual_lists_overview_and_registered_folders(self):
+        OtherManualFolder.objects.create(
+            category=self.category,
+            path="Engineering",
+        )
+        OtherManualFolder.objects.create(
+            category=self.category,
+            path="Engineering/Forms",
+        )
+        OtherManualFile.objects.create(
+            category=self.category,
+            title="Inspection Form",
+            folder_path="Engineering/Forms",
+            file=SimpleUploadedFile(
+                "inspection.pdf",
+                b"%PDF-1.4\n%%EOF",
+                content_type="application/pdf",
+            ),
+        )
+        OtherManualFile.objects.create(
+            category=self.category,
+            title="Root Reference Document With Long File Name",
+            folder_path="",
+            file=SimpleUploadedFile(
+                "root-reference.pdf",
+                b"%PDF-1.4\n%%EOF",
+                content_type="application/pdf",
+            ),
+        )
+
+        response = self.client.get(reverse("manual_home"))
+
+        self.assertContains(response, "<span>Other Manuals</span>")
+        self.assertContains(response, 'class="sidebar-tree-manual-type"')
+        self.assertContains(response, "Overview")
+        self.assertContains(response, "Engineering")
+        self.assertContains(response, "Root Reference Document With Long File Name")
+        self.assertContains(
+            response,
+            'title="Root Reference Document With Long File Name"',
+        )
+        self.assertContains(response, 'class="sidebar-tree-folder"')
+        self.assertContains(response, "sidebar-tree-folder-summary")
+        self.assertContains(response, "Forms")
+        self.assertContains(response, "Inspection Form")
+        self.assertContains(response, "Open folder")
+        self.assertContains(response, "sidebar-tree-file-link")
+        self.assertContains(response, 'title="1 file(s)">1</small>')
+        self.assertContains(response, 'title="1 file">1</small>')
+
+        folder_response = self.client.get(
+            reverse("other_manual_folder_browse", args=[self.category.pk]),
+            {"path": "Engineering/Forms"},
+        )
+        self.assertContains(
+            folder_response,
+            "sidebar-tree-folder-summary active",
+        )
+        self.assertContains(folder_response, 'class="sidebar-tree-folder" open')
 
     def test_deleting_other_category_redirects_to_manual_library(self):
         response = self.client.post(
@@ -841,6 +916,24 @@ class AircraftManageTabTests(TestCase):
             f"{reverse('aircraft_manage')}?tab=common",
         )
 
+    def test_other_tab_shows_other_manual_categories(self):
+        other_category, _ = OtherManualCategory.objects.get_or_create(
+            aircraft=self.aircraft,
+            manual_type="OTHER",
+            defaults={"name": "OTHER"},
+        )
+
+        response = self.client.get(reverse("aircraft_manage"), {"tab": "other"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["active_tab"], "other")
+        self.assertContains(response, "Add Other Manual")
+        self.assertContains(
+            response,
+            reverse("other_manual_category_detail", args=[other_category.pk]),
+        )
+        self.assertNotContains(response, "Add Common Manual")
+
     def test_unknown_tab_falls_back_to_aircraft(self):
         response = self.client.get(reverse("aircraft_manage"), {"tab": "unknown"})
 
@@ -893,6 +986,7 @@ class CalculatorClockLayoutTests(TestCase):
         self.assertContains(response, "KST")
 
     @override_settings(
+        SITE_CREATED_DATE="Jun 2026",
         SITE_REVISION_NO="Rev 12",
         SITE_REVISION_DATE="2026-11-10",
     )
@@ -901,11 +995,14 @@ class CalculatorClockLayoutTests(TestCase):
         home_response = self.client.get(reverse("home"))
 
         self.assertContains(calculator_response, 'id="app-sidebar"')
+        self.assertContains(calculator_response, "sidebar_layout.css?v=15")
         self.assertContains(calculator_response, "Manual Library")
         self.assertContains(calculator_response, "Dispatch")
         self.assertContains(calculator_response, "app-navbar-shared-revision")
         self.assertContains(calculator_response, "Rev 12")
         self.assertContains(calculator_response, "2026-11-10")
+        self.assertContains(calculator_response, "app-navbar-created")
+        self.assertContains(calculator_response, "Jun 2026")
         self.assertContains(calculator_response, "app-navbar-session-user")
         self.assertContains(calculator_response, "calculator-user")
         self.assertContains(calculator_response, "app-navbar-session-logout")
@@ -919,6 +1016,7 @@ class CalculatorClockLayoutTests(TestCase):
             calculator_html.index('class="app-navbar-ending'),
         )
         self.assertContains(home_response, 'id="app-sidebar"')
+        self.assertContains(home_response, "sidebar_layout.css?v=15")
         self.assertContains(home_response, "app-navbar-shared-revision")
         self.assertContains(home_response, "app-navbar-session-user")
         self.assertContains(home_response, "app-navbar-session-logout")

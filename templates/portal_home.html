@@ -5,7 +5,7 @@
 {% block body_class %}portal-home-page{% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261110-3" />
+<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261111-c1" />
 {% endblock css %}
 
 {% block js %}
@@ -15,7 +15,7 @@
 {% block navbar_content %}
 <div class="app-navbar-page-content">
     <div class="app-navbar-title">
-        <h2 class="page-title fw-extrabold mb-0">Maintenance Overview</h2>
+        <h2 class="page-title fw-extrabold mb-0">Dashboard Overview</h2>
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>
@@ -29,7 +29,7 @@
                 <span class="home-status-dot" aria-hidden="true"></span>
                 Aircraft Maintenance Portal
             </span>
-            <h1 id="home-dashboard-title">Welcome back, {{ user.username }}</h1>
+            <h1 id="home-dashboard-title">Welcome back, <span class="home-welcome-user">{{ user.username }}</span></h1>
             <p>기술 문서를 검색하고, 항공기 매뉴얼을 열어 최신 개정 정보를 확인하세요.</p>
         </div>
 
@@ -156,14 +156,6 @@
                     </a>
                 </div>
             </section>
-
-            {% comment %} {% if user.is_superuser %}
-            <section class="home-admin-card">
-                <span class="home-admin-icon"><i class="bi bi-cloud-arrow-up-fill"></i></span>
-                <div><strong>Manage manuals</strong><span>Upload, revise and reindex publications.</span></div>
-                <a href="{% url 'aircraft_manage' %}">Open management</a>
-            </section>
-            {% endif %} {% endcomment %}
         </aside>
     </div>
 

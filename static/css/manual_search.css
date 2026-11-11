@@ -1,9 +1,5 @@
 /* static/css/manual_search.css */
 
-body.manual-search-page .page-hero {
-    margin-top: var(--search-page-edge-gap);
-}
-
 body.manual-search-page .app-container {
     padding-bottom: var(--search-page-edge-gap) !important;
 }
@@ -81,17 +77,6 @@ body.manual-search-page .app-container {
 }
 
 /* Common Manual Result */
-
-.common-result-card {
-    position: relative;
-    overflow: hidden;
-    border-left: 0.3125rem solid var(--app-success);
-    background: rgba(255, 255, 255, 0.96);
-    border-color: rgba(148, 163, 184, 0.42);
-    box-shadow:
-        0 0.75rem 1.75rem rgba(15, 23, 42, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.96);
-}
 
 .common-result-snippet {
     padding: 0.75rem 0.875rem;
@@ -257,15 +242,6 @@ body.manual-search-page .app-container {
     text-align: center;
 }
 
-body.manual-search-page .search-section,
-body.manual-search-page .result-section {
-    background: rgba(245, 248, 252, 0.82);
-    border: 1px solid rgba(203, 213, 225, 0.78);
-    border-radius: 1.5rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
 .manual-result-tab-content > .manual-result-pane {
     display: none;
     opacity: 0;
@@ -291,13 +267,6 @@ body.manual-search-page .result-section {
 
     body.manual-search-page .app-container {
         padding-bottom: var(--search-page-edge-gap) !important;
-    }
-
-    body.manual-search-page .search-section,
-    body.manual-search-page .result-section {
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-        border-radius: 1.125rem;
     }
 
     .manual-group-header {
@@ -418,11 +387,6 @@ body.manual-search-page .result-section {
         width: 100%;
     }
 
-    .common-result-card {
-        border-left: 0;
-        border-top: 0.25rem solid var(--app-success);
-    }
-
     .common-result-snippet {
         display: -webkit-box;
         overflow: hidden;
@@ -438,9 +402,6 @@ body.manual-search-page .result-section {
 /* Small Mobile */
 
 @media (max-width: 35.5rem) {
-    body.manual-search-page .page-hero {
-        margin-top: var(--search-page-edge-gap) !important;
-    }
 
     body.manual-search-page .app-container {
         padding-bottom: var(--search-page-edge-gap) !important;

@@ -2,7 +2,7 @@
 {% load static %} 
 {% block body_class %} list-page aircraft-manage-page {% endblock body_class %} 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}?v=59" />
+<link rel="stylesheet" href="{% static 'css/list.css' %}?v=20261111-c1" />
 {% endblock css %} 
 
 {% block navbar_content %}
@@ -26,6 +26,13 @@
             class="btn btn-success app-action-btn d-none d-md-inline-flex"
         >
             Add Common Manual
+        </a>
+        {% elif active_tab == "other" %}
+        <a
+            href="{% url 'other_manual_category_create' %}"
+            class="btn btn-success app-action-btn d-none d-md-inline-flex"
+        >
+            Add Other Manual
         </a>
         {% else %}
         <a
@@ -64,6 +71,16 @@
         >
             Common Manuals
             <span class="manage-tab-count">{{ common_categories|length }}</span>
+        </a>
+
+        <a
+            href="{{ aircraft_manage_other_url }}"
+            class="nav-link{% if active_tab == 'other' %} active{% endif %}"
+            role="tab"
+            aria-selected="{% if active_tab == 'other' %}true{% else %}false{% endif %}"
+        >
+            Other Manuals
+            <span class="manage-tab-count">{{ other_categories|length }}</span>
         </a>
     </div>
 </nav>
@@ -194,7 +211,7 @@
         </div>
     </div>
 </div>
-{% else %}
+{% elif active_tab == "common" %}
 
 <div class="card portal-card shadow-sm">
     <div class="card-body">
@@ -328,6 +345,144 @@
             {% empty %}
             <div class="text-center text-muted py-4">
                 등록된 공통 매뉴얼 카테고리가 없습니다.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+<div class="card portal-card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive d-none d-md-block">
+            <table
+                class="table table-hover align-middle mb-0 portal-list-table"
+            >
+                <thead>
+                    <tr>
+                        <th>Aircraft</th>
+                        <th>Type</th>
+                        <th>Folders</th>
+                        <th>Files</th>
+                        <th class="manage-common-actions-column">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for category in other_categories %}
+                    <tr>
+                        <td class="fw-bold">{{ category.aircraft.maker|title }} {{ category.aircraft.name }}</td>
+
+                        <td>
+                            <span class="badge bg-success portal-list-badge">
+                                {{ category.manual_type }}
+                            </span>
+                        </td>
+
+                        <td>{{ category.folder_total }}</td>
+
+                        <td>{{ category.file_total }}</td>
+
+                        <td>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a
+                                    href="{% url 'other_manual_category_detail' category.pk %}"
+                                    class="btn btn-sm btn-primary"
+                                >
+                                    Open
+                                </a>
+
+                                <a
+                                    href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
+                                    class="btn btn-sm btn-outline-primary"
+                                >
+                                    Upload
+                                </a>
+
+                                <a
+                                    href="{% url 'other_manual_category_update' category.pk %}"
+                                    class="btn btn-sm btn-warning"
+                                >
+                                    Edit
+                                </a>
+
+                                <a
+                                    href="{% url 'other_manual_category_delete' category.pk %}"
+                                    class="btn btn-sm btn-danger"
+                                >
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            등록된 OTHER 매뉴얼이 없습니다.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="portal-list-grid d-md-none">
+            {% for category in other_categories %}
+            <div class="portal-list-card">
+                <div class="portal-list-card-header">
+                    <div class="manage-card-heading">
+                        <span class="badge bg-success portal-list-badge">
+                            {{ category.manual_type }}
+                        </span>
+
+                        <h5 class="portal-list-card-title mt-2 mb-1">
+                            {{ category.aircraft.maker|title }} {{ category.aircraft.name }}
+                        </h5>
+
+                        <p class="portal-list-card-desc mb-1">
+                            {{ category.folder_total }} folder(s)
+                        </p>
+                    </div>
+
+                    <span class="manage-file-count-badge">
+                        {{ category.file_total }} file(s)
+                    </span>
+                </div>
+
+                <div class="portal-list-card-actions">
+                    <a
+                        href="{% url 'other_manual_category_detail' category.pk %}"
+                        class="btn btn-primary app-card-btn"
+                    >
+                        Open
+                    </a>
+
+                    <a
+                        href="{% url 'other_manual_file_create' %}?category={{ category.pk }}"
+                        class="btn btn-outline-primary app-card-btn"
+                    >
+                        Upload
+                    </a>
+
+                    <a
+                        href="{% url 'other_manual_category_update' category.pk %}"
+                        class="btn btn-warning app-card-btn"
+                    >
+                        Edit
+                    </a>
+
+                    <a
+                        href="{% url 'other_manual_category_delete' category.pk %}"
+                        class="btn btn-danger app-card-btn"
+                    >
+                        Delete
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">
+                등록된 OTHER 매뉴얼이 없습니다.
             </div>
             {% endfor %}
         </div>

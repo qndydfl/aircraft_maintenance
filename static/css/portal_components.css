@@ -1,9 +1,3 @@
-/* static/css/portal_components.css
-   Premium reusable components for the Manual Portal.
-   Load order:
-   base.css -> portal_components.css -> page CSS -> mobile_override.css
-*/
-
 /* =========================================================
    Common Page Shell
 ========================================================= */
@@ -199,78 +193,6 @@ body.calculator-page .app-container {
    Page Hero
 ========================================================= */
 
-.page-hero {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1.25rem;
-
-    margin-top: var(--page-edge-gap);
-    padding: clamp(1.25rem, 2.6vw, 2rem);
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.985),
-            rgba(247, 250, 255, 0.90)
-        );
-
-    border: 1px solid rgba(148, 163, 184, 0.34);
-    border-radius: var(--radius-xl);
-
-    box-shadow:
-        0 1.25rem 3.25rem rgba(15, 23, 42, 0.13),
-        0 0.125rem 0.5rem rgba(15, 23, 42, 0.05),
-        inset 0 0.0625rem 0 rgba(255, 255, 255, 0.98);
-
-    backdrop-filter: blur(1.75rem) saturate(190%);
-    -webkit-backdrop-filter: blur(1.75rem) saturate(190%);
-}
-
-.page-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    pointer-events: none;
-
-    background:
-        radial-gradient(
-            circle at 8% 0%,
-            rgba(0, 122, 255, 0.16),
-            transparent 34%
-        ),
-        radial-gradient(
-            circle at 92% 10%,
-            rgba(175, 82, 222, 0.10),
-            transparent 31%
-        );
-}
-
-.page-hero::after {
-    content: "";
-    position: absolute;
-    top: -4rem;
-    right: -3rem;
-    z-index: -1;
-
-    width: 11rem;
-    height: 11rem;
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.52);
-    filter: blur(0.25rem);
-    pointer-events: none;
-}
-
-.page-hero > div:first-child {
-    min-width: 0;
-}
-
 .page-eyebrow {
     margin: 0 0 0.25rem;
 
@@ -322,12 +244,7 @@ body.calculator-page .app-container {
    Common Page Sections
 ========================================================= */
 
-.manual-section,
-.portal-section,
-.dispatch-section,
-.search-section,
-.result-section,
-.calculator-section {
+.manual-section {
     position: relative;
     overflow: hidden;
 
@@ -349,12 +266,7 @@ body.calculator-page .app-container {
         0 0.625rem 1.5rem rgba(15, 23, 42, 0.055);
 }
 
-.manual-section::before,
-.portal-section::before,
-.dispatch-section::before,
-.search-section::before,
-.result-section::before,
-.calculator-section::before {
+.manual-section::before {
     content: "";
     position: absolute;
     inset: 0 0 auto 0;
@@ -407,8 +319,7 @@ body.calculator-page .app-container {
 
 .manual-badge,
 .portal-list-badge,
-.portal-detail-pill,
-.dispatch-status-badge {
+.portal-detail-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -445,7 +356,6 @@ body.calculator-page .app-container {
 .manual-group-info div,
 .dispatch-info-item,
 .dispatch-reference-item,
-.portal-detail-info > div,
 .delete-info div {
     position: relative;
 
@@ -497,11 +407,6 @@ body.calculator-page .app-container {
 ========================================================= */
 
 @media (max-width: 48rem) {
-    .page-hero {
-        align-items: stretch;
-        flex-direction: column;
-        padding: 1.125rem;
-    }
 
     .page-actions {
         width: 100%;
@@ -613,61 +518,9 @@ body.calculator-page .app-container {
     -webkit-text-fill-color: transparent;
 }
 
-.app-revision-pill {
-    color: #94a3b8;
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: none;
-}
-
-.app-revision-date {
-    color: #cbd5e1;
-}
-
-.app-created-date {
-    color: #38bdf8;
-}
-
-.app-user-name {
-    color: #38bdf8 !important;
-    background: rgba(56, 189, 248, 0.06) !important;
-    border-color: rgba(56, 189, 248, 0.30) !important;
-}
-
 /* =========================================================
    Cleaner Hero
 ========================================================= */
-
-.page-hero {
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.99),
-            rgba(248, 250, 252, 0.96)
-        );
-
-    border-color: var(--premium-line);
-    border-radius: var(--premium-radius-panel);
-    box-shadow: var(--premium-shadow-subtle);
-}
-
-.page-hero::before {
-    background:
-        radial-gradient(
-            circle at 4% 0%,
-            rgba(30, 64, 175, 0.075),
-            transparent 33%
-        ),
-        radial-gradient(
-            circle at 96% 12%,
-            rgba(13, 148, 136, 0.055),
-            transparent 30%
-        );
-}
-
-.page-hero::after {
-    opacity: 0.42;
-}
 
 .page-eyebrow {
     color: #2563eb;
@@ -875,12 +728,6 @@ body.home-page .airbus-card:hover {
     border-color: rgba(225, 29, 72, 0.12) !important;
 }
 
-.bg-dark.manual-badge {
-    color: #334155 !important;
-    background: #f1f5f9 !important;
-    border-color: var(--premium-line-strong) !important;
-}
-
 .bg-info.manual-badge {
     color: #065f46 !important;
     background: #ecfdf5 !important;
@@ -998,8 +845,7 @@ body.home-page .airbus-card:hover {
     margin-inline: auto;
 }
 
-body.pdf-viewer-page .app-container,
-body.manual-pdf-viewer-page .app-container {
+body.pdf-viewer-page .app-container {
     width: min(calc(100% - 1rem), 112.5rem);
 }
 
@@ -1041,7 +887,6 @@ body.manual-pdf-viewer-page .app-container {
     font-weight: 800;
 }
 
-.card-description,
 .section-description,
 .manual-card-note {
     color: var(--text-muted);
@@ -1050,24 +895,7 @@ body.manual-pdf-viewer-page .app-container {
 
 /* Technical metadata */
 
-.technical-meta,
-.manual-meta,
-.dispatch-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 0.75rem;
-    color: var(--text-muted);
-    font-size: var(--text-sm);
-}
-
-.technical-code,
-.ata-code,
-.fault-code,
-.manual-reference,
-.part-number,
-.page-number,
-.task-number {
+.page-number {
     display: inline-flex;
     align-items: center;
     min-height: 1.75rem;
@@ -1078,50 +906,6 @@ body.manual-pdf-viewer-page .app-container {
     border-radius: 0.4rem;
     font-size: 0.78rem;
     font-weight: 700;
-}
-
-/* Hero */
-
-.page-hero {
-    position: relative;
-    overflow: hidden;
-    padding: clamp(1rem, 2vw, 1.5rem);
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.99),
-            rgba(241, 245, 249, 0.96)
-        );
-    border: 1px solid var(--border-soft);
-    border-radius: 1rem;
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.04),
-        0 12px 30px rgba(15, 23, 42, 0.06);
-}
-
-.page-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 0.3125rem;
-    background:
-        linear-gradient(
-            180deg,
-            var(--aviation-blue),
-            var(--aviation-sky)
-        );
-}
-
-.page-hero::after {
-    content: "";
-    position: absolute;
-    right: -3rem;
-    top: -4rem;
-    width: 12rem;
-    height: 12rem;
-    border-radius: 50%;
-    background: rgba(30, 64, 175, 0.045);
-    pointer-events: none;
 }
 
 /* Cards */
@@ -1171,93 +955,7 @@ body.manual-pdf-viewer-page .app-container {
         0 16px 32px rgba(15, 23, 42, 0.09);
 }
 
-/* Manual type colors */
-
-.manual-badge--amm {
-    color: #1d4ed8 !important;
-    background: #eff6ff !important;
-    border-color: #bfdbfe !important;
-}
-
-.manual-badge--fim {
-    color: #0f766e !important;
-    background: #f0fdfa !important;
-    border-color: #99f6e4 !important;
-}
-
-.manual-badge--ipc {
-    color: #6d28d9 !important;
-    background: #f5f3ff !important;
-    border-color: #ddd6fe !important;
-}
-
-.manual-badge--mel {
-    color: #be123c !important;
-    background: #fff1f2 !important;
-    border-color: #fecdd3 !important;
-}
-
-.manual-badge--cdl {
-    color: #92400e !important;
-    background: #fffbeb !important;
-    border-color: #fde68a !important;
-}
-
-/* Search */
-
-.portal-search {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.625rem;
-    padding: 0.625rem;
-    background: #ffffff;
-    border: 1px solid var(--border-soft);
-    border-radius: 0.875rem;
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.04),
-        0 8px 20px rgba(15, 23, 42, 0.055);
-}
-
-.portal-search .form-control,
-.portal-search .form-select {
-    min-height: 2.75rem;
-    border-color: transparent;
-    box-shadow: none;
-    font-size: 0.92rem;
-}
-
-.portal-search:focus-within {
-    border-color: #93c5fd;
-    box-shadow:
-        0 0 0 4px rgba(37, 99, 235, 0.10),
-        0 10px 24px rgba(15, 23, 42, 0.07);
-}
-
 /* Dispatch */
-
-.dispatch-result-card {
-    border-left: 0.25rem solid var(--aviation-blue);
-}
-
-.dispatch-result-card.is-primary {
-    border-left-color: var(--aviation-green);
-}
-
-.dispatch-result-card.is-warning {
-    border-left-color: var(--aviation-amber);
-}
-
-.dispatch-result-card.is-danger {
-    border-left-color: var(--aviation-red);
-}
-
-.recommendation-score {
-    color: var(--aviation-blue);
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-}
 
 .dispatch-reference {
     display: grid;
@@ -1267,43 +965,6 @@ body.manual-pdf-viewer-page .app-container {
     background: var(--surface-soft);
     border: 1px solid var(--border-soft);
     border-radius: 0.625rem;
-}
-
-/* Tables */
-
-.portal-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow: hidden;
-    background: #ffffff;
-    border: 1px solid var(--border-soft);
-    border-radius: 0.875rem;
-}
-
-.portal-table thead th {
-    padding: 0.75rem 1rem;
-    color: #475569;
-    background: #f8fafc;
-    border-bottom: 1px solid var(--border-soft);
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.portal-table tbody td {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid #eef2f7;
-    vertical-align: middle;
-}
-
-.portal-table tbody tr:last-child td {
-    border-bottom: 0;
-}
-
-.portal-table tbody tr:hover {
-    background: #f8fbff;
 }
 
 /* Buttons */
@@ -1388,32 +1049,16 @@ body.manual-pdf-viewer-page .app-container {
         width: min(calc(100% - 1rem), 90rem);
     }
 
-    .portal-search {
-        grid-template-columns: 1fr;
-    }
-
     .dispatch-reference {
         grid-template-columns: 1fr;
         gap: 0.25rem;
     }
 
-    .portal-table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
 }
-/* ==========================================================================
-   Responsive Aviation Layout
-   ========================================================================== */
 
 /* Hero and actions */
 
 @media (max-width: 62rem) {
-    .page-hero {
-        align-items: flex-start;
-        flex-direction: column;
-    }
 
     .page-actions {
         width: 100%;
@@ -1448,12 +1093,6 @@ body.manual-pdf-viewer-page .app-container {
     body.delete-confirm-page .app-container,
     body.login-page .app-container {
         width: min(calc(100% - 1rem), 100%);
-    }
-
-    .page-hero {
-        gap: var(--space-4);
-        padding: 1.125rem;
-        border-radius: 0.875rem;
     }
 
     .page-title {
@@ -1516,41 +1155,13 @@ body.manual-pdf-viewer-page .app-container {
         min-height: 2.5rem;
     }
 
-    .portal-search {
-        grid-template-columns: 1fr;
-        padding: 0.5rem;
-    }
-
-    .portal-search .btn {
-        width: 100%;
-        min-height: 2.75rem;
-    }
-
     .dispatch-reference,
     .dispatch-mini-grid,
-    .manual-group-info,
-    .portal-detail-info {
+    .manual-group-info {
         grid-template-columns: 1fr !important;
     }
 
-    .dispatch-result-card {
-        border-left-width: 0.22rem;
-    }
-
-    .technical-meta,
-    .manual-meta,
-    .dispatch-meta {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .technical-code,
-    .ata-code,
-    .fault-code,
-    .manual-reference,
-    .part-number,
-    .page-number,
-    .task-number {
+    .page-number {
         width: 100%;
         justify-content: flex-start;
     }
@@ -1563,65 +1174,8 @@ body.manual-pdf-viewer-page .app-container {
         --page-gutter: 0.5rem;
     }
 
-    .page-hero {
-        padding: 1rem;
-    }
-
     .manual-badge-wrap {
         grid-template-columns: 1fr;
-    }
-}
-
-/* Mobile table transformation */
-
-@media (max-width: 48rem) {
-    .portal-table--responsive {
-        display: block;
-        border: 0;
-        background: transparent;
-        overflow: visible;
-    }
-
-    .portal-table--responsive thead {
-        display: none;
-    }
-
-    .portal-table--responsive tbody,
-    .portal-table--responsive tr,
-    .portal-table--responsive td {
-        display: block;
-        width: 100%;
-    }
-
-    .portal-table--responsive tr {
-        margin-bottom: 0.875rem;
-        padding: 0.875rem;
-        background: #fff;
-        border: 1px solid var(--border-soft);
-        border-radius: 0.75rem;
-        box-shadow: 0 0.25rem 0.875rem rgba(15, 23, 42, 0.05);
-    }
-
-    .portal-table--responsive td {
-        display: grid;
-        grid-template-columns: minmax(5.5rem, 36%) minmax(0, 1fr);
-        gap: 0.75rem;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #eef2f7;
-        white-space: normal;
-    }
-
-    .portal-table--responsive td:last-child {
-        border-bottom: 0;
-    }
-
-    .portal-table--responsive td::before {
-        content: attr(data-label);
-        color: var(--text-muted);
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
     }
 }
 
@@ -1630,10 +1184,6 @@ body.manual-pdf-viewer-page .app-container {
 @media (max-width: 56rem) and (orientation: landscape) {
     .app-main {
         padding-top: 4.25rem;
-    }
-
-    .page-hero {
-        padding: 1rem 1.25rem;
     }
 
 }
