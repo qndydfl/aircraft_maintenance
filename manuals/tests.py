@@ -412,7 +412,10 @@ class OtherManualFolderUploadTests(TestCase):
         self.assertContains(response, "sidebar-tree-folder-summary")
         self.assertContains(response, "Forms")
         self.assertContains(response, "Inspection Form")
-        self.assertContains(response, "Open folder")
+        self.assertContains(
+            response,
+            "sidebar-tree-link sidebar-tree-open-folder sidebar-tree-overview",
+        )
         self.assertContains(response, "sidebar-tree-file-link")
         self.assertContains(response, 'title="1 file(s)">1</small>')
         self.assertContains(response, 'title="1 file">1</small>')
@@ -1013,7 +1016,7 @@ class CalculatorClockLayoutTests(TestCase):
         home_response = self.client.get(reverse("home"))
 
         self.assertContains(calculator_response, 'id="app-sidebar"')
-        self.assertContains(calculator_response, "sidebar_layout.css?v=15")
+        self.assertContains(calculator_response, "sidebar_layout.css?v=16")
         self.assertContains(calculator_response, "Manual Library")
         self.assertContains(calculator_response, "Dispatch")
         self.assertContains(calculator_response, "app-navbar-shared-revision")
@@ -1034,7 +1037,7 @@ class CalculatorClockLayoutTests(TestCase):
             calculator_html.index('class="app-navbar-ending'),
         )
         self.assertContains(home_response, 'id="app-sidebar"')
-        self.assertContains(home_response, "sidebar_layout.css?v=15")
+        self.assertContains(home_response, "sidebar_layout.css?v=16")
         self.assertContains(home_response, "app-navbar-shared-revision")
         self.assertContains(home_response, "app-navbar-session-user")
         self.assertContains(home_response, "app-navbar-session-logout")
