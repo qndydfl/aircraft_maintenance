@@ -220,6 +220,8 @@ class ManualPackageFileTests(TestCase):
         )
 
     def test_portal_home_dashboard_uses_real_manual_data(self):
+        self.package.revision_date_text = "27 OCT 2026"
+        self.package.save(update_fields=["revision_date_text"])
         chapter = ManualChapter.objects.create(
             package=self.package,
             task="21",
@@ -238,6 +240,9 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "Maintenance Overview")
         self.assertContains(response, "Aircraft Manuals")
         self.assertContains(response, "Recent Updates")
+        self.assertContains(response, "2026-10-27")
+        self.assertNotContains(response, "27 OCT 2026")
+        self.assertContains(response, "portal_home.css?v=20261111-c5")
         self.assertContains(response, "B737")
         self.assertContains(response, "AMM")
         self.assertContains(response, 'name="q"')
@@ -248,6 +253,19 @@ class ManualPackageFileTests(TestCase):
         self.assertEqual(response.context["aircraft_count"], 1)
         self.assertEqual(response.context["manual_count"], 1)
         self.assertEqual(response.context["indexed_page_count"], 1)
+
+    def test_portal_status_cards_only_visible_to_administrators(self):
+        regular_response = self.client.get(reverse("home"))
+
+        self.assertNotContains(regular_response, 'aria-label="Portal status"')
+
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_superuser"])
+        administrator_response = self.client.get(reverse("home"))
+
+        self.assertContains(administrator_response, 'aria-label="Portal status"')
+        self.assertContains(administrator_response, "Indexed pages")
+        self.assertContains(administrator_response, "System status")
 
     def test_sidebar_expands_and_marks_current_package_from_home_flow(self):
         response = self.client.get(
@@ -381,7 +399,7 @@ class OtherManualFolderUploadTests(TestCase):
 
         response = self.client.get(reverse("manual_home"))
 
-        self.assertContains(response, "<span>Other Manuals</span>")
+        self.assertContains(response, "<span>Other</span>")
         self.assertContains(response, 'class="sidebar-tree-manual-type"')
         self.assertContains(response, "Overview")
         self.assertContains(response, "Engineering")

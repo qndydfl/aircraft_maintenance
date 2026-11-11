@@ -1,5 +1,5 @@
 import os, shutil, json, re, logging, time, mimetypes, tempfile
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 
 from django.urls import reverse_lazy, reverse
 from django.conf import settings
@@ -94,6 +94,72 @@ from .merged_package import load_merged_package, merged_pdf_response
 def refresh_uploaded_at(instance):
     instance.uploaded_at = timezone.now()
     instance.save(update_fields=["uploaded_at"])
+
+
+def format_home_update_date(value, fallback=None):
+    """Return revision/upload dates in a consistent YYYY-MM-DD format."""
+    parsed_date = None
+
+    if isinstance(value, datetime):
+        parsed_date = (
+            timezone.localtime(value).date()
+            if timezone.is_aware(value)
+            else value.date()
+        )
+    elif isinstance(value, date):
+        parsed_date = value
+    else:
+        date_text = str(value or "").strip()
+        if date_text:
+            korean_date = re.fullmatch(
+                r"(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일",
+                date_text,
+            )
+            if korean_date:
+                try:
+                    parsed_date = date(*map(int, korean_date.groups()))
+                except ValueError:
+                    parsed_date = None
+
+            if parsed_date is None:
+                parsed_date = parse_date(date_text)
+
+            if parsed_date is None:
+                normalized_text = re.sub(r"\s+", " ", date_text.upper())
+                for date_format in (
+                    "%d %b %Y",
+                    "%d%b%Y",
+                    "%d-%b-%Y",
+                    "%d/%b/%Y",
+                    "%b %d %Y",
+                    "%Y/%m/%d",
+                    "%Y.%m.%d",
+                    "%Y%m%d",
+                    "%d/%m/%Y",
+                ):
+                    try:
+                        parsed_date = datetime.strptime(
+                            normalized_text,
+                            date_format,
+                        ).date()
+                        break
+                    except ValueError:
+                        continue
+
+    if parsed_date is None and fallback:
+        if isinstance(fallback, datetime):
+            parsed_date = (
+                timezone.localtime(fallback).date()
+                if timezone.is_aware(fallback)
+                else fallback.date()
+            )
+        elif isinstance(fallback, date):
+            parsed_date = fallback
+
+    if parsed_date is None:
+        return ""
+
+    return parsed_date.strftime("%Y-%m-%d")
 
 
 def delete_file_field(file_field):
@@ -501,6 +567,12 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
                         )
                     ),
                 }
+            )
+
+        for update in recent_updates:
+            update["display_date"] = format_home_update_date(
+                update["revision_date"],
+                update["uploaded_at"],
             )
 
         active_jobs = ReindexJob.objects.filter(

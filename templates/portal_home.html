@@ -5,7 +5,7 @@
 {% block body_class %}portal-home-page{% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261111-c2" />
+<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261111-c5" />
 {% endblock css %}
 
 {% block js %}
@@ -50,12 +50,12 @@
     <form method="get" action="{% url 'manual_search' %}" class="home-search-card" role="search">
         <div class="home-search-icon" aria-hidden="true"><i class="bi bi-search"></i></div>
         <div class="home-search-field">
-            <label for="home-manual-search">Search all indexed manuals</label>
+            <label for="home-manual-search">Search</label>
             <input
                 type="search"
                 id="home-manual-search"
                 name="q"
-                placeholder="Enter AMM task, fault message, part number or keyword"
+                placeholder="검색어를 입력하세요."
                 autocomplete="off"
             />
         </div>
@@ -65,6 +65,7 @@
         </button>
     </form>
 
+    {% if user.is_superuser %}
     <div class="home-stat-grid" aria-label="Portal status">
         <article class="home-stat-card">
             <span class="home-stat-icon home-stat-icon-blue"><i class="bi bi-airplane"></i></span>
@@ -88,6 +89,7 @@
             </div>
         </article>
     </div>
+    {% endif %}
 
     <div class="home-dashboard-grid">
         <section class="home-panel home-aircraft-panel" aria-labelledby="home-aircraft-title">
@@ -110,7 +112,6 @@
                         {% for manual in aircraft.manuals %}
                         <a href="{{ manual.url }}" class="home-manual-chip" title="Open {{ aircraft.name }} {{ manual.label }}">
                             {{ manual.label }}
-                            {% comment %} <small>{{ manual.mode }}</small> {% endcomment %}
                         </a>
                         {% empty %}
                         <span class="home-no-manual">No manuals available</span>
@@ -180,7 +181,7 @@
                     <strong>{{ update.revision|default:"Current" }}</strong>
                 </span>
                 <span class="home-update-date">
-                    {% if update.revision_date %}{{ update.revision_date }}{% else %}{{ update.uploaded_at|date:"Y-m-d" }}{% endif %}
+                    {{ update.display_date }}
                 </span>
                 <i class="bi bi-arrow-up-right home-update-open" aria-hidden="true"></i>
             </a>
