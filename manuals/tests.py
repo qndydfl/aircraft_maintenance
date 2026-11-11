@@ -892,6 +892,10 @@ class CalculatorClockLayoutTests(TestCase):
         self.assertContains(response, "date-clock-time-part", count=2)
         self.assertContains(response, "KST")
 
+    @override_settings(
+        SITE_REVISION_NO="Rev 12",
+        SITE_REVISION_DATE="2026-11-10",
+    )
     def test_sidebar_appears_on_tools_and_portal_home(self):
         calculator_response = self.client.get(reverse("calculator"))
         home_response = self.client.get(reverse("home"))
@@ -899,7 +903,26 @@ class CalculatorClockLayoutTests(TestCase):
         self.assertContains(calculator_response, 'id="app-sidebar"')
         self.assertContains(calculator_response, "Manual Library")
         self.assertContains(calculator_response, "Dispatch")
+        self.assertContains(calculator_response, "app-navbar-shared-revision")
+        self.assertContains(calculator_response, "Rev 12")
+        self.assertContains(calculator_response, "2026-11-10")
+        self.assertContains(calculator_response, "app-navbar-session-user")
+        self.assertContains(calculator_response, "calculator-user")
+        self.assertContains(calculator_response, "app-navbar-session-logout")
+        calculator_html = calculator_response.content.decode()
+        self.assertLess(
+            calculator_html.index('class="app-navbar-title'),
+            calculator_html.index('class="app-navbar-shared-revision'),
+        )
+        self.assertLess(
+            calculator_html.index('class="app-navbar-shared-revision'),
+            calculator_html.index('class="app-navbar-ending'),
+        )
         self.assertContains(home_response, 'id="app-sidebar"')
+        self.assertContains(home_response, "app-navbar-shared-revision")
+        self.assertContains(home_response, "app-navbar-session-user")
+        self.assertContains(home_response, "app-navbar-session-logout")
+        self.assertNotContains(home_response, "data-navbar-back")
         self.assertContains(
             home_response,
             'class="sidebar-nav-item active" title="Home"',

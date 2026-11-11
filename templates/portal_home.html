@@ -15,7 +15,6 @@
 {% block navbar_content %}
 <div class="app-navbar-page-content">
     <div class="app-navbar-title">
-        <p class="page-eyebrow text-uppercase text-primary fw-bold mb-1 small">Operations Dashboard</p>
         <h2 class="page-title fw-extrabold mb-0">Maintenance Overview</h2>
     </div>
     {% include 'includes/navbar_ending.html' %}
@@ -31,7 +30,7 @@
                 Aircraft Maintenance Portal
             </span>
             <h1 id="home-dashboard-title">Welcome back, {{ user.username }}</h1>
-            <p>Find technical publications, open aircraft manuals and review the latest revisions.</p>
+            <p>기술 문서를 검색하고, 항공기 매뉴얼을 열어 최신 개정 정보를 확인하세요.</p>
         </div>
 
         <div class="home-clock-grid" aria-label="Current time">
@@ -111,7 +110,7 @@
                         {% for manual in aircraft.manuals %}
                         <a href="{{ manual.url }}" class="home-manual-chip" title="Open {{ aircraft.name }} {{ manual.label }}">
                             {{ manual.label }}
-                            <small>{{ manual.mode }}</small>
+                            {% comment %} <small>{{ manual.mode }}</small> {% endcomment %}
                         </a>
                         {% empty %}
                         <span class="home-no-manual">No manuals available</span>
@@ -158,13 +157,13 @@
                 </div>
             </section>
 
-            {% if user.is_superuser %}
+            {% comment %} {% if user.is_superuser %}
             <section class="home-admin-card">
                 <span class="home-admin-icon"><i class="bi bi-cloud-arrow-up-fill"></i></span>
                 <div><strong>Manage manuals</strong><span>Upload, revise and reindex publications.</span></div>
                 <a href="{% url 'aircraft_manage' %}">Open management</a>
             </section>
-            {% endif %}
+            {% endif %} {% endcomment %}
         </aside>
     </div>
 

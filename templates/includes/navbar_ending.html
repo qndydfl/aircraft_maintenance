@@ -1,23 +1,26 @@
+{% if site_revision_no or site_revision_date %}
+<span class="app-navbar-shared-revision{% if request.GET.new_tab == '1' %} d-none{% endif %}" title="Portal revision {{ site_revision_no }} {{ site_revision_date }}">
+    {% if site_revision_no %}
+    <strong>{{ site_revision_no }}</strong>
+    {% endif %}
+    {% if site_revision_date %}
+    <span>{{ site_revision_date }}</span>
+    {% endif %}
+</span>
+{% endif %}
+
 <div class="app-navbar-ending{% if request.GET.new_tab == '1' %} d-none{% endif %}" aria-label="Page navigation">
-    <button
-        type="button"
-        class="app-navbar-ending-btn"
-        data-navbar-back
-        data-fallback-url="{% url 'home' %}"
-        aria-label="Back"
-        title="Back"
-    >
-        <span class="app-navbar-back-icon" aria-hidden="true">‹</span>
-        <span class="app-navbar-ending-label">Back</span>
-    </button>
-    
-    <a
-        href="{% url 'home' %}"
-        class="app-navbar-ending-btn"
-        aria-label="Home"
-        title="Home"
-    >
-        <span class="app-navbar-home-icon" aria-hidden="true">⌂</span>
-        <span class="app-navbar-ending-label">Home</span>
-    </a>    
+    {% if user.is_authenticated %}
+    <span class="app-navbar-session-user" title="Signed in as {{ user.username }}">
+        <i class="bi bi-person-circle" aria-hidden="true"></i>
+        <span>{{ user.username }}</span>
+    </span>
+    <form method="post" action="{% url 'logout' %}" class="app-navbar-session-form">
+        {% csrf_token %}
+        <button type="submit" class="app-navbar-session-logout" title="Logout" aria-label="Logout">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+            <span>Logout</span>
+        </button>
+    </form>
+    {% endif %}
 </div>

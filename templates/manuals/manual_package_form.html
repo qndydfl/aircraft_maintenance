@@ -10,18 +10,13 @@
 <script defer src="{% static 'js/r2_multipart_upload.js' %}"></script>
 {% endif %} 
 {% endblock js %} 
+
 {% block navbar_content %}
 <div class="app-navbar-page-content">    
     <div class="app-navbar-title">
-        <p class="page-eyebrow mb-1">MANUAL PACKAGE</p>
-
         <h2 class="page-title mb-2">
             {% if is_reupload %} Re-upload Manual Package {% elif package %} Edit Manual Package {% else %} Upload Manual Package {% endif %}
         </h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            ZIP 파일 또는 폴더 전체를 업로드합니다.
-        </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>

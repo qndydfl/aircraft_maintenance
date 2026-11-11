@@ -10,13 +10,7 @@
 <div class="app-navbar-page-content">
     
     <div class="app-navbar-title">
-        <p class="page-eyebrow mb-1">{{ category.aircraft.name }} / OTHER</p>
-
         <h2 class="page-title mb-2">{{ page_title }}</h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            {% if current_folder_path %}{{ current_folder_path }}{% else %}{{ category.description|default:"OTHER 매뉴얼 파일을 관리합니다." }}{% endif %}
-        </p>
     </div>
 
     <div class="page-actions">

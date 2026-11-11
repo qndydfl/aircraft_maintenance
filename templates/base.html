@@ -40,7 +40,7 @@
             rel="stylesheet"
         />
 
-        <link href="{% static 'css/base.css' %}?v=66" rel="stylesheet" />
+        <link href="{% static 'css/base.css' %}?v=67" rel="stylesheet" />
         <link
             href="{% static 'css/portal_components.css' %}?v=61"
             rel="stylesheet"
@@ -58,7 +58,7 @@
         {% block css %}{% endblock css %}
 
         <link
-            href="{% static 'css/mobile_override.css' %}?v=100"
+            href="{% static 'css/mobile_override.css' %}?v=104"
             rel="stylesheet"
         />
 
@@ -82,55 +82,11 @@
                 </button>
                 {% endif %}
                 {% block navbar_content %}
-                <a class="navbar-brand app-brand" href="{% url 'home' %}">
-                    Manual Portal
-                </a>
-
-                <span class="app-revision-pill">
-                    <span>{{ site_revision_no }}</span>
-                    <span class="app-revision-date"
-                        >{{ site_revision_date }}</span
-                    >
-                    <span class="app-created-date"
-                        >Created {{ site_created_date }}</span
-                    >
-                </span>
-
-                <div class="d-flex align-items-center gap-3">
-                    {% if user.is_superuser %}
-                    <a
-                        href="{% url 'aircraft_manage' %}"
-                        class="btn btn-outline-primary app-action-btn admin-only-action"
-                    >
-                        Aircraft Manage
+                <div class="app-navbar-page-content">
+                    <a class="navbar-brand app-brand" href="{% url 'home' %}">
+                        Manual Portal
                     </a>
-
-                    <a
-                        href="{% url 'admin:index' %}"
-                        class="btn btn-outline-warning app-admin-btn"
-                    >
-                        Admin
-                    </a>
-                    {% endif %}
-
-                    <span class="btn btn-outline-primary app-user-name">
-                        {{ user.username }}
-                    </span>
-
-                    <form
-                        method="post"
-                        action="{% url 'logout' %}"
-                        class="d-none d-md-inline me-2"
-                    >
-                        {% csrf_token %}
-
-                        <button
-                            type="submit"
-                            class="btn btn-outline-light app-logout-btn"
-                        >
-                            Logout
-                        </button>
-                    </form>
+                    {% include 'includes/navbar_ending.html' %}
                 </div>
                 {% endblock navbar_content %}
             </div>

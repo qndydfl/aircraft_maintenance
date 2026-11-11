@@ -9,18 +9,13 @@
 <script defer src="{% static 'js/r2_multipart_upload.js' %}"></script>
 {% endif %} 
 {% endblock js %} 
+
 {% block navbar_content %}
 <div class="app-navbar-page-content">
     <div class="app-navbar-title">
-        <p class="page-eyebrow mb-1">MANUAL FILE</p>
-
         <h2 class="page-title mb-2">
             {% if manual %} Edit PDF Manual {% else %} Upload PDF {% endif %}
         </h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            MEL / CDL 또는 기타 PDF 파일을 업로드합니다.
-        </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>

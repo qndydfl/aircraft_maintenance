@@ -4,20 +4,14 @@
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/form.css' %}?v=55" />
 {% endblock css %} 
+
 {% block navbar_content %}
 <div class="app-navbar-page-content">    
     <div class="app-navbar-title">
-        <p class="page-eyebrow mb-1">OTHER MANUAL FILE</p>
-
         <h2 class="page-title mb-2">
             {% if form.instance.pk %} Edit OTHER File {% else %} Add OTHER File
             {% endif %}
         </h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            {% if parent_path %}{{ parent_path }}{% else %}OTHER root folder{% endif %}
-            에 PDF, Word, Excel, 이미지 파일을 업로드합니다.
-        </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>

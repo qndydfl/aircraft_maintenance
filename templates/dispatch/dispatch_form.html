@@ -4,18 +4,13 @@
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=55" />
 {% endblock css %} 
+
 {% block navbar_content %}
 <div class="app-navbar-page-content">    
     <div class="app-navbar-title">
-        <p class="page-eyebrow mb-1">DISPATCH</p>
-
         <h2 class="page-title mb-2">
             {% if dispatch %} Edit Dispatch {% else %} Add Dispatch {% endif %}
         </h2>
-
-        <p class="text-muted mb-0 page-subtitle">
-            EICAS / Fault Code / MEL / FIM / AMM Reference
-        </p>
     </div>
     {% include 'includes/navbar_ending.html' %}
 </div>
