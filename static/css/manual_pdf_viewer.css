@@ -1239,7 +1239,7 @@ body.pdf-viewer-embedded .outline-resizer {
     }
 
     .viewer-subtitle {
-        font-size: clamp(0.65rem, 1.9vw, 0.78rem);
+        font-size: clamp(0.75rem, 1.9vw, 0.8rem);
     }
 
     .viewer-top-actions {
@@ -1250,7 +1250,7 @@ body.pdf-viewer-embedded .outline-resizer {
     .viewer-action-btn {
         min-height: 2rem;
         padding: 0.3rem 0.55rem;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .viewer-toolbar-center {
@@ -1268,7 +1268,7 @@ body.pdf-viewer-embedded .outline-resizer {
     .viewer-tool-btn {
         min-height: 2rem;
         padding: 0.3rem 0.55rem;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     #toggle-outline,
@@ -1312,7 +1312,7 @@ body.pdf-viewer-embedded .outline-resizer {
 
         padding: 0.3rem 0.55rem;
 
-        font-size: 0.72rem;
+        font-size: 0.8rem;
     }
 
     .viewer-query-badge,
@@ -1328,12 +1328,12 @@ body.pdf-viewer-embedded .outline-resizer {
         overflow: visible;
         text-overflow: ellipsis;
 
-        font-size: 0.62rem;
+        font-size: 0.72rem;
     }
 
     .viewer-query-badge {
         max-width: min(12rem, 42vw);
-        font-size: 0.72rem;
+        font-size: 0.75rem;
         line-height: 1.15;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1387,7 +1387,7 @@ body.pdf-viewer-embedded .outline-resizer {
     }
 
     .outline-title {
-        font-size: 0.76rem;
+        font-size: 0.85rem;
     }
 
     .outline-row {
@@ -1395,7 +1395,7 @@ body.pdf-viewer-embedded .outline-resizer {
     }
 
     .outline-tree-link {
-        font-size: 0.74rem;
+        font-size: 0.82rem;
     }
 
     /* PDF Area */
@@ -1436,7 +1436,7 @@ body.pdf-viewer-embedded .outline-resizer {
         min-height: 1.875rem;
         padding: 0.25rem 0.625rem;
 
-        font-size: 0.64rem;
+        font-size: 0.75rem;
     }
 }
 
@@ -1499,7 +1499,7 @@ body.pdf-viewer-embedded .viewer-title-area {
     }
 
     .viewer-subtitle {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .viewer-toolbar {
@@ -1516,13 +1516,13 @@ body.pdf-viewer-embedded .viewer-title-area {
     .viewer-action-btn {
         min-height: 2rem;
         padding: 0.3rem 0.55rem;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .viewer-search-input {
         min-width: 8rem;
         min-height: 2rem;
-        font-size: 0.72rem;
+        font-size: 0.8rem;
     }
 
     .viewer-query-badge,
@@ -1530,23 +1530,23 @@ body.pdf-viewer-embedded .viewer-title-area {
     .viewer-zoom-badge {
         min-height: 1.9rem;
         padding: 0.3rem 0.45rem;
-        font-size: 0.64rem;
+        font-size: 0.72rem;
     }
 
     .viewer-query-badge {
-        font-size: 0.72rem;
+        font-size: 0.75rem;
     }
 
     .mobile-page-btn {
         min-width: 4.5rem;
         height: 2rem;
         min-height: 2rem;
-        font-size: 0.68rem;
+        font-size: 0.75rem;
     }
 
     .mobile-page-indicator {
         min-width: 4.25rem;
-        font-size: 0.76rem;
+        font-size: 0.82rem;
     }
 }
 
@@ -1564,20 +1564,20 @@ body.pdf-viewer-embedded .viewer-title-area {
     }
 
     .viewer-subtitle {
-        font-size: 0.64rem;
+        font-size: 0.75rem;
     }
 
     .viewer-action-btn,
     .viewer-tool-btn {
         min-height: 1.9rem;
         padding: 0.28rem 0.45rem;
-        font-size: 0.65rem;
+        font-size: 0.72rem;
     }
 
     .viewer-search-input {
         min-width: 6.75rem;
         min-height: 1.9rem;
-        font-size: 0.68rem;
+        font-size: 0.78rem;
     }
 
     .viewer-query-badge,
@@ -1588,12 +1588,12 @@ body.pdf-viewer-embedded .viewer-title-area {
 
         padding: 0.25rem 0.35rem;
 
-        font-size: 0.56rem;
+        font-size: 0.7rem;
     }
 
     .viewer-query-badge {
         max-width: min(10rem, 42vw);
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .mobile-page-btn {
@@ -1603,12 +1603,12 @@ body.pdf-viewer-embedded .viewer-title-area {
 
         padding: 0.25rem 0.45rem;
 
-        font-size: 0.66rem;
+        font-size: 0.75rem;
     }
 
     .mobile-page-indicator {
         min-width: 4rem;
-        font-size: 0.74rem;
+        font-size: 0.8rem;
     }
 }
 

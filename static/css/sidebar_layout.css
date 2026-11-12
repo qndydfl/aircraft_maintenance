@@ -91,7 +91,7 @@
 .sidebar-user-copy small {
     overflow: hidden;
     color: var(--app-sidebar-muted);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -360,7 +360,7 @@
 
 .sidebar-tree-manual-type > summary > i {
     color: #94a3b8;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     transition: color 160ms ease, transform 160ms ease;
 }
 
@@ -421,7 +421,7 @@
 
 .sidebar-tree-folder > summary > i:last-child {
     color: #64748b;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     transition: color 160ms ease, transform 160ms ease;
 }
 
@@ -654,7 +654,7 @@ body.sidebar-collapsed .sidebar-desktop-collapse {
     width: 1.55rem;
     height: 1.55rem;
     min-height: 1.55rem;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
 }
 
 body.sidebar-collapsed .app-sidebar-nav {

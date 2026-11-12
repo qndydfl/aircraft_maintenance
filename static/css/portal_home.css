@@ -813,7 +813,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-dashboard-grid .home-section-eyebrow {
-        font-size: 0.72rem;
+        font-size: 0.75rem;
     }
 
     .home-dashboard-grid .home-panel-heading h2 {
@@ -825,7 +825,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-dashboard-grid .home-aircraft-identity small {
-        font-size: 0.72rem;
+        font-size: 0.75rem;
     }
 
     .home-dashboard-grid .home-aircraft-identity strong {
@@ -859,7 +859,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-panel-link {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .home-aircraft-row {
@@ -888,7 +888,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
 
     .home-manual-chip {
         min-height: 1.75rem;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .home-updates-panel {

@@ -97,11 +97,10 @@
 }
 
 .manual-library-tab-content .manual-card-note {
-    display: -webkit-box;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     margin-bottom: 0.5rem;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
 }
 
 .manual-library-tab-content .card-button-group {
@@ -263,12 +262,13 @@ body.home-page.manual-library-page .app-container {
 
     .manual-tab-label-short {
         display: inline;
+        font-size: 0.75rem;
     }
 
     .manual-library-tabs .manual-tab-count {
         min-width: 1.1rem;
         min-height: 1.1rem;
-        font-size: 0.58rem;
+        font-size: 0.7rem;
     }
 
     .home-page #manualLibraryTabContent .card-img-wrapper {
@@ -335,13 +335,13 @@ body.home-page.manual-library-page .app-container {
 
     .home-page .manual-section .aircraft-maker {
         margin-bottom: 0.1rem !important;
-        font-size: 0.56rem;
+        font-size: 0.7rem;
         line-height: 1;
     }
 
     .home-page .manual-section .aircraft-title {
         overflow: hidden;
-        font-size: 0.86rem;
+        font-size: 0.95rem;
         line-height: 1.15;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -349,7 +349,7 @@ body.home-page.manual-library-page .app-container {
 
     .home-page .manual-section .aircraft-type-pill {
         flex: 0 0 auto;
-        font-size: 0.5rem;
+        font-size: 0.7rem;
     }
 
     .home-page .manual-section .card-button-group {

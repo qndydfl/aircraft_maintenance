@@ -1565,7 +1565,7 @@ class ManualPackageViewerMatchCountTests(TestCase):
         self.assertEqual(response.context["initial_viewer_url"], "")
         self.assertIsNone(response.context["initial_chapter"])
         self.assertEqual(len(response.context["matching_chapters"]), 1)
-        self.assertContains(response, "mobile_override.css?v=20261112-c3")
+        self.assertContains(response, "mobile_override.css?v=20261112-c5")
         self.assertContains(response, 'class="mobile-bottom-nav"')
 
     def test_chapter_list_search_results_expose_valid_pk_for_viewer_links(self):
