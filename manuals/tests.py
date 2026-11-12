@@ -27,6 +27,7 @@ from .models import (
     ManualPDFPage,
     CommonManualCategory,
     CommonManualFile,
+    CommonManualPDFPage,
     OtherManualCategory,
     OtherManualFile,
     OtherManualPDFPage,
@@ -1107,6 +1108,7 @@ class ManualFilePDFEndpointTests(TestCase):
         self.assertContains(response, 'id="app-sidebar"')
         self.assertContains(response, "A320")
         self.assertContains(response, "MEL")
+        self.assertContains(response, "manual_pdf_viewer.css?v=")
 
         embedded_response = self.client.get(
             reverse("manual_file_pdf_viewer", kwargs={"pk": manual.pk}),
@@ -1160,6 +1162,13 @@ class ManualSearchContentPageTests(TestCase):
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0]["match_count"], 1)
         self.assertEqual(groups[0]["first_page"].page_number, 379)
+        self.assertEqual(response.context["result_match_count"], 1)
+        self.assertContains(response, 'class="manual-search-workspace"')
+        self.assertContains(response, 'class="manual-search-primary-aircraft"')
+        self.assertContains(response, 'class="manual-search-filter-panel')
+        self.assertContains(response, 'class="manual-search-results"')
+        self.assertContains(response, "manual_search.css?v=20261112-c4")
+        self.assertContains(response, "manual_search.js?v=4")
 
     def test_manual_search_accepts_multiple_manual_types(self):
         cdl = ManualFile.objects.create(
@@ -1267,14 +1276,63 @@ class ManualSearchContentPageTests(TestCase):
                 option["type"]
                 for option in response.context["manual_type_options"]
             },
-            {"MEL", "CDL", "COMMON"},
+            {"MEL", "CDL"},
         )
         self.assertNotIn(
             "Other",
             {group["label"] for group in response.context["manual_type_groups"]},
         )
+        self.assertNotIn(
+            "Common",
+            {group["label"] for group in response.context["manual_type_groups"]},
+        )
         self.assertEqual(response.context["selected_manual_type_values"], [])
         self.assertEqual(response.context["selected_manual_types"], [])
+
+    def test_selected_aircraft_excludes_other_aircraft_and_common_results(self):
+        other_aircraft = Aircraft.objects.create(name="B737", maker="BOEING")
+        other_manual = ManualFile.objects.create(
+            aircraft=other_aircraft,
+            manual_type="MEL",
+            file="manuals/b737-mel.pdf",
+        )
+        ManualFilePDFPage.objects.create(
+            manual_file=other_manual,
+            page_number=12,
+            text="NAV GNSS 1 REJECTED BY IR CDU MESSAGE",
+        )
+        common_category = CommonManualCategory.objects.create(
+            name="Shared Operations",
+            code="SHARED-OPS-SEARCH",
+        )
+        common_file = CommonManualFile.objects.create(
+            category=common_category,
+            title="Shared GNSS Reference",
+            file="common_manuals/shared-gnss.pdf",
+        )
+        CommonManualPDFPage.objects.create(
+            common_file=common_file,
+            page_number=4,
+            text="NAV GNSS 1 REJECTED BY IR CDU MESSAGE",
+        )
+
+        response = self.client.get(
+            reverse("manual_search"),
+            {
+                "aircraft": self.aircraft.pk,
+                "q": "nav gnss * rejected by*",
+            },
+        )
+
+        self.assertEqual(
+            {group["aircraft"] for group in response.context["result_groups"]},
+            {"A350"},
+        )
+        self.assertEqual(response.context["common_pages"], [])
+        self.assertNotIn(
+            "Common",
+            {group["label"] for group in response.context["manual_type_groups"]},
+        )
 
     def test_empty_other_folder_is_not_available_in_search(self):
         category, _ = OtherManualCategory.objects.get_or_create(
@@ -1490,6 +1548,10 @@ class ManualPackageViewerMatchCountTests(TestCase):
         groups = search_response.context["result_groups"]
         self.assertEqual(groups[0]["match_count"], 1)
         self.assertEqual(viewer_response.context["match_count"], 1)
+        self.assertContains(
+            viewer_response,
+            "manual_pdf_viewer.css?v=",
+        )
 
     def test_chapter_list_starts_without_selected_viewer(self):
         response = self.client.get(
@@ -1503,6 +1565,8 @@ class ManualPackageViewerMatchCountTests(TestCase):
         self.assertEqual(response.context["initial_viewer_url"], "")
         self.assertIsNone(response.context["initial_chapter"])
         self.assertEqual(len(response.context["matching_chapters"]), 1)
+        self.assertContains(response, "mobile_override.css?v=20261112-c3")
+        self.assertContains(response, 'class="mobile-bottom-nav"')
 
     def test_chapter_list_search_results_expose_valid_pk_for_viewer_links(self):
         response = self.client.get(

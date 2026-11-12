@@ -177,8 +177,19 @@ const OUTLINE_WIDTH_KEY = "manualPdfOutlineWidthV1";
 const VIEWER_FOCUS_KEY = "manualPdfFocusModeV1";
 
 let viewerSearchQuery = searchQuery || "";
-let viewerSearchMatches = [];
+// Matches from the search page are marked in the contents without re-searching.
+let viewerSearchMatches = searchQuery
+    ? matchingPages
+          .map(Number)
+          .filter(function (pageNumber) {
+              return pageNumber > 0;
+          })
+          .sort(function (a, b) {
+              return a - b;
+          })
+    : [];
 let viewerSearchIndex = -1;
+const viewerSearchResults = document.getElementById("viewer-search-results");
 let serverMatchIndex = Number.isFinite(initialServerMatchIndex)
     ? initialServerMatchIndex
     : 0;
@@ -1491,6 +1502,11 @@ function createOutlineTree(items, depth = 0, destinationPromises = []) {
                 sessionStorage.setItem(outlineStorageKey, "true");
             }
 
+            if (row.dataset.matchPage) {
+                goToPage(Number(row.dataset.matchPage));
+                return;
+            }
+
             resolveDestination(item.dest).then(function (dest) {
                 goToDestination(dest);
             });
@@ -1674,6 +1690,7 @@ function loadOutline() {
                     return a.pageNumber - b.pageNumber || a.order - b.order;
                 });
                 syncOutlineToPage(currentPage);
+                renderViewerSearchResults();
                 postWorkspaceMessage("outline-ready", {
                     outline: outlineWorkspaceEntries
                         .slice()
@@ -1795,6 +1812,13 @@ window.addEventListener("resize", rerenderOnResize);
     let resizeRenderTimer = null;
 
     outlineResizer.addEventListener("pointerdown", function (event) {
+        if (
+            event.target.closest("#outline-collapse-toggle") ||
+            manualPdfLayout.classList.contains("outline-hidden")
+        ) {
+            return;
+        }
+
         event.preventDefault();
 
         dragging = true;
@@ -1879,7 +1903,10 @@ function applyOutlineState() {
 
     let isHidden;
 
-    if (storedValue === null) {
+    if (!isMobileViewport() && searchQuery) {
+        isHidden = false;
+        sessionStorage.setItem(outlineStorageKey, "false");
+    } else if (storedValue === null) {
         isHidden = isMobileViewport();
         sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
     } else {
@@ -1917,6 +1944,14 @@ toggleOutlineBtn.addEventListener("click", function () {
         }
     }, 180);
 });
+
+const outlineCollapseBtn = document.getElementById("outline-collapse-toggle");
+
+if (outlineCollapseBtn) {
+    outlineCollapseBtn.addEventListener("click", function () {
+        toggleOutlineBtn.click();
+    });
+}
 
 function loadPdfDocument(sourceUrl, triedFallback) {
     pdfjsLib
@@ -2146,6 +2181,219 @@ function isTextMatchedByParsedSearch(text, parsed) {
         : containsExactSearchValue(normalizedText, parsed.value);
 }
 
+function lowerBoundMatch(pageNumber) {
+    let low = 0;
+    let high = viewerSearchMatches.length;
+
+    while (low < high) {
+        const mid = (low + high) >> 1;
+
+        if (viewerSearchMatches[mid] < pageNumber) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
+}
+
+function countMatchesInRange(start, end) {
+    const from = lowerBoundMatch(start);
+    const to = lowerBoundMatch(end + 1);
+
+    return {
+        count: Math.max(to - from, 0),
+        first: to > from ? viewerSearchMatches[from] : null,
+    };
+}
+
+function expandOutlineItem(item) {
+    const childList = item.querySelector(":scope > .outline-list");
+    const toggle = item.querySelector(
+        ":scope > .outline-row .outline-toggle-btn",
+    );
+
+    if (!childList || !toggle) {
+        return;
+    }
+
+    const icon = toggle.querySelector(".toggle-icon");
+
+    childList.classList.remove("outline-children-collapsed");
+    toggle.classList.add("is-open");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.setAttribute("aria-label", "하위 목차 접기");
+
+    if (icon) {
+        icon.innerHTML = "▼";
+    }
+}
+
+function clearOutlineSearch() {
+    outlinePanel.classList.remove("has-search-results");
+
+    outlineContainer
+        .querySelectorAll(".outline-match-badge")
+        .forEach(function (badge) {
+            badge.remove();
+        });
+    outlineContainer
+        .querySelectorAll(".outline-search-hidden")
+        .forEach(function (item) {
+            item.classList.remove("outline-search-hidden");
+        });
+    outlineContainer
+        .querySelectorAll(".outline-row[data-match-page]")
+        .forEach(function (row) {
+            delete row.dataset.matchPage;
+        });
+}
+
+// Marks the contents sections that contain matches and hides the rest.
+function applySearchToOutline() {
+    clearOutlineSearch();
+
+    if (
+        !viewerSearchQuery ||
+        !viewerSearchMatches.length ||
+        !outlinePageEntries.length ||
+        !pdfDoc
+    ) {
+        return;
+    }
+
+    const ordered = outlinePageEntries.slice().sort(function (a, b) {
+        return a.order - b.order;
+    });
+    const rangeByRow = new Map();
+
+    ordered.forEach(function (entry, index) {
+        let end = pdfDoc.numPages;
+
+        for (let next = index + 1; next < ordered.length; next += 1) {
+            if (ordered[next].depth <= entry.depth) {
+                end = Math.max(entry.pageNumber, ordered[next].pageNumber - 1);
+                break;
+            }
+        }
+
+        rangeByRow.set(entry.row, { start: entry.pageNumber, end: end });
+    });
+
+    // Totals are shown only on the top level that splits the contents (chapters).
+    let chapterDepth = 0;
+    let levelItems = Array.from(
+        outlineContainer.querySelectorAll(
+            ":scope > .outline-list > .outline-item",
+        ),
+    );
+
+    while (levelItems.length === 1) {
+        const children = levelItems[0].querySelectorAll(
+            ":scope > .outline-list > .outline-item",
+        );
+
+        if (!children.length) {
+            break;
+        }
+
+        levelItems = Array.from(children);
+        chapterDepth += 1;
+    }
+
+    function visit(item, depth) {
+        const row = item.querySelector(":scope > .outline-row");
+        const childList = item.querySelector(":scope > .outline-list");
+        let childCount = 0;
+        let childFirst = null;
+
+        if (childList) {
+            childList
+                .querySelectorAll(":scope > .outline-item")
+                .forEach(function (child) {
+                    const result = visit(child, depth + 1);
+
+                    childCount += result.count;
+
+                    if (
+                        result.first !== null &&
+                        (childFirst === null || result.first < childFirst)
+                    ) {
+                        childFirst = result.first;
+                    }
+                });
+        }
+
+        const range = rangeByRow.get(row);
+        const result = range
+            ? countMatchesInRange(range.start, range.end)
+            : { count: childCount, first: childFirst };
+
+        item.classList.toggle("outline-search-hidden", result.count === 0);
+
+        if (result.count > 0) {
+            row.dataset.matchPage = String(result.first);
+
+            if (depth === chapterDepth) {
+                const badge = document.createElement("em");
+
+                badge.className = "outline-match-badge";
+                badge.textContent = String(result.count);
+                row.append(badge);
+            }
+
+            if (childCount > 0) {
+                expandOutlineItem(item);
+            }
+        }
+
+        return result;
+    }
+
+    outlineContainer
+        .querySelectorAll(":scope > .outline-list > .outline-item")
+        .forEach(function (item) {
+            visit(item, 0);
+        });
+    outlinePanel.classList.add("has-search-results");
+}
+
+function renderViewerSearchResults() {
+    clearOutlineSearch();
+
+    if (!viewerSearchResults) {
+        return;
+    }
+
+    viewerSearchResults.replaceChildren();
+
+    if (!viewerSearchQuery) {
+        viewerSearchResults.hidden = true;
+        return;
+    }
+
+    viewerSearchResults.hidden = false;
+
+    const summary = document.createElement("span");
+    const clearBtn = document.createElement("button");
+
+    summary.textContent = viewerSearchMatches.length
+        ? "Search results · " + viewerSearchMatches.length + " pages"
+        : "No matching pages";
+
+    clearBtn.type = "button";
+    clearBtn.className = "viewer-search-clear";
+    clearBtn.textContent = "Clear";
+    clearBtn.addEventListener("click", function () {
+        viewerSearchInput.value = "";
+        runViewerSearch();
+    });
+
+    viewerSearchResults.append(summary, clearBtn);
+    applySearchToOutline();
+}
+
 function updateViewerSearchCount() {
     if (!viewerSearchMatches.length) {
         viewerSearchCount.textContent = "0 / 0";
@@ -2166,6 +2414,7 @@ async function runViewerSearch() {
 
     viewerSearchMatches = await searchPdfPages(query);
     viewerSearchIndex = 0;
+    renderViewerSearchResults();
 
     if (!viewerSearchMatches.length) {
         updateViewerSearchCount();

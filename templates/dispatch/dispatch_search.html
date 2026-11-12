@@ -192,26 +192,20 @@ dispatch-search-page
 
                                 {% if item.mel_page %}
                                     <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                         class="btn btn-sm btn-outline-danger">
                                         MEL
                                     </a>
                                 {% endif %}
 
                                 {% if item.fim_page %}
-                                    <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                    <a href="{% url 'manual_chapter_list' item.fim_page.chapter.package.pk %}?q={{ manual_pdf_query|urlencode }}&chapter={{ item.fim_page.chapter.pk }}&page={{ item.fim_page.page_number }}"
                                         class="btn btn-sm btn-outline-primary">
                                         FIM
                                     </a>
                                 {% endif %}
 
                                 {% if item.amm_page %}
-                                    <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                    <a href="{% url 'manual_chapter_list' item.amm_page.chapter.package.pk %}?q={{ manual_pdf_query|urlencode }}&chapter={{ item.amm_page.chapter.pk }}&page={{ item.amm_page.page_number }}"
                                         class="btn btn-sm btn-outline-success">
                                         AMM
                                     </a>
@@ -248,26 +242,20 @@ dispatch-search-page
 
                     {% if item.mel_page %}
                         <a href="{% url 'manual_file_pdf_viewer' item.mel_page.manual_file.pk %}?page={{ item.mel_page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
                             class="btn btn-outline-danger app-card-btn">
                             MEL
                         </a>
                     {% endif %}
 
                     {% if item.fim_page %}
-                        <a href="{% url 'manual_chapter_pdf_viewer' item.fim_page.chapter.pk %}?page={{ item.fim_page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <a href="{% url 'manual_chapter_list' item.fim_page.chapter.package.pk %}?q={{ manual_pdf_query|urlencode }}&chapter={{ item.fim_page.chapter.pk }}&page={{ item.fim_page.page_number }}"
                             class="btn btn-outline-primary app-card-btn">
                             FIM
                         </a>
                     {% endif %}
 
                     {% if item.amm_page %}
-                        <a href="{% url 'manual_chapter_pdf_viewer' item.amm_page.chapter.pk %}?page={{ item.amm_page.page_number }}&q={{ manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <a href="{% url 'manual_chapter_list' item.amm_page.chapter.package.pk %}?q={{ manual_pdf_query|urlencode }}&chapter={{ item.amm_page.chapter.pk }}&page={{ item.amm_page.page_number }}"
                             class="btn btn-outline-success app-card-btn">
                             AMM
                         </a>
@@ -307,15 +295,11 @@ dispatch-search-page
                                 {% with mel_viewer_query=row.viewer_query|default:query %}
                                 {% if not row.has_numeric_mel_item %}
                                     <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.viewer_page_number|default:row.page_number }}&q={{ mel_viewer_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                         class="btn btn-sm btn-outline-danger">
                                         Open
                                     </a>
                                 {% else %}
                                     <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.viewer_page_number|default:row.page_number }}&q={{ mel_viewer_query|urlencode }}&mel_item={{ row.mel_item|urlencode }}&mel_start=1&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                         class="btn btn-sm btn-outline-danger">
                                         Open
                                     </a>
@@ -349,15 +333,11 @@ dispatch-search-page
                         {% with mel_viewer_query=row.viewer_query|default:query %}
                         {% if not row.has_numeric_mel_item %}
                             <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.viewer_page_number|default:row.page_number }}&q={{ mel_viewer_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 class="btn btn-outline-danger mel-open-btn">
                                 PDF
                             </a>
                         {% else %}
                             <a href="{% url 'manual_file_pdf_viewer' row.manual_file.pk %}?page={{ row.viewer_page_number|default:row.page_number }}&q={{ mel_viewer_query|urlencode }}&mel_item={{ row.mel_item|urlencode }}&mel_start=1&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 class="btn btn-outline-danger mel-open-btn">
                                 PDF
                             </a>
@@ -480,8 +460,6 @@ dispatch-search-page
 
                             <div class="candidate-actions">
                                 <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                     class="btn btn-danger app-card-btn">
                                     Open MEL Page
                                 </a>
@@ -546,9 +524,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
                                 class="btn btn-primary app-card-btn">
                                 Open FIM Page
                             </a>
@@ -612,9 +588,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
                                 class="btn btn-success app-card-btn">
                                 Open AMM Page
                             </a>
@@ -678,9 +652,7 @@ dispatch-search-page
                                 <div class="text-muted small">Score: {{ page.recommend_score }}</div>
                             </div>
 
-                            <a href="{% url 'manual_chapter_pdf_viewer' page.chapter.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
                                 class="btn btn-outline-info app-card-btn">
                                 Open IPC Page
                             </a>
@@ -749,8 +721,6 @@ dispatch-search-page
                             </div>
 
                             <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 class="btn btn-outline-warning app-card-btn">
                                 Open CDL Page
                             </a>

@@ -1,4 +1,5 @@
 import re
+from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -368,6 +369,66 @@ class DispatchSearchViewTests(TestCase):
             response,
             "MEL Dispatch Results에 해당 EICAS Message가 없습니다.",
         )
+
+    def test_zip_manual_result_opens_current_chapter_workspace(self):
+        package = ManualPackage.objects.create(
+            aircraft=self.aircraft,
+            manual_type="FIM",
+            zip_file="manual_packages/fim-current.zip",
+            processed=True,
+        )
+        chapter = ManualChapter.objects.create(
+            package=package,
+            task="21-51-01",
+            title="Pack flow control",
+            pdf_relative_path="fim/21-51-01.pdf",
+        )
+        ManualPDFPage.objects.create(
+            chapter=chapter,
+            page_number=7,
+            text="PACK FLOW CONTROL troubleshooting",
+        )
+
+        response = self.client.get(
+            self.url,
+            {
+                "aircraft": self.aircraft.pk,
+                "q": "PACK FLOW CONTROL",
+                "search_type": "all",
+            },
+        )
+
+        workspace_path = reverse(
+            "manual_chapter_list",
+            kwargs={"package_pk": package.pk},
+        )
+        legacy_viewer_path = reverse(
+            "manual_chapter_pdf_viewer",
+            kwargs={"pk": chapter.pk},
+        )
+        rendered_html = response.content.decode()
+
+        self.assertIn(workspace_path, rendered_html)
+        self.assertIn(f"chapter={chapter.pk}", rendered_html)
+        self.assertIn("page=7", rendered_html)
+        self.assertNotIn(legacy_viewer_path, rendered_html)
+
+        workspace_response = self.client.get(
+            workspace_path,
+            {
+                "q": "PACK FLOW CONTROL",
+                "chapter": chapter.pk,
+                "page": 7,
+            },
+        )
+        viewer_url = workspace_response.context["initial_viewer_url"]
+        viewer_query = parse_qs(urlparse(viewer_url).query)
+
+        self.assertEqual(workspace_response.context["initial_chapter"], chapter)
+        self.assertEqual(viewer_query["page"], ["7"])
+        self.assertEqual(viewer_query["q"], ["PACK FLOW CONTROL"])
+        self.assertEqual(viewer_query["embedded"], ["1"])
+        self.assertEqual(viewer_query["from_search_page"], ["1"])
 
     def test_none_dispatch_keeps_condition_empty_and_manual_results(self):
         query = "OIL PRESS SENSORS L"

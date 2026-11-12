@@ -1,10 +1,10 @@
 {% extends 'base.html' %} 
 {% load static %} 
-{% block body_class %}pdf-viewer-page{% if embedded %} pdf-viewer-embedded{% endif %}{% endblock body_class %} 
+{% block body_class %}pdf-viewer-page{% if embedded %} pdf-viewer-embedded{% endif %}{% endblock body_class %}
 {% block css %}
 <link
     rel="stylesheet"
-    href="{% static 'css/manual_pdf_viewer.css' %}?v=20261111-c1"
+    href="{% static 'css/manual_pdf_viewer.css' %}?v=20261112-c14"
 />
 {% endblock css %} 
 {% block js %}
@@ -65,14 +65,14 @@
 
 <script
     defer
-    src="{% static 'js/manual_pdf_viewer.js' %}?v=20260927-merge2"
+    src="{% static 'js/manual_pdf_viewer.js' %}?v=20261112-ws8"
 ></script>
 {% endblock js %} 
 {% block nav %} {% endblock nav %} 
 
 {% block inner_content %}
 <div
-    class="viewer-page{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}"
+    class="viewer-page{% if viewer_type != 'chapter' and not embedded %} viewer-workspace{% endif %}{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}"
 >
     <div class="viewer-commandbar">
         <div class="viewer-commandbar-left">
@@ -289,6 +289,17 @@
         </button>
 
         <aside id="outline-panel" class="outline-panel">
+            {% if viewer_type != 'chapter' and not embedded %}
+            <div class="viewer-panel-header">
+                <div class="viewer-panel-heading">
+                    <span class="viewer-panel-title">{{ viewer_title }}</span>
+                    {% if viewer_subtitle and viewer_subtitle != "PDF Viewer" %}
+                    <span class="viewer-panel-subtitle">{{ viewer_subtitle }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="viewer-search-results" class="viewer-search-results" hidden></div>
+            {% endif %}
             <div class="outline-title">PDF Contents</div>
             <div id="outline-container">
                 <div class="outline-empty">Loading dynamic menu...</div>
@@ -299,7 +310,20 @@
             id="outline-resizer"
             class="outline-resizer"
             title="드래그하여 너비 조절"
-        ></div>
+        >
+            {% if viewer_type != 'chapter' and not embedded %}
+            <button
+                id="outline-collapse-toggle"
+                type="button"
+                class="viewer-contents-toggle"
+                aria-controls="outline-panel"
+                aria-label="Toggle contents panel"
+                title="Toggle contents panel"
+            >
+                <i class="bi bi-chevron-left" aria-hidden="true"></i>
+            </button>
+            {% endif %}
+        </div>
 
         <div class="pdf-viewer-scroll">
             <div id="single-page-viewer" class="pdf-viewer-wrap">

@@ -59,7 +59,7 @@
 }
 
 /* Keep the first and last content edges equal on every standard page. */
-body:not(.pdf-viewer-page):not(.login-page) .app-main {
+body:not(.pdf-viewer-page):not(.login-page):not(.chapter-page) .app-main {
     padding-top: var(--page-edge-gap) !important;
     padding-bottom: var(--page-edge-gap) !important;
 }
@@ -846,7 +846,10 @@ body.dispatch-search-page .dispatch-search-form .form-label {
 /* Chapter workspace starts at the top on mobile without the global navbar. */
 @media (max-width: 48rem) {
     body.chapter-page {
-        padding-top: var(--safe-area-top) !important;
+        height: 100dvh;
+        min-height: 100dvh;
+        padding: 0 !important;
+        overflow: hidden !important;
     }
 
     body.chapter-page .app-navbar {
@@ -855,10 +858,38 @@ body.dispatch-search-page .dispatch-search-form .form-label {
 
     body.chapter-page .app-main {
         height: calc(
-            var(--app-viewport-height) -
+            100dvh -
                 var(--bottom-nav-height) -
-                var(--safe-area-top) -
                 var(--safe-area-bottom)
         ) !important;
+        min-height: calc(
+            100dvh -
+                var(--bottom-nav-height) -
+                var(--safe-area-bottom)
+        ) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.chapter-page .app-layout-with-sidebar,
+    body.chapter-page .app-sidebar-content,
+    body.chapter-page .app-sidebar-content > .app-container,
+    body.chapter-page .manual-workspace {
+        height: 100% !important;
+        min-height: 0 !important;
+        margin-block: 0 !important;
+        padding-block: 0 !important;
+    }
+
+    body.chapter-page.has-app-sidebar .app-sidebar {
+        inset: 0 auto calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        ) 0;
+    }
+
+    body.chapter-page.has-app-sidebar .app-sidebar-backdrop {
+        inset: 0 0 calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+        );
     }
 }

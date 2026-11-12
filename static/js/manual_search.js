@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const filter = document.getElementById("manual-search-filter");
-    const form = filter ? filter.querySelector(".manual-search-form") : null;
+    const form = document.querySelector(".manual-search-form");
     const aircraftSelect = document.getElementById("manual-search-aircraft");
     const toggle = document.querySelector(
         '[data-bs-target="#manual-search-filter"]'
@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (form && aircraftSelect) {
         aircraftSelect.addEventListener("change", function () {
+            form.querySelectorAll('input[name="manual_type"]:checked')
+                .forEach(function (input) {
+                    input.checked = false;
+                });
             form.requestSubmit();
         });
     }
@@ -19,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const syncToggleLabel = function () {
         const isOpen = filter.classList.contains("show");
-        label.textContent = isOpen ? "Hide Search Options" : "Show Search Options";
+        label.textContent = isOpen ? "Hide Filters" : "Show Filters";
         toggle.classList.toggle("collapsed", !isOpen);
         toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     };

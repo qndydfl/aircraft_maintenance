@@ -1950,10 +1950,11 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 {"label": "Other", "options": [other_option]}
             )
 
-        manual_type_options.append(common_option)
-        manual_type_groups.append(
-            {"label": "Common", "options": [common_option]}
-        )
+        if not aircraft_id:
+            manual_type_options.append(common_option)
+            manual_type_groups.append(
+                {"label": "Common", "options": [common_option]}
+            )
 
         selected_manual_types = []
         selected_manual_type_values = []
@@ -2051,6 +2052,7 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                 other_pages_qs = other_pages_qs.filter(
                     other_file__category__aircraft_id=aircraft_id
                 )
+                common_pages_qs = CommonManualPDFPage.objects.none()
 
             if (
                 selected_manual_types
@@ -2274,6 +2276,19 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
 
             return reverse(url_name, kwargs={"pk": pk}) + "?" + urlencode(params)
 
+        def build_workspace_url(package_pk, chapter_pk, page_number):
+            params = {
+                "q": query,
+                "chapter": chapter_pk,
+                "page": page_number,
+            }
+
+            return (
+                reverse("manual_chapter_list", kwargs={"package_pk": package_pk})
+                + "?"
+                + urlencode(params)
+            )
+
         result_group_map = {}
 
         def append_result_group(key, page, group_data):
@@ -2302,8 +2317,8 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
                     "aircraft": package.aircraft.name,
                     "manual": package.manual_type,
                     "first_match": f"{page.chapter.task} / Page {page.page_number}",
-                    "viewer_url": build_viewer_url(
-                        "manual_chapter_pdf_viewer",
+                    "viewer_url": build_workspace_url(
+                        package.pk,
                         page.chapter.pk,
                         page.page_number,
                     ),
@@ -2390,6 +2405,9 @@ class ManualSearchView(LoginRequiredMixin, TemplateView):
         context["other_pages"] = other_pages
         context["grouped_results"] = grouped_results
         context["result_groups"] = result_groups
+        context["result_match_count"] = sum(
+            group["match_count"] for group in result_groups
+        )
 
         context["aircrafts"] = aircrafts
 

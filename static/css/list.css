@@ -586,7 +586,7 @@ body.chapter-page .app-main > .app-container {
 
 .manual-workspace-sidebar-toggle {
     position: absolute;
-    top: 0.75rem;
+    top: 50%;
     left: 50%;
     z-index: 2;
     width: 1.65rem;
@@ -600,7 +600,7 @@ body.chapter-page .app-main > .app-container {
     border: 1px solid rgba(148, 163, 184, 0.55);
     border-radius: 999rem;
     box-shadow: 0 0.2rem 0.65rem rgba(15, 23, 42, 0.14);
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
 }
 
 .manual-workspace-sidebar-toggle:hover,

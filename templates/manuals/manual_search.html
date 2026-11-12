@@ -3,11 +3,11 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261111-c1">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261112-c4">
 {% endblock css %}
 
 {% block js %}
-<script src="{% static 'js/manual_search.js' %}?v=2"></script>
+<script src="{% static 'js/manual_search.js' %}?v=4"></script>
 {% endblock js %}
 
 {% block body_class %}
@@ -26,221 +26,204 @@ manual-search-page
 {% endblock navbar_content %}
 
 {% block inner_content %}
+<div class="manual-search-workspace">
+    <form method="get"
+        class="manual-search-form"
+        data-loading-title="Searching Manuals"
+        data-loading-message="Scanning indexed manual pages...">
 
-<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
-    type="button"
-    data-bs-toggle="collapse"
-    data-bs-target="#manual-search-filter"
-    aria-expanded="{% if query %}false{% else %}true{% endif %}"
-    aria-controls="manual-search-filter">
-    <span class="filter-toggle-label"></span>
-</button>
+        <section class="manual-search-primary" aria-label="Manual keyword search">
+            <div class="manual-search-primary-aircraft">
+                <label for="manual-search-aircraft">Aircraft</label>
+                <select name="aircraft"
+                    id="manual-search-aircraft"
+                    class="form-select">
+                    <option value="">ALL Aircraft</option>
+                    {% for aircraft in aircrafts %}
+                        <option value="{{ aircraft.id }}"
+                            {% if selected_aircraft == aircraft.id|stringformat:"s" %}selected{% endif %}>
+                            {{ aircraft.maker }} - {{ aircraft.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <span class="manual-search-primary-icon" aria-hidden="true">
+                <i class="bi bi-search"></i>
+            </span>
+            <div class="manual-search-primary-field">
+                <label for="manual-search-query">Search indexed manuals</label>
+                <input type="text"
+                    id="manual-search-query"
+                    name="q"
+                    value="{{ query }}"
+                    class="form-control"
+                    placeholder="예: PACK VALVE, 21-51-01, REMOVAL"
+                    autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary manual-search-primary-submit">
+                Search
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+        </section>
 
-<div id="manual-search-filter"
-    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse {% if not query %}show{% endif %} d-md-block">
-    <div class="card-body">
-        <form method="get"
-            class="manual-search-form"
-            data-loading-title="Searching Manuals"
-            data-loading-message="Scanning indexed manual pages...">
+        <button class="btn manual-filter-mobile-toggle d-md-none{% if query %} collapsed{% endif %}"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#manual-search-filter"
+            aria-expanded="{% if query %}false{% else %}true{% endif %}"
+            aria-controls="manual-search-filter">
+            <span><i class="bi bi-sliders" aria-hidden="true"></i> <span class="filter-toggle-label"></span></span>
+            <i class="bi bi-chevron-down manual-filter-toggle-chevron" aria-hidden="true"></i>
+        </button>
 
-            <div class="row g-3 manual-search-filter-row">
-
-                <div class="col-12 col-md-3">
-                    <label class="form-label">Aircraft</label>
-
-                    <select name="aircraft"
-                        id="manual-search-aircraft"
-                        class="form-select app-form-control">
-                        <option value="">ALL Aircraft</option>
-
-                        {% for aircraft in aircrafts %}
-                            <option value="{{ aircraft.id }}"
-                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}
-                                    selected
-                                {% endif %}>
-                                {{ aircraft.maker }} - {{ aircraft.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
+        <aside id="manual-search-filter"
+            class="manual-search-filter-panel collapse{% if not query %} show{% endif %} d-md-block"
+            aria-label="Manual search filters">
+            <div class="manual-filter-heading">
+                <div>
+                    <span class="manual-filter-eyebrow">Refine results</span>
+                    <h3>Filters</h3>
                 </div>
+                <a href="{% url 'manual_search' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+                    class="manual-filter-reset">Reset</a>
+            </div>
 
-                <fieldset class="col-12 col-md-9 manual-type-fieldset">
-                    <legend class="form-label d-none d-md-block">Manual Type</legend>
-
-                    <button
-                        type="button"
-                        class="form-label manual-type-toggle d-md-none"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#manual-type-options-collapse"
-                        aria-expanded="false"
-                        aria-controls="manual-type-options-collapse"
-                    >
-                        <span class="manual-type-toggle-copy">
-                            <span>Manual Type</span>
-                            <span class="manual-type-toggle-hint">
-                                클릭해서 매뉴얼 유형을 선택하면 해당 메뉴얼만 검색할 수 있습니다.
-                            </span>
-                        </span>
-                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                    </button>
-
-                    <p class="manual-type-desktop-hint d-none d-md-block">
-                        각각 선택한 매뉴얼 유형을 기준으로 선택해서 검색할 수 있습니다.
-                    </p>
-
-                    <div id="manual-type-options-collapse" class="manual-type-collapse collapse d-md-block">
-                        <div class="manual-type-options">
-                            {% for group in manual_type_groups %}
-                                <div class="manual-type-group">
-                                    <span class="manual-type-group-title">{{ group.label }}</span>
-                                    <div class="manual-type-group-options">
-                                        {% for option in group.options %}
-                                            <input type="checkbox"
-                                                class="btn-check"
-                                                name="manual_type"
-                                                value="{{ option.value }}"
-                                                id="manual-type-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
-                                                autocomplete="off"
-                                                {% if option.value in selected_manual_type_values %}checked{% endif %}>
-                                            <label class="btn btn-outline-secondary manual-type-option"
-                                                for="manual-type-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
-                                                {{ option.label }}
-                                            </label>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-
-                            <div class="form-text manual-type-help">
-                                선택하지 않으면 전체 매뉴얼을 검색합니다.
+            <fieldset class="manual-filter-section manual-type-fieldset">
+                <legend class="form-label">Manual Type</legend>
+                <div class="manual-type-options">
+                    {% for group in manual_type_groups %}
+                        <div class="manual-type-group">
+                            <span class="manual-type-group-title">{{ group.label }}</span>
+                            <div class="manual-type-group-options">
+                                {% for option in group.options %}
+                                    <input type="checkbox"
+                                        class="btn-check"
+                                        name="manual_type"
+                                        value="{{ option.value }}"
+                                        id="manual-type-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
+                                        autocomplete="off"
+                                        {% if option.value in selected_manual_type_values %}checked{% endif %}>
+                                    <label class="btn btn-outline-secondary manual-type-option"
+                                        for="manual-type-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                        {{ option.label }}
+                                    </label>
+                                {% endfor %}
                             </div>
                         </div>
-                    </div>
-                </fieldset>
-
-            </div>
-
-            <div class="row g-2 mt-1 manual-search-query-row">
-                <div class="col-12 col-md-10 manual-search-query-field">
-                    <label class="form-label">Search</label>
-
-                    <input type="text"
-                        name="q"
-                        value="{{ query }}"
-                        class="form-control app-form-control"
-                        placeholder="예: PACK VALVE, 21-51-01, REMOVAL">
+                    {% endfor %}
+                    <p class="manual-type-help mb-0">선택하지 않으면 전체 매뉴얼을 검색합니다.</p>
                 </div>
+            </fieldset>
 
-                <div class="col-12 col-md-2 d-flex align-items-end manual-search-submit">
-                    <button type="submit"
-                        class="btn btn-primary w-100 app-card-btn">
-                        Search
-                    </button>
+            <button type="submit" class="btn btn-primary manual-filter-apply">
+                Apply Filters
+            </button>
+        </aside>
+    </form>
+
+    <section class="manual-search-results" aria-live="polite">
+        {% if query %}
+            <header class="manual-results-heading">
+                <div>
+                    <span class="manual-results-eyebrow">Search results</span>
                 </div>
+            </header>
 
-            </div>
-        </form>
-    </div>
-</div>
-
-{% if query %}
-
-    {% if result_groups %}
-        <div class="result-tabs manual-result-tabs mb-3">
-            <div class="nav nav-pills result-tab-scroll"
-                role="tablist">
-                {% for group in result_groups %}
-                    <button class="nav-link {% if forloop.first %}active{% endif %}"
-                        id="manual-tab-{{ forloop.counter }}"
-                        data-bs-toggle="pill"
-                        data-bs-target="#manual-pane-{{ forloop.counter }}"
-                        type="button"
-                        role="tab"
-                        aria-controls="manual-pane-{{ forloop.counter }}"
-                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
-                        {{ group.manual }}
-                        <span>{{ group.match_count }}</span>
-                    </button>
+            <div class="manual-active-filters" aria-label="Active search filters">
+                <span class="manual-active-filter manual-active-filter-query">
+                    <i class="bi bi-search" aria-hidden="true"></i>{{ query }}
+                </span>
+                {% for aircraft in aircrafts %}
+                    {% if selected_aircraft == aircraft.id|stringformat:"s" %}
+                    <span class="manual-active-filter">{{ aircraft.name }}</span>
+                    {% endif %}
+                {% endfor %}
+                {% for group in manual_type_groups %}
+                    {% for option in group.options %}
+                        {% if option.value in selected_manual_type_values %}
+                        <span class="manual-active-filter">{{ option.label }}</span>
+                        {% endif %}
+                    {% endfor %}
                 {% endfor %}
             </div>
-        </div>
-    {% endif %}
 
-    <div class="manual-result-tab-content tab-content">
-    {% for group in result_groups %}
-        <div class="manual-result-pane tab-pane fade {% if forloop.first %}show active{% endif %}"
-            id="manual-pane-{{ forloop.counter }}"
-            role="tabpanel"
-            aria-labelledby="manual-tab-{{ forloop.counter }}"
-            tabindex="0">
-            <div class="card portal-card manual-group-card shadow-sm mb-3">
-                <div class="card-body">
-
-                    <div class="manual-group-header">
-                        <div>
-                            <p class="aircraft-maker mb-1">
-                                {{ group.eyebrow }}
-                            </p>
-
-                            <h4 class="section-title mb-1">
-                                {{ group.title }}
-                            </h4>
-
-                            <p class="section-description mb-0">
-                                검색된 페이지 {{ group.match_count }}개
-                            </p>
-                        </div>
-
-                        <span class="badge {{ group.badge_class }} manual-badge">
-                            {{ group.match_count }} pages
-                        </span>
-                    </div>
-
-                    <div class="manual-group-info mt-3">
-                        {% if group.aircraft %}
-                            <div>
-                                <span>Aircraft</span>
-                                <strong>{{ group.aircraft }}</strong>
-                            </div>
-                        {% endif %}
-
-                        <div>
-                            <span>Manual</span>
-                            <strong>{{ group.manual }}</strong>
-                        </div>
-
-                        <div>
-                            <span>First Match</span>
-                            <strong>{{ group.first_match }}</strong>
-                        </div>
-                    </div>
-
-                    {% if group.first_page.snippet %}
-                        <div class="common-result-snippet mt-3">
-                            {{ group.first_page.snippet|highlight_query:query }}
-                        </div>
-                    {% endif %}
-
-                    <div class="manual-group-actions mt-3">
-                        <a href="{{ group.viewer_url }}"
-                            class="btn {{ group.button_class }} app-card-btn">
-                            Open Viewer
-                        </a>
-                    </div>
-
+            {% if result_groups %}
+            <div class="result-tabs manual-result-tabs">
+                <div class="nav nav-pills result-tab-scroll" role="tablist">
+                    {% for group in result_groups %}
+                        <button class="nav-link{% if forloop.first %} active{% endif %}"
+                            id="manual-tab-{{ forloop.counter }}"
+                            data-bs-toggle="pill"
+                            data-bs-target="#manual-pane-{{ forloop.counter }}"
+                            type="button"
+                            role="tab"
+                            aria-controls="manual-pane-{{ forloop.counter }}"
+                            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                            {{ group.manual }}
+                            <span>{{ group.match_count }}</span>
+                        </button>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-    {% endfor %}
-    </div>
+            {% endif %}
 
-    {% if not result_groups %}
-        <div class="alert alert-warning app-alert">
-            검색 결과가 없습니다.
-        </div>
-    {% endif %}
+            <div class="manual-result-tab-content tab-content">
+            {% for group in result_groups %}
+                <div class="manual-result-pane tab-pane fade{% if forloop.first %} show active{% endif %}"
+                    id="manual-pane-{{ forloop.counter }}"
+                    role="tabpanel"
+                    aria-labelledby="manual-tab-{{ forloop.counter }}"
+                    tabindex="0">
+                    <article class="manual-result-card">
+                        <div class="manual-result-card-main">
+                            <div class="manual-group-header">
+                                <div>
+                                    <p class="aircraft-maker mb-1">{{ group.eyebrow }}</p>
+                                    <h4 class="section-title mb-0">{{ group.title }}</h4>
+                                </div>
+                                <span class="badge {{ group.badge_class }} manual-badge">
+                                    {{ group.match_count }} pages
+                                </span>
+                            </div>
 
-{% endif %}
+                            <div class="manual-group-info">
+                                {% if group.aircraft %}
+                                <div><span>Aircraft</span><strong>{{ group.aircraft }}</strong></div>
+                                {% endif %}
+                                <div><span>Manual</span><strong>{{ group.manual }}</strong></div>
+                                <div><span>First Match</span><strong>{{ group.first_match }}</strong></div>
+                            </div>
+
+                            {% if group.first_page.snippet %}
+                            <div class="common-result-snippet">
+                                {{ group.first_page.snippet|highlight_query:query }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="manual-group-actions">
+                            <a href="{{ group.viewer_url }}"
+                                class="btn {{ group.button_class }} app-card-btn">
+                                Open Viewer <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            {% empty %}
+                <div class="manual-search-empty-state">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <strong>검색 결과가 없습니다.</strong>
+                    <span>검색어 또는 선택한 필터를 변경해 보세요.</span>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="manual-search-empty-state manual-search-start-state">
+                <i class="bi bi-journal-text" aria-hidden="true"></i>
+                <strong>Search technical publications</strong>
+                <span>검색어를 입력하고 Aircraft 또는 Manual Type 필터를 선택하세요.</span>
+            </div>
+        {% endif %}
+    </section>
+</div>
 
 {% endblock inner_content %}

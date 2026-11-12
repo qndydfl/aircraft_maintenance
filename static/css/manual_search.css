@@ -56,7 +56,7 @@ body.manual-search-page .app-container {
 .manual-group-info span {
     display: block;
     color: #64748b;
-    font-size: var(--font-xs);
+    font-size: clamp(0.76rem, 0.72rem + 0.16vw, 0.82rem);
     font-weight: 850;
     margin-bottom: 0.25rem;
 }
@@ -64,7 +64,7 @@ body.manual-search-page .app-container {
 .manual-group-info strong {
     display: block;
     color: #0f172a;
-    font-size: 0.84rem;
+    font-size: clamp(0.92rem, 0.87rem + 0.2vw, 1rem);
     font-weight: 850;
     word-break: break-word;
 }
@@ -81,7 +81,7 @@ body.manual-search-page .app-container {
 .common-result-snippet {
     padding: 0.75rem 0.875rem;
     border-radius: var(--radius-sm);
-    font-size: 0.84rem;
+    font-size: clamp(0.84rem, 0.8rem + 0.16vw, 0.9rem);
     line-height: 1.55;
     color: #334155;
     background: rgba(241, 245, 249, 0.94);
@@ -369,11 +369,11 @@ body.manual-search-page .app-container {
     }
 
     .manual-group-info span {
-        font-size: var(--mobile-small);
+        font-size: var(--manual-search-text-xs);
     }
 
     .manual-group-info strong {
-        font-size: var(--mobile-font);
+        font-size: var(--manual-search-text-base);
     }
 
     .manual-group-actions {
@@ -393,7 +393,7 @@ body.manual-search-page .app-container {
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 5;
         line-clamp: 5;
-        font-size: var(--mobile-small);
+        font-size: var(--manual-search-text-sm);
         padding: 0.5rem 0.5625rem;
         line-height: 1.35;
     }
@@ -426,4 +426,473 @@ body.manual-search-page .app-container {
     .common-result-snippet {
         font-size: 0.92rem;
     }
+}
+
+/* =========================================================
+   Search workspace
+========================================================= */
+
+.manual-search-workspace {
+    --manual-search-text-xs: clamp(0.76rem, 0.72rem + 0.16vw, 0.82rem);
+    --manual-search-text-sm: clamp(0.84rem, 0.8rem + 0.16vw, 0.9rem);
+    --manual-search-text-base: clamp(0.92rem, 0.87rem + 0.2vw, 1rem);
+    display: grid;
+    grid-template-columns: minmax(15.5rem, 17.5rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+}
+
+.manual-search-form { display: contents; }
+
+.manual-search-primary {
+    grid-column: 1 / -1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(13.5rem, 17.5rem) auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem;
+    background: #fff;
+    border: 1px solid #dbe3ef;
+    border-radius: 1rem;
+    box-shadow: 0 0.4rem 1.25rem rgba(15, 23, 42, 0.055);
+}
+
+.manual-search-primary-aircraft {
+    min-width: 0;
+    display: grid;
+    gap: 0.15rem;
+}
+
+.manual-search-primary-aircraft label {
+    color: #64748b;
+    font-size: var(--manual-search-text-xs);
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.manual-search-primary-aircraft select {
+    min-width: 0;
+    height: 2rem;
+    padding-block: 0.15rem;
+    color: #172033;
+    border-color: #dbe3ef;
+    border-radius: 0.55rem;
+    font-size: var(--manual-search-text-sm) !important;
+    font-weight: 700;
+}
+
+.manual-search-primary-icon {
+    width: 2.8rem;
+    height: 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eff6ff;
+    border-radius: 0.8rem;
+    font-size: 1.05rem;
+}
+
+.manual-search-primary-field {
+    min-width: 0;
+    display: grid;
+    gap: 0.05rem;
+}
+
+.manual-search-primary-field label {
+    color: #64748b;
+    font-size: var(--manual-search-text-xs);
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.manual-search-primary-field input {
+    width: 100%;
+    min-width: 0;
+    height: 2rem;
+    padding: 0;
+    color: #172033;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none !important;
+    font-size: var(--manual-search-text-base) !important;
+    font-weight: 650;
+}
+
+.manual-search-primary-field input::placeholder { color: #94a3b8; }
+
+.manual-search-primary-submit {
+    min-height: 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-inline: 1.15rem;
+    border-radius: 0.8rem;
+    font-size: var(--manual-search-text-sm) !important;
+    font-weight: 850;
+}
+
+.manual-search-filter-panel {
+    position: sticky;
+    top: 0.75rem;
+    grid-column: 1;
+    min-width: 0;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 1rem;
+    box-shadow: 0 0.35rem 1.2rem rgba(15, 23, 42, 0.04);
+}
+
+.manual-filter-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #e8edf4;
+}
+
+.manual-filter-eyebrow,
+.manual-results-eyebrow {
+    color: #2563eb;
+    font-size: var(--manual-search-text-xs);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.manual-filter-heading h3,
+.manual-results-heading h3 {
+    margin: 0.16rem 0 0;
+    color: #172033;
+    font-size: 1.08rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.manual-filter-reset {
+    color: #64748b;
+    font-size: var(--manual-search-text-xs);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.manual-filter-reset:hover { color: #2563eb; }
+
+.manual-filter-section {
+    min-width: 0;
+    margin: 0;
+    padding: 0.9rem 0;
+    border: 0;
+    border-bottom: 1px solid #edf1f6;
+}
+
+body.manual-search-page .manual-filter-section > .form-label {
+    margin-bottom: 0.45rem;
+    color: #334155;
+    font-size: var(--manual-search-text-sm) !important;
+    font-weight: 900;
+}
+
+.manual-search-filter-panel .app-form-control {
+    min-height: 2.45rem;
+    font-size: var(--manual-search-text-sm) !important;
+}
+
+.manual-search-filter-panel .manual-type-options { gap: 0.75rem; }
+
+.manual-search-filter-panel .manual-type-group-title {
+    color: #64748b;
+    font-size: var(--manual-search-text-xs);
+    line-height: 1.35;
+}
+
+.manual-search-filter-panel .manual-type-group-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.manual-search-filter-panel .manual-type-option {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.15rem;
+    padding: 0.35rem 0.3rem;
+    overflow: hidden;
+    font-size: var(--manual-search-text-sm) !important;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+}
+
+.manual-search-filter-panel .manual-type-help {
+    color: #64748b;
+    font-size: var(--manual-search-text-xs);
+    font-weight: 650;
+}
+
+.manual-filter-apply {
+    width: 100%;
+    min-height: 2.45rem;
+    margin-top: 0.9rem;
+    border-radius: 0.7rem;
+    font-size: var(--manual-search-text-sm) !important;
+    font-weight: 850;
+}
+
+.manual-filter-mobile-toggle { display: none; }
+
+.manual-search-results {
+    grid-column: 2;
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+}
+
+.manual-results-heading {
+    min-width: 0;
+    padding: 0.2rem 0.15rem;
+}
+
+.manual-results-heading h3 { font-size: 1.2rem; }
+
+.manual-results-heading p {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: var(--manual-search-text-sm);
+}
+
+.manual-active-filters {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.manual-active-filter {
+    max-width: min(100%, 22rem);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.55rem;
+    overflow: hidden;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #dbe3ef;
+    border-radius: 999rem;
+    font-size: var(--manual-search-text-xs);
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.manual-active-filter-query {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.manual-result-tabs { min-width: 0; margin: 0; }
+.manual-result-tabs .result-tab-scroll { gap: 0.35rem; }
+
+.manual-result-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.25rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.65rem;
+    font-size: var(--manual-search-text-sm) !important;
+    font-weight: 850;
+}
+
+.manual-result-tabs .nav-link span {
+    min-width: 1.35rem;
+    padding: 0.12rem 0.35rem;
+    background: rgba(148, 163, 184, 0.15);
+    border-radius: 999rem;
+    font-size: var(--manual-search-text-xs);
+}
+
+.manual-result-tabs .nav-link.active span {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.manual-result-card {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 1rem;
+    box-shadow: 0 0.35rem 1.2rem rgba(15, 23, 42, 0.04);
+}
+
+.manual-result-card-main {
+    min-width: 0;
+    display: grid;
+    gap: 0.8rem;
+}
+
+.manual-result-card .manual-group-header { padding-bottom: 0.65rem; }
+
+.manual-result-card .aircraft-maker {
+    font-size: var(--manual-search-text-xs);
+}
+
+.manual-result-card .section-title {
+    font-size: clamp(1rem, 0.94rem + 0.22vw, 1.1rem);
+}
+
+body.manual-search-page .manual-result-card .manual-badge {
+    font-size: var(--manual-search-text-xs) !important;
+}
+
+.manual-result-card .manual-group-info {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin: 0 !important;
+}
+
+.manual-result-card .manual-group-info div { padding: 0.5rem 0.6rem; }
+.manual-result-card .common-result-snippet { margin: 0 !important; }
+
+.manual-result-card .manual-group-actions {
+    display: block;
+    margin: 0 !important;
+}
+
+.manual-result-card .manual-group-actions .btn {
+    min-width: 8.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    font-size: var(--manual-search-text-sm) !important;
+}
+
+.manual-search-empty-state {
+    min-height: 16rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 2rem;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px dashed #cbd5e1;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.manual-search-empty-state > i { font-size: 1.75rem; }
+.manual-search-empty-state strong { color: #475569; font-size: var(--manual-search-text-base); }
+.manual-search-empty-state span { font-size: var(--manual-search-text-sm); }
+
+@media (max-width: 48rem) {
+    .manual-search-workspace {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.65rem;
+    }
+
+    .manual-search-primary {
+        grid-column: 1;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 0.55rem;
+        padding: 0.6rem;
+        border-radius: 0.85rem;
+    }
+
+    .manual-search-primary-aircraft {
+        grid-column: 1 / -1;
+    }
+
+    .manual-search-primary-aircraft select {
+        height: 2.35rem;
+        font-size: var(--manual-search-text-sm) !important;
+    }
+
+    .manual-search-primary-icon { width: 2.5rem; height: 2.5rem; }
+    .manual-search-primary-field label { font-size: var(--manual-search-text-xs); }
+    .manual-search-primary-field input { font-size: var(--manual-search-text-base) !important; }
+
+    .manual-search-primary-submit {
+        grid-column: 1 / -1;
+        min-height: 2.45rem;
+    }
+
+    .manual-filter-mobile-toggle {
+        grid-column: 1;
+        width: 100%;
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.45rem 0.7rem;
+        color: #334155;
+        background: #fff;
+        border: 1px solid #dbe3ef;
+        border-radius: 0.75rem;
+        font-size: var(--manual-search-text-sm) !important;
+        font-weight: 850;
+    }
+
+    .manual-filter-mobile-toggle > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .manual-filter-toggle-chevron { transition: transform 160ms ease; }
+    .manual-filter-mobile-toggle[aria-expanded="true"] .manual-filter-toggle-chevron { transform: rotate(180deg); }
+
+    .manual-search-filter-panel {
+        position: static;
+        grid-column: 1;
+        padding: 0.85rem;
+        border-radius: 0.85rem;
+    }
+
+    body.manual-search-page .manual-search-filter-panel .manual-type-option {
+        min-height: 2.1rem !important;
+        padding: 0.35rem 0.25rem !important;
+        font-size: var(--manual-search-text-sm) !important;
+    }
+
+    .manual-search-results { grid-column: 1; gap: 0.65rem; }
+    .manual-results-heading { padding-inline: 0.1rem; }
+    .manual-results-heading h3 { font-size: 1.05rem; }
+    .manual-results-heading p { font-size: var(--manual-search-text-sm); }
+
+    .manual-active-filters {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 0.15rem;
+        scrollbar-width: none;
+    }
+
+    .manual-active-filters::-webkit-scrollbar { display: none; }
+
+    .manual-result-card {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+        padding: 0.8rem;
+        border-radius: 0.85rem;
+    }
+
+    .manual-result-card .manual-group-info { grid-template-columns: minmax(0, 1fr); }
+    .manual-result-card .manual-group-actions,
+    .manual-result-card .manual-group-actions .btn { width: 100%; }
+
+    .manual-search-empty-state { min-height: 12rem; padding: 1.25rem; }
 }
