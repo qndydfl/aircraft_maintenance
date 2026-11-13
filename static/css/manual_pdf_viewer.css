@@ -253,6 +253,10 @@ body.pdf-viewer-embedded .outline-resizer {
     display: none;
 }
 
+.viewer-mobile-tabs {
+    display: none;
+}
+
 #toggle-outline,
 #focus-viewer {
     color: #fff;
@@ -670,10 +674,6 @@ body.pdf-viewer-embedded .outline-resizer {
 
     .viewer-workspace .viewer-commandbar-right {
         justify-self: end;
-    }
-
-    .viewer-workspace #viewer-exit-btn {
-        display: none;
     }
 
     .viewer-workspace .manual-pdf-layout {
@@ -1276,6 +1276,46 @@ body.pdf-viewer-embedded .outline-resizer {
         margin-right: 0;
     }
 
+    #toggle-outline {
+        display: none !important;
+    }
+
+    .viewer-mobile-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.2rem;
+        padding: 0.25rem;
+        margin: 0.3125rem 0.3125rem 0;
+        background: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        border-radius: 0.875rem;
+    }
+
+    .viewer-mobile-tab {
+        min-height: 2.2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.55rem;
+        color: #475569;
+        background: transparent;
+        border: 0;
+        border-radius: 0.5rem;
+        font-size: 0.82rem;
+        font-weight: 850;
+    }
+
+    .viewer-mobile-tab.is-active {
+        color: #0f172a;
+        background: #fff;
+        box-shadow: 0 0.2rem 0.65rem rgba(15, 23, 42, 0.12);
+    }
+
+    .viewer-page.viewer-focus-mode .viewer-mobile-tabs {
+        display: none;
+    }
+
     /* Search */
 
     .viewer-search-panel {
@@ -1354,7 +1394,7 @@ body.pdf-viewer-embedded .outline-resizer {
         border-radius: 0.875rem;
     }
 
-    /* Outline Drawer */
+    /* Outline Pane (Contents tab) */
 
     .outline-panel {
         position: absolute;
@@ -1363,23 +1403,73 @@ body.pdf-viewer-embedded .outline-resizer {
         bottom: 0;
         z-index: 100;
 
-        width: 82% !important;
-        min-width: 82% !important;
-        max-width: 88% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
 
-        padding: 0.75rem;
+        padding: 0;
 
-        background: rgba(248, 250, 252, 0.99);
+        background: linear-gradient(180deg, #f8fafc, #f1f5f9);
 
-        box-shadow: 0.5rem 0 1.5rem rgba(15, 23, 42, 0.18);
-
-        transform: translateX(0);
-        transition: transform 240ms ease;
+        border-right: 0;
     }
 
     .outline-hidden .outline-panel {
-        display: block !important;
-        transform: translateX(-105%);
+        display: none !important;
+    }
+
+    .viewer-panel-header {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+
+        display: block;
+
+        background: #f8fafc;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .viewer-panel-heading {
+        min-height: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.15rem;
+        padding: 0.5rem 0.65rem;
+    }
+
+    .viewer-panel-title {
+        color: #0d6efd;
+        font-size: 0.92rem;
+        font-weight: 900;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .viewer-panel-subtitle {
+        color: #475569;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .outline-panel .outline-title {
+        margin: 0;
+        padding: 0.75rem 0.65rem 0.35rem;
+    }
+
+    .outline-panel #outline-container {
+        padding: 0 0.5rem 0.875rem;
+    }
+
+    /* The toolbar belongs to the Viewer tab only. */
+    .viewer-commandbar .viewer-title-area {
+        display: none;
+    }
+
+    .viewer-page.is-contents-pane .viewer-commandbar {
+        display: none;
     }
 
     .outline-resizer {
@@ -1618,11 +1708,5 @@ body.pdf-viewer-embedded .viewer-title-area {
         display: block;
         min-width: 10rem;
         max-width: 18rem;
-    }
-}
-
-@media (max-width: 48rem) {
-    body:not(.pdf-viewer-embedded) .viewer-commandbar .viewer-title-area {
-        display: block;
     }
 }

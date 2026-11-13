@@ -3,11 +3,12 @@
 {% load manual_extras %}
 
 {% block body_class %}
-dispatch-search-page
+dispatch-search-page manual-search-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=20261112-c2">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c5">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=20261113-c5">
 {% endblock css %}
 
 {% block js %}
@@ -44,73 +45,113 @@ dispatch-search-page
 {% endblock navbar_content %}
 
 {% block inner_content %}
+<div class="manual-search-workspace dispatch-search-workspace">
+    <form method="get"
+        class="manual-search-form dispatch-search-form"
+        data-loading-title="Searching Dispatch"
+        data-loading-message="Finding MEL / FIM / AMM references...">
 
-
-
-<button class="btn btn-primary mobile-filter-toggle d-md-none mb-3 w-100 rounded-pill {% if query %}collapsed{% endif %}"
-    type="button"
-    data-bs-toggle="collapse"
-    data-bs-target="#dispatch-search-filter"
-    aria-expanded="{% if query %}false{% else %}true{% endif %}"
-    aria-controls="dispatch-search-filter">
-    <span class="filter-toggle-label"></span>
-</button>
-
-<div id="dispatch-search-filter"
-    class="card portal-card shadow-sm mb-4 mobile-filter-collapse collapse {% if not query %}show{% endif %} d-md-block">
-    <div class="card-body">
-        <form method="get"
-            class="dispatch-search-form"
-            data-loading-title="Searching Dispatch"
-            data-loading-message="Finding MEL / FIM / AMM references...">
-
-            <div class="row g-3">
-                <div class="col-12 col-md-3">
-                    <label class="form-label">Aircraft</label>
-
-                    <select name="aircraft" class="form-select app-form-control">
-                        <option value="">ALL Aircraft</option>
-
-                        {% for aircraft in aircrafts %}
-                            <option value="{{ aircraft.id }}"
-                                {% if selected_aircraft == aircraft.id|stringformat:"s" %}
-                                    selected
-                                {% endif %}>
-                                {{ aircraft.maker }} - {{ aircraft.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-3">
-                    <label class="form-label">Search Type</label>
-
-                    <select name="search_type" class="form-select app-form-control">
-                        <option value="all" {% if search_type == "all" %}selected{% endif %}>ALL</option>
-                        <option value="message" {% if search_type == "message" %}selected{% endif %}>Message</option>
-                        <option value="fault" {% if search_type == "fault" %}selected{% endif %}>Fault Code</option>
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <label class="form-label">Search</label>
-
-                    <input type="text"
-                        name="q"
-                        value="{{ query }}"
-                        class="form-control app-form-control"
-                        placeholder="예: AUTOBRAKE, AUTOBRAKE*, *AUTOBRAKE*">
-                </div>
-
-                <div class="col-12 col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100 app-card-btn">
-                        Search
-                    </button>
-                </div>
+        <section class="manual-search-primary" aria-label="Dispatch keyword search">
+            <div class="manual-search-primary-aircraft">
+                <label for="dispatch-search-aircraft">Aircraft</label>
+                <select name="aircraft"
+                    id="dispatch-search-aircraft"
+                    class="form-select">
+                    <option value="">ALL Aircraft</option>
+                    {% for aircraft in aircrafts %}
+                        <option value="{{ aircraft.id }}"
+                            {% if selected_aircraft == aircraft.id|stringformat:"s" %}selected{% endif %}>
+                            {{ aircraft.maker }} - {{ aircraft.name }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-        </form>
+            <span class="manual-search-primary-icon" aria-hidden="true">
+                <i class="bi bi-search"></i>
+            </span>
+            <div class="manual-search-primary-field">
+                <label for="dispatch-search-query">검색어 입력</label>
+                <input type="text"
+                    id="dispatch-search-query"
+                    name="q"
+                    value="{{ query }}"
+                    class="form-control"
+                    placeholder="예: AUTOBRAKE, AUTOBRAKE*, *AUTOBRAKE*"
+                    autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary manual-search-primary-submit">
+                Search
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+        </section>
+
+        <button class="btn manual-filter-mobile-toggle d-md-none{% if query %} collapsed{% endif %}"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#dispatch-search-filter"
+            aria-expanded="{% if query %}false{% else %}true{% endif %}"
+            aria-controls="dispatch-search-filter">
+            <span><i class="bi bi-sliders" aria-hidden="true"></i> <span class="filter-toggle-label"></span></span>
+            <i class="bi bi-chevron-down manual-filter-toggle-chevron" aria-hidden="true"></i>
+        </button>
+
+        <aside id="dispatch-search-filter"
+            class="manual-search-filter-panel collapse{% if not query %} show{% endif %} d-md-block"
+            aria-label="Dispatch search filters">
+            <div class="manual-filter-heading">
+                <div>
+                    <span class="manual-filter-eyebrow">Refine results</span>
+                    <h3>Filters</h3>
+                </div>
+                <a href="{% url 'dispatch_search' %}" class="manual-filter-reset">Reset</a>
+            </div>
+
+            <div class="manual-filter-section">
+                <label class="form-label" for="dispatch-search-type">Search Type</label>
+                <select name="search_type"
+                    id="dispatch-search-type"
+                    class="form-select app-form-control">
+                    <option value="all" {% if search_type == "all" %}selected{% endif %}>ALL</option>
+                    <option value="message" {% if search_type == "message" %}selected{% endif %}>Message</option>
+                    <option value="fault" {% if search_type == "fault" %}selected{% endif %}>Fault Code</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary manual-filter-apply">
+                Apply Filters
+            </button>
+        </aside>
+    </form>
+
+    <section class="manual-search-results dispatch-search-results" aria-live="polite">
+
+{% if query %}
+    <header class="manual-results-heading">
+        <span class="manual-results-eyebrow">Search results</span>
+    </header>
+
+    <div class="manual-active-filters" aria-label="Active search filters">
+        <span class="manual-active-filter manual-active-filter-query">
+            <i class="bi bi-search" aria-hidden="true"></i>{{ query }}
+        </span>
+        {% for aircraft in aircrafts %}
+            {% if selected_aircraft == aircraft.id|stringformat:"s" %}
+            <span class="manual-active-filter">{{ aircraft.name }}</span>
+            {% endif %}
+        {% endfor %}
+        {% if search_type == "message" %}
+            <span class="manual-active-filter">Message</span>
+        {% elif search_type == "fault" %}
+            <span class="manual-active-filter">Fault Code</span>
+        {% endif %}
     </div>
-</div>
+{% else %}
+    <div class="manual-search-empty-state manual-search-start-state">
+        <i class="bi bi-journal-text" aria-hidden="true"></i>
+        <strong>Search dispatch references</strong>
+        <span>검색어를 입력하고 Aircraft 또는 Search Type 필터를 선택하세요.</span>
+    </div>
+{% endif %}
 
 {% if message_mode and not selected_aircraft %}
     <div class="alert alert-secondary app-alert py-2">
@@ -360,11 +401,11 @@ dispatch-search-page
 
 {% if query %}
 {% if mel_page_data.item or fim_page_data.item or amm_page_data.item or ipc_page_data.item or cdl_page_data.item %}
-<div class="result-tabs dispatch-result-tabs mb-3">
+<div class="result-tabs manual-result-tabs">
     <div class="nav nav-pills result-tab-scroll"
         role="tablist">
         {% if mel_page_data.item %}
-            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--mel active"
+            <button class="nav-link manual-tone manual-tone-mel active"
                 id="dispatch-tab-mel"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-mel"
@@ -377,7 +418,7 @@ dispatch-search-page
         {% endif %}
 
         {% if fim_page_data.item %}
-            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--fim {% if not mel_page_data.item %}active{% endif %}"
+            <button class="nav-link manual-tone manual-tone-fim {% if not mel_page_data.item %}active{% endif %}"
                 id="dispatch-tab-fim"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-fim"
@@ -390,7 +431,7 @@ dispatch-search-page
         {% endif %}
 
         {% if amm_page_data.item %}
-            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--amm {% if not mel_page_data.item and not fim_page_data.item %}active{% endif %}"
+            <button class="nav-link manual-tone manual-tone-amm {% if not mel_page_data.item and not fim_page_data.item %}active{% endif %}"
                 id="dispatch-tab-amm"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-amm"
@@ -403,7 +444,7 @@ dispatch-search-page
         {% endif %}
 
         {% if ipc_page_data.item %}
-            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--ipc {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}active{% endif %}"
+            <button class="nav-link manual-tone manual-tone-ipc {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}active{% endif %}"
                 id="dispatch-tab-ipc"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-ipc"
@@ -416,7 +457,7 @@ dispatch-search-page
         {% endif %}
 
         {% if cdl_page_data.item %}
-            <button class="nav-link rounded-pill dispatch-manual-tab dispatch-manual-tab--cdl {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}active{% endif %}"
+            <button class="nav-link manual-tone manual-tone-cdl {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}active{% endif %}"
                 id="dispatch-tab-cdl"
                 data-bs-toggle="pill"
                 data-bs-target="#dispatch-pane-cdl"
@@ -431,338 +472,213 @@ dispatch-search-page
 </div>
 {% endif %}
 
-<div class="dispatch-candidate-tab-content tab-content">
+<div class="manual-result-tab-content tab-content">
 
     {% with page=mel_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade show active"
+            <div class="manual-result-pane tab-pane fade show active"
                 id="dispatch-pane-mel"
                 role="tabpanel"
                 aria-labelledby="dispatch-tab-mel"
                 tabindex="0">
-                <h4 class="section-title mb-3">MEL Candidates</h4>
-
-                <div class="card portal-card candidate-card candidate-mel shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="candidate-top">
+                <article class="manual-result-card">
+                    <div class="manual-result-card-main">
+                        <div class="manual-group-header">
                             <div>
-                                <strong>MEL / Page {{ page.page_number }}</strong>
-                                <div class="text-muted small">Score: {{ page.recommend_score }}</div>
-
-                                {% if page.revision_label %}
-                                    <div class="text-muted small">{{ page.revision_label }}</div>
-                                {% endif %}
-
-                                {% if page.manual_file.description %}
-                                    <div class="text-muted small">{{ page.manual_file.description }}</div>
-                                {% endif %}
+                                <p class="aircraft-maker mb-1">MEL Candidates</p>
+                                <h4 class="section-title mb-0">
+                                    {{ page.manual_file.title|default:page.manual_file.description|default:"MEL PDF" }}
+                                </h4>
                             </div>
-
-                            <div class="candidate-actions">
-                                <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                    class="btn btn-danger app-card-btn">
-                                    Open MEL Page
-                                </a>
-                            </div>
-                        </div>
-
-                        <p class="small mb-2 mt-2">
-                            {{ page.manual_file.title|default:page.manual_file.description|default:"MEL PDF" }}
-                        </p>
-
-                        <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:page.viewer_query }}
-                        </div>
-
-                        <div class="candidate-pager">
-                            {% if mel_page_data.has_previous %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.previous_page }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                    Previous
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Previous
-                                </button>
-                            {% endif %}
-
-                            <span class="badge bg-danger">
+                            <span class="badge manual-badge manual-tone manual-tone-mel">
                                 Match {{ mel_page_data.current }} / {{ mel_page_data.total }}
                             </span>
+                        </div>
 
-                            {% if mel_page_data.has_next %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.next_page }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                    Next
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Next
-                                </button>
-                            {% endif %}
+                        <div class="manual-group-info">
+                            <div><span>Page</span><strong>{{ page.page_number }}</strong></div>
+                            <div><span>Score</span><strong>{{ page.recommend_score }}</strong></div>
+                            <div><span>Revision</span><strong>{{ page.revision_label|default:page.manual_file.description|default:"-" }}</strong></div>
+                        </div>
+
+                        <div class="common-result-snippet">
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
                     </div>
-                </div>
+
+                    <div class="manual-group-actions">
+                        <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            class="btn manual-open-btn manual-tone manual-tone-mel app-card-btn">
+                            Open Page <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </article>
             </div>
         {% endif %}
     {% endwith %}
 
     {% with page=fim_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item %}show active{% endif %}"
+            <div class="manual-result-pane tab-pane fade {% if not mel_page_data.item %}show active{% endif %}"
                 id="dispatch-pane-fim"
                 role="tabpanel"
                 aria-labelledby="dispatch-tab-fim"
                 tabindex="0">
-                <h4 class="section-title mb-3">FIM Candidates</h4>
-
-                <div class="card portal-card candidate-card candidate-fim shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="candidate-top">
+                <article class="manual-result-card">
+                    <div class="manual-result-card-main">
+                        <div class="manual-group-header">
                             <div>
-                                <strong>{{ page.chapter.task }} / Page {{ page.page_number }}</strong>
-                                <div class="text-muted small">Score: {{ page.recommend_score }}</div>
+                                <p class="aircraft-maker mb-1">FIM Candidates</p>
+                                <h4 class="section-title mb-0">{{ page.chapter.title|default:"-" }}</h4>
                             </div>
-
-                            <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
-                                class="btn btn-primary app-card-btn">
-                                Open FIM Page
-                            </a>
-                        </div>
-
-                        <p class="small mb-2 mt-2">
-                            {{ page.chapter.title|default:"-" }}
-                        </p>
-
-                        <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:page.viewer_query }}
-                        </div>
-
-                        <div class="candidate-pager">
-                            {% if fim_page_data.has_previous %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.previous_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                    Previous
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Previous
-                                </button>
-                            {% endif %}
-
-                            <span class="badge bg-primary">
+                            <span class="badge manual-badge manual-tone manual-tone-fim">
                                 Match {{ fim_page_data.current }} / {{ fim_page_data.total }}
                             </span>
+                        </div>
 
-                            {% if fim_page_data.has_next %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.next_page }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                    Next
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Next
-                                </button>
-                            {% endif %}
+                        <div class="manual-group-info">
+                            <div><span>Chapter</span><strong>{{ page.chapter.task }}</strong></div>
+                            <div><span>Page</span><strong>{{ page.page_number }}</strong></div>
+                            <div><span>Score</span><strong>{{ page.recommend_score }}</strong></div>
+                        </div>
+
+                        <div class="common-result-snippet">
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
                     </div>
-                </div>
+
+                    <div class="manual-group-actions">
+                        <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
+                            class="btn manual-open-btn manual-tone manual-tone-fim app-card-btn">
+                            Open Page <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </article>
             </div>
         {% endif %}
     {% endwith %}
 
     {% with page=amm_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item %}show active{% endif %}"
+            <div class="manual-result-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item %}show active{% endif %}"
                 id="dispatch-pane-amm"
                 role="tabpanel"
                 aria-labelledby="dispatch-tab-amm"
                 tabindex="0">
-                <h4 class="section-title mb-3">AMM Candidates</h4>
-
-                <div class="card portal-card candidate-card candidate-amm shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="candidate-top">
+                <article class="manual-result-card">
+                    <div class="manual-result-card-main">
+                        <div class="manual-group-header">
                             <div>
-                                <strong>{{ page.chapter.task }} / Page {{ page.page_number }}</strong>
-                                <div class="text-muted small">Score: {{ page.recommend_score }}</div>
+                                <p class="aircraft-maker mb-1">AMM Candidates</p>
+                                <h4 class="section-title mb-0">{{ page.chapter.title|default:"-" }}</h4>
                             </div>
-
-                            <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
-                                class="btn btn-success app-card-btn">
-                                Open AMM Page
-                            </a>
-                        </div>
-
-                        <p class="small mb-2 mt-2">
-                            {{ page.chapter.title|default:"-" }}
-                        </p>
-
-                        <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:page.viewer_query }}
-                        </div>
-
-                        <div class="candidate-pager">
-                            {% if amm_page_data.has_previous %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.previous_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                    Previous
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Previous
-                                </button>
-                            {% endif %}
-
-                            <span class="badge bg-success">
+                            <span class="badge manual-badge manual-tone manual-tone-amm">
                                 Match {{ amm_page_data.current }} / {{ amm_page_data.total }}
                             </span>
+                        </div>
 
-                            {% if amm_page_data.has_next %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.next_page }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.current }}">
-                                    Next
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Next
-                                </button>
-                            {% endif %}
+                        <div class="manual-group-info">
+                            <div><span>Chapter</span><strong>{{ page.chapter.task }}</strong></div>
+                            <div><span>Page</span><strong>{{ page.page_number }}</strong></div>
+                            <div><span>Score</span><strong>{{ page.recommend_score }}</strong></div>
+                        </div>
+
+                        <div class="common-result-snippet">
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
                     </div>
-                </div>
+
+                    <div class="manual-group-actions">
+                        <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
+                            class="btn manual-open-btn manual-tone manual-tone-amm app-card-btn">
+                            Open Page <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </article>
             </div>
         {% endif %}
     {% endwith %}
 
     {% with page=ipc_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}show active{% endif %}"
+            <div class="manual-result-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item %}show active{% endif %}"
                 id="dispatch-pane-ipc"
                 role="tabpanel"
                 aria-labelledby="dispatch-tab-ipc"
                 tabindex="0">
-                <h4 class="section-title mb-3">IPC Candidates</h4>
-
-                <div class="card portal-card candidate-card candidate-ipc shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="candidate-top">
+                <article class="manual-result-card">
+                    <div class="manual-result-card-main">
+                        <div class="manual-group-header">
                             <div>
-                                <strong>{{ page.chapter.task }} / Page {{ page.page_number }}</strong>
-                                <div class="text-muted small">Score: {{ page.recommend_score }}</div>
+                                <p class="aircraft-maker mb-1">IPC Candidates</p>
+                                <h4 class="section-title mb-0">{{ page.chapter.title|default:"-" }}</h4>
                             </div>
-
-                            <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
-                                class="btn btn-outline-info app-card-btn">
-                                Open IPC Page
-                            </a>
-                        </div>
-
-                        <p class="small mb-2 mt-2">
-                            {{ page.chapter.title|default:"-" }}
-                        </p>
-
-                        <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:page.viewer_query }}
-                        </div>
-
-                        <div class="candidate-pager">
-                            {% if ipc_page_data.has_previous %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.previous_page }}&cdl_page={{ cdl_page_data.current }}">
-                                    Previous
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Previous
-                                </button>
-                            {% endif %}
-
-                            <span class="badge bg-info text-dark">
+                            <span class="badge manual-badge manual-tone manual-tone-ipc">
                                 Match {{ ipc_page_data.current }} / {{ ipc_page_data.total }}
                             </span>
+                        </div>
 
-                            {% if ipc_page_data.has_next %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.next_page }}&cdl_page={{ cdl_page_data.current }}">
-                                    Next
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Next
-                                </button>
-                            {% endif %}
+                        <div class="manual-group-info">
+                            <div><span>Chapter</span><strong>{{ page.chapter.task }}</strong></div>
+                            <div><span>Page</span><strong>{{ page.page_number }}</strong></div>
+                            <div><span>Score</span><strong>{{ page.recommend_score }}</strong></div>
+                        </div>
+
+                        <div class="common-result-snippet">
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
                     </div>
-                </div>
+
+                    <div class="manual-group-actions">
+                        <a href="{% url 'manual_chapter_list' page.chapter.package.pk %}?q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&chapter={{ page.chapter.pk }}&page={{ page.page_number }}"
+                            class="btn manual-open-btn manual-tone manual-tone-ipc app-card-btn">
+                            Open Page <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </article>
             </div>
         {% endif %}
     {% endwith %}
 
     {% with page=cdl_page_data.item %}
         {% if page %}
-            <div class="col-12 col-lg-6 dispatch-candidate-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}show active{% endif %}"
+            <div class="manual-result-pane tab-pane fade {% if not mel_page_data.item and not fim_page_data.item and not amm_page_data.item and not ipc_page_data.item %}show active{% endif %}"
                 id="dispatch-pane-cdl"
                 role="tabpanel"
                 aria-labelledby="dispatch-tab-cdl"
                 tabindex="0">
-                <h4 class="section-title mb-3">CDL Candidates</h4>
-
-                <div class="card portal-card candidate-card candidate-cdl shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="candidate-top">
+                <article class="manual-result-card">
+                    <div class="manual-result-card-main">
+                        <div class="manual-group-header">
                             <div>
-                                <strong>CDL / Page {{ page.page_number }}</strong>
-                                <div class="text-muted small">Score: {{ page.recommend_score }}</div>
-
-                                {% if page.manual_file.description %}
-                                    <div class="text-muted small">{{ page.manual_file.description }}</div>
-                                {% endif %}
+                                <p class="aircraft-maker mb-1">CDL Candidates</p>
+                                <h4 class="section-title mb-0">
+                                    {{ page.manual_file.title|default:page.manual_file.description|default:"CDL PDF" }}
+                                </h4>
                             </div>
-
-                            <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
-                                class="btn btn-outline-warning app-card-btn">
-                                Open CDL Page
-                            </a>
-                        </div>
-
-                        <p class="small mb-2 mt-2">
-                            {{ page.manual_file.title|default:page.manual_file.description|default:"CDL PDF" }}
-                        </p>
-
-                        <div class="candidate-snippet">
-                            {{ page.snippet|highlight_query:page.viewer_query }}
-                        </div>
-
-                        <div class="candidate-pager">
-                            {% if cdl_page_data.has_previous %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.previous_page }}">
-                                    Previous
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Previous
-                                </button>
-                            {% endif %}
-
-                            <span class="badge bg-warning text-dark">
+                            <span class="badge manual-badge manual-tone manual-tone-cdl">
                                 Match {{ cdl_page_data.current }} / {{ cdl_page_data.total }}
                             </span>
+                        </div>
 
-                            {% if cdl_page_data.has_next %}
-                                <a class="btn btn-outline-secondary app-card-btn"
-                                    href="?aircraft={{ selected_aircraft }}&q={{ query|urlencode }}&search_type={{ search_type }}&mel_page={{ mel_page_data.current }}&fim_page={{ fim_page_data.current }}&amm_page={{ amm_page_data.current }}&ipc_page={{ ipc_page_data.current }}&cdl_page={{ cdl_page_data.next_page }}">
-                                    Next
-                                </a>
-                            {% else %}
-                                <button class="btn btn-outline-secondary app-card-btn" disabled>
-                                    Next
-                                </button>
-                            {% endif %}
+                        <div class="manual-group-info">
+                            <div><span>Page</span><strong>{{ page.page_number }}</strong></div>
+                            <div><span>Score</span><strong>{{ page.recommend_score }}</strong></div>
+                            <div><span>Manual</span><strong>{{ page.manual_file.description|default:"-" }}</strong></div>
+                        </div>
+
+                        <div class="common-result-snippet">
+                            {{ page.snippet|highlight_query:page.viewer_query }}
                         </div>
                     </div>
-                </div>
+
+                    <div class="manual-group-actions">
+                        <a href="{% url 'manual_file_pdf_viewer' page.manual_file.pk %}?page={{ page.page_number }}&q={{ page.viewer_query|default:manual_pdf_query|urlencode }}&from_search_page=1&back={{ request.get_full_path|urlencode }}"
+                            class="btn manual-open-btn manual-tone manual-tone-cdl app-card-btn">
+                            Open Page <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </article>
             </div>
         {% endif %}
     {% endwith %}
@@ -770,4 +686,6 @@ dispatch-search-page
 </div>
 {% endif %}
 
+    </section>
+</div>
 {% endblock inner_content %}

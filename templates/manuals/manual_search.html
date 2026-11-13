@@ -3,7 +3,7 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261112-c4">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c5">
 {% endblock css %}
 
 {% block js %}
@@ -51,7 +51,7 @@ manual-search-page
                 <i class="bi bi-search"></i>
             </span>
             <div class="manual-search-primary-field">
-                <label for="manual-search-query">Search indexed manuals</label>
+                <label for="manual-search-query">검색어 입력</label>
                 <input type="text"
                     id="manual-search-query"
                     name="q"
@@ -151,7 +151,7 @@ manual-search-page
             <div class="result-tabs manual-result-tabs">
                 <div class="nav nav-pills result-tab-scroll" role="tablist">
                     {% for group in result_groups %}
-                        <button class="nav-link{% if forloop.first %} active{% endif %}"
+                        <button class="nav-link manual-tone manual-tone-{{ group.manual_type|slugify }}{% if forloop.first %} active{% endif %}"
                             id="manual-tab-{{ forloop.counter }}"
                             data-bs-toggle="pill"
                             data-bs-target="#manual-pane-{{ forloop.counter }}"
@@ -181,7 +181,7 @@ manual-search-page
                                     <p class="aircraft-maker mb-1">{{ group.eyebrow }}</p>
                                     <h4 class="section-title mb-0">{{ group.title }}</h4>
                                 </div>
-                                <span class="badge {{ group.badge_class }} manual-badge">
+                                <span class="badge manual-badge manual-tone manual-tone-{{ group.manual_type|slugify }}">
                                     {{ group.match_count }} pages
                                 </span>
                             </div>
@@ -202,8 +202,8 @@ manual-search-page
                         </div>
                         <div class="manual-group-actions">
                             <a href="{{ group.viewer_url }}"
-                                class="btn {{ group.button_class }} app-card-btn">
-                                Open Viewer <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                                class="btn manual-open-btn manual-tone manual-tone-{{ group.manual_type|slugify }} app-card-btn">
+                                Open Page <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
                             </a>
                         </div>
                     </article>

@@ -231,9 +231,9 @@ body:not(.pdf-viewer-page):not(.login-page) .app-sidebar-content > .app-containe
     white-space: nowrap;
 }
 
-.app-navbar-page-content .page-title-short {
+/* .app-navbar-page-content .page-title-short {
     display: none;
-}
+} */
 
 .app-navbar-page-content .page-subtitle {
     margin: 0.125rem 0 0 !important;
@@ -368,9 +368,7 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     }
 
     .app-navbar-shared-revision {
-        min-height: var(--navbar-control-height);
-        padding-inline: 0.4rem;
-        font-size: var(--navbar-text-size);
+        display: none !important;
     }
 
     .app-navbar-shared-revision span,
@@ -404,21 +402,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
     .app-navbar-page-content .page-eyebrow,
     .app-navbar-page-content .page-subtitle {
         display: none;
-    }
-
-    .app-navbar-page-content .app-navbar-title:has(.page-title-short) .page-title {
-        display: none;
-    }
-
-    .app-navbar-page-content .page-title-short {
-        display: block;
-        margin: 0 !important;
-        overflow: hidden;
-        color: #f8fafc;
-        font-size: var(--navbar-title-size);
-        line-height: 1.15;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .app-navbar-page-content .page-actions {
@@ -643,13 +626,15 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         line-height: 1;
     }
 
-    body.other-manual-detail-page .portal-detail-eyebrow {
+    body.other-manual-detail-page .portal-detail-eyebrow,
+    body.common-manual-detail-page .portal-detail-eyebrow {
         font-size: 0.7rem;
         line-height: 1.15;
         letter-spacing: 0.055em;
     }
 
-    body.other-manual-detail-page .portal-card h5.portal-detail-title {
+    body.other-manual-detail-page .portal-card h5.portal-detail-title,
+    body.common-manual-detail-page .portal-card h5.portal-detail-title {
         overflow-wrap: anywhere;
         font-size: 0.85rem;
         line-height: 1.25;
@@ -657,12 +642,14 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
 
     body.other-manual-detail-page .revision-info,
     body.other-manual-detail-page .manual-uploaded,
-    body.other-manual-detail-page .portal-detail-card > .card-body > p.small {
+    body.other-manual-detail-page .portal-detail-card > .card-body > p.small,
+    body.common-manual-detail-page .portal-detail-card > .card-body > p.small {
         font-size: 0.75rem;
         line-height: 1.35;
     }
 
-    body.other-manual-detail-page .manual-badge {
+    body.other-manual-detail-page .manual-badge,
+    body.common-manual-detail-page .manual-badge {
         padding: 0.18rem 0.35rem;
         font-size: 0.7rem !important;
     }
@@ -671,7 +658,8 @@ body:not(.pdf-viewer-page):not(.login-page) .app-main > .app-container > :last-c
         font-size: 1.2rem;
     }
 
-    body.other-manual-detail-page .portal-detail-card .app-card-btn.mobile-show-btn {
+    body.other-manual-detail-page .portal-detail-card .app-card-btn.mobile-show-btn,
+    body.common-manual-detail-page .portal-detail-card .app-card-btn.mobile-show-btn {
         min-height: 2.25rem;
         padding: 0.35rem 0.55rem;
         font-size: 0.78rem;

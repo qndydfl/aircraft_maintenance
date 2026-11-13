@@ -168,7 +168,6 @@ const viewerSearchPrevBtn = document.getElementById("viewer-search-prev");
 const viewerSearchNextBtn = document.getElementById("viewer-search-next");
 const viewerSearchCount = document.getElementById("viewer-search-count");
 const viewerBackLink = document.getElementById("viewer-back-link");
-const viewerExitBtn = document.getElementById("viewer-exit-btn");
 const viewerMatchLinks = document.querySelectorAll("[data-viewer-match-link]");
 const serverMatchCount = document.getElementById("server-match-count");
 
@@ -474,26 +473,6 @@ if (viewerBackLink) {
         }
 
         window.location.href = fallbackUrl || "/";
-    });
-}
-
-if (viewerExitBtn) {
-    const fallbackUrl = viewerExitBtn.dataset.fallbackUrl || "/";
-
-    viewerExitBtn.addEventListener("click", function () {
-        const globalLoading = document.getElementById("global-loading");
-
-        if (globalLoading) {
-            globalLoading.classList.add("d-none");
-        }
-
-        window.close();
-
-        window.setTimeout(function () {
-            if (!window.closed) {
-                window.location.href = fallbackUrl || "/";
-            }
-        }, 150);
     });
 }
 
@@ -1923,15 +1902,12 @@ function applyOutlineState() {
 applyOutlineState();
 applyFocusMode(isFocusMode, { skipRender: true });
 
-toggleOutlineBtn.addEventListener("click", function () {
+function setOutlineHidden(isHidden) {
     if (isFocusMode) {
         applyFocusMode(false, { skipRender: true });
     }
 
-    manualPdfLayout.classList.toggle("outline-hidden");
-
-    const isHidden = manualPdfLayout.classList.contains("outline-hidden");
-
+    manualPdfLayout.classList.toggle("outline-hidden", isHidden);
     sessionStorage.setItem(outlineStorageKey, isHidden ? "true" : "false");
 
     setTimeout(function () {
@@ -1943,7 +1919,55 @@ toggleOutlineBtn.addEventListener("click", function () {
             queueRenderPage(currentPage);
         }
     }, 180);
+}
+
+toggleOutlineBtn.addEventListener("click", function () {
+    setOutlineHidden(!manualPdfLayout.classList.contains("outline-hidden"));
 });
+
+(function initMobilePaneTabs() {
+    const tabButtons = document.querySelectorAll("[data-viewer-pane-button]");
+
+    if (!tabButtons.length) {
+        return;
+    }
+
+    const viewerPage = document.querySelector(".viewer-page");
+
+    function syncTabs() {
+        const pane = manualPdfLayout.classList.contains("outline-hidden")
+            ? "viewer"
+            : "contents";
+
+        if (viewerPage) {
+            viewerPage.classList.toggle("is-contents-pane", pane === "contents");
+        }
+
+        tabButtons.forEach(function (button) {
+            const isActive = button.dataset.viewerPaneButton === pane;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+    }
+
+    tabButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const wantsViewer = button.dataset.viewerPaneButton === "viewer";
+
+            if (
+                wantsViewer !== manualPdfLayout.classList.contains("outline-hidden")
+            ) {
+                setOutlineHidden(wantsViewer);
+            }
+        });
+    });
+
+    new MutationObserver(syncTabs).observe(manualPdfLayout, {
+        attributes: true,
+        attributeFilter: ["class"],
+    });
+    syncTabs();
+})();
 
 const outlineCollapseBtn = document.getElementById("outline-collapse-toggle");
 

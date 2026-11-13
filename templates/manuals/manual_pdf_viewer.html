@@ -4,7 +4,7 @@
 {% block css %}
 <link
     rel="stylesheet"
-    href="{% static 'css/manual_pdf_viewer.css' %}?v=20261112-c15"
+    href="{% static 'css/manual_pdf_viewer.css' %}?v=20261113-c19"
 />
 {% endblock css %} 
 {% block js %}
@@ -65,7 +65,7 @@
 
 <script
     defer
-    src="{% static 'js/manual_pdf_viewer.js' %}?v=20261112-ws8"
+    src="{% static 'js/manual_pdf_viewer.js' %}?v=20261113-ws11"
 ></script>
 {% endblock js %} 
 {% block nav %} {% endblock nav %} 
@@ -74,6 +74,34 @@
 <div
     class="viewer-page{% if viewer_type != 'chapter' and not embedded %} viewer-workspace{% endif %}{% if from_search_page %} viewer-from-search-page{% endif %}{% if query %} viewer-has-query{% endif %}"
 >
+    {% if not embedded %}
+    <div
+        class="viewer-mobile-tabs"
+        role="tablist"
+        aria-label="PDF viewer"
+    >
+        <button
+            type="button"
+            class="viewer-mobile-tab"
+            role="tab"
+            aria-selected="false"
+            data-viewer-pane-button="contents"
+        >
+            <i class="bi bi-list-ul" aria-hidden="true"></i>
+            <span>Contents</span>
+        </button>
+        <button
+            type="button"
+            class="viewer-mobile-tab is-active"
+            role="tab"
+            aria-selected="true"
+            data-viewer-pane-button="viewer"
+        >
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+            <span>Viewer</span>
+        </button>
+    </div>
+    {% endif %}
     <div class="viewer-commandbar">
         <div class="viewer-commandbar-left">
             {% if show_app_sidebar %}
@@ -266,15 +294,6 @@
                 >
                     Original
                 </a>
-
-                <button
-                    id="viewer-exit-btn"
-                    type="button"
-                    class="btn btn-outline-danger viewer-action-btn{% if embedded %} d-none{% endif %}"
-                    data-fallback-url="{{ back_url }}"
-                >
-                    Exit
-                </button>
             </div>
         </div>
     </div>
@@ -289,7 +308,7 @@
         </button>
 
         <aside id="outline-panel" class="outline-panel">
-            {% if viewer_type != 'chapter' and not embedded %}
+            {% if not embedded %}
             <div class="viewer-panel-header">
                 <div class="viewer-panel-heading">
                     <span class="viewer-panel-title">{{ viewer_title }}</span>
@@ -298,6 +317,8 @@
                     {% endif %}
                 </div>
             </div>
+            {% endif %}
+            {% if viewer_type != 'chapter' and not embedded %}
             <div id="viewer-search-results" class="viewer-search-results" hidden></div>
             {% endif %}
             <div class="outline-title">PDF Contents</div>

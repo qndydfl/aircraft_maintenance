@@ -723,6 +723,59 @@ body.manual-search-page .manual-filter-section > .form-label {
     background: rgba(255, 255, 255, 0.22);
 }
 
+/* Per-manual colors shared by result tabs, badges and the Open Page button. */
+
+.manual-tone {
+    --tone: #0d6efd;
+    --tone-soft: #eff6ff;
+    --tone-contrast: #ffffff;
+}
+
+.manual-tone.manual-tone-mel { --tone: #dc3545; --tone-soft: #fff1f2; }
+.manual-tone.manual-tone-fim { --tone: #0d6efd; --tone-soft: #eff6ff; }
+.manual-tone.manual-tone-amm { --tone: #198754; --tone-soft: #f0fdf4; }
+.manual-tone.manual-tone-ipc { --tone: #0dcaf0; --tone-soft: #ecfeff; --tone-contrast: #111827; }
+.manual-tone.manual-tone-cdl { --tone: #ffc107; --tone-soft: #fffbeb; --tone-contrast: #111827; }
+.manual-tone.manual-tone-wdm { --tone: #6f42c1; --tone-soft: #f5f3ff; }
+.manual-tone.manual-tone-ssm { --tone: #0f766e; --tone-soft: #f0fdfa; }
+.manual-tone.manual-tone-common { --tone: #475569; --tone-soft: #f1f5f9; }
+
+.manual-result-tabs .nav-link.manual-tone {
+    color: var(--tone);
+    background: var(--tone-soft);
+    border: 1px solid var(--tone);
+}
+
+.manual-result-tabs .nav-link.manual-tone.active {
+    color: var(--tone-contrast);
+    background: var(--tone);
+    box-shadow: 0 0.5rem 1rem rgba(15, 23, 42, 0.14);
+}
+
+.manual-result-tabs .nav-link.manual-tone.active span {
+    color: var(--tone);
+    background: #ffffff;
+}
+
+.manual-badge.manual-tone {
+    color: var(--tone-contrast);
+    background: var(--tone);
+}
+
+.manual-open-btn.manual-tone {
+    color: var(--tone-contrast);
+    background: var(--tone);
+    border-color: var(--tone);
+}
+
+.manual-open-btn.manual-tone:hover,
+.manual-open-btn.manual-tone:focus-visible {
+    color: var(--tone-contrast);
+    background: var(--tone);
+    border-color: var(--tone);
+    filter: brightness(0.92);
+}
+
 .manual-result-card {
     min-width: 0;
     display: grid;
