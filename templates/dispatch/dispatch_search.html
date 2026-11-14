@@ -7,8 +7,8 @@ dispatch-search-page manual-search-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c5">
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=20261113-c5">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c6">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=20261113-c6">
 {% endblock css %}
 
 {% block js %}
@@ -100,8 +100,7 @@ dispatch-search-page manual-search-page
             aria-label="Dispatch search filters">
             <div class="manual-filter-heading">
                 <div>
-                    <span class="manual-filter-eyebrow">Refine results</span>
-                    <h3>Filters</h3>
+                    <span class="manual-filter-eyebrow">검색 필터</span>
                 </div>
                 <a href="{% url 'dispatch_search' %}" class="manual-filter-reset">Reset</a>
             </div>
@@ -117,8 +116,8 @@ dispatch-search-page manual-search-page
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary manual-filter-apply">
-                Apply Filters
+            <button type="submit" class="manual-filter-apply">
+                <span>검색 적용</span>
             </button>
         </aside>
     </form>
@@ -127,7 +126,7 @@ dispatch-search-page manual-search-page
 
 {% if query %}
     <header class="manual-results-heading">
-        <span class="manual-results-eyebrow">Search results</span>
+        <span class="manual-results-eyebrow">검색 결과</span>
     </header>
 
     <div class="manual-active-filters" aria-label="Active search filters">
@@ -148,7 +147,7 @@ dispatch-search-page manual-search-page
 {% else %}
     <div class="manual-search-empty-state manual-search-start-state">
         <i class="bi bi-journal-text" aria-hidden="true"></i>
-        <strong>Search dispatch references</strong>
+        <strong>메뉴얼 또는 기술 문서 검색</strong>
         <span>검색어를 입력하고 Aircraft 또는 Search Type 필터를 선택하세요.</span>
     </div>
 {% endif %}

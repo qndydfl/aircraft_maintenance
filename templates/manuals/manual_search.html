@@ -3,7 +3,7 @@
 {% load manual_extras %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c5">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c6">
 {% endblock css %}
 
 {% block js %}
@@ -81,8 +81,7 @@ manual-search-page
             aria-label="Manual search filters">
             <div class="manual-filter-heading">
                 <div>
-                    <span class="manual-filter-eyebrow">Refine results</span>
-                    <h3>Filters</h3>
+                    <span class="manual-filter-eyebrow">검색 필터</span>
                 </div>
                 <a href="{% url 'manual_search' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
                     class="manual-filter-reset">Reset</a>
@@ -115,8 +114,8 @@ manual-search-page
                 </div>
             </fieldset>
 
-            <button type="submit" class="btn btn-primary manual-filter-apply">
-                Apply Filters
+            <button type="submit" class="manual-filter-apply">
+                <span>검색 적용</span>
             </button>
         </aside>
     </form>
@@ -125,7 +124,7 @@ manual-search-page
         {% if query %}
             <header class="manual-results-heading">
                 <div>
-                    <span class="manual-results-eyebrow">Search results</span>
+                    <span class="manual-results-eyebrow">검색 결과</span>
                 </div>
             </header>
 
@@ -219,7 +218,7 @@ manual-search-page
         {% else %}
             <div class="manual-search-empty-state manual-search-start-state">
                 <i class="bi bi-journal-text" aria-hidden="true"></i>
-                <strong>Search technical publications</strong>
+                <strong>메뉴얼 또는 기술 문서 검색</strong>
                 <span>검색어를 입력하고 Aircraft 또는 Manual Type 필터를 선택하세요.</span>
             </div>
         {% endif %}
