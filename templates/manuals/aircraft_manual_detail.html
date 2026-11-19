@@ -310,6 +310,18 @@
         </div>
     </div>
 
+    {% empty %}
+    <div class="col-12">
+        <div class="card portal-card portal-detail-card shadow-sm">
+            <div class="card-body text-center py-5">
+                <p class="portal-detail-eyebrow mb-2">MANUALS</p>
+                <h5 class="portal-detail-title mb-2">등록된 매뉴얼이 없습니다.</h5>
+                {% if user.is_superuser %}
+                <p class="text-muted mb-0">상단의 Add PDF 또는 Upload ZIP으로 매뉴얼을 등록해 주세요.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
     {% endfor %}
 </div>
 

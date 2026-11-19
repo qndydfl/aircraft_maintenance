@@ -244,7 +244,7 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "Recent Updates")
         self.assertContains(response, "2026-10-27")
         self.assertNotContains(response, "27 OCT 2026")
-        self.assertContains(response, "portal_home.css?v=20261119-c23")
+        self.assertContains(response, "portal_home.css?v=20261119-c24")
         self.assertContains(response, "B737")
         self.assertContains(response, "AMM")
         self.assertContains(response, "Aircraft Maintenance Workspace")
@@ -381,12 +381,10 @@ class OtherManualFolderUploadTests(TestCase):
         detail_response = self.client.get(
             reverse("aircraft_manual_detail", args=[other_aircraft.pk])
         )
-        other_item = next(
-            item
-            for item in detail_response.context["manual_items"]
-            if item["type"] == "OTHER"
-        )
-        self.assertIsNotNone(other_item["folder"])
+        manual_types = [
+            item["type"] for item in detail_response.context["manual_items"]
+        ]
+        self.assertNotIn("OTHER", manual_types)
 
     def test_sidebar_other_manual_lists_overview_and_registered_folders(self):
         OtherManualFolder.objects.create(
@@ -780,7 +778,7 @@ class AircraftManualAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_aircraft_detail_includes_wdm_and_ssm_zip_slots(self):
+    def test_aircraft_detail_hides_manual_types_without_uploaded_files(self):
         aircraft = Aircraft.objects.create(name="B787", maker="BOEING")
         self.client.login(username="tester", password="testpass123")
 
@@ -789,8 +787,32 @@ class AircraftManualAccessTests(TestCase):
         )
 
         manual_types = [item["type"] for item in response.context["manual_items"]]
-        self.assertIn("WDM", manual_types)
-        self.assertIn("SSM", manual_types)
+        self.assertNotIn("WDM", manual_types)
+        self.assertNotIn("SSM", manual_types)
+        self.assertNotIn("CDL", manual_types)
+        self.assertContains(response, "등록된 매뉴얼이 없습니다.")
+
+    def test_aircraft_detail_shows_pdf_manual_after_upload(self):
+        aircraft = Aircraft.objects.create(name="B737", maker="BOEING")
+        ManualFile.objects.create(
+            aircraft=aircraft,
+            manual_type="CDL",
+            file=SimpleUploadedFile(
+                "b737-cdl.pdf",
+                b"%PDF-1.4\n%%EOF",
+                content_type="application/pdf",
+            ),
+        )
+        self.client.login(username="tester", password="testpass123")
+
+        response = self.client.get(
+            reverse("aircraft_manual_detail", kwargs={"pk": aircraft.pk})
+        )
+
+        manual_types = [item["type"] for item in response.context["manual_items"]]
+        self.assertIn("CDL", manual_types)
+        self.assertNotIn("WDM", manual_types)
+        self.assertNotContains(response, "등록된 매뉴얼이 없습니다.")
 
     def test_wdm_and_ssm_are_valid_zip_package_types(self):
         aircraft = Aircraft.objects.create(name="B777", maker="BOEING")
@@ -814,7 +836,7 @@ class AircraftManualAccessTests(TestCase):
 
             self.assertTrue(form.is_valid(), form.errors)
 
-    def test_new_zip_manual_type_is_available_without_code_changes(self):
+    def test_new_zip_manual_type_is_shown_only_after_upload(self):
         aircraft = Aircraft.objects.create(name="B767", maker="BOEING")
         ManualType.objects.create(
             code="SRM",
@@ -829,10 +851,21 @@ class AircraftManualAccessTests(TestCase):
         )
 
         manual_types = [item["type"] for item in response.context["manual_items"]]
-        self.assertIn("SRM", manual_types)
+        self.assertNotIn("SRM", manual_types)
 
         form = ManualPackageForm(instance=ManualPackage(aircraft=aircraft))
         self.assertIn("SRM", dict(form.fields["manual_type"].choices))
+
+        ManualPackage.objects.create(
+            aircraft=aircraft,
+            manual_type="SRM",
+            zip_file="manual_packages/b767-srm.zip",
+        )
+        response = self.client.get(
+            reverse("aircraft_manual_detail", kwargs={"pk": aircraft.pk})
+        )
+        manual_types = [item["type"] for item in response.context["manual_items"]]
+        self.assertIn("SRM", manual_types)
 
 
 class ManualEditingTests(TestCase):

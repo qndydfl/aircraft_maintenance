@@ -413,8 +413,12 @@ def get_manual_library_context():
 
 
 def get_aircraft_manual_items(aircraft):
-    """Build the same manual status list used by the aircraft detail page."""
-    manual_items = aircraft.get_manual_status_list()
+    """Build the uploaded manual list used by the aircraft detail page."""
+    manual_items = [
+        item
+        for item in aircraft.get_manual_status_list()
+        if item.get("available")
+    ]
     manual_items = attach_latest_reindex_jobs(
         manual_items,
         lambda item: item.get("package"),
