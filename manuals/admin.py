@@ -272,3 +272,5 @@ class ReindexJobAdmin(admin.ModelAdmin):
         "started_at",
         "finished_at",
     ]
+
+

@@ -231,10 +231,6 @@ body:not(.pdf-viewer-page):not(.login-page) .app-sidebar-content > .app-containe
     white-space: nowrap;
 }
 
-/* .app-navbar-page-content .page-title-short {
-    display: none;
-} */
-
 .app-navbar-page-content .page-subtitle {
     margin: 0.125rem 0 0 !important;
     overflow: hidden;

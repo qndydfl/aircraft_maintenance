@@ -34,6 +34,7 @@ from .models import (
     OtherManualFolder,
     ReindexJob,
     ManualType,
+    PortalHomeSettings,
 )
 
 
@@ -243,30 +244,49 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "Recent Updates")
         self.assertContains(response, "2026-10-27")
         self.assertNotContains(response, "27 OCT 2026")
-        self.assertContains(response, "portal_home.css?v=20261111-c5")
+        self.assertContains(response, "portal_home.css?v=20261119-c23")
         self.assertContains(response, "B737")
         self.assertContains(response, "AMM")
+        self.assertContains(response, "Aircraft Maintenance Workspace")
+        self.assertContains(response, 'class="home-update-sidebar"')
+        self.assertContains(response, '<article class="home-update-item">')
+        self.assertContains(response, "home-manual-amm")
+        self.assertContains(response, 'class="home-section-search"')
+        self.assertContains(response, 'class="home-aircraft-list"')
+        self.assertContains(response, 'class="home-aircraft-row"')
+        self.assertContains(response, '<div class="home-aircraft-identity">')
+        self.assertNotContains(response, "home-hero-visual-label")
         self.assertContains(response, 'name="q"')
         self.assertContains(
             response,
             reverse("manual_package_open", args=[self.package.pk]),
         )
-        self.assertEqual(response.context["aircraft_count"], 1)
-        self.assertEqual(response.context["manual_count"], 1)
-        self.assertEqual(response.context["indexed_page_count"], 1)
+        self.assertEqual(response.context["hero_image_url"], "")
+        self.assertNotIn("image_url", response.context["dashboard_aircrafts"][0])
+        rendered_html = response.content.decode()
+        self.assertNotRegex(
+            rendered_html,
+            r'<a\b[^>]*class="home-aircraft-identity"',
+        )
+        self.assertLess(
+            rendered_html.index('class="home-section-search"'),
+            rendered_html.index('class="home-aircraft-section"'),
+        )
 
-    def test_portal_status_cards_only_visible_to_administrators(self):
-        regular_response = self.client.get(reverse("home"))
+    def test_portal_home_does_not_render_legacy_hero_image(self):
+        self.aircraft.image = "aircraft_images/b737.jpg"
+        self.aircraft.save(update_fields=["image"])
+        settings = PortalHomeSettings.objects.create(
+            hero_image="portal_home/maintenance-hero.jpg"
+        )
 
-        self.assertNotContains(regular_response, 'aria-label="Portal status"')
+        response = self.client.get(reverse("home"))
 
-        self.user.is_superuser = True
-        self.user.save(update_fields=["is_superuser"])
-        administrator_response = self.client.get(reverse("home"))
-
-        self.assertContains(administrator_response, 'aria-label="Portal status"')
-        self.assertContains(administrator_response, "Indexed pages")
-        self.assertContains(administrator_response, "System status")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["hero_image_url"], settings.hero_image.url)
+        self.assertNotContains(response, settings.hero_image.url)
+        self.assertNotContains(response, self.aircraft.image.url)
+        self.assertNotContains(response, "home-aircraft-media")
 
     def test_sidebar_expands_and_marks_current_package_from_home_flow(self):
         response = self.client.get(
@@ -1017,7 +1037,7 @@ class CalculatorClockLayoutTests(TestCase):
         home_response = self.client.get(reverse("home"))
 
         self.assertContains(calculator_response, 'id="app-sidebar"')
-        self.assertContains(calculator_response, "sidebar_layout.css?v=16")
+        self.assertContains(calculator_response, "sidebar_layout.css?v=17")
         self.assertContains(calculator_response, "Manual Library")
         self.assertContains(calculator_response, "Dispatch")
         self.assertContains(calculator_response, "app-navbar-shared-revision")
@@ -1038,7 +1058,7 @@ class CalculatorClockLayoutTests(TestCase):
             calculator_html.index('class="app-navbar-ending'),
         )
         self.assertContains(home_response, 'id="app-sidebar"')
-        self.assertContains(home_response, "sidebar_layout.css?v=16")
+        self.assertContains(home_response, "sidebar_layout.css?v=17")
         self.assertContains(home_response, "app-navbar-shared-revision")
         self.assertContains(home_response, "app-navbar-session-user")
         self.assertContains(home_response, "app-navbar-session-logout")
@@ -1167,7 +1187,7 @@ class ManualSearchContentPageTests(TestCase):
         self.assertContains(response, 'class="manual-search-primary-aircraft"')
         self.assertContains(response, 'class="manual-search-filter-panel')
         self.assertContains(response, 'class="manual-search-results"')
-        self.assertContains(response, "manual_search.css?v=20261113-c5")
+        self.assertContains(response, "manual_search.css?v=20261113-c6")
         self.assertContains(response, "manual_search.js?v=4")
 
     def test_manual_search_accepts_multiple_manual_types(self):

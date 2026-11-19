@@ -1,4 +1,4 @@
-const CACHE_NAME = "manual-portal-static-v183";
+const CACHE_NAME = "manual-portal-static-v193";
 
 const STATIC_ASSETS = [
     "/static/manifest.webmanifest",
@@ -6,6 +6,7 @@ const STATIC_ASSETS = [
     "/static/icons/app-icon-192.png",
     "/static/icons/app-icon-512.png",
     "/static/icons/apple-touch-icon.png",
+    "/static/icons/maintenance-aircraft.svg",
     "/static/css/base.css",
     "/static/css/calculator.css",
     "/static/css/delete.css",

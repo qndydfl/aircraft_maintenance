@@ -32,6 +32,7 @@ from .models import (
     OtherManualPDFPage,
     ReindexJob,
     ManualType,
+    PortalHomeSettings,
     normalize_other_manual_folder_path,
     other_manual_folder_path_exists,
 )
@@ -433,6 +434,24 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
 
     template_name = "portal_home.html"
 
+    MANUAL_PRESENTATION = {
+        "AMM": ("amm", "bi-tools"),
+        "FIM": ("fim", "bi-activity"),
+        "IPC": ("ipc", "bi-box-seam"),
+        "MEL": ("mel", "bi-exclamation-triangle-fill"),
+        "CDL": ("cdl", "bi-airplane"),
+        "WDM": ("wdm", "bi-diagram-3-fill"),
+        "SSM": ("ssm", "bi-bezier2"),
+        "OTHER": ("other", "bi-folder2-open"),
+    }
+
+    @classmethod
+    def manual_presentation(cls, manual_type):
+        return cls.MANUAL_PRESENTATION.get(
+            (manual_type or "").strip().upper(),
+            ("other", "bi-journal-text"),
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         aircrafts = list(
@@ -448,23 +467,30 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
             manual_links = {}
 
             for package in aircraft.manual_packages.all():
+                style_key, icon = self.manual_presentation(package.manual_type)
                 manual_links[package.manual_type] = {
                     "label": package.manual_type,
                     "mode": "ZIP",
                     "url": reverse("manual_package_open", args=[package.pk]),
+                    "style_key": style_key,
+                    "icon": icon,
                 }
 
             for manual_file in aircraft.manuals.all():
+                style_key, icon = self.manual_presentation(manual_file.manual_type)
                 manual_links.setdefault(
                     manual_file.manual_type,
                     {
                         "label": manual_file.manual_type,
                         "mode": "PDF",
                         "url": reverse("manual_file_pdf_viewer", args=[manual_file.pk]),
+                        "style_key": style_key,
+                        "icon": icon,
                     },
                 )
 
             for category in aircraft.other_categories.all():
+                style_key, icon = self.manual_presentation(category.manual_type)
                 manual_links.setdefault(
                     category.manual_type,
                     {
@@ -474,20 +500,26 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
                             "other_manual_category_detail",
                             args=[category.pk],
                         ),
+                        "style_key": style_key,
+                        "icon": icon,
                     },
                 )
 
+            manuals = sorted(
+                manual_links.values(),
+                key=lambda item: item["label"],
+            )
             dashboard_aircrafts.append(
                 {
                     "name": aircraft.name,
                     "maker": aircraft.get_maker_display(),
                     "url": reverse("aircraft_manual_detail", args=[aircraft.pk]),
-                    "manuals": sorted(
-                        manual_links.values(),
-                        key=lambda item: item["label"],
-                    ),
+                    "manuals": manuals,
+                    "manual_count": len(manuals),
                 }
             )
+
+        home_settings = PortalHomeSettings.objects.first()
 
         recent_updates = []
         recent_packages = ManualPackage.objects.select_related("aircraft").order_by(
@@ -575,37 +607,17 @@ class PortalHomeView(LoginRequiredMixin, TemplateView):
                 update["uploaded_at"],
             )
 
-        active_jobs = ReindexJob.objects.filter(
-            status__in=[ReindexJob.STATUS_QUEUED, ReindexJob.STATUS_PROCESSING]
-        ).count()
-        failed_jobs = ReindexJob.objects.filter(
-            status=ReindexJob.STATUS_FAILED
-        ).count()
-        indexed_page_count = (
-            ManualPDFPage.objects.count()
-            + ManualFilePDFPage.objects.count()
-            + CommonManualPDFPage.objects.count()
-            + OtherManualPDFPage.objects.count()
-        )
-
         context.update(
             {
                 "dashboard_aircrafts": dashboard_aircrafts,
+                "hero_image_url": (
+                    home_settings.hero_image_url if home_settings else ""
+                ),
                 "recent_updates": sorted(
                     recent_updates,
                     key=lambda item: item["uploaded_at"],
                     reverse=True,
                 )[:6],
-                "aircraft_count": len(aircrafts),
-                "manual_count": (
-                    ManualPackage.objects.count()
-                    + ManualFile.objects.count()
-                    + CommonManualFile.objects.count()
-                    + OtherManualFile.objects.count()
-                ),
-                "indexed_page_count": indexed_page_count,
-                "active_index_jobs": active_jobs,
-                "failed_index_jobs": failed_jobs,
             }
         )
         return context

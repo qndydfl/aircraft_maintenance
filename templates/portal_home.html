@@ -5,7 +5,7 @@
 {% block body_class %}portal-home-page{% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261112-c6" />
+<link rel="stylesheet" href="{% static 'css/portal_home.css' %}?v=20261119-c23" />
 {% endblock css %}
 
 {% block js %}
@@ -23,176 +23,110 @@
 
 {% block inner_content %}
 <section class="home-dashboard" aria-labelledby="home-dashboard-title">
-    <header class="home-welcome-card">
-        <div class="home-welcome-copy">
-            <span class="home-welcome-eyebrow">
-                <span class="home-status-dot" aria-hidden="true"></span>
-                Aircraft Maintenance Portal
-            </span>
-            <h1 id="home-dashboard-title">Welcome back, <span class="home-welcome-user">{{ user.username }}</span></h1>
-            <p>기술 문서를 검색하고, 항공기 매뉴얼을 열어 최신 개정 정보를 확인하세요.</p>
+    <header class="home-dashboard-banner">
+        <div class="home-dashboard-banner-copy">
+            <span class="home-dashboard-banner-eyebrow">Aircraft Maintenance Workspace</span>
+            <h1 id="home-dashboard-title">정비 문서 대시 보드</h1>
         </div>
 
-        <div class="home-clock-grid" aria-label="Current time">
-            <article class="home-clock-card">
-                <span>UTC</span>
-                <strong data-home-clock="utc">--:--</strong>
-                <small data-home-date="utc">---</small>
-            </article>
-            <article class="home-clock-card home-clock-card-kst">
-                <span>KOREA</span>
-                <strong data-home-clock="kst">--:--</strong>
-                <small data-home-date="kst">---</small>
-            </article>
+        <div class="home-hero-clocks" aria-label="Current time">
+            <article><span>UTC</span><strong data-home-clock="utc">--:--</strong><small data-home-date="utc">---</small></article>
+            <article><span>KOREA</span><strong data-home-clock="kst">--:--</strong><small data-home-date="kst">---</small></article>
         </div>
     </header>
 
-    <form method="get" action="{% url 'manual_search' %}" class="home-search-card" role="search">
-        <div class="home-search-icon" aria-hidden="true"><i class="bi bi-search"></i></div>
-        <div class="home-search-field">
-            <label for="home-manual-search">Search</label>
-            <input
-                type="search"
-                id="home-manual-search"
-                name="q"
-                placeholder="모든 검색어를 입력하세요."
-                autocomplete="off"
-            />
-        </div>
-        <button type="submit" class="home-search-submit">
-            Search
-            <i class="bi bi-arrow-right" aria-hidden="true"></i>
-        </button>
-    </form>
-
-    {% if user.is_superuser %}
-    <div class="home-stat-grid" aria-label="Portal status">
-        <article class="home-stat-card">
-            <span class="home-stat-icon home-stat-icon-blue"><i class="bi bi-airplane"></i></span>
-            <div><strong>{{ aircraft_count }}</strong><span>Aircraft</span></div>
-        </article>
-        <article class="home-stat-card">
-            <span class="home-stat-icon home-stat-icon-indigo"><i class="bi bi-journal-bookmark-fill"></i></span>
-            <div><strong>{{ manual_count }}</strong><span>Manuals & files</span></div>
-        </article>
-        <article class="home-stat-card">
-            <span class="home-stat-icon home-stat-icon-cyan"><i class="bi bi-file-earmark-text-fill"></i></span>
-            <div><strong>{{ indexed_page_count }}</strong><span>Indexed pages</span></div>
-        </article>
-        <article class="home-stat-card">
-            <span class="home-stat-icon {% if failed_index_jobs %}home-stat-icon-red{% elif active_index_jobs %}home-stat-icon-amber{% else %}home-stat-icon-green{% endif %}">
-                <i class="bi {% if failed_index_jobs %}bi-exclamation-triangle-fill{% elif active_index_jobs %}bi-arrow-repeat{% else %}bi-check-circle-fill{% endif %}"></i>
-            </span>
-            <div>
-                <strong>{% if failed_index_jobs %}{{ failed_index_jobs }}{% elif active_index_jobs %}{{ active_index_jobs }}{% else %}Ready{% endif %}</strong>
-                <span>{% if failed_index_jobs %}Indexing failures{% elif active_index_jobs %}Indexing jobs{% else %}System status{% endif %}</span>
-            </div>
-        </article>
-    </div>
-    {% endif %}
-
-    <div class="home-dashboard-grid">
-        <section class="home-panel home-aircraft-panel" aria-labelledby="home-aircraft-title">
-            <div class="home-panel-heading">
-                <div>
-                    <span class="home-section-eyebrow">Manual access</span>
-                    <h2 id="home-aircraft-title">Aircraft Manuals</h2>
+    <div class="home-content-layout">
+        <main class="home-primary-column">
+            <form method="get" action="{% url 'manual_search' %}" class="home-section-search" role="search">
+                <span class="home-section-search-icon" aria-hidden="true"><i class="bi bi-search"></i></span>
+                <div class="home-section-search-field">
+                    <label for="home-manual-search">메뉴얼 검색</label>
+                    <input type="search" id="home-manual-search" name="q"
+                        placeholder="검색어를 입력하세요." autocomplete="off" />
                 </div>
-                <a href="{% url 'manual_home' %}" class="home-panel-link">View library <i class="bi bi-arrow-right"></i></a>
-            </div>
+                <button type="submit">Search</button>
+            </form>
 
-            <div class="home-aircraft-list">
-                {% for aircraft in dashboard_aircrafts %}
-                <article class="home-aircraft-row">
-                    <a href="{{ aircraft.url }}" class="home-aircraft-identity">
-                        <span class="home-aircraft-mark"><i class="bi bi-airplane-engines-fill"></i></span>
-                        <span><small>{{ aircraft.maker }}</small><strong>{{ aircraft.name }}</strong></span>
-                    </a>
-                    <div class="home-manual-links">
-                        {% for manual in aircraft.manuals %}
-                        <a href="{{ manual.url }}" class="home-manual-chip" title="Open {{ aircraft.name }} {{ manual.label }}">
-                            {{ manual.label }}
-                        </a>
-                        {% empty %}
-                        <span class="home-no-manual">No manuals available</span>
-                        {% endfor %}
-                    </div>
-                    <a href="{{ aircraft.url }}" class="home-aircraft-open" aria-label="Open {{ aircraft.name }} manuals">
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                </article>
-                {% empty %}
-                <div class="home-empty-state">
-                    <i class="bi bi-airplane"></i>
-                    <strong>No aircraft registered</strong>
-                    <span>Add an aircraft to start building the manual library.</span>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <aside class="home-side-column">
-            <section class="home-panel" aria-labelledby="home-tools-title">
-                <div class="home-panel-heading home-panel-heading-compact">
+            <section class="home-aircraft-section" aria-labelledby="home-aircraft-title">
+                <div class="home-section-heading">
                     <div>
-                        <span class="home-section-eyebrow">Workspace</span>
-                        <h2 id="home-tools-title">Quick Tools</h2>
+                        <span>Fleet publications</span>
+                        <h2 id="home-aircraft-title">Aircraft Manuals</h2>
+                        <p>기종을 선택하거나 필요한 매뉴얼로 바로 이동하세요.</p>
                     </div>
+                    <a href="{% url 'manual_home' %}" class="home-section-action">Manual Library</a>
                 </div>
-                <div class="home-tool-list">
-                    <a href="{% url 'manual_search' %}" class="home-tool-link">
-                        <span class="home-tool-icon home-tool-search"><i class="bi bi-search"></i></span>
-                        <span><strong>Manual Search</strong><small>Search indexed PDF content</small></span>
-                        <i class="bi bi-chevron-right"></i>
+
+                <div class="home-aircraft-list">
+                    {% for aircraft in dashboard_aircrafts %}
+                    <article class="home-aircraft-row">
+                        <div class="home-aircraft-identity">
+                            <span class="home-aircraft-icon"><i class="bi bi-airplane-engines-fill"></i></span>
+                            <span class="home-aircraft-name"><small>{{ aircraft.maker }}</small><strong>{{ aircraft.name }}</strong></span>
+                            <span class="home-aircraft-count"
+                                title="{{ aircraft.manual_count }} registered manuals"
+                                aria-label="{{ aircraft.manual_count }} registered manuals">
+                                {{ aircraft.manual_count }}
+                            </span>
+                        </div>
+                        <div class="home-aircraft-manuals" aria-label="{{ aircraft.name }} manuals">
+                            {% for manual in aircraft.manuals %}
+                            <a href="{{ manual.url }}" class="home-manual-pill home-manual-{{ manual.style_key }}"
+                                title="Open {{ aircraft.name }} {{ manual.label }} ({{ manual.mode }})">
+                                <i class="bi {{ manual.icon }}"></i><span>{{ manual.label }}</span>
+                            </a>
+                            {% empty %}
+                            <span class="home-empty-inline">등록된 매뉴얼이 없습니다.</span>
+                            {% endfor %}
+                        </div>
+                        <a href="{{ aircraft.url }}" class="home-aircraft-row-open" aria-label="Open {{ aircraft.name }} manuals">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </article>
+                    {% empty %}
+                    <div class="home-empty-state"><i class="bi bi-airplane"></i><strong>No aircraft registered</strong><span>Add an aircraft to start building the manual library.</span></div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="home-tools-section" aria-labelledby="home-tools-title">
+                <div class="home-section-heading home-section-heading-compact">
+                    <div><span>Daily workspace</span><h2 id="home-tools-title">Quick Tools</h2></div>
+                </div>
+                <div class="home-tool-grid">
+                    <a href="{% url 'manual_search' %}" class="home-tool-card home-tool-card-search">
+                        <i class="bi bi-search"></i><span><strong>Manual Search</strong><small>색인된 기술 문서 전체 검색</small></span>
                     </a>
-                    <a href="{% url 'dispatch_search' %}" class="home-tool-link">
-                        <span class="home-tool-icon home-tool-dispatch"><i class="bi bi-exclamation-triangle-fill"></i></span>
-                        <span><strong>Dispatch</strong><small>Find faults and references</small></span>
-                        <i class="bi bi-chevron-right"></i>
+                    <a href="{% url 'dispatch_search' %}" class="home-tool-card home-tool-card-dispatch">
+                        <i class="bi bi-exclamation-triangle-fill"></i><span><strong>Dispatch</strong><small>결함 메시지와 관련 문서 확인</small></span>
                     </a>
-                    <a href="{% url 'calculator' %}" class="home-tool-link">
-                        <span class="home-tool-icon home-tool-calculator"><i class="bi bi-calculator-fill"></i></span>
-                        <span><strong>Calculator</strong><small>Date, time and oil tools</small></span>
-                        <i class="bi bi-chevron-right"></i>
+                    <a href="{% url 'calculator' %}" class="home-tool-card home-tool-card-calculator">
+                        <i class="bi bi-calculator-fill"></i><span><strong>Calculator</strong><small>날짜·시간·오일 소모율 계산</small></span>
                     </a>
+                </div>
+            </section>
+        </main>
+
+        <aside class="home-update-sidebar" aria-labelledby="home-updates-title">
+            <section class="home-updates-panel">
+                <div class="home-section-heading home-section-heading-compact">
+                    <div><span>Library activity</span><h2 id="home-updates-title">Recent Updates</h2><p>최근 등록·개정된 문서 정보입니다.</p></div>
+                </div>
+                <div class="home-update-list">
+                    {% for update in recent_updates %}
+                    <article class="home-update-item">
+                        <div class="home-update-meta"><span>{{ update.kind }}</span><time>{{ update.display_date }}</time></div>
+                        <strong>{{ update.title }}</strong>
+                        {% if update.subtitle %}<small class="home-update-subtitle">{{ update.subtitle }}</small>{% endif %}
+                        <div class="home-update-revision"><small>Revision</small><span>{{ update.revision|default:"Current" }}</span></div>
+                    </article>
+                    {% empty %}
+                    <div class="home-empty-state"><i class="bi bi-clock-history"></i><strong>No manual updates yet</strong><span>Uploaded manuals will appear here.</span></div>
+                    {% endfor %}
                 </div>
             </section>
         </aside>
     </div>
 
-    <section class="home-panel home-updates-panel" aria-labelledby="home-updates-title">
-        <div class="home-panel-heading">
-            <div>
-                <span class="home-section-eyebrow">Library activity</span>
-                <h2 id="home-updates-title">Recent Updates</h2>
-            </div>
-        </div>
-
-        <div class="home-update-list">
-            {% for update in recent_updates %}
-            <a href="{{ update.url }}" class="home-update-row">
-                <span class="home-update-type">{{ update.kind }}</span>
-                <span class="home-update-title">
-                    <strong>{{ update.title }}</strong>
-                    {% if update.subtitle %}<small>{{ update.subtitle }}</small>{% endif %}
-                </span>
-                <span class="home-update-revision">
-                    <small>Revision</small>
-                    <strong>{{ update.revision|default:"Current" }}</strong>
-                </span>
-                <span class="home-update-date">
-                    {{ update.display_date }}
-                </span>
-                <i class="bi bi-arrow-up-right home-update-open" aria-hidden="true"></i>
-            </a>
-            {% empty %}
-            <div class="home-empty-state home-empty-state-updates">
-                <i class="bi bi-clock-history"></i>
-                <strong>No manual updates yet</strong>
-                <span>Uploaded manuals will appear here.</span>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
 </section>
 {% endblock inner_content %}

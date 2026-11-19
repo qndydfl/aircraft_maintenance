@@ -950,3 +950,34 @@ class ReindexJob(models.Model):
             self.STATUS_QUEUED,
             self.STATUS_PROCESSING,
         }
+
+
+class PortalHomeSettings(models.Model):
+    hero_image = models.ImageField(
+        upload_to="portal_home/",
+        blank=True,
+        null=True,
+        help_text="홈페이지 상단 오른쪽에 표시할 이미지를 업로드하세요.",
+    )
+    primary_tools_image = models.ImageField(
+        upload_to="portal_home/",
+        blank=True,
+        null=True,
+        help_text="Primary Tools 패널 배경에 표시할 이미지를 업로드하세요.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Portal Home Settings"
+        verbose_name_plural = "Portal Home Settings"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "Portal Home Settings"
+
+    @property
+    def hero_image_url(self):
+        return self.hero_image.url if self.hero_image else ""
