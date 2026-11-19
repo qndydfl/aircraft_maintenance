@@ -1461,6 +1461,26 @@ body.pdf-viewer-embedded .outline-resizer {
 
     .outline-panel #outline-container {
         padding: 0 0.5rem 0.875rem;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .outline-panel #outline-container > .outline-list {
+        width: max-content;
+        min-width: 100%;
+    }
+
+    .outline-panel .outline-tree-link {
+        max-width: none;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .outline-panel .outline-row {
+        width: max-content;
+        min-width: 100%;
     }
 
     /* The toolbar belongs to the Viewer tab only. */

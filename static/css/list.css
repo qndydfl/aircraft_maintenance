@@ -1457,6 +1457,36 @@ button.manual-workspace-subchapter:focus-visible {
         font-size: 0.75rem;
     }
 
+    .manual-workspace-chapters {
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .manual-workspace-subchapters {
+        width: max-content;
+        min-width: calc(100% - 0.9rem);
+    }
+
+    .manual-workspace-subchapter-node,
+    .manual-workspace-subchapter-children,
+    .manual-workspace-subchapter-row {
+        width: max-content;
+        min-width: 100%;
+    }
+
+    .manual-workspace-subchapter {
+        width: max-content;
+        min-width: calc(100% - 1.65rem);
+        flex: 0 0 auto;
+    }
+
+    .manual-workspace-subchapter-title {
+        overflow: visible;
+        text-overflow: clip;
+    }
+
     .manual-workspace-chapter-main strong {
         font-size: 0.82rem;
     }
