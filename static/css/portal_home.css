@@ -1,4 +1,4 @@
-body.portal-home-page {
+html body.portal-home-page {
     --home-border: #dfe6ef;
     --home-muted: #64748b;
     --home-heading: #17233a;
@@ -6,6 +6,7 @@ body.portal-home-page {
     --home-primary-dark: #1d4ed8;
     --home-panel-shadow: 0 0.3rem 1rem rgba(15, 23, 42, 0.04);
     color: var(--home-heading);
+    font-size: 1rem;
 }
 
 body.portal-home-page .app-main {
@@ -48,7 +49,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     display: block;
     margin-bottom: 0.35rem;
     color: var(--home-primary);
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     font-weight: 900;
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -60,7 +61,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     font-size: clamp(1.25rem, 2.4vw, 1.8rem);
     font-weight: 950;
     line-height: 1.15;
-    letter-spacing: -0.04em;
+    letter-spacing: 0.02em;
 }
 
 .home-hero-clocks {
@@ -86,14 +87,14 @@ body.portal-home-page .app-sidebar-content > .app-container {
 .home-hero-clocks span {
     grid-row: 1 / 3;
     color: var(--home-muted);
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     font-weight: 900;
 }
 
 .home-hero-clocks strong {
     overflow: hidden;
     color: var(--home-heading);
-    font-size: 1.05rem;
+    font-size: 1.125rem;
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     text-overflow: ellipsis;
@@ -177,9 +178,9 @@ body.portal-home-page .app-sidebar-content > .app-container {
     color: var(--home-heading);
     background: transparent;
     border: 0;
-    outline: 0;
-    font-size: 1.2rem;
-    border-radius: 0.45rem;
+    font-size: 1.1rem !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .home-section-search-field input::placeholder {
@@ -226,7 +227,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
 
 .home-section-heading > div > span {
     color: var(--home-primary);
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     font-weight: 900;
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -235,7 +236,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
 .home-section-heading h2 {
     margin: 0.15rem 0 0;
     color: var(--home-heading);
-    font-size: 1.22rem;
+    font-size: 1.3rem;
     font-weight: 950;
     letter-spacing: -0.025em;
 }
@@ -243,7 +244,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
 .home-section-heading p {
     margin: 0.18rem 0 0;
     color: var(--home-muted);
-    font-size: 0.84rem;
+    font-size: 0.9rem;
 }
 
 .home-section-action {
@@ -256,7 +257,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     background: #eff6ff;
     border: 1px solid #bfdbfe;
     border-radius: 0.58rem;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     font-weight: 900;
     text-decoration: none;
     transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
@@ -330,14 +331,14 @@ body.portal-home-page .app-sidebar-content > .app-container {
 
 .home-aircraft-name small {
     color: #7b8798;
-    font-size: 0.78rem;
+    font-size: 0.8125rem;
     font-weight: 750;
 }
 
 .home-aircraft-name strong {
     margin-top: 0.05rem;
     color: var(--home-heading);
-    font-size: 0.98rem;
+    font-size: 1rem;
     font-weight: 950;
 }
 
@@ -355,7 +356,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     border: 1px solid #cfd9e6;
     border-radius: 999rem;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0.18rem 0.45rem rgba(15, 23, 42, 0.08);
-    font-size: 0.78rem;
+    font-size: 0.8125rem;
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     cursor: help;
@@ -401,7 +402,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     border: 1px solid var(--manual-border, #dbe3ef);
     border-radius: 0.55rem;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-    font-size: 0.82rem;
+    font-size: 0.875rem;
     font-weight: 900;
     text-decoration: none;
     transition: color 170ms ease, background-color 170ms ease, border-color 170ms ease, box-shadow 170ms ease, transform 170ms ease;
@@ -522,14 +523,14 @@ body.portal-home-page .app-sidebar-content > .app-container {
 
 .home-tool-card strong {
     color: var(--home-heading);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
-.home-tool-card small {
+body.portal-home-page .home-tool-card small {
     overflow: hidden;
     margin-top: 0.1rem;
     color: #7b8798;
-    font-size: 0.78rem;
+    font-size: 0.875rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -596,13 +597,13 @@ body.portal-home-page .app-sidebar-content > .app-container {
     color: var(--home-primary-dark);
     background: #eff6ff;
     border-radius: 999rem;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 950;
 }
 
 .home-update-meta time {
     color: #7b8798;
-    font-size: 0.74rem;
+    font-size: 0.8125rem;
     font-weight: 750;
     white-space: nowrap;
 }
@@ -611,17 +612,17 @@ body.portal-home-page .app-sidebar-content > .app-container {
     display: -webkit-box;
     overflow: hidden;
     color: #25324a;
-    font-size: 0.86rem;
+    font-size: 0.9375rem;
     line-height: 1.35;
     -webkit-box-orient: vertical;
     line-clamp: 2;
     -webkit-line-clamp: 2;
 }
 
-.home-update-subtitle {
+body.portal-home-page .home-update-subtitle {
     overflow: hidden;
     color: #7b8798;
-    font-size: 0.74rem;
+    font-size: 0.8125rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -633,16 +634,16 @@ body.portal-home-page .app-sidebar-content > .app-container {
     gap: 0.35rem;
 }
 
-.home-update-revision small {
+body.portal-home-page .home-update-revision small {
     color: #94a3b8;
-    font-size: 0.74rem;
+    font-size: 0.8125rem;
     text-transform: uppercase;
 }
 
 .home-update-revision span {
     overflow: hidden;
     color: #475569;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     font-weight: 850;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -733,6 +734,10 @@ body.portal-home-page .app-sidebar-content > .app-container {
 
 /* Mobile */
 @media (max-width: 48rem) {
+    html body.portal-home-page {
+        font-size: 0.9375rem;
+    }
+
     body.portal-home-page .app-sidebar-content > .app-container {
         padding-inline: 0.7rem !important;
     }
@@ -752,6 +757,12 @@ body.portal-home-page .app-sidebar-content > .app-container {
         font-size: clamp(1.05rem, 4.8vw, 1.35rem);
     }
 
+    .home-dashboard-banner-eyebrow,
+    .home-hero-clocks span,
+    body.portal-home-page .home-hero-clocks small {
+        font-size: 0.8125rem;
+    }
+
     .home-dashboard-banner .home-hero-clocks {
         width: 100%;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -763,7 +774,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-hero-clocks strong {
-        font-size: 0.92rem;
+        font-size: 1rem;
     }
 
     .home-update-sidebar {
@@ -788,18 +799,18 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-section-search-field label {
-        font-size: 0.85rem;
+        font-size: 0.875rem;
     }
 
     .home-section-search-field input {
         font-size: 0.84rem;
     }
 
-    .home-section-search button {
+    body.portal-home-page .home-section-search button {
         min-width: 4.1rem;
         min-height: 2.45rem;
         padding: 0.4rem 0.55rem;
-        font-size: 0.76rem;
+        font-size: 0.875rem;
     }
 
     .home-section-heading {
@@ -809,17 +820,21 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-section-heading h2 {
-        font-size: 1.05rem;
+        font-size: 1.125rem;
     }
 
     .home-section-heading p {
-        font-size: 0.74rem;
+        font-size: 0.8125rem;
+    }
+
+    .home-section-heading > div > span {
+        font-size: 0.8125rem;
     }
 
     .home-section-action {
-        min-height: 1.9rem;
+        min-height: 2.15rem;
         padding: 0.3rem 0.45rem;
-        font-size: 0.68rem;
+        font-size: 0.8125rem;
     }
 
     .home-aircraft-row {
@@ -840,7 +855,12 @@ body.portal-home-page .app-sidebar-content > .app-container {
     }
 
     .home-aircraft-name strong {
-        font-size: 0.88rem;
+        font-size: 0.9375rem;
+    }
+
+    body.portal-home-page .home-aircraft-name small,
+    .home-aircraft-count {
+        font-size: 0.8125rem;
     }
 
     .home-aircraft-row-open {
@@ -860,7 +880,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
         min-width: 3.35rem;
         min-height: 1.85rem;
         padding: 0.28rem 0.4rem;
-        font-size: 0.72rem;
+        font-size: 0.8125rem;
     }
 
     .home-tools-section {
@@ -882,8 +902,12 @@ body.portal-home-page .app-sidebar-content > .app-container {
         height: 2.1rem;
     }
 
-    .home-tool-card small {
-        font-size: 0.72rem;
+    .home-tool-card strong {
+        font-size: 0.9375rem;
+    }
+
+    body.portal-home-page .home-tool-card small {
+        font-size: 0.8125rem;
         white-space: normal;
     }
 }

@@ -7,8 +7,8 @@ dispatch-search-page manual-search-page
 {% endblock body_class %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c6">
-<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=20261113-c6">
+<link rel="stylesheet" href="{% static 'css/manual_search.css' %}?v=20261113-c7">
+<link rel="stylesheet" href="{% static 'css/dispatch.css' %}?v=20261113-c7">
 {% endblock css %}
 
 {% block js %}
@@ -76,7 +76,7 @@ dispatch-search-page manual-search-page
                     name="q"
                     value="{{ query }}"
                     class="form-control"
-                    placeholder="예: AUTOBRAKE, AUTOBRAKE*, *AUTOBRAKE*"
+                    placeholder="검색어를 입력하세요"
                     autocomplete="off">
             </div>
             <button type="submit" class="btn btn-primary manual-search-primary-submit">
