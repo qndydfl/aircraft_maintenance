@@ -244,7 +244,7 @@ class ManualPackageFileTests(TestCase):
         self.assertContains(response, "Recent Updates")
         self.assertContains(response, "2026-10-27")
         self.assertNotContains(response, "27 OCT 2026")
-        self.assertContains(response, "portal_home.css?v=20261120-c26")
+        self.assertContains(response, "portal_home.css?v=20261121-c28")
         self.assertContains(response, "B737")
         self.assertContains(response, "AMM")
         self.assertContains(response, "Aircraft Maintenance Workspace")
