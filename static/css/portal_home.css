@@ -87,7 +87,7 @@ body.portal-home-page .app-sidebar-content > .app-container {
 .home-hero-clocks span {
     grid-row: 1 / 3;
     color: var(--home-muted);
-    font-size: 0.8rem;
+    font-size: 1.8rem;
     font-weight: 900;
 }
 
@@ -104,9 +104,10 @@ body.portal-home-page .app-sidebar-content > .app-container {
 .home-hero-clocks small {
     overflow: hidden;
     color: var(--home-muted);
-    font-size: 0.72rem;
+    font-size: 0.95rem !important;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 800;
 }
 
 /* Main layout */
@@ -757,10 +758,14 @@ body.portal-home-page .home-update-revision small {
         font-size: clamp(1.05rem, 4.8vw, 1.35rem);
     }
 
-    .home-dashboard-banner-eyebrow,
+    .home-dashboard-banner-eyebrow {
+        font-size: 0.75rem;
+        letter-spacing: 0.02em;
+    }
+
     .home-hero-clocks span,
     body.portal-home-page .home-hero-clocks small {
-        font-size: 0.8125rem;
+        font-size: 0.8125rem !important;
     }
 
     .home-dashboard-banner .home-hero-clocks {
@@ -798,12 +803,9 @@ body.portal-home-page .home-update-revision small {
         margin-left: 0;
     }
 
-    .home-section-search-field label {
-        font-size: 0.875rem;
-    }
-
-    .home-section-search-field input {
-        font-size: 0.84rem;
+    .home-section-search-field label,
+    .home-section-search-field input  {
+        font-size: 0.875rem !important;
     }
 
     body.portal-home-page .home-section-search button {
